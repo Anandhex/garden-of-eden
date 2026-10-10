@@ -2,6 +2,7 @@ import type { QuestTier } from "../game/levels.js";
 import type { NpcStats } from "./stats.js";
 import type { Skill, Skills } from "./skills.js";
 import type { Attributes } from "./stats.js";
+import type { Traits } from "./traits.js";
 
 export const MOODS = ["happy", "neutral", "annoyed", "angry", "afraid", "sad"] as const;
 export type Mood = (typeof MOODS)[number];
@@ -19,6 +20,8 @@ export interface NpcPersona {
   greed: number;
   /** Greed once every debt is paid off (defaults to `greed`). Desperate NPCs ease up. */
   greedWhenDebtFree?: number;
+  /** Personality traits, 0 to 1. Missing ones default to 0.5. See traits.ts for the rules they drive. */
+  traits?: Partial<Traits>;
   speechStyle: string;
   backstory: string;
   goals: string[];

@@ -2,7 +2,8 @@ import { formatTime } from "../game/clock.js";
 import { describeQuestsForNpc, findQuest, isQuestTalk } from "../game/quests.js";
 import { describeTeaching, isTrainingTalk } from "../game/training.js";
 import { bestWeapon, itemLabel } from "../game/items.js";
-import { isTradeTalk, itemsForSale, minPrice, npcPrice, PROVOKE_LIMIT } from "./actions.js";
+import { isTradeTalk, itemsForSale, minPrice, npcPrice } from "./actions.js";
+import { describeTraits, provokeLimit, traitsOf } from "./traits.js";
 import { describeSkills } from "./skills.js";
 import { describeAttributes, describeCondition } from "./stats.js";
 import type { NpcPersona, NpcState, WorldSnapshot } from "./types.js";
@@ -17,11 +18,12 @@ import type { NpcPersona, NpcState, WorldSnapshot } from "./types.js";
  *   can reuse the already-processed system prompt and replies start faster.
  */
 export function buildSystemPrompt(p: NpcPersona): string {
+  const temperament = describeTraits(traitsOf(p));
   const list = (items: string[]) => items.map((i) => `- ${i}`).join("\n");
   return `You are ${p.name}, ${p.role}, a character in a fantasy role-playing game. The player is talking to you.
 
 # Who you are
-Personality: ${p.personality.join(", ")}.
+Personality: ${[...p.personality, ...(temperament ? [temperament] : [])].join(", ")}.
 Body and mind: ${describeAttributes(p.stats)}. Act like it.
 Skills: ${describeSkills(p.skills)}. Talk about your trade like someone at that level would.
 How you speak: ${p.speechStyle}
@@ -104,7 +106,7 @@ function buildSituation(
       : null,
     state.inCombat && state.lastCombatNote ? `Last exchange: ${state.lastCombatNote}` : null,
     !state.inCombat && state.provocations >= 2
-      ? `${player.name} has insulted you ${state.provocations} times in a row${state.provocations >= PROVOKE_LIMIT ? "; your patience is gone" : ""}.`
+      ? `${player.name} has insulted you ${state.provocations} times in a row${state.provocations >= provokeLimit(traitsOf(persona)) ? "; your patience is gone" : ""}.`
       : null,
     trading ? `Your stock: ${stock}. Your purse: ${state.gold} gold.` : null,
     state.discountPct > 0 ? `You're willing to sell for up to ${state.discountPct}% off.` : null,

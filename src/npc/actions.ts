@@ -16,6 +16,7 @@ import {
 import { questOfferError, questsFor } from "../game/quests.js";
 import { quoteTraining, teachableSkills, trustCap } from "../game/training.js";
 import { SKILLS, skillLevel } from "./skills.js";
+import { fleeAt, moraleTarget, provokeLimit, traitsOf } from "./traits.js";
 import type { ToolDef } from "../llm/provider.js";
 import { MOODS, type Mood, type NpcPersona, type NpcState, type WorldSnapshot } from "./types.js";
 
@@ -70,12 +71,7 @@ export interface ActionResult {
 
 /** Trust needed before reveal_secret is offered (and accepted). */
 export const SECRET_TRUST = 50;
-/** Mean comments in a row (while still annoyed or angry) before the NPC may attack. */
-export const PROVOKE_LIMIT = 3;
-/** At or below this share of max HP, a fighting NPC may flee, and must pass a morale check when hit. */
-export const FLEE_AT = 0.4;
-/** Willpower check a badly hurt NPC must pass when hit, or it runs. */
-export const MORALE_TARGET = 15;
+// Provocation limit, flee threshold and morale target come from the NPC's traits (see traits.ts).
 
 /** How each mood shifts trust. The game owns this, not the model. */
 const TRUST_FROM_MOOD: Record<Mood, number> = {
@@ -186,8 +182,8 @@ export function npcWeapon(persona: NpcPersona) {
 }
 
 /** True when the NPC has been pushed far enough to start a fight. */
-export function isProvoked(state: NpcState): boolean {
-  return state.provocations >= PROVOKE_LIMIT && HOSTILE.includes(state.mood);
+export function isProvoked(persona: NpcPersona, state: NpcState): boolean {
+  return state.provocations >= provokeLimit(traitsOf(persona)) && HOSTILE.includes(state.mood);
 }
 
 /** Items the NPC has in stock and has a price for. */
@@ -234,7 +230,7 @@ export function toolsFor(ctx: ActionContext): ToolDef[] {
         "Otherwise don't call it: the fight goes on and you keep attacking.",
       parameters: z.toJSONSchema(noArgs),
     });
-    if (state.hp <= persona.stats.maxHp * FLEE_AT) {
+    if (state.hp <= persona.stats.maxHp * fleeAt(traitsOf(persona))) {
       tools.push({
         name: "flee",
         description: "Run away from the fight. You are badly hurt; call this if you'd rather survive than keep fighting.",
@@ -322,7 +318,7 @@ export function toolsFor(ctx: ActionContext): ToolDef[] {
     });
   }
 
-  if (isProvoked(state)) {
+  if (isProvoked(persona, state)) {
     tools.push({
       name: "attack_player",
       description:
@@ -468,7 +464,7 @@ export function applyAction(action: Extract<ParsedAction, { ok: true }>, ctx: Ac
     }
 
     case "attack_player": {
-      if (!state.inCombat && !isProvoked(state)) return { ok: false, message: "You haven't been provoked enough to attack." };
+      if (!state.inCombat && !isProvoked(persona, state)) return { ok: false, message: "You haven't been provoked enough to attack." };
       return npcAttack(ctx);
     }
 
@@ -481,7 +477,7 @@ export function applyAction(action: Extract<ParsedAction, { ok: true }>, ctx: Ac
 
     case "flee": {
       if (!state.inCombat) return { ok: false, message: "There's no fight to run from." };
-      if (state.hp > persona.stats.maxHp * FLEE_AT) return { ok: false, message: "You're not hurt enough to run." };
+      if (state.hp > persona.stats.maxHp * fleeAt(traitsOf(persona))) return { ok: false, message: "You're not hurt enough to run." };
       state.outcome = "fled";
       state.conversationOver = true;
       return { ok: true, message: "You run from the fight. Say one last line as you go." };
@@ -704,8 +700,8 @@ export function playerAttack(ctx: ActionContext): ActionResult & { damage: numbe
 
   // Badly hurt: a morale check decides whether the NPC keeps fighting. The model
   // almost never chose to flee on its own, so this is a roll, not its choice.
-  if (state.hp <= persona.stats.maxHp * FLEE_AT) {
-    const morale = check(rng, persona.stats.attributes.willpower, MORALE_TARGET);
+  if (state.hp <= persona.stats.maxHp * fleeAt(traitsOf(persona))) {
+    const morale = check(rng, persona.stats.attributes.willpower, moraleTarget(traitsOf(persona)));
     if (!morale.success) {
       setMood(state, "afraid");
       state.outcome = "fled";

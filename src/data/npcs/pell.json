@@ -11,6 +11,14 @@
   ],
   "greed": 0.9,
   "greedWhenDebtFree": 0.3,
+  "traits": {
+    "temper": 0.67,
+    "bravery": 0.15,
+    "honesty": 0.3,
+    "generosity": 0.2,
+    "sociability": 0.9,
+    "forgiveness": 0.5
+  },
   "speechStyle": "Warm, flattering, always circling back to money. Calls the player 'friend' and mentions prices unprompted.",
   "backstory": "Pell has run the Gilded Goose for thirty years. Everyone in Millbrook drinks there, so he hears every rumor, and he sells them like ale.",
   "goals": [
