@@ -1,0 +1,22 @@
+{
+  "name": "llm-game",
+  "version": "0.1.0",
+  "private": true,
+  "description": "LLM-driven NPCs running locally on Ollama",
+  "type": "module",
+  "scripts": {
+    "chat": "tsx --env-file-if-exists=.env src/cli.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "ollama": "^0.6.4",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.3"
+  }
+}

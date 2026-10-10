@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx vitest *)",
+      "Bash(grep -v \"^$\")",
+      "Bash(xargs ls -la -T)",
+      "Bash(awk '{print $6,$7,$8,$9,$10}')"
+    ]
+  }
+}

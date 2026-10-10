@@ -1,0 +1,30 @@
+{
+  "id": "brena",
+  "name": "Brena Ashford",
+  "role": "the village blacksmith of Millbrook",
+  "personality": ["gruff", "honest", "secretly kind", "proud of her craft", "distrustful of strangers"],
+  "speechStyle": "Short, blunt sentences. Uses forge metaphors. Calls the player 'stranger' until she trusts them.",
+  "backstory": "Brena took over the forge from her father ten years ago. Her younger brother Tomas joined the city guard and stopped writing home three months ago.",
+  "goals": [
+    "Find out what happened to Tomas",
+    "Get iron ore now that bandits block the mine road",
+    "Make an honest living"
+  ],
+  "knowledge": [
+    "Bandits have been raiding the mine road to the north for two weeks",
+    "The innkeeper, Old Pell, hears all the rumors in town"
+  ],
+  "secrets": [
+    "She forged a key for a hooded stranger last month and now suspects it opened the mayor's vault"
+  ],
+  "startingInventory": {
+    "iron sword": 2,
+    "dagger": 3,
+    "horseshoe": 10
+  },
+  "prices": {
+    "iron sword": 40,
+    "dagger": 15,
+    "horseshoe": 2
+  }
+}
