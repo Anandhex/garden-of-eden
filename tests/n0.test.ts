@@ -14,9 +14,10 @@ import { createNpcState, startEncounter } from "../src/npc/state.js";
 import type { NpcPersona } from "../src/npc/types.js";
 import { createDemoWorld } from "../src/world/world.js";
 import { face, rolls } from "./dice.test.js";
+import { parsePersona } from "../src/npc/personaSchema.js";
 
-const brena = brenaJson as NpcPersona;
-const pell = pellJson as NpcPersona;
+const brena = parsePersona(brenaJson);
+const pell = parsePersona(pellJson);
 
 /** Always says one line, never calls a tool. */
 class QuietProvider implements LLMProvider {
@@ -129,7 +130,7 @@ describe("N0 healing and rest", () => {
     expect(toolNames(c)).not.toContain("offer_item");
     expect(toolNames(c)).not.toContain("offer_to_buy");
     expect(toolNames(c)).not.toContain("offer_training");
-    const offer = parseAction("offer_item", { item: "dagger [E]", price: 15 });
+    const offer = parseAction("offer_item", { item: "dagger [E]", price: "1 gold 5 silver" });
     if (!offer.ok) throw new Error(offer.error);
     expect(applyAction(offer, c)).toMatchObject({ ok: false, message: expect.stringContaining("no state") });
     expect(quoteTraining(brena, c.state, world, "smithing", 2)).toMatchObject({ ok: false });
@@ -252,7 +253,7 @@ describe("N0 finer clock", () => {
   it("a trade takes ~5 minutes and a fight round ~1", async () => {
     const world = createDemoWorld();
     const npc = new NpcAgent(brena, new QuietProvider(), () => face(2, 20)); // everyone misses
-    npc.state.pendingOffer = { item: "dagger [E]", price: 15 };
+    npc.state.pendingOffer = { item: "dagger [E]", price: 150 };
     await npc.acceptOffer(world);
     expect(world.minute).toBe(5);
     await npc.attackedByPlayer(world);
@@ -308,21 +309,21 @@ describe("N0 losing a fight", () => {
 
   it("knockout (default): the NPC takes some gold, time passes, the player wakes with 25% HP, and the NPC remembers", async () => {
     expect(defaultRule).toBe("knockout");
-    const world = createDemoWorld(); // 14:00, 50 gold, 40 HP
+    const world = createDemoWorld(); // 14:00, 5 gold, 40 HP
     world.player.hp = 1;
     const npc = new NpcAgent(brena, new QuietProvider(), () => 0.99); // natural 20s
     npc.state.inCombat = true;
     npc.state.hp = 50;
     const r = await npc.respond("I can still fight!", world);
 
-    expect(r.defeat).toMatchObject({ rule: "knockout", goldTaken: 12, hoursOut: 8 });
-    expect(world.player.gold).toBe(38);
-    expect(npc.state.gold).toBe(35 + 12);
+    expect(r.defeat).toMatchObject({ rule: "knockout", moneyTaken: 125, hoursOut: 8 });
+    expect(world.player.money).toBe(375);
+    expect(npc.state.money).toBe(350 + 125);
     expect(world.player.hp).toBe(10);
     expect(world.hour).toBe(22); // 8 hours out cold
     expect(npc.state.hp).toBeGreaterThan(50); // she healed meanwhile
     expect(npc.state).toMatchObject({ outcome: "knocked out", conversationOver: true, inCombat: false });
-    expect(npc.state.memories).toEqual([{ id: "beat-player-day-1", day: 1, text: "You beat Traveler in a fight on day 1 and took 12 gold off them." }]);
+    expect(npc.state.memories).toEqual([{ id: "beat-player-day-1", day: 1, text: "You beat Traveler in a fight on day 1 and took 1 gold 2 silver 5 copper off them." }]);
 
     // Next time they meet, it's a new encounter, and she remembers.
     startEncounter(npc.state);
@@ -337,7 +338,7 @@ describe("N0 losing a fight", () => {
     const npc = new NpcAgent(brena, new QuietProvider(), () => 0.99);
     npc.state.inCombat = true;
     const r = await npc.respond("I can still fight!", world);
-    expect(r.defeat).toMatchObject({ rule: "permadeath", goldTaken: 0 });
+    expect(r.defeat).toMatchObject({ rule: "permadeath", moneyTaken: 0 });
     expect(world.player.hp).toBe(0);
     expect(world.player.death).toEqual({ day: 1, hour: 14, killedBy: "Brena Ashford" });
     expect(npc.state.outcome).toBe("killed player");

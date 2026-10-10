@@ -24,8 +24,9 @@ import { createNpcState } from "../src/npc/state.js";
 import type { NpcPersona, NpcState } from "../src/npc/types.js";
 import { createDemoWorld } from "../src/world/world.js";
 import { face, rolls } from "./dice.test.js";
+import { parsePersona } from "../src/npc/personaSchema.js";
 
-const persona = brena as NpcPersona;
+const persona = parsePersona(brena);
 const PROVOKE_LIMIT = provokeLimit(traitsOf(persona)); // Brena: 3
 const ctx = (overrides: Partial<NpcState> = {}, rng: Rng = rolls(0.5)): ActionContext => ({
   persona,
@@ -104,11 +105,18 @@ describe("player attacks", () => {
     expect(c.state.relationship).toBe(-55);
   });
 
-  it("uses the player's best weapon", () => {
+  it("a weapon in the pack does nothing until it's equipped", () => {
+    const c = ctx({}, rolls(face(15, 20), face(4, 4)));
+    c.world.player.inventory["dagger [E]"] = 1;
+    expect(playerAttack(c).message).toContain("fists");
+  });
+
+  it("uses the player's equipped weapon", () => {
     // d20 = 15 + 1 STR + 2 one-handed = 18 vs 10 - 1 (Brena AGI 9) + 1 evasion = 10: hit;
     // d6 = 4 → 4 + 1 STR + 1 (dagger is tier E) = 6.
     const c = ctx({}, rolls(face(15, 20), face(4, 6)));
-    c.world.player.inventory.dagger = 1;
+    c.world.player.level = 3; // an E-tier dagger needs level 3
+    c.world.player.equipment = { weapon: "dagger [E]" };
     const r = playerAttack(c);
     expect(r.damage).toBe(6);
     expect(r.message).toContain("dagger");
@@ -118,7 +126,7 @@ describe("player attacks", () => {
   it("a badly hurt NPC that fails its morale check runs", () => {
     // Hit: d20 15, d6 6 → 6 + 1 STR + 1 tier = 8 damage, 34 → 26 HP (≤ 40% of 90). Morale: d20 3 + 2 WIL = 5 vs 15 → fails.
     const c = ctx({ hp: 34 }, rolls(face(15, 20), face(6, 6), face(3, 20)));
-    c.world.player.inventory.dagger = 1;
+    c.world.player.equipment = { weapon: "dagger [E]" };
     const r = playerAttack(c);
     expect(c.state.hp).toBe(26);
     expect(c.state.outcome).toBe("fled");
@@ -171,7 +179,7 @@ describe("tools during a fight", () => {
   });
 
   it("refuses offers during a fight", () => {
-    const parsed = parseAction("offer_item", { item: "dagger [E]", price: 15 });
+    const parsed = parseAction("offer_item", { item: "dagger [E]", price: "1 gold 5 silver" });
     expect(parsed.ok && applyAction(parsed, ctx({ inCombat: true })).ok).toBe(false);
   });
 
@@ -189,7 +197,7 @@ describe("social checks", () => {
     expect(r.success).toBe(true);
     expect(c.state.relationship).toBe(15);
     expect(c.state.discountPct).toBe(14);
-    expect(minPrice(persona, c.state, "iron sword")).toBe(35);
+    expect(minPrice(persona, c.state, "iron sword")).toBe(344); // 4 gold less 14%: 3 gold 4 silver 4 copper
     expect(r.message).toContain("rolled 10+3=13 vs 13");
   });
 
@@ -226,7 +234,7 @@ describe("social checks", () => {
 
   it("offers below the discounted price still fail", () => {
     const c = ctx({ discountPct: 20 });
-    const parsed = parseAction("offer_item", { item: "iron sword [D]", price: 31 });
+    const parsed = parseAction("offer_item", { item: "iron sword [D]", price: 310 });
     expect(parsed.ok && applyAction(parsed, c).ok).toBe(false);
   });
 });
@@ -244,10 +252,10 @@ describe("haggling", () => {
   });
 
   it("a pending offer gets cheaper right away", () => {
-    const c = ctx({ pendingOffer: { item: "iron sword [D]", price: 40 } }, rolls(face(19, 20)));
+    const c = ctx({ pendingOffer: { item: "iron sword [D]", price: 400 } }, rolls(face(19, 20)));
     const r = haggle("That's steep.", c);
-    expect(c.state.pendingOffer).toEqual({ item: "iron sword [D]", price: 34 });
-    expect(r.message).toContain("Your offer is now iron sword [D] for 34 gold.");
+    expect(c.state.pendingOffer).toEqual({ item: "iron sword [D]", price: 332 });
+    expect(r.message).toContain("Your offer is now iron sword [D] for 3 gold 3 silver 2 copper.");
   });
 
   it("each failure makes the next harder, and she stops after three", () => {
@@ -264,7 +272,7 @@ describe("haggling", () => {
   });
 
   it("a sale resets the discount and failed haggles", () => {
-    const c = ctx({ pendingOffer: { item: "dagger [E]", price: 13 }, discountPct: 14, failedHaggles: 2 });
+    const c = ctx({ pendingOffer: { item: "dagger [E]", price: 130 }, discountPct: 14, failedHaggles: 2 });
     acceptOffer(c);
     expect(c.state.discountPct).toBe(0);
     expect(c.state.failedHaggles).toBe(0);

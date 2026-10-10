@@ -4,8 +4,9 @@ import { buildEventMessage, buildSystemPrompt, buildTurnMessage } from "../src/n
 import { createNpcState } from "../src/npc/state.js";
 import type { NpcPersona, NpcState } from "../src/npc/types.js";
 import { createDemoWorld } from "../src/world/world.js";
+import { parsePersona } from "../src/npc/personaSchema.js";
 
-const persona = brena as NpcPersona;
+const persona = parsePersona(brena);
 
 describe("buildSystemPrompt", () => {
   it("names the character and their role", () => {
@@ -65,8 +66,8 @@ describe("buildTurnMessage", () => {
   it("includes mood, stock with prices, and the player's gold and items", () => {
     const msg = buildTurnMessage(persona, state({ mood: "angry" }), createDemoWorld(), "What would you pay for this?");
     expect(msg).toContain("Your mood: angry.");
-    expect(msg).toContain("dagger [E] x2 (15 gold each). Your purse: 35 gold.");
-    expect(msg).toContain("Traveler has 50 gold and carries: bread loaf [G] x2, iron ore [F] x3, wild herbs [F] x2.");
+    expect(msg).toContain("dagger [E] x2 (1 gold 5 silver each). Your purse: 3 gold 5 silver.");
+    expect(msg).toContain("Traveler has 5 gold and carries: bread loaf [G] x2, iron ore [F] x3, wild herbs [F] x2.");
   });
 
   it("includes time, place, and recent news", () => {
@@ -77,7 +78,7 @@ describe("buildTurnMessage", () => {
 
   it("lists stock and the player's items only when they're talking trade (or for game events)", () => {
     const chat = buildTurnMessage(persona, state(), createDemoWorld(), "Is something troubling you?");
-    expect(chat).toContain("Traveler has 50 gold.");
+    expect(chat).toContain("Traveler has 5 gold.");
     expect(chat).not.toContain("iron ore");
     expect(chat).not.toContain("Your stock");
     expect(buildTurnMessage(persona, state(), createDemoWorld(), "Want to buy some ore?")).toContain("carries: bread loaf [G] x2, iron ore [F] x3");
@@ -87,7 +88,7 @@ describe("buildTurnMessage", () => {
 
   it("on trade turns, says what the player can afford (worked out in code)", () => {
     const msg = buildTurnMessage(persona, createNpcState(persona), createDemoWorld(), "Can I afford a sword?");
-    expect(msg).toContain("With 50 gold, they can afford: horseshoe [G], dagger [E], iron sword [D]. Too dear for them: iron sword [B].");
+    expect(msg).toContain("With 5 gold, they can afford: horseshoe [G], dagger [E], iron sword [D]. Too dear for them: iron sword [B].");
     expect(buildTurnMessage(persona, createNpcState(persona), createDemoWorld(), "Hello.")).not.toContain("can afford");
   });
 
@@ -109,8 +110,8 @@ describe("buildTurnMessage", () => {
 
 describe("offers and events", () => {
   it("shows a pending offer in the situation", () => {
-    const msg = buildTurnMessage(persona, state({ pendingOffer: { item: "dagger [E]", price: 15 } }), createDemoWorld(), "x");
-    expect(msg).toContain("You offered Traveler a dagger [E] for 15 gold and are waiting for their answer.");
+    const msg = buildTurnMessage(persona, state({ pendingOffer: { item: "dagger [E]", price: 150 } }), createDemoWorld(), "x");
+    expect(msg).toContain("You offered Traveler a dagger [E] for 1 gold 5 silver and are waiting for their answer.");
   });
 
   it("leaves the offer line out when there is none", () => {
@@ -118,7 +119,7 @@ describe("offers and events", () => {
   });
 
   it("builds an event message with the situation and the event in parentheses", () => {
-    const msg = buildEventMessage(persona, state(), createDemoWorld(), "Traveler accepted and paid 15 gold for the dagger [E].");
-    expect(msg).toMatch(/^<situation>[\s\S]*<\/situation>\n\n\(Traveler accepted and paid 15 gold for the dagger \[E\]\.\)$/);
+    const msg = buildEventMessage(persona, state(), createDemoWorld(), "Traveler accepted and paid 1 gold 5 silver for the dagger [E].");
+    expect(msg).toMatch(/^<situation>[\s\S]*<\/situation>\n\n\(Traveler accepted and paid 1 gold 5 silver for the dagger \[E\]\.\)$/);
   });
 });

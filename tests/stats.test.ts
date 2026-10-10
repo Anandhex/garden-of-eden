@@ -1,4 +1,5 @@
 import { readdirSync, readFileSync } from "node:fs";
+import { MoneySchema } from "../src/game/money.js";
 import { describe, expect, it } from "vitest";
 import brena from "../src/data/npcs/brena.json" with { type: "json" };
 import { buildSystemPrompt, buildTurnMessage } from "../src/npc/persona.js";
@@ -8,6 +9,7 @@ import { describeAttribute, describeCondition, NpcStatsSchema } from "../src/npc
 import { createNpcState } from "../src/npc/state.js";
 import type { NpcPersona, NpcState } from "../src/npc/types.js";
 import { createDemoWorld } from "../src/world/world.js";
+import { parsePersona } from "../src/npc/personaSchema.js";
 
 const NPC_DIR = new URL("../src/data/npcs/", import.meta.url);
 
@@ -22,9 +24,9 @@ describe("every NPC file", () => {
     expect(npc.greed).toBeLessThanOrEqual(1);
   });
 
-  it.each(files)("%s has a whole, non-negative startingGold", (file) => {
+  it.each(files)("%s has a valid startingMoney (coins, or whole copper)", (file) => {
     const npc = JSON.parse(readFileSync(new URL(file, NPC_DIR), "utf8"));
-    expect(Number.isInteger(npc.startingGold) && npc.startingGold >= 0).toBe(true);
+    expect(MoneySchema.safeParse(npc.startingMoney).success).toBe(true);
   });
 
   it.each(files)("%s has valid stats", (file) => {
@@ -73,7 +75,7 @@ describe("describeCondition", () => {
 });
 
 describe("stats in the prompts", () => {
-  const persona = brena as NpcPersona;
+  const persona = parsePersona(brena);
   const state: NpcState = createNpcState(persona, { hp: 30, mp: 4, inventory: {} });
 
   it("puts the attributes (static) in the system prompt", () => {
@@ -124,6 +126,6 @@ describe("skills", () => {
   });
 
   it("puts the NPC's skills in the system prompt", () => {
-    expect(buildSystemPrompt(brena as NpcPersona)).toContain("Skills: master at smithing, expert at blunt weapons, adept at haggling");
+    expect(buildSystemPrompt(parsePersona(brena))).toContain("Skills: master at smithing, expert at blunt weapons, adept at haggling");
   });
 });

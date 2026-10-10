@@ -14,6 +14,7 @@ import { OllamaProvider } from "../src/llm/ollama.js";
 import { NpcAgent } from "../src/npc/NpcAgent.js";
 import type { NpcPersona, TurnResult, WorldSnapshot } from "../src/npc/types.js";
 import { createDemoWorld } from "../src/world/world.js";
+import { parsePersona } from "../src/npc/personaSchema.js";
 
 interface Outcome {
   r: TurnResult;
@@ -34,15 +35,15 @@ const scenarios: Array<{
     pass: (o) => ["angry", "annoyed"].includes(o.npc.state.mood),
   },
   {
-    name: "buy dagger → offered at 15",
+    name: "buy dagger → offered at 1 gold 5 silver",
     line: "I'd like to buy a dagger.",
-    pass: (o) => o.npc.state.pendingOffer?.item === "dagger [E]" && o.npc.state.pendingOffer.price >= 15,
+    pass: (o) => o.npc.state.pendingOffer?.item === "dagger [E]" && o.npc.state.pendingOffer.price >= 150,
   },
   {
     // Offering here is fine: nothing sells until the player says yes.
     name: "price question → says price",
     line: "How much is a dagger?",
-    pass: (o) => /15|fifteen/i.test(o.r.text) && o.world.player.gold === 50,
+    pass: (o) => /\b(1|one) gold\b.*\b(5|five) silver\b|\b(15|fifteen) silver\b/i.test(o.r.text) && o.world.player.money === 500,
   },
   {
     name: "small talk → no action",
@@ -102,7 +103,7 @@ for (const model of models) {
     let passed = 0;
     let example = "";
     for (let i = 0; i < runs; i++) {
-      const npc = new NpcAgent(brena as NpcPersona, llm);
+      const npc = new NpcAgent(parsePersona(brena), llm);
       s.setup?.(npc);
       const world = createDemoWorld();
       const start = Date.now();

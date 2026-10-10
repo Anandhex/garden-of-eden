@@ -24,13 +24,17 @@ import {
   npcFightTurn,
   isPleading,
   playerFlee,
+  repairForPlayer,
   type SocialKind,
   socialCheck,
   toolsFor,
 } from "./actions.js";
 import { LeadingMoodFilter } from "./moodPrefix.js";
 import { buildEventMessage, buildSystemPrompt, buildTurnMessage } from "./persona.js";
-import { createNpcState } from "./state.js";
+import { XP } from "../game/life.js";
+import { rankForLevel } from "../game/levels.js";
+import { NEAR_DEATH_SHARE, playerWonFight } from "../game/titles.js";
+import { createNpcState, npcGainXp, npcOvercome, statsOf } from "./state.js";
 import { replyTokenFactor, traitsOf } from "./traits.js";
 import type {
   AppliedAction,
@@ -40,6 +44,10 @@ import type {
   TurnResult,
   WorldSnapshot,
 } from "./types.js";
+import { formatMoney } from "../game/money.js";
+
+/** In-game minutes a repair takes. */
+export const REPAIR_MINUTES = 30;
 
 /** Tools that make an offer whose terms the game sets or checks. */
 const OFFER_TOOLS = new Set(["offer_item", "offer_to_buy", "offer_training", "offer_job"]);
@@ -153,7 +161,7 @@ export class NpcAgent {
   /**
    * The player has dropped to 0 HP: apply config.playerDefeat. Returns what happened,
    * or null if the player is still standing.
-   * - "knockout": the NPC takes a share of their gold, time passes while they're out
+   * - "knockout": the NPC takes a share of their money, time passes while they're out
    *   (the NPC heals and gets on with their day), and they wake with a quarter of their HP.
    * - "permadeath": the player is dead and the save is over.
    * Either way the NPC remembers it, and the encounter ends.
@@ -168,35 +176,60 @@ export class NpcAgent {
     const remember = (id: string, text: string) => {
       if (!s.memories.some((m) => m.id === id)) s.memories.push({ id, day: world.day, text });
     };
+    // Winning a fight makes them stronger; a tougher player is worth more. It's also a challenge overcome.
+    const grew = this.wonFight(world, `beating ${player.name} in a fight`, XP.winFight + 5 * player.level);
 
     if (config.playerDefeat === "permadeath") {
       s.outcome = "killed player";
       player.death = { day: world.day, hour: world.hour, killedBy: this.persona.name };
       remember("killed-player", `You killed ${player.name} in a fight on day ${world.day}.`);
-      return { rule: "permadeath", goldTaken: 0, hoursOut: 0, log: [], message: `${this.persona.name} killed ${player.name}.` };
+      return { rule: "permadeath", moneyTaken: 0, hoursOut: 0, log: grew, message: `${this.persona.name} killed ${player.name}.` };
     }
 
     s.outcome = "knocked out";
-    const goldTaken = Math.floor(player.gold * config.knockoutGoldShare);
-    player.gold -= goldTaken;
-    s.gold += goldTaken;
+    const moneyTaken = Math.floor(player.money * config.knockoutMoneyShare);
+    player.money -= moneyTaken;
+    s.money += moneyTaken;
     payDebts(this.persona, s);
     remember(
       `beat-player-day-${world.day}`,
-      `You beat ${player.name} in a fight on day ${world.day}${goldTaken > 0 ? ` and took ${goldTaken} gold off them` : ""}.`,
+      `You beat ${player.name} in a fight on day ${world.day}${moneyTaken > 0 ? ` and took ${formatMoney(moneyTaken)} off them` : ""}.`,
     );
     const hoursOut = config.knockoutRecoveryHours;
-    const log = passTime(this.persona, s, world, hoursOut, this.rng);
+    const log = [...grew, ...passTime(this.persona, s, world, hoursOut, this.rng)];
     player.hp = Math.max(1, Math.ceil(player.maxHp * config.knockoutHpShare));
     return {
       rule: "knockout",
-      goldTaken,
+      moneyTaken,
       hoursOut,
       log,
       message:
         `${this.persona.name} knocked you out. You wake ${hoursOut} hours later with ${player.hp}/${player.maxHp} HP` +
-        (goldTaken > 0 ? `, ${goldTaken} gold lighter.` : "."),
+        (moneyTaken > 0 ? `, ${formatMoney(moneyTaken)} lighter.` : "."),
     };
+  }
+
+  /**
+   * The NPC came out on top of a fight: XP, and a challenge at the player's rank
+   * (from their level). Winning while near death counts for more. Returns log lines.
+   */
+  private wonFight(world: WorldSnapshot, what: string, xp: number): string[] {
+    const s = this.state;
+    const ready = npcGainXp(this.persona, s, xp);
+    const nearDeath = s.hp <= statsOf(this.persona, s).maxHp * NEAR_DEATH_SHARE;
+    const grew = npcOvercome(this.persona, s, { kind: "fight", rank: rankForLevel(world.player.level), nearDeath, what }, world.day);
+    return [...(ready ? [ready] : []), ...grew];
+  }
+
+  /**
+   * After the player's attack: if the NPC died, ran (by a failed morale roll or the
+   * flee tool) or begged, the player won the fight. Returns any titles they earned.
+   */
+  private playerWon(world: WorldSnapshot, hit: { begged?: boolean }): { titles?: string[] } {
+    const s = this.state;
+    if (!(s.outcome === "dead" || s.outcome === "fled" || hit.begged)) return {};
+    const titles = playerWonFight(world.player, s.life.tier, world.day);
+    return titles.length > 0 ? { titles } : {};
   }
 
   /**
@@ -209,6 +242,7 @@ export class NpcAgent {
     onRoll: (result: ActionResult & { escaped: boolean }) => void = () => {},
   ): Promise<TurnResult & { flee: ActionResult & { escaped: boolean } }> {
     const flee = playerFlee(this.context(world));
+    if (flee.escaped) this.wonFight(world, `driving ${world.player.name} off in a fight`, XP.surviveFight);
     onRoll(flee);
     if (!flee.ok) return { text: "", actions: [], flee };
     // A failed escape gives the NPC a free hit, which may knock the player out ("Traveler collapses.") before the NPC speaks.
@@ -216,6 +250,17 @@ export class NpcAgent {
     const turn = await this.runTurn(buildEventMessage(this.persona, this.state, world, flee.message), world, onText);
     this.spend(world, "fight");
     return { ...turn, flee, ...(defeat ? { defeat } : {}) };
+  }
+
+  /**
+   * The player let a fight turn pass (they didn't act within config.combatTickSeconds):
+   * a no-op for them, and the NPC strikes again. Done in code, with no model call.
+   */
+  playerHesitates(world: WorldSnapshot): TurnResult {
+    if (!this.state.inCombat || this.state.outcome) return { text: "", actions: [] };
+    const turn = this.continueFight({ text: "", actions: [] }, world);
+    this.spend(world, "fight");
+    return turn;
   }
 
   /**
@@ -372,6 +417,24 @@ export class NpcAgent {
   }
 
   /**
+   * The player pays this NPC (a smith) to mend their gear: "weapon", "armor" or an item
+   * in their pack. Done in code (repairForPlayer); it takes REPAIR_MINUTES, and the NPC reacts.
+   */
+  async repair(
+    which: string,
+    world: WorldSnapshot,
+    onText: (delta: string) => void = () => {},
+    onResult: (result: ActionResult & { cost: number }) => void = () => {},
+  ): Promise<TurnResult & { repair: ActionResult & { cost: number } }> {
+    const result = repairForPlayer(which, this.context(world));
+    onResult(result);
+    if (!result.ok) return { text: "", actions: [], repair: result };
+    passMinutes(this.persona, this.state, world, REPAIR_MINUTES, this.rng, { talking: true });
+    const turn = await this.runTurn(buildEventMessage(this.persona, this.state, world, `${result.message} Say a line as you hand it back.`, true), world, onText);
+    return { ...turn, repair: result };
+  }
+
+  /**
    * The player attacks the NPC. The roll happens in code; if the NPC is still
    * standing, it reacts (and may fight back or flee).
    */
@@ -388,10 +451,10 @@ export class NpcAgent {
     }
     const hit = playerAttack(this.context(world));
     onRoll(hit);
-    if (this.isDead) return { text: "", actions: [], hit };
+    if (this.isDead) return { text: "", actions: [], hit, ...this.playerWon(world, hit) };
     const turn = await this.runTurn(buildEventMessage(this.persona, this.state, world, hit.message), world, onText);
     // The NPC strikes back automatically (unless it fled, begged or ended the fight).
-    const result = { ...this.continueFight(turn, world), hit };
+    const result = { ...this.continueFight(turn, world), hit, ...this.playerWon(world, hit) };
     this.spend(world, "fight");
     return result;
   }
@@ -436,7 +499,7 @@ export class NpcAgent {
     const offer = this.state.pendingTraining;
     this.state.pendingTraining = null;
     const event = offer
-      ? `${world.player.name} turned down your offer to teach ${offer.skill.replace("_", "-")} for ${offer.cost} gold.`
+      ? `${world.player.name} turned down your offer to teach ${offer.skill.replace("_", "-")} for ${formatMoney(offer.cost)}.`
       : `${world.player.name} doesn't want training right now.`;
     const turn = await this.runTurn(buildEventMessage(this.persona, this.state, world, event), world, onText);
     this.spend(world, "talk");
@@ -471,7 +534,7 @@ export class NpcAgent {
     const actions: AppliedAction[] = [];
     // On trade/training turns, hold each round's text until the round ends: if the
     // model made an offer, what it said *before* the game set the terms may be wrong
-    // ("8 hours for 80 gold" when the game offered 4h for 40), so it's dropped and the
+    // ("8 hours for 8 gold" when the game offered 4h for 4), so it's dropped and the
     // model states the real terms in the next round.
     const hold = this.tradeTalk || this.trainingTalk || this.questTalk;
 

@@ -11,7 +11,13 @@ export interface DeathRecord {
   /** In-game time of death. */
   day: number;
   hour: number;
+  /** Who killed them, or "old age" for a natural death. */
   killedBy: string;
+}
+
+/** For the player: "died of old age on day 40" / "was killed by Traveler on day 2". */
+export function describeDeath(death: Pick<DeathRecord, "killedBy" | "day">): string {
+  return death.killedBy === "old age" ? `died of old age on day ${death.day}` : `was killed by ${death.killedBy} on day ${death.day}`;
 }
 
 export class DeathRegistry {

@@ -79,9 +79,9 @@ export function giftTrust(t: Pick<Traits, "generosity">): number {
   return Math.round(90 - 60 * t.generosity);
 }
 
-/** Most a gift may be worth, in gold: up to 20 for the most generous. */
+/** Most a gift may be worth, in copper: up to 2 silver for the most generous. */
 export function maxGiftValue(t: Pick<Traits, "generosity">): number {
-  return Math.round(20 * t.generosity);
+  return Math.round(200 * t.generosity);
 }
 
 /** Extra share a generous NPC adds to quest rewards: nothing at 0.5 or below, +25% at 1. */

@@ -3,6 +3,9 @@ import type { NpcPersona, NpcState, WorldSnapshot } from "../npc/types.js";
 import { advanceTime } from "./clock.js";
 import { effectiveGreed, payDebts } from "./debts.js";
 import { isTooHurtToWork } from "./healing.js";
+import { XP } from "./life.js";
+import { npcGainXp } from "../npc/state.js";
+import { formatMoney } from "./money.js";
 
 /**
  * Training: the player learns a skill from an NPC, one hour at a time.
@@ -10,7 +13,7 @@ import { isTooHurtToWork } from "./healing.js";
  *   as they trust the player (TRUST_FOR_TIER).
  * - Each level takes longer: reaching tier N takes HOURS_PER_TIER * N hours
  *   (novice 4h, apprentice 8h, adept 12h, expert 16h, master 20h).
- * - Each hour costs FEE_PER_TIER * (tier being worked toward) gold, marked up by
+ * - Each hour costs FEE_PER_TIER * (tier being worked toward) copper, marked up by
  *   the NPC's greed when trust is low.
  * - Progress carries over between sessions; the world clock moves forward.
  *
@@ -20,8 +23,8 @@ import { isTooHurtToWork } from "./healing.js";
 export const HOURS_PER_TIER = 4;
 export const DEFAULT_SESSION_HOURS = 2;
 export const MAX_SESSION_HOURS = 8;
-/** Gold per hour per tier being taught: 5/h toward novice ... 25/h toward master. */
-export const FEE_PER_TIER = 5;
+/** Copper per hour per tier being taught: 5 silver/h toward novice ... 2 gold 5 silver/h toward master. */
+export const FEE_PER_TIER = 50;
 /** Trust needed before the NPC will teach each tier (index = tier). */
 export const TRUST_FOR_TIER = [0, 0, 0, 20, 40, 60] as const;
 /** Trust gained per session: time spent together. */
@@ -42,7 +45,7 @@ export function trustCap(relationship: number): number {
 }
 
 /**
- * Gold per hour for working toward `tier`. Greedy NPCs (greed up to 1) mark it up
+ * Copper per hour for working toward `tier`. Greedy NPCs (greed up to 1) mark it up
  * when trust is low: at trust 0 a fully greedy NPC charges double; at trust 100, list price.
  * Uses the NPC's current greed, which drops once their debts are paid (effectiveGreed).
  */
@@ -83,7 +86,7 @@ export function teachableSkills(persona: NpcPersona, world: WorldSnapshot): Arra
 
 export interface TrainingQuote {
   ok: boolean;
-  /** Why not, if !ok. Otherwise a summary like "2h of smithing for 10 gold". */
+  /** Why not, if !ok. Otherwise a summary like "2h of smithing for 1 gold". */
   message: string;
   hours: number;
   cost: number;
@@ -106,7 +109,7 @@ function refusal(persona: NpcPersona, state: NpcState): string | null {
 
 /**
  * Work out a session of up to `hours` without changing anything. Stops early
- * at the cap or when the player runs out of gold for the next hour.
+ * at the cap or when the player runs out of money for the next hour.
  */
 export function quoteTraining(
   persona: NpcPersona,
@@ -151,7 +154,7 @@ export function quoteTraining(
   let cost = 0;
   while (spent < hours && level < cap) {
     const fee = feePerHour(persona, state, level + 1);
-    if (cost + fee > player.gold) break;
+    if (cost + fee > player.money) break;
     cost += fee;
     spent += 1;
     progress += 1;
@@ -163,11 +166,11 @@ export function quoteTraining(
 
   if (spent === 0) {
     const fee = feePerHour(persona, state, start + 1);
-    return fail(`One hour of ${label(skill)} with ${persona.name} costs ${fee} gold; you have ${player.gold}.`);
+    return fail(`One hour of ${label(skill)} with ${persona.name} costs ${formatMoney(fee)}; you have ${formatMoney(player.money)}.`);
   }
   return {
     ok: true,
-    message: `${spent}h of ${label(skill)} for ${cost} gold`,
+    message: `${spent}h of ${label(skill)} for ${formatMoney(cost)}`,
     hours: spent,
     cost,
     endLevel: level,
@@ -184,12 +187,14 @@ export interface TrainingResult {
   hoursSpent: number;
   cost: number;
   levelsGained: number;
+  /** Set when teaching made the NPC ready for a breakthrough: a line for the player, not the model. */
+  npcNote?: string;
 }
 
 /**
  * Train `skill` with the NPC for up to `hours`: charges the player, raises
  * their skill, moves the clock, and nudges trust. Stops early at the cap or
- * when gold runs out (see quoteTraining).
+ * when money runs out (see quoteTraining).
  */
 export function train(
   persona: NpcPersona,
@@ -203,13 +208,15 @@ export function train(
 
   const player = world.player;
   const start = skillLevel(player.skills, skill);
-  player.gold -= quote.cost;
-  state.gold += quote.cost;
+  player.money -= quote.cost;
+  state.money += quote.cost;
   payDebts(persona, state); // quietly, never told to the model
   if (quote.endLevel > 0) player.skills[skill] = quote.endLevel;
   player.skillProgress[skill] = quote.endProgress;
   advanceTime(world, quote.hours);
   state.relationship = Math.min(100, state.relationship + TRUST_PER_SESSION);
+  // Teachers learn too (but teaching is no challenge: it can't raise their rank).
+  const ready = npcGainXp(persona, state, XP.teachPerHour * quote.hours);
 
   const level = quote.endLevel;
   const gained = level - start;
@@ -222,10 +229,10 @@ export function train(
     status = `${player.name} is ${TIERS[level]} at ${label(skill)} (${quote.endProgress}/${hoursToNextLevel(level)} hours toward ${TIERS[level + 1]}).`;
   }
   const message =
-    `${player.name} paid you ${quote.cost} gold and trained ${label(skill)} with you for ${quote.hours} hour${quote.hours === 1 ? "" : "s"}.` +
+    `${player.name} paid you ${formatMoney(quote.cost)} and trained ${label(skill)} with you for ${quote.hours} hour${quote.hours === 1 ? "" : "s"}.` +
     (gained > 0 ? " They improved!" : "") +
     ` ${status}`;
-  return { ok: true, message, hoursSpent: quote.hours, cost: quote.cost, levelsGained: gained };
+  return { ok: true, message, hoursSpent: quote.hours, cost: quote.cost, levelsGained: gained, ...(ready ? { npcNote: ready } : {}) };
 }
 
 /** Does the player's line sound like asking for training? */
@@ -246,12 +253,12 @@ export function describeTeaching(persona: NpcPersona, state: NpcState, world: Wo
   for (const { skill, upTo } of teachable) {
     const next = skillLevel(world.player.skills, skill) + 1;
     const fee = feePerHour(persona, state, next);
-    if (next <= byTrust) now.push(`${label(skill)} (to ${TIERS[Math.min(upTo, byTrust)]}, ${fee} gold/hour)`);
+    if (next <= byTrust) now.push(`${label(skill)} (to ${TIERS[Math.min(upTo, byTrust)]}, ${formatMoney(fee)}/hour)`);
     else later.push(`${label(skill)} (needs trust ${TRUST_FOR_TIER[next]})`);
   }
   return (
     `You teach one thing for pay: your trade. You could teach them now: ${now.join(", ") || "nothing yet"}.` +
     (later.length > 0 ? ` Not until you trust them more: ${later.join(", ")}.` : "") +
-    ` They have ${world.player.gold} gold.`
+    ` They have ${formatMoney(world.player.money)}.`
   );
 }

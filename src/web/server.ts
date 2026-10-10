@@ -3,10 +3,24 @@ import { readdirSync, readFileSync, existsSync, statSync } from "node:fs";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 import { config } from "../config.js";
-import { absoluteHour, advanceMinutes, advanceTime, formatTime } from "../game/clock.js";
+import { absoluteHour, absoluteMinute, advanceMinutes, advanceTime, formatTime } from "../game/clock.js";
 import { countItem } from "../game/crafting.js";
+import {
+  type Creature,
+  creatureAmbush,
+  creatureBeatsPlayer,
+  type CreatureRound,
+  creatureStats,
+  creatureTurn,
+  fightCreature,
+  fleeCreature,
+  isNotable,
+  loadCreatureTemplates,
+  passCreatureTime,
+} from "../game/creatures.js";
+import { DEMO_SPAWNS } from "../world/world.js";
 import { DeathRegistry } from "../game/deaths.js";
-import { xpToNextLevel } from "../game/levels.js";
+import { rankForLevel, xpToNextLevel } from "../game/levels.js";
 import { importDeaths, loadWorld, newWorld, saveWorld, type SavedWorld } from "../game/save.js";
 import {
   DEFAULT_SESSION_HOURS,
@@ -21,12 +35,44 @@ import {
 } from "../game/training.js";
 import { findQuest } from "../game/quests.js";
 import { OllamaProvider } from "../llm/ollama.js";
-import { npcPrice } from "../npc/actions.js";
+import { isSmith, notForSaleReason, npcPrice } from "../npc/actions.js";
+import {
+  armorValue,
+  equip,
+  equippedWeapon,
+  gearLimit,
+  isBroken,
+  playerGearRank,
+  playerSlots,
+  repairCost,
+  type Slot,
+  slotFor,
+  SLOTS,
+  slotsUsed,
+  unequip,
+} from "../game/gear.js";
 import { NpcAgent } from "../npc/NpcAgent.js";
+import { npcSlots, statsOf } from "../npc/state.js";
+import { ageOn, atPeak, growthStatus, isReady, xpToNextTier } from "../game/life.js";
+import { TITLES } from "../game/titles.js";
+import { speciesOf } from "../world/species.js";
 import { parsePersona } from "../npc/personaSchema.js";
 import { SKILLS, skillLevel, TIERS } from "../npc/skills.js";
 import type { NpcPersona, TurnResult } from "../npc/types.js";
-import { BUILDINGS, distance, isSolid, MAP_H, MAP_W, MINUTES_PER_STEP, NPC_SPOTS, PLAYER_START, TALK_RANGE, TILES } from "./map.js";
+import {
+  BUILDINGS,
+  CREATURE_DENS,
+  distance,
+  isSolid,
+  MAP_H,
+  MAP_W,
+  MINUTES_PER_STEP,
+  NPC_SPOTS,
+  PLAYER_START,
+  TALK_RANGE,
+  TILES,
+} from "./map.js";
+import { formatMoney } from "../game/money.js";
 
 const PORT = Number(process.env.PORT ?? 3000);
 const WEB_DIR = fileURLToPath(new URL("../../web/", import.meta.url));
@@ -40,19 +86,31 @@ const personas: Record<string, NpcPersona> = Object.fromEntries(
 );
 for (const id of ids) if (!NPC_SPOTS[id]) throw new Error(`NPC "${id}" has no spot on the map (src/web/map.ts).`);
 
+const creatureTemplates = loadCreatureTemplates();
 const llm = new OllamaProvider();
 const deaths = new DeathRegistry(config.deathsFile);
 let world: SavedWorld;
 let agents: Record<string, NpcAgent>;
 /** NPCs who ran off and will be back, by the game hour they return. Not saved. */
 const awayUntil: Record<string, number> = {};
+/** The creature the player is fighting, if any. Not saved: a restart ends the fight. */
+let engaged: string | null = null;
+/** Creatures that won't jump the player again until this game minute (after an escape). Not saved. */
+const calmUntil: Record<string, number> = {};
+/** Game minutes a creature leaves you be after you get away from it. */
+const CALM_MINUTES = 30;
 let llmReady = false;
 let llmError = "";
 
 function startGame(fresh: boolean): void {
-  world = fresh ? newWorld(personas) : importDeaths(loadWorld(config.saveFile, personas), config.deathsFile);
+  world = fresh
+    ? newWorld(personas, creatureTemplates)
+    : importDeaths(loadWorld(config.saveFile, personas, creatureTemplates), config.deathsFile);
   world.position ??= { ...PLAYER_START };
   for (const key of Object.keys(awayUntil)) delete awayUntil[key];
+  engaged = null;
+  for (const key of Object.keys(calmUntil)) delete calmUntil[key];
+  news.length = 0;
   agents = Object.fromEntries(ids.map((id) => [id, new NpcAgent(personas[id]!, llm, undefined, world.npcStates[id])]));
   for (const id of ids) {
     const state = agents[id]!.state;
@@ -61,7 +119,47 @@ function startGame(fresh: boolean): void {
     if (state.outcome !== "dead") state.conversationOver = false;
     if (world.deaths[id] && state.outcome !== "dead") state.outcome = "dead";
   }
+  placeCreatures();
   persist();
+}
+
+// ---- Creatures on the map ----
+
+/** Creatures that are on the map now: alive, not run off, and with a known den. */
+function presentCreatures(): Creature[] {
+  return Object.values(world.creatures).filter((c) => !c.outcome && CREATURE_DENS[c.template] && creatureTemplates[c.template]);
+}
+
+function tileTaken(x: number, y: number, except?: Creature): boolean {
+  if (isSolid(x, y)) return true;
+  if (world.position && world.position.x === x && world.position.y === y) return true;
+  if (Object.values(NPC_SPOTS).some((s) => s.x === x && s.y === y)) return true;
+  return presentCreatures().some((c) => c !== except && c.pos?.x === x && c.pos?.y === y);
+}
+
+/** Give every creature that lacks one (new, or back from running off) a free tile in its den. */
+function placeCreatures(): void {
+  for (const c of presentCreatures()) {
+    const den = CREATURE_DENS[c.template]!;
+    const inDen = c.pos && c.pos.x >= den.x0 && c.pos.x <= den.x1 && c.pos.y >= den.y0 && c.pos.y <= den.y1;
+    if (inDen && !tileTaken(c.pos!.x, c.pos!.y, c)) continue;
+    const free: Array<{ x: number; y: number }> = [];
+    for (let y = den.y0; y <= den.y1; y++) for (let x = den.x0; x <= den.x1; x++) if (!tileTaken(x, y, c)) free.push({ x, y });
+    if (free.length > 0) c.pos = free[Math.floor(Math.random() * free.length)]!;
+  }
+}
+
+/** Creatures roam a step within their den (not the one fighting the player). */
+function wander(): void {
+  for (const c of presentCreatures()) {
+    if (c.uid === engaged || !c.pos || Math.random() < 0.4) continue;
+    const den = CREATURE_DENS[c.template]!;
+    const [dx, dy] = [[1, 0], [-1, 0], [0, 1], [0, -1]][Math.floor(Math.random() * 4)]!;
+    const x = c.pos.x + dx!;
+    const y = c.pos.y + dy!;
+    if (x < den.x0 || x > den.x1 || y < den.y0 || y > den.y1 || tileTaken(x, y, c)) continue;
+    c.pos = { x, y };
+  }
 }
 
 function persist(): void {
@@ -82,12 +180,26 @@ async function checkLlm(): Promise<void> {
 
 // ---- Time ----
 
+/** Write a death to the permanent record (once). Natural deaths happen while time passes, not only in fights. */
+function recordDeath(id: string): void {
+  if (world.deaths[id]) return;
+  const s = agents[id]!.state;
+  deaths.record({ npcId: id, name: personas[id]!.name, day: world.day, hour: world.hour, killedBy: s.deathCause ?? world.player.name });
+  world.deaths[id] = deaths.get(id)!;
+}
+
 /** Run `hours` of NPC life from `at`. NPCs get a copy of the clock so it only moves once. */
 function simulate(hours: number, at: SavedWorld, log: string[]): void {
   for (const id of ids) {
     const clock = { ...at };
     log.push(...agents[id]!.wait(clock, hours));
+    if (agents[id]!.isDead) recordDeath(id);
   }
+  // Creatures live by themselves: they age, hunt, duel and grow. Only the big news reaches the player.
+  const news = passCreatureTime(creatureTemplates, world.creatures, at, hours, Math.random, DEMO_SPAWNS);
+  log.push(...news.filter(isNotable));
+  placeCreatures();
+  wander();
   for (const [id, until] of Object.entries(awayUntil)) {
     if (absoluteHour(at) + hours >= until) {
       delete awayUntil[id];
@@ -131,16 +243,31 @@ function npcView(id: string) {
   const byTrust = trustCap(s.relationship);
   const wares = Object.entries(s.inventory)
     .filter(([, qty]) => qty > 0)
-    .map(([item, qty]) => ({ item, qty, price: npcPrice(persona, item) ?? null }));
+    .map(([item, qty]) => ({ item, qty, price: npcPrice(persona, item) ?? null, reason: notForSaleReason(persona, item) }));
   return {
     id,
     name: persona.name,
     role: persona.role,
+    species: speciesOf(persona.species).name.replace(/^an? /, ""),
+    age: ageOn(s.life, world.day),
+    ageStage: s.life.stage,
+    rank: s.life.tier,
+    rankXp: Math.floor(s.life.xp),
+    rankXpNext: xpToNextTier(s.life.tier),
+    potential: s.life.potential,
+    atPeak: atPeak(s.life, speciesOf(persona.species)),
+    readyToBreakThrough: isReady(s.life, speciesOf(persona.species)),
+    growth: growthStatus(s.life, speciesOf(persona.species)),
+    titles: s.life.titles.map((t) => TITLES[t.id].name),
+    deathCause: s.deathCause,
+    gear: { weapon: s.equipment.weapon ?? null, armor: s.equipment.armor ?? null },
+    stock: { used: slotsUsed(s.inventory), slots: npcSlots(persona, s), storage: persona.storage?.name ?? null },
+    repairs: isSmith(persona),
     x: spot.x,
     y: spot.y,
     color: spot.color,
     hp: s.hp,
-    maxHp: persona.stats.maxHp,
+    maxHp: statsOf(persona, s).maxHp,
     mood: s.mood,
     trust: s.relationship,
     dead,
@@ -162,7 +289,7 @@ function npcView(id: string) {
     pending: {
       quest: (() => {
         const q = s.pendingQuest ? findQuest(persona, s, s.pendingQuest) : undefined;
-        return q ? { title: q.title, tier: q.tier, item: q.objective.item, qty: q.objective.qty, gold: q.reward.gold } : null;
+        return q ? { title: q.title, tier: q.tier, item: q.objective.item, qty: q.objective.qty, money: q.reward.money } : null;
       })(),
       training: s.pendingTraining,
       purchase: s.pendingPurchase,
@@ -181,12 +308,33 @@ function snapshot() {
     position: world.position,
     player: {
       name: p.name,
-      gold: p.gold,
+      money: p.money,
       hp: p.hp,
       maxHp: p.maxHp,
       level: p.level,
+      rank: rankForLevel(p.level),
+      titles: (p.titles ?? []).map((t) => TITLES[t.id].name),
       xp: p.xp,
       xpNext: xpToNextLevel(p.level),
+      gear: Object.fromEntries(
+        SLOTS.map((slot) => {
+          const key = p.equipment?.[slot];
+          return [slot, key ? { item: key, broken: isBroken(key), repairCost: repairCost(key) } : null];
+        }),
+      ),
+      fightingWith: equippedWeapon(p).name,
+      armorValue: armorValue(p),
+      gearTier: playerGearRank(p.level),
+      pack: { used: slotsUsed(p.inventory), slots: playerSlots(p) },
+      items: Object.entries(p.inventory)
+        .filter(([, qty]) => qty > 0)
+        .map(([item, qty]) => ({
+          item,
+          qty,
+          slot: slotFor(item),
+          needs: slotFor(item) ? gearLimit(playerGearRank(p.level), item, "player") : null,
+          repairCost: slotFor(item) ? repairCost(item) : 0,
+        })),
       attributes: p.attributes,
       inventory: p.inventory,
       skills: SKILLS.map((s) => {
@@ -200,12 +348,40 @@ function snapshot() {
         item: q.objective.item,
         qty: q.objective.qty,
         have: countItem(p.inventory, q.objective.item),
-        gold: q.reward.gold,
+        money: q.reward.money,
       })),
       completed: p.quests.completed.length,
       journal: p.journal ?? [],
     },
     npcs: ids.map(npcView),
+    creatures: presentCreatures()
+      .filter((c) => c.pos)
+      .map((c) => {
+        const t = creatureTemplates[c.template]!;
+        const species = speciesOf(t.species);
+        return {
+          uid: c.uid,
+          name: c.name,
+          kind: t.id,
+          x: c.pos!.x,
+          y: c.pos!.y,
+          color: CREATURE_DENS[c.template]!.color,
+          hp: c.hp,
+          maxHp: creatureStats(t, c).maxHp,
+          rank: c.life.tier,
+          age: ageOn(c.life, world.day),
+          growth: growthStatus(c.life, species),
+          titles: c.life.titles.map((x) => TITLES[x.id].name),
+          aggressive: t.aggressive,
+          engaged: c.uid === engaged,
+        };
+      }),
+    engaged,
+    fight: (() => {
+      const left = secondsToAct();
+      return left === null ? null : { secondsLeft: Math.round(left * 10) / 10, tick: config.combatTickSeconds };
+    })(),
+    news: news.slice(-20),
   };
 }
 
@@ -232,12 +408,18 @@ function setScene(id: string): void {
 /** One NPC reply, streamed. Records everything the NPC did as events. */
 async function npcSpeaks(id: string, emit: Emit, run: (agent: NpcAgent, onText: (delta: string) => void) => Promise<TurnResult>) {
   const agent = agents[id]!;
-  const name = personas[id]!.name;
   const result = await run(agent, (delta) => emit({ t: "text", npc: id, delta }));
+  reportTurn(id, result, emit);
+}
+
+/** What the NPC did in a turn (and any titles the player earned), as events. */
+function reportTurn(id: string, result: TurnResult, emit: Emit): void {
+  const name = personas[id]!.name;
   for (const a of result.actions) {
     if (a.name === "attack_player" && a.ok) emit({ t: "note", kind: "combat", text: `${name} attacks. ${a.message.replace(/^You /, "").replace(/\(rolled[^)]*\)\s*/, "")}` });
     else emit({ t: "note", kind: a.ok ? "action" : "fail", text: `${a.name}: ${a.message}` });
   }
+  for (const line of result.titles ?? []) emit({ t: "note", kind: "quest", text: line });
 }
 
 async function act(body: Record<string, unknown>, emit: Emit): Promise<void> {
@@ -245,8 +427,20 @@ async function act(body: Record<string, unknown>, emit: Emit): Promise<void> {
   const text = String(body.text ?? "").trim().slice(0, 500);
   const id = String(body.npc ?? "");
 
+  if (action === "hunt" || action === "escape") return creatureAction(action, String(body.creature ?? ""), emit);
+  if (action === "equip" || action === "unequip") {
+    if (currentFight()) return void emit({ t: "system", text: "Not in the middle of a fight." });
+    const p = world.player;
+    const r =
+      action === "equip"
+        ? equip(p, playerGearRank(p.level), String(body.item ?? ""), "player")
+        : unequip(p, (String(body.slot) === "armor" ? "armor" : "weapon") as Slot, playerSlots(p));
+    return void emit({ t: "note", kind: r.ok ? "action" : "fail", text: r.message });
+  }
+
   if (action === "wait") {
-    if (Object.values(agents).some((a) => a.state.inCombat)) return void emit({ t: "system", text: "You can't wait around in the middle of a fight." });
+    const fighting = Object.values(agents).some((a) => a.state.inCombat) || (engaged !== null && !world.creatures[engaged]?.outcome);
+    if (fighting) return void emit({ t: "system", text: "You can't wait around in the middle of a fight." });
     const hours = Math.max(1, Math.min(24, Math.floor(Number(body.hours ?? 1))));
     for (const line of passHours(hours)) emit({ t: "system", text: line });
     emit({ t: "system", text: `Time passes. It's now ${formatTime(world)}.` });
@@ -317,11 +511,18 @@ async function act(body: Record<string, unknown>, emit: Emit): Promise<void> {
         emit({
           t: "note",
           kind: r.turnIn.completed.length > 0 ? "quest" : "fail",
-          text: r.turnIn.completed.length > 0 ? `Quest complete: ${r.turnIn.completed.map((q) => q.title).join(", ")}. You are level ${p.level}, ${p.gold} gold.` : r.turnIn.message,
+          text: r.turnIn.completed.length > 0 ? `Quest complete: ${r.turnIn.completed.map((q) => q.title).join(", ")}. You are level ${p.level}, ${formatMoney(p.money)}.${(r.turnIn.titles ?? []).map((l) => ` ${l}`).join("")}` : r.turnIn.message,
         });
         return r;
       });
       break;
+    case "repair": {
+      const which = String(body.which ?? "");
+      await npcSpeaks(id, emit, (a, on) =>
+        a.repair(which, world, on, (r) => emit({ t: "note", kind: r.ok ? "action" : "fail", text: r.ok ? `Repaired for ${formatMoney(r.cost)}.` : r.message })),
+      );
+      break;
+    }
     case "train": {
       const skill = parseSkill(String(body.skill ?? ""));
       const hours = Math.max(1, Math.min(MAX_SESSION_HOURS, Math.floor(Number(body.hours ?? DEFAULT_SESSION_HOURS))));
@@ -330,7 +531,7 @@ async function act(body: Record<string, unknown>, emit: Emit): Promise<void> {
       if (!quote.ok) return void emit({ t: "system", text: quote.message });
       await npcSpeaks(id, emit, (a, on) =>
         a.train(skill, hours, world, on, (r) =>
-          emit({ t: "note", kind: r.ok ? "action" : "fail", text: r.ok ? `Trained ${r.hoursSpent}h${r.levelsGained ? ", level up!" : ""}. Now ${formatTime(world)}.` : r.message }),
+          emit({ t: "note", kind: r.ok ? "action" : "fail", text: r.ok ? `Trained ${r.hoursSpent}h${r.levelsGained ? ", level up!" : ""}. Now ${formatTime(world)}.${r.npcNote ? ` ${r.npcNote}` : ""}` : r.message }),
         ),
       );
       break;
@@ -356,7 +557,7 @@ async function act(body: Record<string, unknown>, emit: Emit): Promise<void> {
         await npcSpeaks(id, emit, async (a, on) => {
           if (!yes) return a.declinePurchase(world, on);
           const r = await a.acceptPurchase(world, on);
-          emit({ t: "note", kind: r.sale.ok ? "action" : "fail", text: `${r.sale.message} You have ${p.gold} gold.` });
+          emit({ t: "note", kind: r.sale.ok ? "action" : "fail", text: `${r.sale.message} You have ${formatMoney(p.money)}.` });
           return r;
         });
       else if (kind === "offer")
@@ -382,9 +583,12 @@ function afterTurn(id: string, emit: Emit): void {
   const s = agent.state;
 
   if (agent.isDead) {
-    deaths.record({ npcId: id, name, day: world.day, hour: world.hour, killedBy: world.player.name });
-    world.deaths[id] = deaths.get(id)!;
-    emit({ t: "ended", npc: id, text: `${name} falls and doesn't get up. They're dead, and they won't be coming back.` });
+    recordDeath(id);
+    const text =
+      s.deathCause === "old age"
+        ? `${name} is gone, taken by old age. They won't be coming back.`
+        : `${name} falls and doesn't get up. They're dead, and they won't be coming back.`;
+    emit({ t: "ended", npc: id, text });
   } else if (s.outcome === "knocked out") {
     // Same as the CLI: you come round hours later, healed, and the fight is over.
     for (const line of passHours(config.knockoutRecoveryHours)) emit({ t: "system", text: line });
@@ -411,12 +615,112 @@ function move(dx: number, dy: number): { ok: boolean; log: string[]; reason?: st
   const ny = pos.y + Math.sign(dy);
   if (Math.abs(dx) + Math.abs(dy) !== 1) return { ok: false, log: [], reason: "One step at a time." };
   if (Object.values(agents).some((a) => a.state.inCombat && !a.isDead)) return { ok: false, log: [], reason: "You can't walk away from a fight. Flee or fight on." };
+  if (engaged && world.creatures[engaged] && !world.creatures[engaged]!.outcome) {
+    return { ok: false, log: [], reason: `You're fighting ${world.creatures[engaged]!.name}. Fight (F) or run (R).` };
+  }
+  engaged = null;
   if (isSolid(nx, ny)) return { ok: false, log: [] };
   if (ids.some((id) => !agents[id]!.isDead && awayUntil[id] === undefined && NPC_SPOTS[id]!.x === nx && NPC_SPOTS[id]!.y === ny)) return { ok: false, log: [] };
+  if (presentCreatures().some((c) => c.pos?.x === nx && c.pos?.y === ny)) return { ok: false, log: [] };
   pos.x = nx;
   pos.y = ny;
-  return { ok: true, log: walkMinutes(MINUTES_PER_STEP) };
+  const log = walkMinutes(MINUTES_PER_STEP);
+  // Wolves and bandits jump anyone who comes close.
+  const lurker = presentCreatures().find(
+    (c) =>
+      creatureTemplates[c.template]!.aggressive &&
+      c.pos &&
+      distance(pos, c.pos) <= TALK_RANGE &&
+      (calmUntil[c.uid] ?? -1) <= absoluteMinute(world),
+  );
+  if (lurker) {
+    engaged = lurker.uid;
+    log.push(...afterCreatureRound(lurker, creatureAmbush(creatureTemplates[lurker.template]!, lurker, world, Math.random)));
+  }
+  return { ok: true, log };
 }
+
+/** What a creature fight round means for the game: end the fight, or knock the player out. Returns lines for the player. */
+function afterCreatureRound(c: Creature, round: CreatureRound): string[] {
+  const log = [...round.log];
+  if (round.over === "player fled") calmUntil[c.uid] = absoluteMinute(world) + CALM_MINUTES;
+  if (round.over && round.over !== "player down") engaged = null;
+  if (round.over === "player down") {
+    engaged = null;
+    const defeat = creatureBeatsPlayer(creatureTemplates[c.template]!, c, world);
+    log.push(defeat.message);
+    if (defeat.hoursOut > 0) log.push(...passHours(defeat.hoursOut));
+  }
+  return log;
+}
+
+/** The player attacks a creature next to them, or tries to get away from one. No model involved. */
+function creatureAction(action: "hunt" | "escape", uid: string, emit: Emit): void {
+  const c = world.creatures[uid];
+  const t = c && creatureTemplates[c.template];
+  if (!c || !t || c.outcome || !c.pos) return void emit({ t: "system", text: "There's nothing there to fight." });
+  if (distance(world.position!, c.pos) > TALK_RANGE) return void emit({ t: "system", text: `You are too far from ${c.name}.` });
+  if (action === "escape" && engaged !== uid) return void emit({ t: "system", text: `You're not fighting ${c.name}.` });
+  engaged = uid;
+  const round = action === "hunt" ? fightCreature(t, c, world, Math.random) : fleeCreature(t, c, world, Math.random);
+  const lines = afterCreatureRound(c, round);
+  lines.push(...walkMinutes(config.turnMinutes.fight));
+  // Notes land once in the side feed when no conversation is open.
+  for (const text of lines) emit({ t: "note", kind: "combat", text });
+}
+
+// ---- The combat clock ----
+
+/**
+ * In a fight the player has config.combatTickSeconds to act. If they don't, the
+ * turn is a no-op for them and the opponent strikes (in code, no model). What
+ * happens goes into `news`, which the client polls during fights.
+ */
+let lastPlayerAction = Date.now();
+let newsId = 0;
+const news: Array<Record<string, unknown> & { id: number }> = [];
+const NEWS_KEPT = 50;
+
+function pushNews(event: Record<string, unknown>): void {
+  news.push({ ...event, id: ++newsId });
+  if (news.length > NEWS_KEPT) news.shift();
+}
+
+/** Who the player is fighting: an NPC id, a creature uid, or null. */
+function currentFight(): { npc: string } | { creature: string } | null {
+  const npc = ids.find((id) => agents[id]!.state.inCombat && !agents[id]!.isDead);
+  if (npc) return { npc };
+  if (engaged && world.creatures[engaged] && !world.creatures[engaged]!.outcome) return { creature: engaged };
+  return null;
+}
+
+/** Seconds the player has left to act in the current fight, or null when there's no clock. */
+function secondsToAct(): number | null {
+  if (config.combatTickSeconds <= 0 || !currentFight()) return null;
+  return Math.max(0, config.combatTickSeconds - (Date.now() - lastPlayerAction) / 1000);
+}
+
+/** The player didn't act in time: their turn passes and the opponent strikes. */
+function combatTick(): void {
+  const fight = currentFight();
+  if (!fight || working || config.combatTickSeconds <= 0) return;
+  if (Date.now() - lastPlayerAction < config.combatTickSeconds * 1000) return;
+  lastPlayerAction = Date.now();
+  if ("npc" in fight) {
+    pushNews({ t: "note", kind: "combat", npc: fight.npc, text: "You hesitate." });
+    const emit: Emit = (event) => pushNews({ npc: fight.npc, ...event });
+    reportTurn(fight.npc, agents[fight.npc]!.playerHesitates(world), emit);
+    afterTurn(fight.npc, emit);
+  } else {
+    const c = world.creatures[fight.creature]!;
+    const lines = afterCreatureRound(c, creatureTurn(creatureTemplates[c.template]!, c, world, Math.random));
+    lines.push(...walkMinutes(config.turnMinutes.fight));
+    for (const text of lines) pushNews({ t: "note", kind: "combat", text });
+  }
+  persist();
+}
+
+setInterval(combatTick, 250);
 
 // ---- HTTP ----
 
@@ -467,7 +771,9 @@ const server = createServer(async (req, res) => {
   const url = (req.url ?? "/").split("?")[0]!;
   try {
     if (req.method === "GET" && url === "/api/state") {
-      if (!llmReady && !working) await checkLlm();
+      // Fight polling (?poll=1) skips the model check so it stays fast.
+      const polling = new URL(req.url!, "http://x").searchParams.has("poll");
+      if (!llmReady && !working && !polling) await checkLlm();
       return json(res, 200, snapshot());
     }
 
@@ -478,11 +784,12 @@ const server = createServer(async (req, res) => {
       if (!personas[id] || !skill) return json(res, 400, { ok: false, message: "Unknown NPC or skill." });
       const hours = Math.max(1, Math.min(MAX_SESSION_HOURS, Number(q.get("hours") ?? DEFAULT_SESSION_HOURS)));
       const quote = quoteTraining(personas[id]!, agents[id]!.state, world, skill, hours);
-      return json(res, 200, { ...quote, gold: world.player.gold });
+      return json(res, 200, { ...quote, money: world.player.money });
     }
 
     if (req.method === "POST" && url === "/api/move") {
       if (working) return json(res, 409, { ok: false, reason: "Busy." });
+      lastPlayerAction = Date.now();
       const body = await readBody(req);
       const result = move(Number(body.dx ?? 0), Number(body.dy ?? 0));
       if (result.ok) persist();
@@ -499,17 +806,21 @@ const server = createServer(async (req, res) => {
       if (working) return json(res, 409, { error: "Another action is still running." });
       const body = await readBody(req);
       working = true;
+      lastPlayerAction = Date.now(); // acting (or a reply streaming) uses up the turn's clock
       res.writeHead(200, { "content-type": "application/x-ndjson", "cache-control": "no-store" });
       const emit: Emit = (event) => res.write(`${JSON.stringify(event)}\n`);
       try {
-        if (!llmReady && body.action !== "wait" && body.action !== "open") await checkLlm();
-        if (!llmReady && body.action !== "wait" && body.action !== "open") emit({ t: "error", text: llmError });
+        // Waiting, opening a chat and fighting creatures need no model.
+        const offline = ["wait", "open", "hunt", "escape", "equip", "unequip"].includes(String(body.action));
+        if (!llmReady && !offline) await checkLlm();
+        if (!llmReady && !offline) emit({ t: "error", text: llmError });
         else await act(body, emit);
         persist();
       } catch (err) {
         emit({ t: "error", text: (err as Error).message });
       } finally {
         working = false;
+        lastPlayerAction = Date.now(); // the clock for the next turn starts once the reply is done
         emit({ t: "done", state: snapshot() });
         res.end();
       }

@@ -62,3 +62,10 @@ dialog::backdrop { background: rgba(0,0,0,.6); }
 .modal-actions { margin-top: 12px; text-align: right; }
 .train-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--panel2); }
 .train-row small { color: var(--muted); display: block; }
+
+/* Small buttons inside list rows (equip, take off, repair). */
+button.small {
+  margin-left: 8px;
+  padding: 2px 8px;
+  font-size: 12px;
+}

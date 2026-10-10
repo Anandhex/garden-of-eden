@@ -17,9 +17,10 @@ import { busyWith, passTime } from "../src/game/simulation.js";
 import { createNpcState } from "../src/npc/state.js";
 import type { NpcPersona } from "../src/npc/types.js";
 import { createDemoWorld } from "../src/world/world.js";
+import { parsePersona } from "../src/npc/personaSchema.js";
 
-const brena = brenaJson as NpcPersona;
-const pell = pellJson as NpcPersona;
+const brena = parsePersona(brenaJson);
+const pell = parsePersona(pellJson);
 const recipe = (id: string) => RECIPES.find((r) => r.id === id)!;
 const d20 = (n: number) => () => (n - 0.5) / 20;
 
@@ -82,11 +83,11 @@ describe("time passing", () => {
 
   it("idle NPCs sell stock to villagers for gold (which can pay down debts)", () => {
     const world = createDemoWorld();
-    const state = createNpcState(pell, { gold: 20, inventory: { "ale [G]": 1 } }); // no herbs: can't brew
+    const state = createNpcState(pell, { money: 200, inventory: { "ale [G]": 1 } }); // no herbs: can't brew
     const before = state.debts.mayor!;
     passTime(pell, state, world, 1, () => 0.1);
     expect(state.inventory["ale [G]"]).toBeUndefined();
-    expect(state.debts.mayor).toBe(before - 2);
+    expect(state.debts.mayor).toBe(before - 20); // an ale: 2 silver
   });
 
   it("time passes even for the dead, but they do nothing", () => {

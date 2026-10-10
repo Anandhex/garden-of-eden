@@ -62,6 +62,13 @@ export const NPC_SPOTS: Record<string, NpcSpot> = {
   },
 };
 
+/** Where each kind of creature roams (inclusive tile rectangles). Creatures never leave their area. */
+export const CREATURE_DENS: Record<string, { x0: number; y0: number; x1: number; y1: number; color: string }> = {
+  wolf: { x0: 15, y0: 12, x1: 23, y1: 16, color: "#8a8f96" },
+  bandit: { x0: 8, y0: 1, x1: 16, y1: 2, color: "#5a4636" },
+  horse: { x0: 2, y0: 12, x1: 4, y1: 16, color: "#8b5a2b" },
+};
+
 function build() {
   const tiles: Tile[][] = Array.from({ length: MAP_H }, () => Array<Tile>(MAP_W).fill("grass"));
   const set = (x: number, y: number, t: Tile) => {
