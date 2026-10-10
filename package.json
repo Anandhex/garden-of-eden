@@ -7,7 +7,9 @@
   "scripts": {
     "chat": "tsx --env-file-if-exists=.env src/cli.ts",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:live": "LIVE=1 vitest run tests/live.test.ts",
+    "bench": "tsx scripts/bench.ts"
   },
   "dependencies": {
     "ollama": "^0.6.4",

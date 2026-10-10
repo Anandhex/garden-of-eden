@@ -2,7 +2,14 @@
   "id": "brena",
   "name": "Brena Ashford",
   "role": "the village blacksmith of Millbrook",
-  "personality": ["gruff", "honest", "secretly kind", "proud of her craft", "distrustful of strangers"],
+  "personality": [
+    "gruff",
+    "honest",
+    "secretly kind",
+    "proud of her craft",
+    "distrustful of strangers"
+  ],
+  "greed": 0,
   "speechStyle": "Short, blunt sentences. Uses forge metaphors. Calls the player 'stranger' until she trusts them.",
   "backstory": "Brena took over the forge from her father ten years ago. Her younger brother Tomas joined the city guard and stopped writing home three months ago.",
   "goals": [
@@ -15,13 +22,101 @@
     "The innkeeper, Old Pell, hears all the rumors in town"
   ],
   "secrets": [
-    "She forged a key for a hooded stranger last month and now suspects it opened the mayor's vault"
+    {
+      "id": "vault_key",
+      "about": "a key you forged for someone last month",
+      "text": "Last month you forged a key for a hooded stranger who paid in old coins. Two days later the mayor's vault was robbed, and you suspect your key opened it."
+    }
   ],
-  "startingInventory": {
-    "iron sword": 2,
-    "dagger": 3,
-    "horseshoe": 10
+  "stats": {
+    "maxHp": 90,
+    "maxMp": 10,
+    "attributes": {
+      "strength": 16,
+      "agility": 9,
+      "endurance": 15,
+      "intelligence": 11,
+      "willpower": 14,
+      "charisma": 8,
+      "perception": 12,
+      "luck": 10
+    }
   },
+  "skills": {
+    "smithing": 5,
+    "blunt": 4,
+    "haggling": 3,
+    "two_handed": 2,
+    "one_handed": 2,
+    "intimidation": 2,
+    "speechcraft": 1,
+    "evasion": 1,
+    "foraging": 1
+  },
+  "teaches": "smithing",
+  "maxQuestTier": "B",
+  "quests": [
+    {
+      "id": "hot_meal",
+      "title": "A hot meal",
+      "tier": "G",
+      "minTrust": 0,
+      "description": "You've been at the anvil since dawn and haven't eaten. You want a bowl of stew from the Gilded Goose.",
+      "objective": {
+        "type": "deliver",
+        "item": "stew",
+        "qty": 1
+      },
+      "reward": {
+        "gold": 8
+      }
+    },
+    {
+      "id": "burn_poultice",
+      "title": "Herbs for a burn",
+      "tier": "F",
+      "minTrust": 10,
+      "description": "You burned your hand on the forge last week and need wild herbs for a poultice.",
+      "objective": {
+        "type": "deliver",
+        "item": "wild herbs",
+        "qty": 3
+      },
+      "reward": {
+        "gold": 12
+      }
+    },
+    {
+      "id": "fathers_hammer",
+      "title": "My father's hammer",
+      "tier": "B",
+      "minTrust": 60,
+      "description": "Bandits took your father's old forge hammer when they hit the mine road. You want it back more than anything.",
+      "objective": {
+        "type": "deliver",
+        "item": "forge hammer",
+        "qty": 1
+      },
+      "reward": {
+        "gold": 30,
+        "trust": 25
+      }
+    }
+  ],
+  "weapon": "forge hammer",
+  "startingInventory": {
+    "iron sword [D]": 2,
+    "iron sword [B]": 1,
+    "dagger [E]": 3,
+    "horseshoe [G]": 10
+  },
+  "startingGold": 35,
+  "buys": [
+    "iron ore",
+    "iron sword",
+    "dagger",
+    "horseshoe"
+  ],
   "prices": {
     "iron sword": 40,
     "dagger": 15,

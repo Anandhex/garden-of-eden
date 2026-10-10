@@ -1,3 +1,8 @@
+import type { QuestTier } from "../game/levels.js";
+import type { NpcStats } from "./stats.js";
+import type { Skill, Skills } from "./skills.js";
+import type { Attributes } from "./stats.js";
+
 export const MOODS = ["happy", "neutral", "annoyed", "angry", "afraid", "sad"] as const;
 export type Mood = (typeof MOODS)[number];
 
@@ -7,16 +12,72 @@ export interface NpcPersona {
   name: string;
   role: string;
   personality: string[];
+  /**
+   * 0 (fair) to 1 (money-hungry). Marks up training fees when trust is low:
+   * at trust 0 a greed-1 NPC charges double. Should match the personality.
+   */
+  greed: number;
+  /** Greed once every debt is paid off (defaults to `greed`). Desperate NPCs ease up. */
+  greedWhenDebtFree?: number;
   speechStyle: string;
   backstory: string;
   goals: string[];
   /** Things the NPC knows and may share. */
   knowledge: string[];
-  /** Guarded knowledge, revealed only with high trust (enforced in code in Phase 1). */
-  secrets: string[];
+  /**
+   * Guarded knowledge. Never put in the prompt: the model only learns a secret
+   * through the reveal_secret tool, which the game offers only at high trust.
+   */
+  secrets: NpcSecret[];
+  /** HP/MP maximums and attributes (strength, agility, ...). See stats.ts. */
+  stats: NpcStats;
+  /** Skill proficiencies, 0 (untrained) to 5 (master). Unlisted skills are 0. See skills.ts. */
+  skills: Skills;
+  /** The one skill this NPC will train others in. Defaults to their best skill. */
+  teaches?: Skill;
+  /** Highest quest tier this NPC ever gives. Not every NPC has high-level work. */
+  maxQuestTier: QuestTier;
+  /** Quests written for this NPC. More are made from their needs as play goes on. */
+  quests?: QuestDef[];
+  /** What the NPC fights with: an item name from ITEMS (game/items.ts) that is a weapon. */
+  weapon: string;
   startingInventory: Record<string, number>;
-  /** Base price in gold for each item the NPC sells. */
+  /** Gold the NPC starts with. Sales and training fees add to it. */
+  startingGold: number;
+  /** Items the NPC will buy from the player. Each must be in ITEMS (game/items.ts). */
+  buys: string[];
+  /** Money the NPC owes. They pay it down with gold above `reserveGold` whenever they earn. */
+  debts?: NpcDebt[];
+  /** Gold kept back for running their business before paying debts. Default 20. */
+  reserveGold?: number;
+  /**
+   * Price in gold for each kind of item the NPC sells, at that item's base tier
+   * (keyed by plain name). Other tiers scale by TIER_VALUE_STEP.
+   */
   prices: Record<string, number>;
+}
+
+export interface NpcDebt {
+  id: string;
+  /** Who it's owed to, e.g. "the mayor". */
+  creditor: string;
+  amount: number;
+}
+
+export interface NpcSecret {
+  id: string;
+  /** If the secret is about a debt, its id: revealing it also says how much is still owed. */
+  debt?: string;
+  /** A vague hint the model sees once it may reveal the secret, e.g. "a key you forged". */
+  about: string;
+  /** The secret itself, handed to the model only when revealed. */
+  text: string;
+}
+
+/** An item the NPC has offered; the sale completes only if the player accepts. */
+export interface PendingOffer {
+  item: string;
+  price: number;
 }
 
 /** Dynamic state owned by the game. The model can only change it through actions. */
@@ -24,18 +85,55 @@ export interface NpcState {
   mood: Mood;
   /** -100 (enemy) .. 100 (best friend) */
   relationship: number;
+  /** Current health, 0..stats.maxHp. */
+  hp: number;
+  /** Current mana, 0..stats.maxMp. */
+  mp: number;
   inventory: Record<string, number>;
+  /** The NPC's purse. Gold the player pays (sales, training) ends up here. */
+  gold: number;
   following: boolean;
   conversationOver: boolean;
+  pendingOffer: PendingOffer | null;
+  /** An offer the NPC made to buy something from the player; completes only if the player accepts. */
+  pendingPurchase: PendingOffer | null;
+  /** Training the NPC offered; happens (and is paid for) only if the player accepts. */
+  pendingTraining: { skill: Skill; hours: number; cost: number } | null;
+  /** Ids of secrets already told to the player. */
+  revealedSecrets: string[];
+  /** Gold still owed on each debt, by debt id. */
+  debts: Record<string, number>;
+  /** Mean comments in a row that annoyed or angered the NPC. Resets when they calm down. */
+  provocations: number;
+  /** True once anyone has attacked. */
+  inCombat: boolean;
+  /** Percent off list prices the NPC will accept (from a successful persuasion or intimidation). */
+  discountPct: number;
+  /** Haggles the player has lost since the last sale. Each makes the next harder. */
+  failedHaggles: number;
+  /** How the conversation ended, if it did early. */
+  /** How the conversation ended early. "dead" is permanent: see game/deaths.ts. */
+  outcome: "fled" | "dead" | "player fled" | null;
+  /** What happened in the last exchange of blows, shown to the NPC during a fight. */
+  lastCombatNote: string | null;
+  /** Quests made from the NPC's needs (e.g. low on iron ore). Written quests are in the persona. */
+  questBoard: QuestDef[];
+  /** A quest the NPC offered; the player accepts or declines. */
+  pendingQuest: string | null;
+  /** What the NPC is busy making, if anything. Busy NPCs can't be talked to. */
+  job: CraftJob | null;
 }
 
 /** What the NPC can perceive right now. Rebuilt every turn by the game. */
 export interface WorldSnapshot {
+  /** Game clock. Use advanceTime() (game/clock.ts) to move it; it keeps timeOfDay in sync. */
+  day: number;
+  hour: number;
   timeOfDay: "morning" | "afternoon" | "evening" | "night";
   location: string;
   nearby: string[];
   recentEvents: string[];
-  player: { name: string; gold: number; inventory: Record<string, number> };
+  player: PlayerState;
 }
 
 export interface AppliedAction {
@@ -48,4 +146,69 @@ export interface AppliedAction {
 export interface TurnResult {
   text: string;
   actions: AppliedAction[];
+  /** Set when the NPC couldn't be talked to because it's busy (e.g. "forging a dagger until 16:00"). */
+  busy?: string;
+}
+
+export interface PlayerState {
+  name: string;
+  gold: number;
+  inventory: Record<string, number>;
+  hp: number;
+  maxHp: number;
+  attributes: Attributes;
+  skills: Skills;
+  /** Training hours put toward the next level of each skill. */
+  skillProgress: Partial<Record<Skill, number>>;
+  /** Character level, raised by XP from quests. Gates which quest tiers they can take. */
+  level: number;
+  /** XP toward the next level. */
+  xp: number;
+  quests: { active: ActiveQuest[]; completed: string[] };
+}
+
+/** What a quest asks for. Only "deliver" exists for now: it's the one the game can check. */
+export interface QuestObjective {
+  type: "deliver";
+  /** Item name (any tier counts) to bring to the quest giver. */
+  item: string;
+  qty: number;
+}
+
+export interface QuestReward {
+  gold: number;
+  /** Defaults to the tier's XP (QUEST_TIER_XP). */
+  xp?: number;
+  /** Extra trust with the giver. Defaults to 5. */
+  trust?: number;
+}
+
+/** A quest an NPC can give: written in their file, or made from their needs. */
+export interface QuestDef {
+  id: string;
+  title: string;
+  /** Why the NPC wants it, in their terms. Shown to the model, not as a quest log. */
+  description: string;
+  tier: QuestTier;
+  /** Hidden until the NPC trusts the player this much. */
+  minTrust: number;
+  objective: QuestObjective;
+  reward: QuestReward;
+}
+
+export interface ActiveQuest extends QuestDef {
+  giverId: string;
+  giverName: string;
+}
+
+/** Something an NPC is making. Inputs are used when it starts; output arrives when it ends. */
+export interface CraftJob {
+  recipeId: string;
+  /** Item key of what comes out, e.g. "iron sword [B]" (tier rolled at the start). */
+  output: string;
+  qty: number;
+  /** Absolute game hour it finishes (see absoluteHour in game/clock.ts). */
+  until: number;
+  /** "forging a dagger", for messages. */
+  doing: string;
 }
