@@ -1,9 +1,13 @@
 import { config } from "../config.js";
+import { payDebts } from "../game/debts.js";
 import { defaultRng, type Rng } from "../game/dice.js";
+import { type UseResult, useHealingItem } from "../game/healing.js";
+import { resolveItem } from "../game/items.js";
 import { acceptQuest, isQuestTalk, refreshNeedQuests, type TurnInResult, turnInQuests } from "../game/quests.js";
-import { busyWith, passTime } from "../game/simulation.js";
+import { busyWith, passMinutes, passTime } from "../game/simulation.js";
 import { isTrainingTalk, type TrainingResult, train } from "../game/training.js";
-import type { ChatMessage, LLMProvider } from "../llm/provider.js";
+import type { ChatMessage, ChatResult, LLMProvider, ToolDef } from "../llm/provider.js";
+import { estimateMessage, estimateRequest } from "../llm/tokens.js";
 import type { Skill } from "./skills.js";
 import {
   type ActionContext,
@@ -17,7 +21,7 @@ import {
   haggle,
   parseAction,
   playerAttack,
-  npcAttack,
+  npcFightTurn,
   isPleading,
   playerFlee,
   type SocialKind,
@@ -27,8 +31,10 @@ import {
 import { LeadingMoodFilter } from "./moodPrefix.js";
 import { buildEventMessage, buildSystemPrompt, buildTurnMessage } from "./persona.js";
 import { createNpcState } from "./state.js";
+import { replyTokenFactor, traitsOf } from "./traits.js";
 import type {
   AppliedAction,
+  DefeatResult,
   NpcPersona,
   NpcState,
   TurnResult,
@@ -37,6 +43,9 @@ import type {
 
 /** Tools that make an offer whose terms the game sets or checks. */
 const OFFER_TOOLS = new Set(["offer_item", "offer_to_buy", "offer_training", "offer_job"]);
+
+/** What a turn costs in game time (config.turnMinutes). */
+type TurnKind = keyof typeof config.turnMinutes;
 
 export class NpcAgent {
   readonly state: NpcState;
@@ -53,15 +62,37 @@ export class NpcAgent {
   private pleading = false;
   /** The player's last line, so a follow-up persuasion knows what it's about. */
   private lastPlayerLine = "";
+  /**
+   * The model's own count of the last request (Ollama's prompt_eval_count), and how many
+   * history messages it covered. Used with the estimate to keep requests under budget.
+   */
+  private measured: { tokens: number; messages: number } | null = null;
+  /** Reply length cap: sociable NPCs may say more (replyTokenFactor). */
+  private readonly maxTokens: number;
 
   constructor(
     readonly persona: NpcPersona,
     private readonly llm: LLMProvider,
     /** Dice for checks and attacks. Pass a fixed one in tests. */
     private readonly rng: Rng = defaultRng,
+    initialState?: NpcState,
   ) {
-    this.state = createNpcState(persona);
+    this.state = initialState ?? createNpcState(persona);
     this.system = buildSystemPrompt(persona);
+    this.maxTokens = Math.round(config.maxReplyTokens * replyTokenFactor(traitsOf(persona)));
+  }
+
+  /** The conversation the model sees (without the system prompt). For tests and debugging. */
+  get messages(): readonly ChatMessage[] {
+    return this.history;
+  }
+
+  /**
+   * Time a turn takes: talking ~2 minutes, a trade ~5, a fight round ~1. The NPC is
+   * with the player, so they heal and finish jobs but don't start new work.
+   */
+  private spend(world: WorldSnapshot, kind: TurnKind): void {
+    passMinutes(this.persona, this.state, world, config.turnMinutes[kind], this.rng, { talking: true });
   }
 
   /** Dead NPCs never speak or act again. */
@@ -90,11 +121,14 @@ export class NpcAgent {
     if (topic.questing) refreshNeedQuests(this.persona, this.state, world.player);
     this.lastPlayerLine = playerLine;
     this.pleading = isPleading(playerLine);
+    const fighting = this.state.inCombat;
     const turn = await this.withTopic(topic, () =>
       this.runTurn(buildTurnMessage(this.persona, this.state, world, playerLine, topic), world, onText),
     );
     this.pleading = false;
-    return this.continueFight(turn, world);
+    const result = this.continueFight(turn, world);
+    this.spend(world, fighting || this.state.inCombat ? "fight" : "talk");
+    return result;
   }
 
   /**
@@ -104,10 +138,65 @@ export class NpcAgent {
    */
   private continueFight(turn: TurnResult, world: WorldSnapshot): TurnResult {
     const s = this.state;
+    // The NPC's first strike (attack_player) may already have dropped the player.
+    const early = this.resolvePlayerDefeat(world);
+    if (early) return { ...turn, defeat: early };
     if (!s.inCombat || s.outcome || world.player.hp <= 0) return turn;
     if (turn.actions.some((a) => a.name === "attack_player" && a.ok)) return turn;
-    const hit = npcAttack(this.context(world));
-    return { ...turn, actions: [...turn.actions, { name: "attack_player", args: { automatic: true }, ...hit }] };
+    // Hurt NPCs with a healing item use it instead of striking (npcFightTurn).
+    const { name, ...result } = npcFightTurn(this.context(world));
+    const actions = [...turn.actions, { name, args: { automatic: true }, ...result }];
+    const defeat = this.resolvePlayerDefeat(world);
+    return { ...turn, actions, ...(defeat ? { defeat } : {}) };
+  }
+
+  /**
+   * The player has dropped to 0 HP: apply config.playerDefeat. Returns what happened,
+   * or null if the player is still standing.
+   * - "knockout": the NPC takes a share of their gold, time passes while they're out
+   *   (the NPC heals and gets on with their day), and they wake with a quarter of their HP.
+   * - "permadeath": the player is dead and the save is over.
+   * Either way the NPC remembers it, and the encounter ends.
+   */
+  private resolvePlayerDefeat(world: WorldSnapshot): DefeatResult | null {
+    const s = this.state;
+    const player = world.player;
+    if (player.hp > 0 || s.outcome) return null;
+    s.inCombat = false;
+    s.lastCombatNote = null;
+    s.conversationOver = true;
+    const remember = (id: string, text: string) => {
+      if (!s.memories.some((m) => m.id === id)) s.memories.push({ id, day: world.day, text });
+    };
+
+    if (config.playerDefeat === "permadeath") {
+      s.outcome = "killed player";
+      player.death = { day: world.day, hour: world.hour, killedBy: this.persona.name };
+      remember("killed-player", `You killed ${player.name} in a fight on day ${world.day}.`);
+      return { rule: "permadeath", goldTaken: 0, hoursOut: 0, log: [], message: `${this.persona.name} killed ${player.name}.` };
+    }
+
+    s.outcome = "knocked out";
+    const goldTaken = Math.floor(player.gold * config.knockoutGoldShare);
+    player.gold -= goldTaken;
+    s.gold += goldTaken;
+    payDebts(this.persona, s);
+    remember(
+      `beat-player-day-${world.day}`,
+      `You beat ${player.name} in a fight on day ${world.day}${goldTaken > 0 ? ` and took ${goldTaken} gold off them` : ""}.`,
+    );
+    const hoursOut = config.knockoutRecoveryHours;
+    const log = passTime(this.persona, s, world, hoursOut, this.rng);
+    player.hp = Math.max(1, Math.ceil(player.maxHp * config.knockoutHpShare));
+    return {
+      rule: "knockout",
+      goldTaken,
+      hoursOut,
+      log,
+      message:
+        `${this.persona.name} knocked you out. You wake ${hoursOut} hours later with ${player.hp}/${player.maxHp} HP` +
+        (goldTaken > 0 ? `, ${goldTaken} gold lighter.` : "."),
+    };
   }
 
   /**
@@ -122,8 +211,26 @@ export class NpcAgent {
     const flee = playerFlee(this.context(world));
     onRoll(flee);
     if (!flee.ok) return { text: "", actions: [], flee };
+    // A failed escape gives the NPC a free hit, which may knock the player out ("Traveler collapses.") before the NPC speaks.
+    const defeat = this.resolvePlayerDefeat(world);
     const turn = await this.runTurn(buildEventMessage(this.persona, this.state, world, flee.message), world, onText);
-    return { ...turn, flee };
+    this.spend(world, "fight");
+    return { ...turn, flee, ...(defeat ? { defeat } : {}) };
+  }
+
+  /**
+   * The player uses a healing item from their own inventory (`/use`). Done in code,
+   * with no model call. In a fight it costs the player their turn: the NPC acts.
+   */
+  useItem(world: WorldSnapshot, item: string): TurnResult & { use: UseResult } {
+    const player = world.player;
+    const key = resolveItem(player.inventory, item) ?? item;
+    const use = useHealingItem(player.inventory, player, player.maxHp, key);
+    if (!use.ok) return { text: "", actions: [], use };
+    const fighting = this.state.inCombat;
+    const turn = fighting ? this.continueFight({ text: "", actions: [] }, world) : { text: "", actions: [] };
+    this.spend(world, fighting ? "fight" : "talk");
+    return { ...turn, use };
   }
 
   /** Set the trade/training/quest flags for the whole turn (every round), then clear them. */
@@ -150,6 +257,7 @@ export class NpcAgent {
       ? `${world.player.name} accepted your job "${quest.title}": bring ${quest.objective.qty} ${quest.objective.item}.`
       : `${world.player.name} wanted to accept, but that job is no longer available.`;
     const turn = await this.runTurn(buildEventMessage(this.persona, this.state, world, event), world, onText);
+    this.spend(world, "talk");
     return { ...turn, quest: quest?.title ?? null };
   }
 
@@ -157,7 +265,9 @@ export class NpcAgent {
   async declineQuest(world: WorldSnapshot, onText: (delta: string) => void = () => {}): Promise<TurnResult> {
     this.state.pendingQuest = null;
     const event = `${world.player.name} turned down your job.`;
-    return this.runTurn(buildEventMessage(this.persona, this.state, world, event), world, onText);
+    const turn = await this.runTurn(buildEventMessage(this.persona, this.state, world, event), world, onText);
+    this.spend(world, "talk");
+    return turn;
   }
 
   /** The player hands in finished quests. Rewards are paid in code; the NPC reacts if anything was handed in. */
@@ -165,6 +275,7 @@ export class NpcAgent {
     const result = turnInQuests(this.persona, this.state, world);
     if (result.completed.length === 0) return { text: "", actions: [], turnIn: result };
     const turn = await this.runTurn(buildEventMessage(this.persona, this.state, world, result.message), world, onText);
+    this.spend(world, "trade");
     return { ...turn, turnIn: result };
   }
 
@@ -183,13 +294,16 @@ export class NpcAgent {
   ): Promise<TurnResult & { sale: { ok: boolean; message: string } }> {
     const sale = acceptOffer(this.context(world));
     const turn = await this.runTurn(buildEventMessage(this.persona, this.state, world, sale.message, true), world, onText);
+    this.spend(world, "trade");
     return { ...turn, sale };
   }
 
   /** The player declined the pending offer: clear it, then let the NPC react. */
   async declineOffer(world: WorldSnapshot, onText: (delta: string) => void = () => {}): Promise<TurnResult> {
     const result = declineOffer(this.context(world));
-    return this.runTurn(buildEventMessage(this.persona, this.state, world, result.message, true), world, onText);
+    const turn = await this.runTurn(buildEventMessage(this.persona, this.state, world, result.message, true), world, onText);
+    this.spend(world, "talk");
+    return turn;
   }
 
   /**
@@ -216,6 +330,7 @@ export class NpcAgent {
         onText,
       ),
     );
+    this.spend(world, "talk");
     return { ...turn, check: result };
   }
 
@@ -233,6 +348,7 @@ export class NpcAgent {
     onRoll(result);
     if (!result.ok) return { text: "", actions: [], check: result };
     const turn = await this.runTurn(buildEventMessage(this.persona, this.state, world, result.message, true), world, onText);
+    this.spend(world, "talk");
     return { ...turn, check: result };
   }
 
@@ -274,8 +390,10 @@ export class NpcAgent {
     onRoll(hit);
     if (this.isDead) return { text: "", actions: [], hit };
     const turn = await this.runTurn(buildEventMessage(this.persona, this.state, world, hit.message), world, onText);
-    // The NPC strikes back automatically (unless it fled or ended the fight).
-    return { ...this.continueFight(turn, world), hit };
+    // The NPC strikes back automatically (unless it fled, begged or ended the fight).
+    const result = { ...this.continueFight(turn, world), hit };
+    this.spend(world, "fight");
+    return result;
   }
 
   /** The player accepted the NPC's offer to buy their item: complete it in code, then let the NPC react. */
@@ -285,13 +403,16 @@ export class NpcAgent {
   ): Promise<TurnResult & { sale: ActionResult }> {
     const sale = acceptPurchase(this.context(world));
     const turn = await this.runTurn(buildEventMessage(this.persona, this.state, world, sale.message, true), world, onText);
+    this.spend(world, "trade");
     return { ...turn, sale };
   }
 
   /** The player turned down the NPC's offer to buy: clear it, then let the NPC react. */
   async declinePurchase(world: WorldSnapshot, onText: (delta: string) => void = () => {}): Promise<TurnResult> {
     const result = declinePurchase(this.context(world));
-    return this.runTurn(buildEventMessage(this.persona, this.state, world, result.message, true), world, onText);
+    const turn = await this.runTurn(buildEventMessage(this.persona, this.state, world, result.message, true), world, onText);
+    this.spend(world, "talk");
+    return turn;
   }
 
   /** The player accepted the NPC's training offer: run the session (paid in code), then the NPC reacts as a teacher. */
@@ -317,7 +438,9 @@ export class NpcAgent {
     const event = offer
       ? `${world.player.name} turned down your offer to teach ${offer.skill.replace("_", "-")} for ${offer.cost} gold.`
       : `${world.player.name} doesn't want training right now.`;
-    return this.runTurn(buildEventMessage(this.persona, this.state, world, event), world, onText);
+    const turn = await this.runTurn(buildEventMessage(this.persona, this.state, world, event), world, onText);
+    this.spend(world, "talk");
+    return turn;
   }
 
   private context(world: WorldSnapshot): ActionContext {
@@ -358,18 +481,34 @@ export class NpcAgent {
         text += delta;
         onText(delta);
       };
-      const moodFilter = new LeadingMoodFilter((delta) => {
-        if (hold) roundText += delta;
-        else emit(delta);
-      });
-      const result = await this.llm.chat(
-        {
-          system: this.system,
-          messages: this.history,
-          tools: toolsFor(this.context(world)),
-        },
-        (delta) => moodFilter.push(delta),
-      );
+      const tools = toolsFor(this.context(world));
+      this.fitContext(tools);
+      let moodFilter!: LeadingMoodFilter;
+      let result: ChatResult | undefined;
+      for (let attempt = 0; !result; attempt++) {
+        let streamed = false;
+        roundText = "";
+        moodFilter = new LeadingMoodFilter((delta) => {
+          streamed = true;
+          if (hold) roundText += delta;
+          else emit(delta);
+        });
+        try {
+          const sent = this.history.length;
+          result = await this.llm.chat(
+            { system: this.system, messages: this.history, tools, maxTokens: this.maxTokens },
+            (delta) => moodFilter.push(delta),
+          );
+          if (result.stats?.inputTokens) this.measured = { tokens: result.stats.inputTokens, messages: sent };
+        } catch {
+          // Retry once, but only if the player hasn't seen any of the reply: a retry would repeat it.
+          if (attempt < config.llmRetries && !(streamed && !hold)) continue;
+          const fallback = this.persona.fallbackLine ?? "I need a moment before I can answer that.";
+          emit(text ? ` ${fallback}` : fallback);
+          this.history.push({ role: "assistant", content: fallback });
+          return { text, actions };
+        }
+      }
       moodFilter.end();
 
       // A mood written as text ("Annoyed. ...") counts as a change_mood call.
@@ -411,5 +550,37 @@ export class NpcAgent {
     }
 
     return { text, actions };
+  }
+
+  /**
+   * Prompt tokens the next request will take. The larger of a character-based estimate
+   * and the model's own count of the last request (prompt_eval_count) plus an estimate
+   * for what's been added since, so a low count (e.g. from prompt caching) can't hide growth.
+   */
+  requestTokens(tools: ToolDef[] = []): number {
+    const estimate = estimateRequest(this.system, this.history, tools);
+    if (!this.measured) return estimate;
+    const added = this.history.slice(this.measured.messages).reduce((sum, m) => sum + estimateMessage(m), 0);
+    return Math.max(estimate, this.measured.tokens + added);
+  }
+
+  /**
+   * Keep the request under config.contextTokenBudget. Past numCtx, Ollama silently drops
+   * the *start* of the prompt, system prompt included. Drops the oldest whole exchanges
+   * (a player line or event, with every reply, tool call and tool result after it), so a
+   * tool result is never left without its call. The exchange in progress is always kept.
+   * Later (N5) dropped exchanges should be summarised into memories instead.
+   */
+  private fitContext(tools: ToolDef[]): void {
+    while (this.requestTokens(tools) > config.contextTokenBudget) {
+      const next = this.history.findIndex((m, i) => i > 0 && m.role === "user");
+      if (next < 0) break;
+      const dropped = this.history.splice(0, next);
+      if (this.measured) {
+        const messages = this.measured.messages - dropped.length;
+        const tokens = this.measured.tokens - dropped.reduce((sum, m) => sum + estimateMessage(m), 0);
+        this.measured = messages > 0 && tokens > 0 ? { tokens, messages } : null;
+      }
+    }
   }
 }

@@ -71,7 +71,7 @@ describe("debts", () => {
   it("revealing the secret tells the model how much is still owed", () => {
     const state = createNpcState(pell, { relationship: 80, debts: { mayor: 120 } });
     const parsed = parseAction("reveal_secret", { secret: "debts" });
-    const r = parsed.ok ? applyAction(parsed, { persona: pell, state, world: createDemoWorld(), rng: Math.random }) : null;
+    const r = parsed.ok ? applyAction(parsed, { persona: pell, state, world: createDemoWorld(), rng: () => 0.99 }) : null; // 0.99: no lie (Pell may lie, see traits.ts)
     expect(r?.message).toContain("You've paid back 80 gold so far; you still owe the mayor 120.");
   });
 

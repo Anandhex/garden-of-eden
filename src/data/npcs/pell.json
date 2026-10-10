@@ -115,7 +115,8 @@
   "startingInventory": {
     "ale [G]": 20,
     "stew [G]": 5,
-    "bread loaf [G]": 6
+    "bread loaf [G]": 6,
+    "healing salve [E]": 2
   },
   "startingGold": 120,
   "buys": [
@@ -135,6 +136,7 @@
   "prices": {
     "ale": 2,
     "stew": 4,
-    "bread loaf": 1
+    "bread loaf": 1,
+    "healing salve": 14
   }
 }

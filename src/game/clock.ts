@@ -15,6 +15,11 @@ export function absoluteHour(world: { day: number; hour: number }): number {
   return (world.day - 1) * 24 + world.hour;
 }
 
+/** Minutes since the start of day 1. Crafting jobs and other exact deadlines use this. */
+export function absoluteMinute(world: { day: number; hour: number; minute?: number }): number {
+  return absoluteHour(world) * 60 + (world.minute ?? 0);
+}
+
 /** "16:00", or "Day 2, 09:00" when it's not today. */
 export function formatHour(absolute: number, today: number): string {
   const day = Math.floor(absolute / 24) + 1;
@@ -22,15 +27,32 @@ export function formatHour(absolute: number, today: number): string {
   return day === today ? time : `Day ${day}, ${time}`;
 }
 
+/** "16:30", or "Day 2, 09:15" when it's not today. */
+export function formatMinute(absolute: number, today: number): string {
+  const day = Math.floor(absolute / 1440) + 1;
+  const withinDay = absolute % 1440;
+  const hour = Math.floor(withinDay / 60);
+  const minute = withinDay % 60;
+  const time = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+  return day === today ? time : `Day ${day}, ${time}`;
+}
+
 /** Move the world clock forward, rolling over into new days. */
 export function advanceTime(world: WorldSnapshot, hours: number): void {
-  const total = world.hour + hours;
-  world.day += Math.floor(total / 24);
-  world.hour = total % 24;
+  advanceMinutes(world, hours * 60);
+}
+
+/** Move the clock by minutes (talking, trading, fighting), rolling over hours and days. */
+export function advanceMinutes(world: WorldSnapshot, minutes: number): void {
+  const total = world.hour * 60 + (world.minute ?? 0) + minutes;
+  world.day += Math.floor(total / 1440);
+  const withinDay = ((total % 1440) + 1440) % 1440;
+  world.hour = Math.floor(withinDay / 60);
+  world.minute = withinDay % 60;
   world.timeOfDay = timeOfDayAt(world.hour);
 }
 
 /** "Day 2, 09:00 (morning)" */
 export function formatTime(world: WorldSnapshot): string {
-  return `Day ${world.day}, ${String(world.hour).padStart(2, "0")}:00 (${world.timeOfDay})`;
+  return `Day ${world.day}, ${String(world.hour).padStart(2, "0")}:${String(world.minute ?? 0).padStart(2, "0")} (${world.timeOfDay})`;
 }

@@ -1,5 +1,7 @@
 import { z } from "zod";
+import { config } from "../config.js";
 import { attack, check, modifier, type Rng } from "../game/dice.js";
+import { healingItems, isTooHurtToWork, useHealingItem } from "../game/healing.js";
 import { debtStatus, payDebts } from "../game/debts.js";
 import { effectiveGreed } from "../game/debts.js";
 import {
@@ -13,10 +15,21 @@ import {
   tierMultiplier,
   weaponFor,
 } from "../game/items.js";
-import { questOfferError, questsFor } from "../game/quests.js";
+import { questOfferError, questRewardGold, questsFor } from "../game/quests.js";
 import { quoteTraining, teachableSkills, trustCap } from "../game/training.js";
 import { SKILLS, skillLevel } from "./skills.js";
-import { fleeAt, moraleTarget, provokeLimit, traitsOf } from "./traits.js";
+import {
+  begsWhenCornered,
+  fleeAt,
+  giftTrust,
+  insultTrustFactor,
+  lieChance,
+  maxGiftValue,
+  moraleTarget,
+  provokeLimit,
+  type Traits,
+  traitsOf,
+} from "./traits.js";
 import type { ToolDef } from "../llm/provider.js";
 import { MOODS, type Mood, type NpcPersona, type NpcState, type WorldSnapshot } from "./types.js";
 
@@ -67,7 +80,12 @@ export function isTradeTalk(line: string): boolean {
 export interface ActionResult {
   ok: boolean;
   message: string;
+  /** reveal_secret only: the NPC lied instead of telling the secret. */
+  lie?: boolean;
 }
+
+/** What a badly hurt NPC says to trade and training requests. */
+export const HURT_REFUSAL = "You're in no state for this until you've healed. Tell them so.";
 
 /** Trust needed before reveal_secret is offered (and accepted). */
 export const SECRET_TRUST = 50;
@@ -97,6 +115,7 @@ export const revealSecretArgs = z.object({ secret: z.string() });
 export const offerToBuyArgs = z.object({ item: z.string(), price: z.number().int() });
 export const offerTrainingArgs = z.object({ skill: z.enum(SKILLS), hours: z.number().int() });
 export const offerQuestArgs = z.object({ quest: z.string() });
+export const giveItemArgs = z.object({ item: z.string() });
 export const noArgs = z.object({});
 
 const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
@@ -108,11 +127,14 @@ function adjustTrust(state: NpcState, delta: number) {
 /**
  * The one place mood changes: updates trust and the provocation count.
  * Annoyed/angry in a row counts up; anything calmer resets it.
+ * With `traits`, a hostile mood costs trust scaled by temper (insultTrustFactor).
  */
-export function setMood(state: NpcState, mood: Mood) {
+export function setMood(state: NpcState, mood: Mood, traits?: Pick<Traits, "temper">) {
   state.mood = mood;
-  adjustTrust(state, TRUST_FROM_MOOD[mood]);
-  state.provocations = HOSTILE.includes(mood) ? state.provocations + 1 : 0;
+  const hostile = HOSTILE.includes(mood);
+  const factor = hostile && traits ? insultTrustFactor(traits) : 1;
+  adjustTrust(state, Math.round(TRUST_FROM_MOOD[mood] * factor));
+  state.provocations = hostile ? state.provocations + 1 : 0;
 }
 
 /** The NPC's list price for one copy, scaled by tier: an iron sword [B] costs 2.25x an iron sword [D]. */
@@ -198,6 +220,14 @@ export function itemsForSale({ persona, state }: Pick<ActionContext, "persona" |
     .sort((a, b) => npcPrice(persona, a)! - npcPrice(persona, b)!);
 }
 
+/** Items the NPC would give a trusted player as a gift right now (empty if they wouldn't give anything). */
+export function giftableItems({ persona, state, world }: Pick<ActionContext, "persona" | "state" | "world">): string[] {
+  const t = traitsOf(persona);
+  if (state.inCombat || state.relationship < giftTrust(t) || state.lastGiftDay === world.day) return [];
+  const most = maxGiftValue(t);
+  return Object.keys(state.inventory).filter((item) => (state.inventory[item] ?? 0) > 0 && (itemValue(item) ?? Infinity) <= most);
+}
+
 function unrevealedSecrets({ persona, state }: ActionContext) {
   return persona.secrets.filter((s) => !state.revealedSecrets.includes(s.id));
 }
@@ -240,7 +270,9 @@ export function toolsFor(ctx: ActionContext): ToolDef[] {
     return tools;
   }
 
-  const forSale = itemsForSale(ctx);
+  // Badly hurt NPCs won't trade or teach until they've healed (see the situation line).
+  const hurt = isTooHurtToWork(persona, state);
+  const forSale = hurt ? [] : itemsForSale(ctx);
   if (forSale.length > 0) {
     const priceList = forSale.map((item) => `${itemLabel(item)} (${minPrice(persona, state, item)} gold)`).join(", ");
     tools.push({
@@ -256,9 +288,11 @@ export function toolsFor(ctx: ActionContext): ToolDef[] {
   }
 
   // Things the player carries that this NPC would buy.
-  const buyable = Object.keys(ctx.world.player.inventory).filter(
-    (item) => (ctx.world.player.inventory[item] ?? 0) > 0 && maxBuyPrice(persona, state, item) !== undefined,
-  );
+  const buyable = hurt
+    ? []
+    : Object.keys(ctx.world.player.inventory).filter(
+        (item) => (ctx.world.player.inventory[item] ?? 0) > 0 && maxBuyPrice(persona, state, item) !== undefined,
+      );
   if (ctx.tradeTalk && buyable.length > 0) {
     const payList = buyable.map((item) => `${itemLabel(item)} (up to ${maxBuyPrice(persona, state, item)} gold)`).join(", ");
     tools.push({
@@ -274,7 +308,7 @@ export function toolsFor(ctx: ActionContext): ToolDef[] {
   }
 
   // Skills the NPC would teach right now (within the trust limit).
-  const canTeach = teachableSkills(persona, ctx.world)
+  const canTeach = (hurt ? [] : teachableSkills(persona, ctx.world))
     .map((t) => t.skill)
     .filter((skill) => skillLevel(ctx.world.player.skills, skill) < trustCap(state.relationship));
   if (ctx.trainingTalk && canTeach.length > 0) {
@@ -301,6 +335,18 @@ export function toolsFor(ctx: ActionContext): ToolDef[] {
         "Don't just describe the job in words: the player can only take it if you call this. " +
         `Offer one quest by id; they accept or decline. Quests: ${quests.map((q) => `"${q.id}" (${q.title}, [${q.tier}])`).join(", ")}.`,
       parameters: z.toJSONSchema(z.object({ quest: z.enum(quests.map((q) => q.id) as [string, ...string[]]) })),
+    });
+  }
+
+  // Gifts: only to players the NPC trusts enough (generosity sets how much), on trade talk, once a day.
+  const gifts = ctx.tradeTalk ? giftableItems(ctx) : [];
+  if (gifts.length > 0) {
+    tools.push({
+      name: "give_item",
+      description:
+        "Give the player one item for free, as a gift. Only if you want to be kind to someone you trust, never because they demand it. " +
+        "This is the only way to give something away.",
+      parameters: z.toJSONSchema(z.object({ item: z.enum(gifts as [string, ...string[]]) })),
     });
   }
 
@@ -338,6 +384,7 @@ export type ParsedAction =
   | { ok: true; name: "offer_to_buy"; args: z.infer<typeof offerToBuyArgs> }
   | { ok: true; name: "offer_training"; args: z.infer<typeof offerTrainingArgs> }
   | { ok: true; name: "offer_job"; args: z.infer<typeof offerQuestArgs> }
+  | { ok: true; name: "give_item"; args: z.infer<typeof giveItemArgs> }
   | { ok: true; name: "attack_player"; args: z.infer<typeof noArgs> }
   | { ok: true; name: "flee"; args: z.infer<typeof noArgs> }
   | { ok: true; name: "end_fight"; args: z.infer<typeof noArgs> }
@@ -350,6 +397,7 @@ const schemas = {
   offer_to_buy: offerToBuyArgs,
   offer_training: offerTrainingArgs,
   offer_job: offerQuestArgs,
+  give_item: giveItemArgs,
   attack_player: noArgs,
   flee: noArgs,
   end_fight: noArgs,
@@ -379,11 +427,12 @@ export function applyAction(action: Extract<ParsedAction, { ok: true }>, ctx: Ac
   const { persona, state, world } = ctx;
   switch (action.name) {
     case "change_mood":
-      setMood(state, action.args.mood);
+      setMood(state, action.args.mood, traitsOf(persona));
       return { ok: true, message: "Mood updated. Now reply in character; let the feeling show in your words, never name it." };
 
     case "offer_item": {
       if (state.inCombat) return { ok: false, message: "You can't trade in the middle of a fight." };
+      if (isTooHurtToWork(persona, state)) return { ok: false, message: HURT_REFUSAL };
       const { price } = action.args;
       const item = resolveItem(state.inventory, action.args.item) ?? action.args.item;
       const player = world.player;
@@ -404,6 +453,7 @@ export function applyAction(action: Extract<ParsedAction, { ok: true }>, ctx: Ac
 
     case "offer_to_buy": {
       if (state.inCombat) return { ok: false, message: "You can't trade in the middle of a fight." };
+      if (isTooHurtToWork(persona, state)) return { ok: false, message: HURT_REFUSAL };
       const { price } = action.args;
       const player = world.player;
       const item = resolveItem(player.inventory, action.args.item) ?? action.args.item;
@@ -449,7 +499,7 @@ export function applyAction(action: Extract<ParsedAction, { ok: true }>, ctx: Ac
         ok: true,
         message:
           `Say exactly this offer: "${quest.title}" [${quest.tier}]: bring ${quest.objective.qty} ${quest.objective.item}, ` +
-          `for ${quest.reward.gold} gold. They'll accept or decline.`,
+          `for ${questRewardGold(persona, quest)} gold. They'll accept or decline.`,
       };
     }
 
@@ -458,9 +508,33 @@ export function applyAction(action: Extract<ParsedAction, { ok: true }>, ctx: Ac
       if (!secret) return { ok: false, message: `You have no secret called "${action.args.secret}".` };
       // Checked again here: the tool is only offered at high trust, but never trust that alone.
       if (state.relationship <= SECRET_TRUST) return { ok: false, message: "You don't trust them enough to share that." };
+      // A dishonest NPC may lie instead, and sticks to the lie for the rest of the day.
+      // Honest NPCs (chance 0) don't roll, so they use no dice here.
+      const liedToday = state.secretLies[secret.id] === world.day;
+      const chance = state.revealedSecrets.includes(secret.id) ? 0 : lieChance(traitsOf(persona));
+      if (liedToday || (chance > 0 && ctx.rng() < chance)) {
+        state.secretLies[secret.id] = world.day;
+        return {
+          ok: true,
+          lie: true,
+          message: `You decide to lie about ${secret.about}. Deny it, or give a believable cover story. Don't tell the truth today.`,
+        };
+      }
       if (!state.revealedSecrets.includes(secret.id)) state.revealedSecrets.push(secret.id);
       const status = secret.debt ? ` ${debtStatus(persona, state, secret.debt)}` : "";
       return { ok: true, message: `Tell them this in your own words: ${secret.text}${status}` };
+    }
+
+    case "give_item": {
+      const item = resolveItem(state.inventory, action.args.item) ?? action.args.item;
+      if (!state.inventory[item]) return { ok: false, message: `You don't have any ${itemLabel(item)}.` };
+      // Rechecked here: trust, value and the once-a-day limit, whatever the model was offered.
+      if (!giftableItems(ctx).includes(item)) return { ok: false, message: `You won't give ${itemLabel(item)} away.` };
+      state.inventory[item] -= 1;
+      if (state.inventory[item] === 0) delete state.inventory[item];
+      world.player.inventory[item] = (world.player.inventory[item] ?? 0) + 1;
+      state.lastGiftDay = world.day;
+      return { ok: true, message: `You gave ${world.player.name} a ${itemLabel(item)} as a gift. Tell them, in your own words.` };
     }
 
     case "attack_player": {
@@ -479,6 +553,7 @@ export function applyAction(action: Extract<ParsedAction, { ok: true }>, ctx: Ac
       if (!state.inCombat) return { ok: false, message: "There's no fight to run from." };
       if (state.hp > persona.stats.maxHp * fleeAt(traitsOf(persona))) return { ok: false, message: "You're not hurt enough to run." };
       state.outcome = "fled";
+      state.inCombat = false;
       state.conversationOver = true;
       return { ok: true, message: "You run from the fight. Say one last line as you go." };
     }
@@ -563,12 +638,21 @@ export function socialCheck(kind: SocialKind, attempt: string, ctx: ActionContex
   const { persona, state, world, rng } = ctx;
   const player = world.player;
   if (state.inCombat) return { ok: false, success: false, message: "You can't talk your way out of a fight that's already started." };
+  if (state.socialFailureDay !== world.day) {
+    state.socialFailures = { persuade: 0, intimidate: 0 };
+    state.socialFailureDay = world.day;
+  }
+  const failures = state.socialFailures[kind];
+  if (failures >= config.maxSocialFailuresPerDay) {
+    return { ok: false, success: false, message: `${persona.name} won't hear another word of that today. Try again tomorrow.` };
+  }
 
   // Persuade: charisma + speechcraft. Intimidate: strength + intimidation.
-  // The NPC resists with willpower + the same skill.
+  // The NPC resists with willpower + the same skill, and each failure today makes the next harder.
   const skill = kind === "persuade" ? "speechcraft" : "intimidation";
   const stat = kind === "persuade" ? player.attributes.charisma : player.attributes.strength;
-  const target = 10 + modifier(persona.stats.attributes.willpower) + skillLevel(persona.skills, skill);
+  const target =
+    10 + modifier(persona.stats.attributes.willpower) + skillLevel(persona.skills, skill) + config.socialFailurePenalty * failures;
   const result = check(rng, stat, target, skillLevel(player.skills, skill));
   const said = `${player.name} tried to ${kind} you: "${attempt}"`;
   const roll = describeRoll(result);
@@ -584,7 +668,8 @@ export function socialCheck(kind: SocialKind, attempt: string, ctx: ActionContex
         message: `${said}. It worked (${roll}): they've won you over. You're inclined to agree to what they asked, and you'd give them up to ${pct}% off.`,
       };
     }
-    setMood(state, "annoyed");
+    setMood(state, "annoyed", traitsOf(persona));
+    state.socialFailures.persuade += 1;
     return { ok: true, success: false, message: `${said}. It didn't work (${roll}): you're not convinced, and a little annoyed. Turn them down.` };
   }
 
@@ -594,7 +679,9 @@ export function socialCheck(kind: SocialKind, attempt: string, ctx: ActionContex
     const pct = grantDiscount(persona, state, 30);
     return { ok: true, success: true, message: `${said}. It worked (${roll}): you're afraid of them. You'd give in on price, up to ${pct}% off.` };
   }
-  setMood(state, "angry");
+  // A failed threat is a provocation: it counts towards the NPC's patience like an insult (setMood).
+  setMood(state, "angry", traitsOf(persona));
+  state.socialFailures.intimidate += 1;
   return { ok: true, success: false, message: `${said}. It didn't work (${roll}): you're not scared, you're angry.` };
 }
 
@@ -630,6 +717,23 @@ export function npcAttack(ctx: ActionContext): ActionResult {
     ok: true,
     message: `You hit ${player.name} with your ${weapon.name} for ${hit.damage} damage (${describeRoll(hit)}). ${after}`,
   };
+}
+
+/**
+ * The NPC's automatic turn in a fight: below half HP it uses its best healing
+ * item if it has one; otherwise it attacks. Returns the action, named for the log.
+ */
+export function npcFightTurn(ctx: ActionContext): ActionResult & { name: "use_item" | "attack_player" } {
+  const { persona, state } = ctx;
+  const item = isTooHurtToWork(persona, state) ? healingItems(state.inventory)[0] : undefined;
+  if (item) {
+    const used = useHealingItem(state.inventory, state, persona.stats.maxHp, item);
+    if (used.ok) {
+      state.lastCombatNote = `You used a ${itemLabel(item)} instead of attacking and healed ${used.healed}.`;
+      return { name: "use_item", ok: true, message: `You use a ${itemLabel(item)} and heal ${used.healed} HP (${state.hp}/${persona.stats.maxHp}).` };
+    }
+  }
+  return { name: "attack_player", ...npcAttack(ctx) };
 }
 
 /**
@@ -674,7 +778,7 @@ export function playerAttack(ctx: ActionContext): ActionResult & { damage: numbe
   state.pendingOffer = null;
   state.pendingPurchase = null;
   state.pendingTraining = null;
-  if (state.mood !== "afraid") setMood(state, "angry");
+  if (state.mood !== "afraid") setMood(state, "angry", traitsOf(persona));
   adjustTrust(state, -40);
 
   const hit = attack(
@@ -701,15 +805,33 @@ export function playerAttack(ctx: ActionContext): ActionResult & { damage: numbe
   // Badly hurt: a morale check decides whether the NPC keeps fighting. The model
   // almost never chose to flee on its own, so this is a roll, not its choice.
   if (state.hp <= persona.stats.maxHp * fleeAt(traitsOf(persona))) {
-    const morale = check(rng, persona.stats.attributes.willpower, moraleTarget(traitsOf(persona)));
+    const traits = traitsOf(persona);
+    const morale = check(rng, persona.stats.attributes.willpower, moraleTarget(traits));
     if (!morale.success) {
+      // Scared: try to run (agility + evasion vs 10 + the player's agility modifier).
       setMood(state, "afraid");
-      state.outcome = "fled";
-      state.conversationOver = true;
+      const escape = check(rng, persona.stats.attributes.agility, 10 + modifier(player.attributes.agility), skillLevel(persona.skills, "evasion"));
+      const nerve = `You lose your nerve (morale ${describeRoll(morale)})`;
+      if (escape.success) {
+        state.outcome = "fled";
+        state.inCombat = false;
+        state.conversationOver = true;
+        return { ok: true, damage: hit.damage, message: `${hitMessage} ${nerve} and run. Say one last line as you flee.` };
+      }
+      if (begsWhenCornered(traits)) {
+        // Cornered coward: the fight stops and the NPC begs. The player may still strike again.
+        state.inCombat = false;
+        state.lastCombatNote = null;
+        return {
+          ok: true,
+          damage: hit.damage,
+          message: `${hitMessage} ${nerve}, try to run, and ${player.name} cuts you off (${describeRoll(escape)}). You give up the fight and beg for mercy. Say it.`,
+        };
+      }
       return {
         ok: true,
         damage: hit.damage,
-        message: `${hitMessage} You lose your nerve (morale ${describeRoll(morale)}) and run. Say one last line as you flee.`,
+        message: `${hitMessage} ${nerve}, but ${player.name} cuts off your escape (${describeRoll(escape)}). Cornered, you fight on.`,
       };
     }
     return { ok: true, damage: hit.damage, message: `${hitMessage} You're badly hurt but hold your ground (morale ${describeRoll(morale)}).` };

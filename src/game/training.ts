@@ -2,6 +2,7 @@ import { SKILLS, type Skill, skillLevel, TIERS } from "../npc/skills.js";
 import type { NpcPersona, NpcState, WorldSnapshot } from "../npc/types.js";
 import { advanceTime } from "./clock.js";
 import { effectiveGreed, payDebts } from "./debts.js";
+import { isTooHurtToWork } from "./healing.js";
 
 /**
  * Training: the player learns a skill from an NPC, one hour at a time.
@@ -97,6 +98,7 @@ export interface TrainingQuote {
 
 function refusal(persona: NpcPersona, state: NpcState): string | null {
   if (state.outcome || state.inCombat) return `${persona.name} is in no state to teach anyone.`;
+  if (isTooHurtToWork(persona, state)) return `${persona.name} is too badly hurt to teach until they've healed.`;
   if (state.mood === "angry") return `${persona.name} is too angry to teach you.`;
   if (state.relationship < 0) return `${persona.name} won't teach you; there's no goodwill between you.`;
   return null;

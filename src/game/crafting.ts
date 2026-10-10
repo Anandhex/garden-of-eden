@@ -27,6 +27,7 @@ export const RECIPES: Recipe[] = [
   { id: "iron_sword", output: "iron sword", qty: 1, inputs: { "iron ore": 4 }, skill: "smithing", minLevel: 3, hours: 4, doing: "forging an iron sword" },
   { id: "ale", output: "ale", qty: 3, inputs: { "wild herbs": 1 }, skill: "alchemy", minLevel: 1, hours: 2, doing: "brewing ale" },
   { id: "stew", output: "stew", qty: 2, inputs: { "bread loaf": 1, "wild herbs": 1 }, skill: "foraging", minLevel: 1, hours: 1, doing: "cooking stew" },
+  { id: "healing_salve", output: "healing salve", qty: 1, inputs: { "wild herbs": 2 }, skill: "alchemy", minLevel: 2, hours: 2, doing: "mixing a healing salve" },
 ];
 
 /** How many of an item (any tier) are in an inventory. */
@@ -79,16 +80,19 @@ export function rollOutputTier(recipe: Recipe, skill: number, rng: Rng) {
   return ITEM_TIERS[Math.min(ITEM_TIERS.length - 1, ITEM_TIERS.indexOf(base) + bump)]!;
 }
 
-/** Start making something: uses the inputs now, rolls the output tier, and makes the NPC busy. */
+/**
+ * Start making something: uses the inputs now, rolls the output tier, and makes the NPC busy.
+ * `now` is the absolute game minute (absoluteMinute in clock.ts).
+ */
 export function startCraft(persona: NpcPersona, state: NpcState, recipe: Recipe, now: number, rng: Rng): CraftJob {
   for (const [name, qty] of Object.entries(recipe.inputs)) removeItem(state.inventory, name, qty);
   const tier = rollOutputTier(recipe, skillLevel(persona.skills, recipe.skill), rng);
-  const job: CraftJob = { recipeId: recipe.id, output: itemKey(recipe.output, tier), qty: recipe.qty, until: now + recipe.hours, doing: recipe.doing };
+  const job: CraftJob = { recipeId: recipe.id, output: itemKey(recipe.output, tier), qty: recipe.qty, until: now + recipe.hours * 60, doing: recipe.doing };
   state.job = job;
   return job;
 }
 
-/** Finish the job if its time has come: the output goes into stock. Returns the finished job, if any. */
+/** Finish the job if its time has come (`now` in absolute minutes): the output goes into stock. Returns the finished job, if any. */
 export function finishCraft(state: NpcState, now: number): CraftJob | null {
   const job = state.job;
   if (!job || now < job.until) return null;

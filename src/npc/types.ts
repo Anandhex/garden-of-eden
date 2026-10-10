@@ -23,6 +23,7 @@ export interface NpcPersona {
   /** Personality traits, 0 to 1. Missing ones default to 0.5. See traits.ts for the rules they drive. */
   traits?: Partial<Traits>;
   speechStyle: string;
+  fallbackLine?: string;
   backstory: string;
   goals: string[];
   /** Things the NPC knows and may share. */
@@ -95,7 +96,6 @@ export interface NpcState {
   inventory: Record<string, number>;
   /** The NPC's purse. Gold the player pays (sales, training) ends up here. */
   gold: number;
-  following: boolean;
   conversationOver: boolean;
   pendingOffer: PendingOffer | null;
   /** An offer the NPC made to buy something from the player; completes only if the player accepts. */
@@ -114,11 +114,23 @@ export interface NpcState {
   discountPct: number;
   /** Haggles the player has lost since the last sale. Each makes the next harder. */
   failedHaggles: number;
-  /** How the conversation ended, if it did early. */
-  /** How the conversation ended early. "dead" is permanent: see game/deaths.ts. */
-  outcome: "fled" | "dead" | "player fled" | null;
+  /** Failed /persuade and /intimidate attempts today. Each raises the next target; at the limit they're refused. */
+  socialFailures: Record<"persuade" | "intimidate", number>;
+  /** The in-game day socialFailures counts for. A new day resets them. */
+  socialFailureDay: number;
+  /** Secrets a dishonest NPC lied about, by secret id → day. They stick to the lie for the rest of that day. */
+  secretLies: Record<string, number>;
+  /** Day of the last gift (give_item). At most one a day. */
+  lastGiftDay: number | null;
+  /**
+   * How the conversation ended early. "dead" is permanent: see game/deaths.ts.
+   * "knocked out" / "killed player": the NPC beat the player (config.playerDefeat).
+   */
+  outcome: "fled" | "dead" | "player fled" | "knocked out" | "killed player" | null;
   /** What happened in the last exchange of blows, shown to the NPC during a fight. */
   lastCombatNote: string | null;
+  /** Code-authored facts that survive the encounter and save/load. */
+  memories: NpcMemory[];
   /** Quests made from the NPC's needs (e.g. low on iron ore). Written quests are in the persona. */
   questBoard: QuestDef[];
   /** A quest the NPC offered; the player accepts or declines. */
@@ -127,11 +139,19 @@ export interface NpcState {
   job: CraftJob | null;
 }
 
+export interface NpcMemory {
+  id: string;
+  day: number;
+  text: string;
+}
+
 /** What the NPC can perceive right now. Rebuilt every turn by the game. */
 export interface WorldSnapshot {
   /** Game clock. Use advanceTime() (game/clock.ts) to move it; it keeps timeOfDay in sync. */
   day: number;
   hour: number;
+  /** Minutes within the current hour. Older callers may omit this and mean :00. */
+  minute?: number;
   timeOfDay: "morning" | "afternoon" | "evening" | "night";
   location: string;
   nearby: string[];
@@ -144,6 +164,8 @@ export interface AppliedAction {
   args: unknown;
   ok: boolean;
   message: string;
+  /** Set when a dishonest NPC lied instead of revealing a secret (reveal_secret). */
+  lie?: boolean;
 }
 
 export interface TurnResult {
@@ -151,6 +173,21 @@ export interface TurnResult {
   actions: AppliedAction[];
   /** Set when the NPC couldn't be talked to because it's busy (e.g. "forging a dagger until 16:00"). */
   busy?: string;
+  /** Set when the player dropped to 0 HP this turn. */
+  defeat?: DefeatResult;
+}
+
+/** What happened when the player lost a fight (config.playerDefeat). */
+export interface DefeatResult {
+  rule: "knockout" | "permadeath";
+  /** Gold the NPC took from the player. */
+  goldTaken: number;
+  /** Hours the player was out cold. */
+  hoursOut: number;
+  /** What the NPC did meanwhile (passTime). */
+  log: string[];
+  /** For the player. */
+  message: string;
 }
 
 export interface PlayerState {
@@ -168,6 +205,15 @@ export interface PlayerState {
   /** XP toward the next level. */
   xp: number;
   quests: { active: ActiveQuest[]; completed: string[] };
+  journal?: JournalEntry[];
+  /** Set when the player was killed and config.playerDefeat is "permadeath". The save is over. */
+  death?: { day: number; hour: number; killedBy: string };
+}
+
+export interface JournalEntry {
+  id: string;
+  day: number;
+  text: string;
 }
 
 /** What a quest asks for. Only "deliver" exists for now: it's the one the game can check. */
@@ -210,7 +256,7 @@ export interface CraftJob {
   /** Item key of what comes out, e.g. "iron sword [B]" (tier rolled at the start). */
   output: string;
   qty: number;
-  /** Absolute game hour it finishes (see absoluteHour in game/clock.ts). */
+  /** Absolute game minute it finishes (see absoluteMinute in game/clock.ts). */
   until: number;
   /** "forging a dagger", for messages. */
   doing: string;
