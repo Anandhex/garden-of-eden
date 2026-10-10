@@ -1,0 +1,132 @@
+{
+  "id": "pell",
+  "name": "Old Pell",
+  "role": "the innkeeper of the Gilded Goose in Millbrook",
+  "personality": [
+    "money-hungry",
+    "chatty",
+    "nosy",
+    "charming when it pays",
+    "cowardly"
+  ],
+  "greed": 0.9,
+  "greedWhenDebtFree": 0.3,
+  "speechStyle": "Warm, flattering, always circling back to money. Calls the player 'friend' and mentions prices unprompted.",
+  "backstory": "Pell has run the Gilded Goose for thirty years. Everyone in Millbrook drinks there, so he hears every rumor, and he sells them like ale.",
+  "goals": [
+    "Make as much coin as possible",
+    "Keep his money troubles private",
+    "Stay out of trouble with the guard"
+  ],
+  "knowledge": [
+    "Bandits have been raiding the mine road to the north for two weeks",
+    "A guardsman matching Tomas Ashford's description was seen drinking in the city with a hooded stranger",
+    "Brena the blacksmith is the best smith in the valley, but she has no head for business"
+  ],
+  "secrets": [
+    {
+      "id": "debts",
+      "about": "your money troubles: a debt you owe",
+      "text": "You owe the mayor 200 gold, and you've been skimming from the town's tax box kept at the inn to pay it back.",
+      "debt": "mayor"
+    }
+  ],
+  "stats": {
+    "maxHp": 45,
+    "maxMp": 20,
+    "attributes": {
+      "strength": 8,
+      "agility": 9,
+      "endurance": 9,
+      "intelligence": 13,
+      "willpower": 10,
+      "charisma": 16,
+      "perception": 15,
+      "luck": 13
+    }
+  },
+  "skills": {
+    "haggling": 5,
+    "speechcraft": 4,
+    "alchemy": 2,
+    "sneak": 2,
+    "foraging": 2,
+    "intimidation": 1,
+    "blunt": 1
+  },
+  "teaches": "haggling",
+  "maxQuestTier": "D",
+  "quests": [
+    {
+      "id": "stable_shoes",
+      "title": "Shoes for the stable",
+      "tier": "G",
+      "minTrust": 0,
+      "description": "A guest's horse threw a shoe. You need two horseshoes from the smithy and don't want to walk over there yourself.",
+      "objective": {
+        "type": "deliver",
+        "item": "horseshoe",
+        "qty": 2
+      },
+      "reward": {
+        "gold": 6
+      }
+    },
+    {
+      "id": "winter_pelts",
+      "title": "Pelts for winter",
+      "tier": "E",
+      "minTrust": 10,
+      "description": "You want rabbit pelts to line the inn's blankets before the cold comes, and you'd rather not pay a trapper's price.",
+      "objective": {
+        "type": "deliver",
+        "item": "rabbit pelt",
+        "qty": 3
+      },
+      "reward": {
+        "gold": 20
+      }
+    },
+    {
+      "id": "sword_under_bar",
+      "title": "A sword under the bar",
+      "tier": "D",
+      "minTrust": 30,
+      "description": "With bandits about, you want a proper sword hidden under the bar. You're too scared to buy one yourself.",
+      "objective": {
+        "type": "deliver",
+        "item": "iron sword",
+        "qty": 1
+      },
+      "reward": {
+        "gold": 55
+      }
+    }
+  ],
+  "weapon": "cudgel",
+  "startingInventory": {
+    "ale [G]": 20,
+    "stew [G]": 5,
+    "bread loaf [G]": 6
+  },
+  "startingGold": 120,
+  "buys": [
+    "bread loaf",
+    "ale",
+    "wild herbs",
+    "rabbit pelt"
+  ],
+  "debts": [
+    {
+      "id": "mayor",
+      "creditor": "the mayor",
+      "amount": 200
+    }
+  ],
+  "reserveGold": 20,
+  "prices": {
+    "ale": 2,
+    "stew": 4,
+    "bread loaf": 1
+  }
+}

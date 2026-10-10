@@ -29,6 +29,9 @@ export class OllamaProvider implements LLMProvider {
       messages,
       tools,
       stream: true,
+      // Hybrid models like qwen3:1.7b otherwise reason for seconds before every line.
+      // Models without a thinking mode ignore this.
+      think: false,
       options: {
         num_ctx: config.numCtx,
         temperature: config.temperature,
@@ -65,10 +68,12 @@ export class OllamaProvider implements LLMProvider {
 
   /** Load the model into memory ahead of time so the first NPC reply is fast. */
   async warmUp(): Promise<void> {
+    // Empty `messages` loads the model without generating. (Generating a cut-off
+    // reply here leaked stray tokens like ":end" into the next real reply.)
     await this.client.chat({
       model: this.model,
-      messages: [{ role: "user", content: "hi" }],
-      options: { num_predict: 1, num_ctx: config.numCtx },
+      messages: [],
+      options: { num_ctx: config.numCtx },
       keep_alive: config.keepAlive,
     });
   }
