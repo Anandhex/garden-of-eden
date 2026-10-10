@@ -4,8 +4,11 @@ import { argv, stdin, stdout } from "node:process";
 import { config } from "./config.js";
 import { formatTime } from "./game/clock.js";
 import { DeathRegistry } from "./game/deaths.js";
+import { importDeaths, loadWorld, newWorld, saveWorld, type SavedWorld } from "./game/save.js";
 import { xpToNextLevel } from "./game/levels.js";
 import { countItem } from "./game/crafting.js";
+import { restPlayer } from "./game/healing.js";
+import { questRewardGold } from "./game/quests.js";
 import { itemLabel } from "./game/items.js";
 import {
   DEFAULT_SESSION_HOURS,
@@ -21,13 +24,14 @@ import { OllamaProvider } from "./llm/ollama.js";
 import { NpcAgent } from "./npc/NpcAgent.js";
 import { SKILLS, skillLevel, TIERS } from "./npc/skills.js";
 import { parsePersona } from "./npc/personaSchema.js";
+import { startEncounter } from "./npc/state.js";
 import type { TurnResult } from "./npc/types.js";
-import { createDemoWorld } from "./world/world.js";
 
 // Pick the NPC: `npm run chat -- pell`. Defaults to brena.
 const NPC_DIR = new URL("./data/npcs/", import.meta.url);
 const available = readdirSync(NPC_DIR).filter((f) => f.endsWith(".json")).map((f) => f.replace(/\.json$/, ""));
-const npcId = argv[2] ?? "brena";
+const newGame = argv.includes("--new");
+const npcId = argv.find((arg) => !arg.startsWith("--") && arg !== argv[0] && arg !== argv[1]) ?? "brena";
 if (!available.includes(npcId)) {
   console.error(`No NPC "${npcId}". Available: ${available.join(", ")}`);
   process.exit(1);
@@ -39,16 +43,24 @@ const personas = Object.fromEntries(
 const persona = personas[npcId]!;
 
 // Death is permanent: a dead NPC can't be talked to again, in this run or any later one.
+let world: SavedWorld = newGame ? newWorld(personas) : importDeaths(loadWorld(config.saveFile, personas), config.deathsFile);
 const deaths = new DeathRegistry(config.deathsFile);
-const death = deaths.get(npcId);
+// With permadeath, a dead player's save is over (config.playerDefeat).
+if (world.player.death) {
+  const d = world.player.death;
+  console.log(`You were killed by ${d.killedBy} on day ${d.day}. This world is over; start a new one with --new.`);
+  process.exit(0);
+}
+const death = world.deaths[npcId] as { name: string; killedBy: string; day: number } | undefined;
 if (death) {
   console.log(`${death.name} is dead. They were killed by ${death.killedBy} on day ${death.day}, and nothing brings them back.`);
   process.exit(0);
 }
 
 const llm = new OllamaProvider();
-const npc = new NpcAgent(persona, llm);
-const world = createDemoWorld();
+const npc = new NpcAgent(persona, llm, undefined, world.npcStates[npcId]);
+// A new encounter: however the last one ended (they fled, you fled, you were knocked out), it's over.
+startEncounter(npc.state);
 const rl = createInterface({ input: stdin, output: stdout });
 
 console.log(`Loading ${config.model}...`);
@@ -60,7 +72,7 @@ try {
 }
 console.log(`Talking to ${npc.persona.name}.`);
 console.log(
-  `Commands: /quests, /turnin, /wait <hours>, /haggle <words>, /persuade <words>, /intimidate <words>, /attack, /flee, /train <skill> [hours], /skills, /state, /trust <-100..100>, /quit\n`,
+  `Commands: /quests, /turnin, /wait <hours>, /use <item>, /haggle <words>, /persuade <words>, /intimidate <words>, /attack, /flee, /train <skill> [hours], /skills, /state, /save, /trust <-100..100>, /quit\n`,
 );
 
 function printSkills() {
@@ -86,14 +98,19 @@ function printSkills() {
   }
 }
 
-function printActions({ actions }: TurnResult) {
+function printActions({ actions, defeat }: TurnResult) {
   for (const a of actions) {
-    if (a.name === "attack_player" && a.ok) {
-      // The message is written for the NPC ("You hit Traveler..."); show it as their attack.
-      console.log(`  [${npc.persona.name} attacks] ${a.message.replace(/^You /, "").replace(/\(rolled[^)]*\)\s*/, "")}`);
+    if ((a.name === "attack_player" || a.name === "use_item") && a.ok) {
+      // The message is written for the NPC ("You hit Traveler..."); show it as their move.
+      const label = a.name === "use_item" ? "heals" : "attacks";
+      console.log(`  [${npc.persona.name} ${label}] ${a.message.replace(/^You /, "").replace(/\(rolled[^)]*\)\s*/, "")}`);
       continue;
     }
-    console.log(`  [${a.ok ? "ok" : "failed"}] ${a.name} -> ${a.message}`);
+    console.log(`  [${a.ok ? "ok" : "failed"}${a.lie ? ", lying" : ""}] ${a.name} -> ${a.message}`);
+  }
+  if (defeat) {
+    console.log(`  [defeated] ${defeat.message}`);
+    for (const entry of defeat.log) console.log(`  ${entry}`);
   }
 }
 
@@ -130,7 +147,7 @@ async function handleOffer() {
   if (quest) {
     const answer = (
       await rl.question(
-        `  Accept [${quest.tier}] "${quest.title}": bring ${quest.objective.qty} ${quest.objective.item} for ${quest.reward.gold} gold? (y/n) `,
+        `  Accept [${quest.tier}] "${quest.title}": bring ${quest.objective.qty} ${quest.objective.item} for ${questRewardGold(npc.persona, quest)} gold? (y/n) `,
       )
     ).trim().toLowerCase();
     if (answer.startsWith("y")) {
@@ -188,7 +205,7 @@ async function handleOffer() {
   }
 }
 
-while (!npc.state.conversationOver && world.player.hp > 0) {
+while (!npc.state.conversationOver && !world.player.death) {
   let line: string;
   try {
     line = (await rl.question("You: ")).trim();
@@ -196,7 +213,17 @@ while (!npc.state.conversationOver && world.player.hp > 0) {
     break; // input closed (Ctrl+D)
   }
   if (!line) continue;
-  if (line === "/quit") break;
+  if (line === "/quit") {
+    world.npcStates[npcId] = npc.state;
+    saveWorld(config.saveFile, world);
+    break;
+  }
+  if (line === "/save") {
+    world.npcStates[npcId] = npc.state;
+    saveWorld(config.saveFile, world);
+    console.log(`  Saved ${config.saveFile}.`);
+    continue;
+  }
   if (line === "/state") {
     console.log({ npc: npc.state, player: world.player });
     continue;
@@ -221,9 +248,24 @@ while (!npc.state.conversationOver && world.player.hp > 0) {
       continue;
     }
     const hours = Math.max(1, Math.min(24, Number(wait[1] ?? 1)));
+    const startHour = world.hour;
     const log = npc.wait(world, hours);
+    const healed = restPlayer(world.player, startHour, hours);
     for (const entry of log) console.log(`  ${entry}`);
-    console.log(`  It's now ${formatTime(world)}.`);
+    console.log(`  It's now ${formatTime(world)}.${healed > 0 ? ` You rested and healed ${healed} HP (${world.player.hp}/${world.player.maxHp}).` : ""}`);
+    world.npcStates[npcId] = npc.state;
+    saveWorld(config.saveFile, world);
+    continue;
+  }
+  const use = line.match(/^\/use\s+(.+)$/);
+  if (use) {
+    // Using your own item is done in code; mid-fight it costs your turn.
+    const r = npc.useItem(world, use[1]!.trim());
+    console.log(`  ${r.use.message}`);
+    printActions(r);
+    if (npc.state.inCombat || r.defeat) console.log(hpLine());
+    world.npcStates[npcId] = npc.state;
+    saveWorld(config.saveFile, world);
     continue;
   }
   // A busy NPC can't be interacted with (free commands above still work).
@@ -300,19 +342,29 @@ while (!npc.state.conversationOver && world.player.hp > 0) {
     }
 
     // Record a death straight away, so quitting (or a crash) can't undo it.
-    if (npc.isDead) deaths.record({ npcId, name: npc.persona.name, day: world.day, hour: world.hour, killedBy: world.player.name });
+    if (npc.isDead) {
+      deaths.record({ npcId, name: npc.persona.name, day: world.day, hour: world.hour, killedBy: world.player.name });
+      world.deaths[npcId] = deaths.get(npcId)!;
+    }
     if (npc.state.inCombat && line !== "/attack" && line !== "/flee") console.log(hpLine());
     await handleOffer();
+    world.npcStates[npcId] = npc.state;
+    saveWorld(config.saveFile, world);
   } catch (err) {
     console.error(`\n[error] ${(err as Error).message}`);
   }
 }
 
-if (world.player.hp === 0) console.log(`\nYou collapse in the dirt outside the forge. Game over.`);
+world.npcStates[npcId] = npc.state;
+saveWorld(config.saveFile, world);
+if (world.player.death) console.log(`\n${npc.persona.name} has killed you. Game over: this world is finished (start again with --new).`);
 else if (npc.isDead) {
   deaths.record({ npcId, name: npc.persona.name, day: world.day, hour: world.hour, killedBy: world.player.name });
   console.log(`\n${npc.persona.name} falls and doesn't get up. They're dead, and they won't be coming back.`);
 } else if (npc.state.outcome === "player fled") console.log(`\nYou get away from ${npc.persona.name}.`);
 else if (npc.state.outcome === "fled") console.log(`\n${npc.persona.name} runs off into the village.`);
+else if (npc.state.outcome === "knocked out") {
+  console.log(`\nYou come to at ${formatTime(world)}, aching. Rest (/wait) or a salve will heal you.`);
+}
 else console.log(`\n${npc.persona.name} goes back to work.`);
 rl.close();

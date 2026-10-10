@@ -31,6 +31,7 @@ export const PersonaSchema = z
     greedWhenDebtFree: unit.optional(),
     traits: TraitsSchema.optional(),
     speechStyle: z.string().min(1),
+    fallbackLine: z.string().min(1).optional(),
     backstory: z.string().min(1),
     goals: z.array(z.string()),
     knowledge: z.array(z.string()),

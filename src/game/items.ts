@@ -11,6 +11,8 @@ export interface ItemDef {
   tier: ItemTier;
   /** Set for weapons: damage die (8 = 1d8) and the skill used to hit with it. */
   weapon?: { die: number; skill: WeaponSkill };
+  /** Set for healing items: HP restored by one base-tier copy (see healAmount). */
+  heal?: number;
 }
 
 /** Every kind of item in the game, at its base tier. NPC files may only mention these (checked by a test). */
@@ -28,8 +30,10 @@ export const ITEMS: Record<string, ItemDef> = {
   ale: { value: 2, tier: "G" },
   stew: { value: 4, tier: "G" },
   // Foraged and hunted
-  "wild herbs": { value: 3, tier: "F" },
+  "wild herbs": { value: 3, tier: "F", heal: 5 },
   "rabbit pelt": { value: 5, tier: "F" },
+  // Medicine
+  "healing salve": { value: 12, tier: "E", heal: 20 },
 };
 
 /**
@@ -139,4 +143,11 @@ export function bestWeapon(inventory: Record<string, number>): Weapon {
     if (qty > 0 && weapon && averageDamage(weapon) > averageDamage(best)) best = weapon;
   }
   return best;
+}
+
+/** HP one copy restores, scaled by tier like value (a salve [C] heals 45), or 0 if it doesn't heal. */
+export function healAmount(key: ItemKey): number {
+  const item = parseItem(key);
+  if (!item?.def.heal) return 0;
+  return Math.round(item.def.heal * tierMultiplier(item.tier, item.def.tier));
 }

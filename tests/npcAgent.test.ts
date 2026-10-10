@@ -419,7 +419,7 @@ describe("NpcAgent quests and busy NPCs", () => {
     const llm = new FakeProvider([say("should not be used")]);
     const world = createDemoWorld();
     const npc = new NpcAgent(brena as NpcPersona, llm);
-    npc.state.job = { recipeId: "dagger", output: "dagger [E]", qty: 1, until: 16, doing: "forging a dagger" };
+    npc.state.job = { recipeId: "dagger", output: "dagger [E]", qty: 1, until: 16 * 60, doing: "forging a dagger" };
     const r = await npc.respond("Hello?", world);
     expect(r.busy).toBe("forging a dagger until 16:00");
     expect(llm.requests).toHaveLength(0);

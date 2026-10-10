@@ -5,6 +5,7 @@ export function createDemoWorld(): WorldSnapshot {
   return {
     day: 1,
     hour: 14,
+    minute: 0,
     timeOfDay: "afternoon",
     location: "Millbrook forge",
     nearby: ["anvil", "glowing forge", "rack of tools", "a stray dog"],
@@ -30,6 +31,7 @@ export function createDemoWorld(): WorldSnapshot {
       level: 1,
       xp: 0,
       quests: { active: [], completed: [] },
+      journal: [],
     },
   };
 }

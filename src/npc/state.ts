@@ -10,7 +10,6 @@ export function createNpcState(persona: NpcPersona, overrides: Partial<NpcState>
     mp: persona.stats.maxMp,
     inventory: { ...persona.startingInventory },
     gold: persona.startingGold,
-    following: false,
     conversationOver: false,
     pendingOffer: null,
     pendingPurchase: null,
@@ -21,8 +20,13 @@ export function createNpcState(persona: NpcPersona, overrides: Partial<NpcState>
     inCombat: false,
     discountPct: 0,
     failedHaggles: 0,
+    socialFailures: { persuade: 0, intimidate: 0 },
+    socialFailureDay: 1,
+    secretLies: {},
+    lastGiftDay: null,
     outcome: null,
     lastCombatNote: null,
+    memories: [],
     questBoard: [],
     pendingQuest: null,
     job: null,
@@ -31,4 +35,21 @@ export function createNpcState(persona: NpcPersona, overrides: Partial<NpcState>
   // Inventory keys always carry a tier ("dagger" → "dagger [E]").
   state.inventory = normalizeInventory(state.inventory);
   return state;
+}
+
+/**
+ * A new encounter with an NPC (the game was restarted, or the player came back):
+ * whatever ended the last conversation is over. Death is the exception: it's permanent.
+ */
+export function startEncounter(state: NpcState): void {
+  if (state.outcome === "dead") return;
+  state.outcome = null;
+  state.conversationOver = false;
+  state.inCombat = false;
+  state.lastCombatNote = null;
+  state.provocations = 0;
+  state.pendingOffer = null;
+  state.pendingPurchase = null;
+  state.pendingTraining = null;
+  state.pendingQuest = null;
 }

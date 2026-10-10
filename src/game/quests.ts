@@ -1,3 +1,4 @@
+import { questRewardBonus, traitsOf } from "../npc/traits.js";
 import type { ActiveQuest, NpcPersona, NpcState, PlayerState, QuestDef, WorldSnapshot } from "../npc/types.js";
 import { countItem, craftingNeeds, removeItem } from "./crafting.js";
 import { ITEMS, itemKey } from "./items.js";
@@ -92,6 +93,11 @@ function describeObjective(q: QuestDef): string {
   return `bring ${q.objective.qty} ${q.objective.item}`;
 }
 
+/** Gold the NPC pays for a quest: the written reward plus a generous NPC's bonus (questRewardBonus). */
+export function questRewardGold(persona: NpcPersona, q: QuestDef): number {
+  return q.reward.gold + Math.round(q.reward.gold * questRewardBonus(traitsOf(persona)));
+}
+
 export function questXp(q: QuestDef): number {
   return q.reward.xp ?? QUEST_TIER_XP[q.tier];
 }
@@ -99,7 +105,7 @@ export function questXp(q: QuestDef): number {
 /** For the model on quest turns: what it can offer, and what it would refuse as too dangerous. */
 export function describeQuestsForNpc(persona: NpcPersona, state: NpcState, player: PlayerState): string {
   const { available, tooHard } = questsFor(persona, state, player);
-  const offer = available.map((q) => `"${q.id}" [${q.tier}] ${q.title}: ${describeObjective(q)} for ${q.reward.gold} gold (${q.description})`);
+  const offer = available.map((q) => `"${q.id}" [${q.tier}] ${q.title}: ${describeObjective(q)} for ${questRewardGold(persona, q)} gold (${q.description})`);
   const refuse = tooHard.map((q) => `[${q.tier}] ${q.title} (needs level ${QUEST_TIER_MIN_LEVEL[q.tier]})`);
   return (
     `They are level ${player.level}. Work you could give them: ${offer.join("; ") || "nothing right now"}.` +
@@ -127,7 +133,13 @@ export function acceptQuest(persona: NpcPersona, state: NpcState, player: Player
   state.pendingQuest = null;
   const quest = id ? findQuest(persona, state, id) : undefined;
   if (!quest || questOfferError(persona, state, player, quest.id)) return null;
-  const active: ActiveQuest = { ...quest, giverId: persona.id, giverName: persona.name };
+  // The reward is fixed when the quest is taken, generosity bonus included.
+  const active: ActiveQuest = {
+    ...quest,
+    reward: { ...quest.reward, gold: questRewardGold(persona, quest) },
+    giverId: persona.id,
+    giverName: persona.name,
+  };
   player.quests.active.push(active);
   return active;
 }

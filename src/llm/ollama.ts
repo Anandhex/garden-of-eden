@@ -35,7 +35,7 @@ export class OllamaProvider implements LLMProvider {
       options: {
         num_ctx: config.numCtx,
         temperature: config.temperature,
-        num_predict: config.maxReplyTokens,
+        num_predict: req.maxTokens ?? config.maxReplyTokens,
       },
       keep_alive: config.keepAlive,
     });

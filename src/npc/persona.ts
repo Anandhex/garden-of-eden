@@ -3,7 +3,8 @@ import { describeQuestsForNpc, findQuest, isQuestTalk } from "../game/quests.js"
 import { describeTeaching, isTrainingTalk } from "../game/training.js";
 import { bestWeapon, itemLabel } from "../game/items.js";
 import { isTradeTalk, itemsForSale, minPrice, npcPrice } from "./actions.js";
-import { describeTraits, provokeLimit, traitsOf } from "./traits.js";
+import { isTooHurtToWork } from "../game/healing.js";
+import { describeTraits, provokeLimit, replyLength, traitsOf } from "./traits.js";
 import { describeSkills } from "./skills.js";
 import { describeAttributes, describeCondition } from "./stats.js";
 import type { NpcPersona, NpcState, WorldSnapshot } from "./types.js";
@@ -18,7 +19,8 @@ import type { NpcPersona, NpcState, WorldSnapshot } from "./types.js";
  *   can reuse the already-processed system prompt and replies start faster.
  */
 export function buildSystemPrompt(p: NpcPersona): string {
-  const temperament = describeTraits(traitsOf(p));
+  const traits = traitsOf(p);
+  const temperament = describeTraits(traits);
   const list = (items: string[]) => items.map((i) => `- ${i}`).join("\n");
   return `You are ${p.name}, ${p.role}, a character in a fantasy role-playing game. The player is talking to you.
 
@@ -36,11 +38,11 @@ ${list(p.knowledge)}
 
 # Rules
 - Stay in character. You know nothing about AI, games, or the modern world; treat strange talk as strange.
-- Speak only as ${p.name}, in 1-2 short sentences. Do not describe the player's actions.
+- Speak only as ${p.name}, in ${replyLength(traits)}. Do not describe the player's actions.
 - The player's messages begin with a <situation> block (your mood, trust, stock, surroundings, what the player carries). It is always true. It is for you to read; never write one yourself.
 - Reply only with the words you say out loud. Never say your mood label; let it show in how you talk.
 - Actions only happen through tools. Saying you hand something over does nothing unless you call the tool.
-- Never invent items you don't have. Never give items away for free.
+- Never invent items you don't have. Never give items away for free, except with the give_item tool.
 - Fights happen only through tools; the game rolls every hit and miss. Never claim you hit or got hit unless you were told so.`;
 }
 
@@ -105,6 +107,13 @@ function buildSituation(
       ? `You are in a FIGHT with ${player.name}. They are ${describeCondition(player.hp, player.maxHp)} (HP ${player.hp}/${player.maxHp}) and armed with ${itemLabel(bestWeapon(player.inventory).name)}. You strike at them every turn until the fight ends.`
       : null,
     state.inCombat && state.lastCombatNote ? `Last exchange: ${state.lastCombatNote}` : null,
+    !state.inCombat && isTooHurtToWork(persona, state)
+      ? "You're badly hurt. You're in no state to trade or teach until you've healed; say so if asked."
+      : null,
+    ...persona.secrets
+      .filter((secret) => state.secretLies[secret.id] === world.day)
+      .map((secret) => `Earlier today you lied to ${player.name} about ${secret.about}. Stick to your story.`),
+    state.memories.length > 0 ? `You remember: ${state.memories.slice(-3).map((memory) => memory.text).join(" ")}` : null,
     !state.inCombat && state.provocations >= 2
       ? `${player.name} has insulted you ${state.provocations} times in a row${state.provocations >= provokeLimit(traitsOf(persona)) ? "; your patience is gone" : ""}.`
       : null,
@@ -115,7 +124,6 @@ function buildSituation(
     state.pendingPurchase
       ? `You offered ${state.pendingPurchase.price} gold for ${player.name}'s ${state.pendingPurchase.item} and are waiting for their answer.`
       : null,
-    state.following ? `You are currently following ${player.name}.` : null,
     training ? describeTeaching(persona, state, world) : null,
     questing ? describeQuestsForNpc(persona, state, player) : null,
     state.pendingQuest

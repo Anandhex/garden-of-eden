@@ -26,6 +26,8 @@ export interface ChatRequest {
   system: string;
   messages: ChatMessage[];
   tools?: ToolDef[];
+  /** Most tokens to generate for the reply. Defaults to config.maxReplyTokens. */
+  maxTokens?: number;
 }
 
 export interface ChatResult {
