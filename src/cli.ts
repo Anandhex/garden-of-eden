@@ -20,7 +20,8 @@ import {
 import { OllamaProvider } from "./llm/ollama.js";
 import { NpcAgent } from "./npc/NpcAgent.js";
 import { SKILLS, skillLevel, TIERS } from "./npc/skills.js";
-import type { NpcPersona, TurnResult } from "./npc/types.js";
+import { parsePersona } from "./npc/personaSchema.js";
+import type { TurnResult } from "./npc/types.js";
 import { createDemoWorld } from "./world/world.js";
 
 // Pick the NPC: `npm run chat -- pell`. Defaults to brena.
@@ -31,7 +32,11 @@ if (!available.includes(npcId)) {
   console.error(`No NPC "${npcId}". Available: ${available.join(", ")}`);
   process.exit(1);
 }
-const persona = JSON.parse(readFileSync(new URL(`${npcId}.json`, NPC_DIR), "utf8")) as NpcPersona;
+// Validate every NPC file up front, so a typo in any of them fails now, not mid-conversation.
+const personas = Object.fromEntries(
+  available.map((id) => [id, parsePersona(JSON.parse(readFileSync(new URL(`${id}.json`, NPC_DIR), "utf8")), `${id}.json`)]),
+);
+const persona = personas[npcId]!;
 
 // Death is permanent: a dead NPC can't be talked to again, in this run or any later one.
 const deaths = new DeathRegistry(config.deathsFile);

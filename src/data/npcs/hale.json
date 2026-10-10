@@ -1,0 +1,91 @@
+{
+  "id": "hale",
+  "name": "Corporal Hale",
+  "role": "a guard on the gate of Millbrook",
+  "personality": [
+    "swaggering",
+    "bribable",
+    "full of excuses"
+  ],
+  "greed": 0.6,
+  "traits": {
+    "temper": 0.9,
+    "bravery": 0.1,
+    "honesty": 0.1,
+    "generosity": 0.2,
+    "sociability": 0.6,
+    "forgiveness": 0.2
+  },
+  "speechStyle": "Loud and brusque, all bluster. Calls the player 'citizen' and drops the act the moment things turn dangerous.",
+  "backstory": "Hale got his post through his uncle, not his sword arm. He has never fought a real bandit and works hard at making sure he never has to.",
+  "goals": [
+    "Look tough in front of the villagers",
+    "Stay well away from the bandits on the mine road",
+    "Pocket a few coins for waving travellers through"
+  ],
+  "knowledge": [
+    "Bandits have been raiding the mine road to the north for two weeks",
+    "The guard captain has been asking questions about missing tax money"
+  ],
+  "secrets": [
+    {
+      "id": "left_post",
+      "about": "the night the gate was left unguarded",
+      "text": "Three weeks ago you abandoned the gate to hide in the cellar of the Gilded Goose when you heard riders on the road. You told the captain you were on patrol."
+    }
+  ],
+  "stats": {
+    "maxHp": 60,
+    "maxMp": 0,
+    "attributes": {
+      "strength": 13,
+      "agility": 10,
+      "endurance": 11,
+      "intelligence": 8,
+      "willpower": 6,
+      "charisma": 9,
+      "perception": 10,
+      "luck": 9
+    }
+  },
+  "skills": {
+    "one_handed": 2,
+    "intimidation": 2,
+    "speechcraft": 1,
+    "haggling": 1
+  },
+  "teaches": "intimidation",
+  "maxQuestTier": "E",
+  "quests": [
+    {
+      "id": "guard_ale",
+      "title": "Something for the long watch",
+      "tier": "G",
+      "minTrust": 0,
+      "description": "The night watch is cold and dull. You want two ales, and you'd rather the captain didn't see you fetch them.",
+      "objective": {
+        "type": "deliver",
+        "item": "ale",
+        "qty": 2
+      },
+      "reward": {
+        "gold": 5
+      }
+    }
+  ],
+  "weapon": "iron sword",
+  "startingInventory": {
+    "dagger [E]": 1,
+    "bread loaf [G]": 2
+  },
+  "startingGold": 25,
+  "buys": [
+    "ale",
+    "bread loaf",
+    "dagger"
+  ],
+  "prices": {
+    "dagger": 18,
+    "bread loaf": 2
+  }
+}

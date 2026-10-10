@@ -11,7 +11,6 @@ import {
   isPleading,
   isProvoked,
   minPrice,
-  PROVOKE_LIMIT,
   parseAction,
   npcAttack,
   playerAttack,
@@ -20,12 +19,14 @@ import {
   socialCheck,
   toolsFor,
 } from "../src/npc/actions.js";
+import { provokeLimit, traitsOf } from "../src/npc/traits.js";
 import { createNpcState } from "../src/npc/state.js";
 import type { NpcPersona, NpcState } from "../src/npc/types.js";
 import { createDemoWorld } from "../src/world/world.js";
 import { face, rolls } from "./dice.test.js";
 
 const persona = brena as NpcPersona;
+const PROVOKE_LIMIT = provokeLimit(traitsOf(persona)); // Brena: 3
 const ctx = (overrides: Partial<NpcState> = {}, rng: Rng = rolls(0.5)): ActionContext => ({
   persona,
   state: createNpcState(persona, overrides),
@@ -54,7 +55,7 @@ describe("provocation", () => {
     for (let i = 0; i < PROVOKE_LIMIT - 1; i++) setMood(c.state, "annoyed");
     expect(tools(c)).not.toContain("attack_player");
     setMood(c.state, "annoyed");
-    expect(isProvoked(c.state)).toBe(true);
+    expect(isProvoked(c.persona, c.state)).toBe(true);
     expect(tools(c)).toContain("attack_player");
     c.state.mood = "afraid";
     expect(tools(c)).not.toContain("attack_player");

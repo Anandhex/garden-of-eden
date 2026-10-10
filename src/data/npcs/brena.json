@@ -10,6 +10,14 @@
     "distrustful of strangers"
   ],
   "greed": 0,
+  "traits": {
+    "temper": 0.67,
+    "bravery": 0.5,
+    "honesty": 0.9,
+    "generosity": 0.4,
+    "sociability": 0.3,
+    "forgiveness": 0.4
+  },
   "speechStyle": "Short, blunt sentences. Uses forge metaphors. Calls the player 'stranger' until she trusts them.",
   "backstory": "Brena took over the forge from her father ten years ago. Her younger brother Tomas joined the city guard and stopped writing home three months ago.",
   "goals": [
