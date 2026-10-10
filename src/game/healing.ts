@@ -1,3 +1,4 @@
+import { statsOf } from "../npc/state.js";
 import type { NpcPersona, NpcState, PlayerState } from "../npc/types.js";
 import type { Attributes } from "../npc/stats.js";
 import { modifier } from "./dice.js";
@@ -24,9 +25,10 @@ export function regenPerHour(attributes: Pick<Attributes, "endurance" | "willpow
 /** One hour of rest for an NPC. Nobody heals mid-fight, and the dead stay dead. */
 export function regenNpc(persona: NpcPersona, state: NpcState, asleep: boolean): void {
   if (state.outcome === "dead" || state.inCombat) return;
-  const rate = regenPerHour(persona.stats.attributes, asleep);
-  state.hp = Math.min(persona.stats.maxHp, state.hp + rate.hp);
-  state.mp = Math.min(persona.stats.maxMp, state.mp + rate.mp);
+  const stats = statsOf(persona, state);
+  const rate = regenPerHour(stats.attributes, asleep);
+  state.hp = Math.min(stats.maxHp, state.hp + rate.hp);
+  state.mp = Math.min(stats.maxMp, state.mp + rate.mp);
 }
 
 /** `hours` of rest for the player, starting at `startHour`. The player has no MP yet. */
@@ -41,7 +43,7 @@ export function restPlayer(player: PlayerState, startHour: number, hours: number
 
 /** Below half HP an NPC won't trade or teach ("I'm in no state for this") until healed. */
 export function isTooHurtToWork(persona: NpcPersona, state: NpcState): boolean {
-  return state.hp < persona.stats.maxHp / 2;
+  return state.hp < statsOf(persona, state).maxHp / 2;
 }
 
 /** Healing items in an inventory, strongest first. */
@@ -81,5 +83,5 @@ export function useHealingItem(
 export function npcSelfHeal(persona: NpcPersona, state: NpcState): UseResult | null {
   if (state.outcome === "dead" || !isTooHurtToWork(persona, state)) return null;
   const item = healingItems(state.inventory)[0];
-  return item ? useHealingItem(state.inventory, state, persona.stats.maxHp, item) : null;
+  return item ? useHealingItem(state.inventory, state, statsOf(persona, state).maxHp, item) : null;
 }

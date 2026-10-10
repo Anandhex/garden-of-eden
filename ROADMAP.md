@@ -19,15 +19,15 @@ Mark items `[x]` as you go, `[~]` for partly done. Each phase ends with a **Done
 | Foundation | F1 First conversation · F2 Stronger NPCs · F3 RPG systems · F4 Testing | ✅ Built |
 | NPC | N0 Fixes in what exists | ✅ Built |
 | NPC | N1 Personality traits | ✅ Built (every trait drives a rule; `npm run sim`, `npm run bench:traits`) |
-| NPC | N2 Saves | 🟡 **Core save/load and CLI autosave built; multi-NPC UI remains** |
-| NPC | N3 World knowledge and non-talking NPCs | ⬜ Prerequisites |
+| NPC | N2 Saves | ✅ Built (CLI and browser share `saves/world.json`) |
+| NPC | N3 World knowledge and non-talking NPCs | 🟡 Ranks, species and age built (N3.3); creature stat blocks and code-only fights built (N3.2); lore not started |
 | NPC | N4 Character depth | ⬜ |
 | NPC | N5 Memory and relationships | ⬜ |
 | NPC | N6 Daily life | 🟡 Working hours and crafting exist |
 | NPC | N7 The social web | ⬜ |
-| NPC | N8 Combat and health | 🟡 Basic combat exists |
+| NPC | N8 Combat and health | 🟡 Basic combat, equipment with gear levels, armour, durability and repairs exist |
 | NPC | N9 Quests, growth and story arcs | 🟡 Deliver quests and levels exist |
-| NPC | N10 Crafting and economy | 🟡 Recipes, purses and debts exist |
+| NPC | N10 Crafting and economy | 🟡 Recipes, purses, debts and copper/silver/gold coins exist |
 | NPC | N11 Growing the cast | ⬜ |
 | Tooling | T1–T15 | 🟡 **T1–T4 core pieces built** |
 | Game | G1 Real game | 🟡 **Basic browser game built (walk, talk, trade, fight, train)** |
@@ -68,7 +68,8 @@ The target model. Each phase fills in part of it.
 |---|---|---|---|---|
 | **Identity** | Never | NPC file | name, role, backstory, speech style, appearance | 🟡 no appearance yet (N4.4) |
 | **Traits** | Slowly, from big events (N9) | NPC file + save | greed, temper, bravery, honesty, generosity, sociability, forgiveness (0–1) | ✅ (N1) |
-| **Abilities** | Slowly, by overcoming challenges (N9) | NPC file + save | attributes, skills, level, gear | 🟡 no NPC level or gear (N8, N9) |
+| **Species and age** | Age grows daily | NPC file + save | human, 68 years old (elder): weaker body, slower learning; natural death possible | ✅ (N3.3) |
+| **Abilities** | Slowly, by overcoming challenges (N9) | NPC file + save | attributes, skills, rank (G–SSS) up to a potential, titles, gear | 🟡 ranks and titles from challenges (N3.3); no gear yet (N8) |
 | **State** | Every turn | Save | mood, HP, gold, stock, job, offers | ✅ (saved: N2) |
 | **Needs** | Every hour | Save | hunger, energy, money, materials | 🟡 materials only (N6) |
 | **Knowledge** | Per event | World lore + save | what they know of the town, places and people, and how sure they are | 🟡 a few `knowledge` lines per NPC (N3.1) |
@@ -76,7 +77,7 @@ The target model. Each phase fills in part of it.
 | **Relationships** | Per event | Save | trust, fear, respect and affection towards the player and other NPCs | 🟡 trust only (N5, N7, N5.6) |
 | **Health** | Per hour | Save | HP, MP, injuries, illness | 🟡 HP and MP heal with rest and items (N0); no injuries or illness yet (N8.1) |
 | **Schedule** | Per day | NPC file | forge 6–18, inn 18–21, sleep | 🟡 working hours only (N6) |
-| **Reputation** | Per event | Save | how the town sees the player | ⬜ (N7) |
+| **Reputation** | Per event | Save | how the town sees the player | 🟡 player titles, which NPCs are told (N3.3); the rest N7 |
 
 ---
 
@@ -294,7 +295,7 @@ How the new rules work:
 
 ### N2: Saving NPCs and the player
 
-**Status:** 🟡 Core save/load and CLI autosave built. The browser game (G1) now talks to all NPCs in one world and saves the player's map position
+**Status:** ✅ Built. CLI and browser game (G1) share one world save, including the player's map position
 
 **Goal:** nothing resets between runs. This has to come first, because memory, grudges and schedules mean nothing if they're lost on restart.
 
@@ -308,9 +309,10 @@ How the new rules work:
 - [x] `src/game/save.ts`: `saveWorld()`, `loadWorld()`, `newWorld()`, plus a Zod schema for the save format
 - [x] A versioned world container holding the clock, player and NPC states
 - [x] CLI: `/save`, autosave, `--new` to start fresh, and reuse the current NPC choice
-- [x] Tests: a save → load round-trip and compatibility with missing newer fields
+- [x] Tests: a save → load round-trip, a full-session round-trip (inventory, quests, trust, part-paid debt, map position), one-time deaths import, and compatibility with missing newer fields
+- [x] Browser: autosave, `--new`, and all NPCs in one saved world
 
-**Done when:** buy a sword, raise trust, accept a quest and quit. After restarting, everything is the same, and Pell's debt is still part-paid.
+**Done when:** buy a sword, raise trust, accept a quest and quit. After restarting, everything is the same, and Pell's debt is still part-paid. ✅ Covered by `tests/save.test.ts`.
 
 ---
 
@@ -320,7 +322,7 @@ How the new rules work:
 
 **Goal:** two foundations every later phase leans on. NPCs only know what the world file says they know, so they stop inventing places and people. And opponents, animals and crowds exist as stat blocks with no model calls, so combat quests and guards have something to fight.
 
-**Features in this phase:** N3.1 What NPCs know (world lore); N3.2 Creatures and other non-talking NPCs.
+**Features in this phase:** N3.1 What NPCs know (world lore); N3.2 Creatures and other non-talking NPCs; N3.3 Ranks, species and age.
 
 #### N3.1: What NPCs know (world lore)
 
@@ -355,11 +357,46 @@ Opponents and crowds that need no language model.
   - **Lines without a model:** non-talking NPCs use pre-written barks from a list (G2).
   - **One bandit leader can be a full NPC** while the rest are stat blocks. Mixing both is the point.
 - **Tasks:**
-  - [ ] `CreatureSchema` and `src/data/creatures/*.json` (wolf, bandit, villager)
-  - [ ] Combat (N8) against creatures with no model call, and loot on defeat
+  - [x] `CreatureSchema` and `src/data/creatures/*.json` (wolf, bandit, horse; villager still to do). Each has a species, rank, age range, loot table and barks
+  - [x] Combat against creatures with no model call (`fightCreature`, `fleeCreature`), morale and fleeing, and loot (items and gold) on defeat
+  - [x] Creatures saved in `world.creatures`; a new world spawns `DEMO_SPAWNS`. They age, heal and rank up as time passes (`passCreatureTime`), and `/creatures` lists them
+  - [x] A way to fight them: `/hunt` and `/escape` in the CLI; creatures roaming dens on the browser map, ambushes by aggressive kinds, `F` / `R` to fight or run, defeat by `PLAYER_DEFEAT`
+  - [x] Their own challenges: daily hunts and raids, rivalry duels, hard winters; and young newcomers that refill thinned-out kinds
+  - [x] Player XP for killing (or routing) creatures, scaled by their rank against the player's (`creatureXp`)
+  - [x] Combat clock (`COMBAT_TICK_SECONDS`): a player who doesn't act in time loses the turn and the opponent (NPC or creature) strikes, in code. Server-side timer in the browser game (client polls and shows a countdown), prompt timeout in the CLI
   - [ ] Spawning rules by place, time and event, and `defeat` quests (N9) that target creatures
-  - [ ] Tests: a wolf fight runs entirely in code, and a creature never triggers a model request
+  - [x] Tests: a wolf fight runs entirely in code (`tests/creatures.test.ts`)
 - **Done when:** "My father's hammer" sends you to fight three bandit stat blocks and their leader, who is a full NPC, and only the leader ever calls the model.
+
+#### N3.3: Ranks, potential, titles, species and age
+
+**Status:** ✅ Built (`src/game/life.ts`, `src/world/species.ts`, `tests/life.test.ts`)
+
+Every being, talking or not, grows, ages and can die of old age, all in code.
+
+- **Mechanics:**
+  - **Rank** G → SSS for every NPC and creature (`tier` in the file, `life.tier` in the save), up to a **potential** (`potential` in NPC files; a `[min, max]` range rolled per spawn for creatures). At potential they never grow: Pell is at his peak.
+  - **XP makes them ready, a challenge raises them.** XP from a day lived (2), crafting (4 per output tier step), village sales (1), teaching (2/hour), winning a fight (30 + 5 × player level) and surviving one (10), capped at 100 × rank number. Once ready, only a **challenge** at least their own rank breaks them through: winning (or driving off the player) against an opponent of that rank (player rank from level, `rankForLevel`), or crafting a piece of that tier. Each rank: +10% of authored max HP (and MP), +1 to the two best attributes, and a memory of how.
+  - **Titles** (`src/game/titles.ts`), earned in code: Giant-slayer, Death-cheater, Veteran, Master Artisan, and rank titles for A/S/SS/SSS. Deed titles add +1 to an attribute.
+  - **Species** cap every potential (wolf B, horse D, halfling S, dwarf and orc SS, human and elf SSS), set the learn rate (orcs fast, elves slow) and the lifespan. Only talking species can be persona NPCs; any species can be a creature (bandits are human stat blocks).
+  - **Age** comes from a birth day and `config.daysPerYear` (`DAYS_PER_YEAR`, default 12). Stages: young (weaker, learns ×1.5), adult, elder (body −2, mind +1, 85% HP, learns ×0.5), venerable (body −4, 60% HP, learns ×0.25). `statsOf()` gives authored stats + growth + age; every rule uses it.
+  - **Natural death:** past elder age, a roll each midnight: yearly chance ((age − elder) / (max − elder))², spread over the year; certain at max age. Recorded permanently with `killedBy: "old age"`.
+  - The model gets one line: "You: 68-year-old human (getting old), rank E."
+- **Tasks:**
+  - [x] `life.ts`: ranks, potential, readiness, challenges (`overcome`), growth, age stages, mortality; shared by NPCs and creatures
+  - [x] `titles.ts`: deed and rank titles with bonuses, shown to the NPC and in the browser
+  - [x] Player titles from the same table: fights won against NPCs and creatures (died, fled or begged), quests finished, level-based rank. Bonuses go onto the player's attributes; NPCs are told what the player is known as (`tests/titles.test.ts`)
+  - [ ] Titles feeding reputation (N7): strangers react to a Giant-slayer before they've met them
+  - [ ] More challenges: completing a quest of their rank (N9), a rival NPC (N7), surviving a disaster (N6.4); and titles from them
+  - [x] `species.ts` and `species`, `age`, `tier`, `potential` in NPC files, checked by the schema
+  - [x] XP hooks in crafting, sales, training, fights and the midnight tick; challenge hooks in crafting and fights
+  - [x] Save version 3: NPC `life`, `deathCause`, creatures. Older saves get a life at their authored age on load, and HP trimmed to fit
+  - [x] Browser shows species, age, stage, rank, growth (peak / ready / XP) and titles in the chat header
+  - [ ] Rerun `npm run bench` and `npm run bench:traits`: the new situation line and Pell's weaker elder body may move the numbers
+  - [ ] Successors (N7.4) and a death ripple (N9) for NPCs who die of old age
+  - [ ] Rank-gated content: high-rank NPCs give higher-tier quests and teach higher skill tiers (N9)
+  - [ ] Before any young *talking* NPC: the `minor` content rule (design rule 7)
+- **Done when:** ✅ in tests, teaching makes Brena ready but only forging a B-tier sword raises her, Pell never grows, a wolf only breaks through by downing a player of its rank, titles add their bonus once, Pell is weaker as an elder, and NPCs and wolves die of old age at their species' max age.
 
 ---
 
@@ -781,7 +818,11 @@ Crime beyond violence.
 - **NPC level:** from total skill and stats. It sets fight difficulty and shows as a word ("a seasoned fighter").
 
 **Tasks:**
-- [ ] `equipment` in NPC files and for the player; armour items with tiers in `ITEMS`
+- [x] `equipment` for NPCs (from `weapon` / `armor` in their file) and the player; armour items with tiers in `ITEMS` (leather armor, chain mail). Fights use what's equipped; armour soaks damage
+- [x] Gear level: nobody equips gear above their rank (player rank from level). Checked for NPC and creature files
+- [x] Durability: hits wear weapons and armour, worn copies carry it in their key and sell for less, broken gear does nothing; smiths repair for a fee (`/repair`) and mend their own overnight
+- [x] Burden: pack slots from strength (gear 1 slot each, goods stack 20), shopkeeper storage (`storage` in NPC files); every transfer checks room
+- [ ] Wear on creatures' gear (bandit cudgels and leather); today only NPCs' and the player's gear wears
 - [ ] `src/game/abilities.ts`, MP costs, and `src/game/status.ts`
 - [ ] A combat style picker from traits, plus tests for each style with fixed dice
 - [ ] `/subdue`, an `unconscious` outcome, loot and `/loot`
@@ -890,6 +931,8 @@ An NPC goal becomes a tracked arc with stages, e.g. Brena's "find out what happe
 - **Repairs:** weapons wear down in fights (N8), and smiths repair them for a fee.
 
 **Tasks:**
+- [x] Coins: copper, silver and gold (1 g = 10 s = 100 c), counted in copper in code (`src/game/money.ts`). The model sees and names prices as coin phrases, read back in code; data files use coin phrases. Old saves convert on load (save v4: 1 old gold = 1 silver, so balance is unchanged)
+- [ ] Rerun `npm run bench`: the trade scenarios now expect coin prices ("1 gold 5 silver")
 - [ ] Recipes take input tiers, and output tier = f(inputs, skill, roll)
 - [ ] `offer_commission` (offered on trade turns), deposits, a pickup flow, and `/collect`
 - [ ] Price modifiers from stock and demand, computed in `npcPrice`

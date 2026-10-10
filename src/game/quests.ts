@@ -1,3 +1,5 @@
+import { npcHasRoom } from "../npc/state.js";
+import { playerProgressTitles } from "./titles.js";
 import { questRewardBonus, traitsOf } from "../npc/traits.js";
 import type { ActiveQuest, NpcPersona, NpcState, PlayerState, QuestDef, WorldSnapshot } from "../npc/types.js";
 import { countItem, craftingNeeds, removeItem } from "./crafting.js";
@@ -10,6 +12,7 @@ import {
   QUEST_TIER_XP,
   type QuestTier,
 } from "./levels.js";
+import { formatMoney } from "./money.js";
 
 /**
  * Quests. An NPC's quests come from two places: written ones in their file
@@ -27,9 +30,10 @@ export function isQuestTalk(line: string): boolean {
   return /\b(quests?|work|jobs?|tasks?|errands?|bounty|need (any )?help|help you|anything I can do)\b/i.test(line);
 }
 
-/** Tier for a need quest, from the gold value of what's asked. */
+/** Tier for a need quest, from the value (in copper) of what's asked. */
 function tierForValue(value: number): QuestTier {
-  const bands: Array<[number, QuestTier]> = [[10, "G"], [25, "F"], [50, "E"], [100, "D"], [200, "C"], [400, "B"], [800, "A"], [1600, "S"], [3200, "SS"]];
+  // Below 1 gold: G; below 2 gold 5 silver: F; ... (copper)
+  const bands: Array<[number, QuestTier]> = [[100, "G"], [250, "F"], [500, "E"], [1000, "D"], [2000, "C"], [4000, "B"], [8000, "A"], [16000, "S"], [32000, "SS"]];
   for (const [limit, tier] of bands) if (value < limit) return tier;
   return "SSS";
 }
@@ -48,8 +52,8 @@ export function refreshNeedQuests(persona: NpcPersona, state: NpcState, player: 
     const value = qty * (ITEMS[item]?.value ?? 1);
     let tier = tierForValue(value);
     if (compareTiers(tier, persona.maxQuestTier) > 0) tier = persona.maxQuestTier;
-    const gold = Math.min(Math.ceil(value * 1.5), state.gold);
-    if (gold <= 0) continue;
+    const money = Math.min(Math.ceil(value * 1.5), state.money);
+    if (money <= 0) continue;
     board.push({
       id,
       title: `${item[0]!.toUpperCase()}${item.slice(1)} wanted`,
@@ -57,7 +61,7 @@ export function refreshNeedQuests(persona: NpcPersona, state: NpcState, player: 
       tier,
       minTrust: 0,
       objective: { type: "deliver", item, qty },
-      reward: { gold },
+      reward: { money },
     });
   }
   state.questBoard = board;
@@ -93,9 +97,9 @@ function describeObjective(q: QuestDef): string {
   return `bring ${q.objective.qty} ${q.objective.item}`;
 }
 
-/** Gold the NPC pays for a quest: the written reward plus a generous NPC's bonus (questRewardBonus). */
-export function questRewardGold(persona: NpcPersona, q: QuestDef): number {
-  return q.reward.gold + Math.round(q.reward.gold * questRewardBonus(traitsOf(persona)));
+/** Money (copper) the NPC pays for a quest: the written reward plus a generous NPC's bonus (questRewardBonus). */
+export function questRewardMoney(persona: NpcPersona, q: QuestDef): number {
+  return q.reward.money + Math.round(q.reward.money * questRewardBonus(traitsOf(persona)));
 }
 
 export function questXp(q: QuestDef): number {
@@ -105,7 +109,7 @@ export function questXp(q: QuestDef): number {
 /** For the model on quest turns: what it can offer, and what it would refuse as too dangerous. */
 export function describeQuestsForNpc(persona: NpcPersona, state: NpcState, player: PlayerState): string {
   const { available, tooHard } = questsFor(persona, state, player);
-  const offer = available.map((q) => `"${q.id}" [${q.tier}] ${q.title}: ${describeObjective(q)} for ${questRewardGold(persona, q)} gold (${q.description})`);
+  const offer = available.map((q) => `"${q.id}" [${q.tier}] ${q.title}: ${describeObjective(q)} for ${formatMoney(questRewardMoney(persona, q))} (${q.description})`);
   const refuse = tooHard.map((q) => `[${q.tier}] ${q.title} (needs level ${QUEST_TIER_MIN_LEVEL[q.tier]})`);
   return (
     `They are level ${player.level}. Work you could give them: ${offer.join("; ") || "nothing right now"}.` +
@@ -136,7 +140,7 @@ export function acceptQuest(persona: NpcPersona, state: NpcState, player: Player
   // The reward is fixed when the quest is taken, generosity bonus included.
   const active: ActiveQuest = {
     ...quest,
-    reward: { ...quest.reward, gold: questRewardGold(persona, quest) },
+    reward: { ...quest.reward, money: questRewardMoney(persona, quest) },
     giverId: persona.id,
     giverName: persona.name,
   };
@@ -149,6 +153,8 @@ export interface TurnInResult {
   /** For the player and (as an event) the NPC. */
   message: string;
   levelsGained: number;
+  /** Titles the player earned by it, as lines for them (not the NPC). */
+  titles?: string[];
 }
 
 /**
@@ -168,15 +174,21 @@ export function turnInQuests(persona: NpcPersona, state: NpcState, world: WorldS
 
   const parts: string[] = [];
   let levelsGained = 0;
+  const noRoom: string[] = [];
   for (const quest of ready) {
     const { item, qty } = quest.objective;
+    // They have to have somewhere to put it.
+    if (!npcHasRoom(persona, state, { [itemKey(item)]: qty })) {
+      noRoom.push(quest.title);
+      continue;
+    }
     removeItem(player.inventory, item, qty);
     const key = itemKey(item);
     state.inventory[key] = (state.inventory[key] ?? 0) + qty;
 
-    const gold = Math.min(quest.reward.gold, state.gold);
-    state.gold -= gold;
-    player.gold += gold;
+    const paid = Math.min(quest.reward.money, state.money);
+    state.money -= paid;
+    player.money += paid;
     const xp = questXp(quest);
     levelsGained += gainXp(player, xp);
     state.relationship = Math.min(100, state.relationship + (quest.reward.trust ?? DEFAULT_QUEST_TRUST));
@@ -184,9 +196,14 @@ export function turnInQuests(persona: NpcPersona, state: NpcState, world: WorldS
     player.quests.active = player.quests.active.filter((q) => q.id !== quest.id);
     player.quests.completed.push(quest.id);
     state.questBoard = state.questBoard.filter((q) => q.id !== quest.id);
-    const short = gold < quest.reward.gold ? ` (you could only pay ${gold} of the ${quest.reward.gold} promised)` : "";
-    parts.push(`${player.name} finished "${quest.title}": handed you ${qty} ${item}; you paid ${gold} gold${short}; they gained ${xp} XP`);
+    const short = paid < quest.reward.money ? ` (you could only pay ${formatMoney(paid)} of the ${formatMoney(quest.reward.money)} promised)` : "";
+    parts.push(`${player.name} finished "${quest.title}": handed you ${qty} ${item}; you paid ${formatMoney(paid)}${short}; they gained ${xp} XP`);
   }
   const levelNote = levelsGained > 0 ? ` They're now level ${player.level}!` : "";
-  return { completed: ready, message: `${parts.join(". ")}.${levelNote}`, levelsGained };
+  const titles = playerProgressTitles(player, world.day);
+  if (parts.length === 0) {
+    return { completed: [], message: `You've no room to take the goods for ${noRoom.join(", ")} right now.`, levelsGained: 0, titles };
+  }
+  if (noRoom.length > 0) parts.push(`you had no room to take the goods for ${noRoom.join(", ")} yet`);
+  return { completed: ready.filter((q) => !noRoom.includes(q.title)), message: `${parts.join(". ")}.${levelNote}`, levelsGained, titles };
 }

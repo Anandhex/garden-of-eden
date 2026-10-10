@@ -5,7 +5,7 @@ export const ITEM_TIERS = ["G", "F", "E", "D", "C", "B", "A", "S", "SS", "SSS"] 
 export type ItemTier = (typeof ITEM_TIERS)[number];
 
 export interface ItemDef {
-  /** What a base-tier copy is worth in gold. Other tiers scale by TIER_VALUE_STEP. */
+  /** What a base-tier copy is worth, in copper (game/money.ts). Other tiers scale by TIER_VALUE_STEP. */
   value: number;
   /** The usual tier for this item, e.g. iron swords are normally D. */
   tier: ItemTier;
@@ -13,33 +13,45 @@ export interface ItemDef {
   weapon?: { die: number; skill: WeaponSkill };
   /** Set for healing items: HP restored by one base-tier copy (see healAmount). */
   heal?: number;
+  /** Set for armour: damage taken off every hit (see armorValue in game/gear.ts). */
+  armor?: number;
+  /** Set for gear (weapons, armour): hits it lasts at its base tier before breaking. Higher tiers last longer. */
+  durability?: number;
 }
 
 /** Every kind of item in the game, at its base tier. NPC files may only mention these (checked by a test). */
 export const ITEMS: Record<string, ItemDef> = {
   // Weapons
-  dagger: { value: 15, tier: "E", weapon: { die: 6, skill: "one_handed" } },
-  "iron sword": { value: 40, tier: "D", weapon: { die: 8, skill: "one_handed" } },
-  cudgel: { value: 8, tier: "F", weapon: { die: 6, skill: "blunt" } },
-  "forge hammer": { value: 60, tier: "C", weapon: { die: 8, skill: "blunt" } },
+  dagger: { value: 150, tier: "E", weapon: { die: 6, skill: "one_handed" }, durability: 30 },
+  "iron sword": { value: 400, tier: "D", weapon: { die: 8, skill: "one_handed" }, durability: 50 },
+  cudgel: { value: 80, tier: "F", weapon: { die: 6, skill: "blunt" }, durability: 25 },
+  "forge hammer": { value: 600, tier: "C", weapon: { die: 8, skill: "blunt" }, durability: 80 },
+  // Armour
+  "leather armor": { value: 300, tier: "F", armor: 1, durability: 40 },
+  "chain mail": { value: 1500, tier: "D", armor: 3, durability: 80 },
   // Smithing
-  horseshoe: { value: 2, tier: "G" },
-  "iron ore": { value: 6, tier: "F" },
+  horseshoe: { value: 20, tier: "G" },
+  "iron ore": { value: 60, tier: "F" },
   // Food and drink
-  "bread loaf": { value: 1, tier: "G" },
-  ale: { value: 2, tier: "G" },
-  stew: { value: 4, tier: "G" },
+  "bread loaf": { value: 10, tier: "G" },
+  ale: { value: 20, tier: "G" },
+  stew: { value: 40, tier: "G" },
   // Foraged and hunted
-  "wild herbs": { value: 3, tier: "F", heal: 5 },
-  "rabbit pelt": { value: 5, tier: "F" },
+  "wild herbs": { value: 30, tier: "F", heal: 5 },
+  "rabbit pelt": { value: 50, tier: "F" },
+  "wolf pelt": { value: 100, tier: "E" },
   // Medicine
-  "healing salve": { value: 12, tier: "E", heal: 20 },
+  "healing salve": { value: 120, tier: "E", heal: 20 },
 };
 
 /**
  * Inventories hold item *keys*: the name plus a tier, e.g. "iron sword [B]".
  * So an ordinary iron sword [D] and a masterwork iron sword [B] are different
  * entries. A bare name ("iron sword") means the item's base tier.
+ *
+ * Worn gear carries its durability in the key: "iron sword [D] (12/50)". A copy
+ * in perfect shape has no suffix, so worn and new copies are separate stacks,
+ * and a worn copy sells for less (itemValue).
  */
 export type ItemKey = string;
 
@@ -48,25 +60,56 @@ export interface ParsedItem {
   name: string;
   tier: ItemTier;
   def: ItemDef;
+  /** Gear only: hits left, and the most it can have at this tier. */
+  durability?: number;
+  maxDurability?: number;
 }
 
 /** Each tier above an item's base multiplies its value (and NPC prices) by this; each tier below divides. */
 export const TIER_VALUE_STEP = 1.5;
 
-/** "iron sword" + "B" → "iron sword [B]". Defaults to the item's base tier. */
-export function itemKey(name: string, tier?: ItemTier): ItemKey {
-  return `${name} [${tier ?? ITEMS[name]?.tier ?? "G"}]`;
+/** Most durability a piece of gear has at `tier`: the base amount, scaled like value. Undefined if it isn't gear. */
+export function maxDurability(def: ItemDef, tier: ItemTier): number | undefined {
+  return def.durability === undefined ? undefined : Math.max(1, Math.round(def.durability * tierMultiplier(tier, def.tier)));
 }
 
-/** Parse "iron sword [B]" or "iron sword". Undefined if it isn't a known item or tier. */
+/**
+ * "iron sword" + "B" → "iron sword [B]". Defaults to the item's base tier.
+ * With `durability` below the maximum: "iron sword [B] (12/112)".
+ */
+export function itemKey(name: string, tier?: ItemTier, durability?: number): ItemKey {
+  const t = tier ?? ITEMS[name]?.tier ?? "G";
+  const def = ITEMS[name];
+  const max = def ? maxDurability(def, t) : undefined;
+  const worn = max !== undefined && durability !== undefined && durability < max;
+  return `${name} [${t}]${worn ? ` (${Math.max(0, durability)}/${max})` : ""}`;
+}
+
+/** Parse "iron sword [B]", "iron sword [B] (12/112)" or "iron sword". Undefined if it isn't a known item or tier. */
 export function parseItem(keyOrName: string): ParsedItem | undefined {
-  const m = keyOrName.trim().match(/^(.*?)\s*\[(\w+)\]$/);
+  const m = keyOrName.trim().match(/^(.*?)\s*\[(\w+)\](?:\s*\((\d+)\/\d+\))?$/);
   const name = (m ? m[1]! : keyOrName).trim();
   const def = ITEMS[name];
   if (!def) return undefined;
   const tier = (m ? m[2]! : def.tier) as ItemTier;
   if (!ITEM_TIERS.includes(tier)) return undefined;
-  return { key: itemKey(name, tier), name, tier, def };
+  const max = maxDurability(def, tier);
+  if (max === undefined) return { key: itemKey(name, tier), name, tier, def };
+  const durability = m?.[3] !== undefined ? Math.min(max, Number(m[3])) : max;
+  return { key: itemKey(name, tier, durability), name, tier, def, durability, maxDurability: max };
+}
+
+/** Weapons and armour: they're equipped, wear out, and each takes a whole pack slot. */
+export function isGear(keyOrName: string): boolean {
+  const def = parseItem(keyOrName)?.def;
+  return def?.weapon !== undefined || def?.armor !== undefined;
+}
+
+/** Share of its value a worn copy keeps: 1 when perfect, down to 0.25 when broken. */
+export function wearFactor(key: ItemKey): number {
+  const item = parseItem(key);
+  if (!item?.maxDurability || item.durability === undefined) return 1;
+  return 0.25 + 0.75 * (item.durability / item.maxDurability);
 }
 
 /** Rewrite an inventory so every key has a tier ("dagger" → "dagger [E]"), merging duplicates. */
@@ -86,7 +129,7 @@ export function normalizeInventory(inventory: Record<string, number>): Record<It
 export function resolveItem(inventory: Record<ItemKey, number>, keyOrName: string): ItemKey | undefined {
   const parsed = parseItem(keyOrName);
   if (!parsed) return undefined;
-  if (/\[\w+\]\s*$/.test(keyOrName)) return parsed.key;
+  if (/\[\w+\]/.test(keyOrName)) return parsed.key;
   const copies = Object.keys(inventory).filter((k) => (inventory[k] ?? 0) > 0 && parseItem(k)?.name === parsed.name);
   return copies.length === 1 ? copies[0] : parsed.key;
 }
@@ -96,10 +139,10 @@ export function tierMultiplier(tier: ItemTier, baseTier: ItemTier): number {
   return TIER_VALUE_STEP ** (ITEM_TIERS.indexOf(tier) - ITEM_TIERS.indexOf(baseTier));
 }
 
-/** Gold value of one copy, e.g. iron sword [B] = 40 * 1.5^2 = 90. */
+/** Value of one copy in copper, e.g. iron sword [B] = 400 * 1.5^2 = 900 (9 gold). Worn gear is worth less (wearFactor). */
 export function itemValue(key: ItemKey): number | undefined {
   const item = parseItem(key);
-  return item ? Math.max(1, Math.round(item.def.value * tierMultiplier(item.tier, item.def.tier))) : undefined;
+  return item ? Math.max(1, Math.round(item.def.value * tierMultiplier(item.tier, item.def.tier) * wearFactor(key))) : undefined;
 }
 
 /** "iron sword [B]" - the canonical key doubles as the display label. */

@@ -1,4 +1,7 @@
 import type { QuestTier } from "../game/levels.js";
+import type { Life, Tier } from "../game/life.js";
+import type { TitleId } from "../game/titles.js";
+import type { Equipment } from "../game/gear.js";
 import type { NpcStats } from "./stats.js";
 import type { Skill, Skills } from "./skills.js";
 import type { Attributes } from "./stats.js";
@@ -12,6 +15,17 @@ export interface NpcPersona {
   id: string;
   name: string;
   role: string;
+  /** A key of SPECIES (world/species.ts). Defaults to "human". */
+  species?: string;
+  /** Age in years at the start of a new world. They age from there (config.daysPerYear). */
+  age: number;
+  /** Rank at the start of a new world, G to SSS. They grow from there (game/life.ts). */
+  tier: Tier;
+  /**
+   * Highest rank this NPC can ever reach (capped by species). Equal to `tier`
+   * means they're at their peak and will never grow.
+   */
+  potential: Tier;
   personality: string[];
   /**
    * 0 (fair) to 1 (money-hungry). Marks up training fees when trust is low:
@@ -43,19 +57,23 @@ export interface NpcPersona {
   maxQuestTier: QuestTier;
   /** Quests written for this NPC. More are made from their needs as play goes on. */
   quests?: QuestDef[];
-  /** What the NPC fights with: an item name from ITEMS (game/items.ts) that is a weapon. */
+  /** What the NPC fights with: an item name from ITEMS (game/items.ts) that is a weapon, at or below their rank. */
   weapon: string;
+  /** Armour they wear, if any: an item from ITEMS with `armor`, at or below their rank. */
+  armor?: string;
+  /** Where a shopkeeper keeps stock: a chest or bag with its own slots, on top of their pack (game/gear.ts). */
+  storage?: { name: string; slots: number };
   startingInventory: Record<string, number>;
-  /** Gold the NPC starts with. Sales and training fees add to it. */
-  startingGold: number;
+  /** Money (copper) the NPC starts with. Sales and training fees add to it. */
+  startingMoney: number;
   /** Items the NPC will buy from the player. Each must be in ITEMS (game/items.ts). */
   buys: string[];
-  /** Money the NPC owes. They pay it down with gold above `reserveGold` whenever they earn. */
+  /** Money the NPC owes. They pay it down with money above `reserveMoney` whenever they earn. */
   debts?: NpcDebt[];
-  /** Gold kept back for running their business before paying debts. Default 20. */
-  reserveGold?: number;
+  /** Money (copper) kept back for running their business before paying debts. Default 2 gold. */
+  reserveMoney?: number;
   /**
-   * Price in gold for each kind of item the NPC sells, at that item's base tier
+   * Price in copper for each kind of item the NPC sells, at that item's base tier
    * (keyed by plain name). Other tiers scale by TIER_VALUE_STEP.
    */
   prices: Record<string, number>;
@@ -94,8 +112,8 @@ export interface NpcState {
   /** Current mana, 0..stats.maxMp. */
   mp: number;
   inventory: Record<string, number>;
-  /** The NPC's purse. Gold the player pays (sales, training) ends up here. */
-  gold: number;
+  /** The NPC's purse. Money the player pays (sales, training) ends up here, in copper. */
+  money: number;
   conversationOver: boolean;
   pendingOffer: PendingOffer | null;
   /** An offer the NPC made to buy something from the player; completes only if the player accepts. */
@@ -104,7 +122,7 @@ export interface NpcState {
   pendingTraining: { skill: Skill; hours: number; cost: number } | null;
   /** Ids of secrets already told to the player. */
   revealedSecrets: string[];
-  /** Gold still owed on each debt, by debt id. */
+  /** Money (copper) still owed on each debt, by debt id. */
   debts: Record<string, number>;
   /** Mean comments in a row that annoyed or angered the NPC. Resets when they calm down. */
   provocations: number;
@@ -137,6 +155,12 @@ export interface NpcState {
   pendingQuest: string | null;
   /** What the NPC is busy making, if anything. Busy NPCs can't be talked to. */
   job: CraftJob | null;
+  /** Rank, XP, age and growth (game/life.ts). */
+  life: Life;
+  /** What they wear and wield (game/gear.ts). Starts as the persona's weapon and armour. */
+  equipment: Equipment;
+  /** Why they died, if they did: "old age", or who killed them. */
+  deathCause: string | null;
 }
 
 export interface NpcMemory {
@@ -175,13 +199,15 @@ export interface TurnResult {
   busy?: string;
   /** Set when the player dropped to 0 HP this turn. */
   defeat?: DefeatResult;
+  /** Titles the player earned this turn, as lines for them. */
+  titles?: string[];
 }
 
 /** What happened when the player lost a fight (config.playerDefeat). */
 export interface DefeatResult {
   rule: "knockout" | "permadeath";
-  /** Gold the NPC took from the player. */
-  goldTaken: number;
+  /** Money (copper) the NPC took from the player. */
+  moneyTaken: number;
   /** Hours the player was out cold. */
   hoursOut: number;
   /** What the NPC did meanwhile (passTime). */
@@ -192,7 +218,7 @@ export interface DefeatResult {
 
 export interface PlayerState {
   name: string;
-  gold: number;
+  money: number;
   inventory: Record<string, number>;
   hp: number;
   maxHp: number;
@@ -205,6 +231,12 @@ export interface PlayerState {
   /** XP toward the next level. */
   xp: number;
   quests: { active: ActiveQuest[]; completed: string[] };
+  /** What they wear and wield (game/gear.ts). Optional for older saves. */
+  equipment?: Equipment;
+  /** Titles earned by deeds (game/titles.ts). Their bonuses are already in `attributes`. */
+  titles?: Array<{ id: TitleId; day: number }>;
+  /** Fights won (the opponent died, ran or begged), for the Veteran title. */
+  fightsWon?: number;
   journal?: JournalEntry[];
   /** Set when the player was killed and config.playerDefeat is "permadeath". The save is over. */
   death?: { day: number; hour: number; killedBy: string };
@@ -225,7 +257,7 @@ export interface QuestObjective {
 }
 
 export interface QuestReward {
-  gold: number;
+  money: number;
   /** Defaults to the tier's XP (QUEST_TIER_XP). */
   xp?: number;
   /** Extra trust with the giver. Defaults to 5. */

@@ -1,4 +1,5 @@
 import { readdirSync, readFileSync } from "node:fs";
+import { MoneySchema } from "../src/game/money.js";
 import { describe, expect, it } from "vitest";
 import brenaJson from "../src/data/npcs/brena.json" with { type: "json" };
 import pellJson from "../src/data/npcs/pell.json" with { type: "json" };
@@ -17,9 +18,10 @@ import {
 import { createNpcState } from "../src/npc/state.js";
 import type { NpcPersona } from "../src/npc/types.js";
 import { createDemoWorld } from "../src/world/world.js";
+import { parsePersona } from "../src/npc/personaSchema.js";
 
-const brena = brenaJson as NpcPersona;
-const pell = pellJson as NpcPersona;
+const brena = parsePersona(brenaJson);
+const pell = parsePersona(pellJson);
 const NPC_DIR = new URL("../src/data/npcs/", import.meta.url);
 
 describe("levels", () => {
@@ -50,7 +52,7 @@ describe("every NPC file's quests", () => {
       expect(QUEST_TIERS, q.id).toContain(q.tier);
       expect(compareTiers(q.tier, npc.maxQuestTier), `${q.id} is above maxQuestTier`).toBeLessThanOrEqual(0);
       expect(ITEMS, `${q.id} asks for an unknown item`).toHaveProperty([q.objective.item]);
-      expect(q.reward.gold).toBeGreaterThan(0);
+      expect(MoneySchema.parse(q.reward.money)).toBeGreaterThan(0);
     }
   });
 
@@ -83,7 +85,7 @@ describe("who sees which quests", () => {
 
   it("tells the model what to offer and what to refuse as too dangerous", () => {
     const text = describeQuestsForNpc(brena, createNpcState(brena, { relationship: 60 }), createDemoWorld().player);
-    expect(text).toContain('"hot_meal" [G] A hot meal: bring 1 stew for 8 gold');
+    expect(text).toContain('"hot_meal" [G] A hot meal: bring 1 stew for 8 silver');
     expect(text).toContain("Too dangerous for them at their level, so refuse if asked: [F] Herbs for a burn (needs level 2); [B] My father's hammer (needs level 10)");
   });
 
@@ -99,20 +101,20 @@ describe("quests made from the NPC's needs", () => {
   });
 
   it("turns a need into a quest: tier from the value, reward from her purse", () => {
-    const state = createNpcState(brena); // 35 gold
+    const state = createNpcState(brena); // 3 gold 5 silver
     refreshNeedQuests(brena, state, createDemoWorld().player);
     expect(state.questBoard).toEqual([
       expect.objectContaining({
         id: "need_brena_iron_ore",
-        tier: "E", // 8 ore × 6 gold = 48
+        tier: "E", // 8 ore × 6 silver = 48
         objective: { type: "deliver", item: "iron ore", qty: 8 },
-        reward: { gold: 35 }, // 72 would be fair, but she only has 35
+        reward: { money: 350 }, // 72 would be fair, but she only has 35
       }),
     ]);
   });
 
   it("a broke NPC posts no need quests", () => {
-    const state = createNpcState(brena, { gold: 0 });
+    const state = createNpcState(brena, { money: 0 });
     refreshNeedQuests(brena, state, createDemoWorld().player);
     expect(state.questBoard).toEqual([]);
   });
@@ -127,7 +129,7 @@ describe("quests made from the NPC's needs", () => {
 describe("taking and finishing a quest", () => {
   it("accept → bring the items → turn in: items to the NPC, gold and XP to the player", () => {
     const world = createDemoWorld();
-    world.player.gold = 0;
+    world.player.money = 0;
     const state = createNpcState(brena, { pendingQuest: "hot_meal" });
     expect(acceptQuest(brena, state, world.player)?.id).toBe("hot_meal");
     expect(world.player.quests.active.map((q) => q.id)).toEqual(["hot_meal"]);
@@ -137,11 +139,11 @@ describe("taking and finishing a quest", () => {
     world.player.inventory["stew [G]"] = 1;
     const r = turnInQuests(brena, state, world);
     expect(r.completed.map((q) => q.id)).toEqual(["hot_meal"]);
-    expect(world.player.gold).toBe(8);
+    expect(world.player.money).toBe(80);
     expect(world.player.xp).toBe(25);
     expect(world.player.inventory["stew [G]"]).toBeUndefined();
     expect(state.inventory["stew [G]"]).toBe(1);
-    expect(state.gold).toBe(27);
+    expect(state.money).toBe(270);
     expect(state.relationship).toBe(5);
     expect(world.player.quests.completed).toEqual(["hot_meal"]);
   });

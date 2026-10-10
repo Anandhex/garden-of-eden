@@ -86,10 +86,10 @@ describe("copies of the same item at different tiers", () => {
 
   it("are worth 1.5x more per tier above the base, and less below", () => {
     expect(tierMultiplier("B", "D")).toBe(2.25);
-    expect(itemValue("iron sword [D]")).toBe(40);
-    expect(itemValue("iron sword [B]")).toBe(90);
-    expect(itemValue("iron sword [E]")).toBe(27);
-    expect(itemValue("bread loaf [G]")).toBe(1);
+    expect(itemValue("iron sword [D]")).toBe(400);
+    expect(itemValue("iron sword [B]")).toBe(900);
+    expect(itemValue("iron sword [E]")).toBe(267); // 4 gold / 1.5
+    expect(itemValue("bread loaf [G]")).toBe(10);
   });
 
   it("higher tiers of a weapon hit harder", () => {

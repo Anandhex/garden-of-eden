@@ -20,6 +20,7 @@ import { buildTurnMessage } from "../src/npc/persona.js";
 import { createNpcState } from "../src/npc/state.js";
 import type { NpcPersona, NpcState } from "../src/npc/types.js";
 import { createDemoWorld } from "../src/world/world.js";
+import { parsePersona } from "../src/npc/personaSchema.js";
 
 /** Dice that roll these d20/die faces in order (as fractions of the die). */
 export const fixedRng = (...values: number[]) => {
@@ -27,10 +28,10 @@ export const fixedRng = (...values: number[]) => {
   return () => values[i++ % values.length]!;
 };
 
-/** Brena with 1 dagger (15 gold) and 1 iron sword (40 gold); the player has 50 gold. */
+/** Brena with 1 dagger (1 gold 5 silver) and 1 iron sword (4 gold); the player has 5 gold. Money is in copper. */
 const freshCtx = (overrides: Partial<NpcState> = {}, rng = fixedRng(0.5)): ActionContext => ({
-  persona: brena as NpcPersona,
-  state: createNpcState(brena as NpcPersona, { inventory: { dagger: 1, "iron sword": 1 }, ...overrides }),
+  persona: parsePersona(brena),
+  state: createNpcState(parsePersona(brena), { inventory: { dagger: 1, "iron sword": 1 }, ...overrides }),
   world: createDemoWorld(),
   rng,
 });
@@ -43,7 +44,8 @@ const toolNames = (ctx: ActionContext) => toolsFor(ctx).map((t) => t.name);
 describe("parseAction", () => {
   it("accepts valid calls", () => {
     expect(parseAction("change_mood", { mood: "angry" })).toEqual(mood("angry"));
-    expect(parseAction("offer_item", { item: "dagger [E]", price: 15 })).toEqual(offer("dagger [E]", 15));
+    expect(parseAction("offer_item", { item: "dagger [E]", price: "1 gold 5 silver" })).toEqual(offer("dagger [E]", 150));
+    expect(parseAction("offer_item", { item: "dagger [E]", price: "15s" })).toEqual(offer("dagger [E]", 150));
     expect(parseAction("reveal_secret", { secret: "vault_key" })).toEqual(reveal("vault_key"));
   });
 
@@ -55,7 +57,9 @@ describe("parseAction", () => {
   it("rejects bad arguments", () => {
     expect(parseAction("change_mood", { mood: "ecstatic" }).ok).toBe(false);
     expect(parseAction("offer_item", { item: "dagger" }).ok).toBe(false);
-    expect(parseAction("offer_item", { item: "dagger [E]", price: "15" }).ok).toBe(false);
+    expect(parseAction("offer_item", { item: "dagger [E]", price: "15" }).ok).toBe(false); // which coin?
+    expect(parseAction("offer_item", { item: "dagger [E]", price: 15 }).ok).toBe(false);
+    expect(parseAction("offer_item", { item: "dagger [E]", price: "15 silver and a hug" }).ok).toBe(false);
     expect(parseAction("reveal_secret", {}).ok).toBe(false);
   });
 });
@@ -63,8 +67,8 @@ describe("parseAction", () => {
 describe("toolsFor", () => {
   it("offers offer_item with only in-stock items and their prices", () => {
     const tool = toolsFor(freshCtx()).find((t) => t.name === "offer_item")!;
-    expect(tool.description).toContain("dagger [E] (15 gold)");
-    expect(tool.description).toContain("iron sword [D] (40 gold)");
+    expect(tool.description).toContain("dagger [E] (1 gold 5 silver)");
+    expect(tool.description).toContain("iron sword [D] (4 gold)");
     expect(tool.description).not.toContain("horseshoe");
     expect((tool.parameters as any).properties.item.enum).toEqual(["dagger [E]", "iron sword [D]"]);
   });
@@ -109,36 +113,36 @@ describe("change_mood", () => {
 describe("offer_item", () => {
   it("records a pending offer without moving any gold or items", () => {
     const ctx = freshCtx();
-    expect(applyAction(offer("dagger", 15), ctx).ok).toBe(true);
-    expect(ctx.state.pendingOffer).toEqual({ item: "dagger [E]", price: 15 });
-    expect(ctx.world.player.gold).toBe(50);
+    expect(applyAction(offer("dagger", 150), ctx).ok).toBe(true);
+    expect(ctx.state.pendingOffer).toEqual({ item: "dagger [E]", price: 150 });
+    expect(ctx.world.player.money).toBe(500);
     expect(ctx.state.inventory["dagger [E]"]).toBe(1);
   });
 
   it("fails for items not in stock, unpriced items, low prices, or prices the player can't pay", () => {
     const ctx = freshCtx({ inventory: { dagger: 1, "old boot": 1 } });
-    expect(applyAction(offer("horseshoe", 2), ctx).ok).toBe(false);
-    expect(applyAction(offer("old boot", 5), ctx).ok).toBe(false);
+    expect(applyAction(offer("horseshoe", 20), ctx).ok).toBe(false);
+    expect(applyAction(offer("old boot", 50), ctx).ok).toBe(false);
     expect(applyAction(offer("dagger", 0), ctx).ok).toBe(false);
-    ctx.world.player.gold = 10;
-    expect(applyAction(offer("dagger", 15), ctx)).toEqual({ ok: false, message: "Traveler only has 10 gold; dagger [E] costs 15." });
+    ctx.world.player.money = 100;
+    expect(applyAction(offer("dagger", 150), ctx)).toEqual({ ok: false, message: "Traveler only has 1 gold; dagger [E] costs 1 gold 5 silver." });
     expect(ctx.state.pendingOffer).toBeNull();
   });
 
   it("replaces an earlier offer", () => {
     const ctx = freshCtx();
-    applyAction(offer("dagger", 15), ctx);
-    applyAction(offer("iron sword", 40), ctx);
-    expect(ctx.state.pendingOffer).toEqual({ item: "iron sword [D]", price: 40 });
+    applyAction(offer("dagger", 150), ctx);
+    applyAction(offer("iron sword", 400), ctx);
+    expect(ctx.state.pendingOffer).toEqual({ item: "iron sword [D]", price: 400 });
   });
 });
 
 describe("acceptOffer / declineOffer", () => {
   it("accepting completes the sale, clears the offer, and raises trust", () => {
-    const ctx = freshCtx({ pendingOffer: { item: "dagger [E]", price: 15 } });
-    expect(acceptOffer(ctx)).toEqual({ ok: true, message: "Traveler accepted and paid 15 gold for the dagger [E]." });
-    expect(ctx.world.player.gold).toBe(35);
-    expect(ctx.state.gold).toBe((brena as NpcPersona).startingGold + 15);
+    const ctx = freshCtx({ pendingOffer: { item: "dagger [E]", price: 150 } });
+    expect(acceptOffer(ctx)).toEqual({ ok: true, message: "Traveler accepted and paid 1 gold 5 silver for the dagger [E]." });
+    expect(ctx.world.player.money).toBe(350);
+    expect(ctx.state.money).toBe(parsePersona(brena).startingMoney + 150);
     expect(ctx.world.player.inventory["dagger [E]"]).toBe(1);
     expect(ctx.state.inventory["dagger [E]"]).toBeUndefined();
     expect(ctx.state.pendingOffer).toBeNull();
@@ -146,20 +150,20 @@ describe("acceptOffer / declineOffer", () => {
   });
 
   it("accepting rechecks stock and gold", () => {
-    const gone = freshCtx({ pendingOffer: { item: "dagger [E]", price: 15 }, inventory: {} });
+    const gone = freshCtx({ pendingOffer: { item: "dagger [E]", price: 150 }, inventory: {} });
     expect(acceptOffer(gone).ok).toBe(false);
-    const broke = freshCtx({ pendingOffer: { item: "dagger [E]", price: 15 } });
-    broke.world.player.gold = 5;
+    const broke = freshCtx({ pendingOffer: { item: "dagger [E]", price: 150 } });
+    broke.world.player.money = 50;
     expect(acceptOffer(broke).ok).toBe(false);
-    expect(broke.world.player.gold).toBe(5);
-    expect(broke.state.gold).toBe((brena as NpcPersona).startingGold);
+    expect(broke.world.player.money).toBe(50);
+    expect(broke.state.money).toBe(parsePersona(brena).startingMoney);
   });
 
   it("declining clears the offer and moves nothing", () => {
-    const ctx = freshCtx({ pendingOffer: { item: "dagger [E]", price: 15 } });
+    const ctx = freshCtx({ pendingOffer: { item: "dagger [E]", price: 150 } });
     expect(declineOffer(ctx).ok).toBe(true);
     expect(ctx.state.pendingOffer).toBeNull();
-    expect(ctx.world.player.gold).toBe(50);
+    expect(ctx.world.player.money).toBe(500);
   });
 
   it("does nothing when there is no offer", () => {
@@ -192,16 +196,16 @@ describe("reveal_secret", () => {
 
 describe("selling to the NPC", () => {
   const buy = (item: string, price: number) => ({ ok: true as const, name: "offer_to_buy" as const, args: { item, price } });
-  const persona = brena as NpcPersona; // buys iron ore (worth 6), weapons, horseshoes; 35 gold; greed 0
-  const pell = pellJson as NpcPersona; // buys food, herbs, pelts; greed 0.9
+  const persona = parsePersona(brena); // buys iron ore (worth 6 silver), weapons, horseshoes; 3 gold 5 silver; greed 0
+  const pell = parsePersona(pellJson); // buys food, herbs, pelts; greed 0.9
 
   it("pays half an item's value, less from a greedy NPC who doesn't trust you", () => {
-    expect(maxBuyPrice(persona, freshCtx().state, "iron ore")).toBe(3);
-    expect(maxBuyPrice(persona, freshCtx().state, "iron sword")).toBe(20);
+    expect(maxBuyPrice(persona, freshCtx().state, "iron ore")).toBe(30);
+    expect(maxBuyPrice(persona, freshCtx().state, "iron sword")).toBe(200);
     const pellState = createNpcState(pell);
-    expect(maxBuyPrice(pell, pellState, "rabbit pelt")).toBe(1); // 5 * 0.5 * (1 - 0.36) = 1.6
+    expect(maxBuyPrice(pell, pellState, "rabbit pelt")).toBe(16); // 50 * 0.5 * (1 - 0.36) = 16 copper
     pellState.relationship = 100;
-    expect(maxBuyPrice(pell, pellState, "rabbit pelt")).toBe(2);
+    expect(maxBuyPrice(pell, pellState, "rabbit pelt")).toBe(25);
   });
 
   it("doesn't buy things outside its trade", () => {
@@ -214,7 +218,7 @@ describe("selling to the NPC", () => {
   it("offers offer_to_buy only for things the player carries and the NPC buys", () => {
     const tool = toolsFor(trading()).find((t) => t.name === "offer_to_buy")!;
     expect((tool.parameters as any).properties.item.enum).toEqual(["iron ore [F]"]);
-    expect(tool.description).toContain("iron ore [F] (up to 3 gold)");
+    expect(tool.description).toContain("iron ore [F] (up to 3 silver)");
     const empty = trading();
     empty.world.player.inventory = { "wild herbs": 2 };
     expect(toolNames(empty)).not.toContain("offer_to_buy");
@@ -236,79 +240,79 @@ describe("selling to the NPC", () => {
 
   it("an offer to buy waits for the player; nothing moves yet", () => {
     const ctx = freshCtx();
-    expect(applyAction(buy("iron ore", 3), ctx).ok).toBe(true);
-    expect(ctx.state.pendingPurchase).toEqual({ item: "iron ore [F]", price: 3 });
+    expect(applyAction(buy("iron ore", 30), ctx).ok).toBe(true);
+    expect(ctx.state.pendingPurchase).toEqual({ item: "iron ore [F]", price: 30 });
     expect(ctx.world.player.inventory["iron ore [F]"]).toBe(3);
-    expect(ctx.state.gold).toBe(35);
+    expect(ctx.state.money).toBe(350);
   });
 
   it("rejects offers that are too high, for things the player lacks, or that the NPC can't afford", () => {
     const ctx = freshCtx();
-    expect(applyAction(buy("iron ore", 4), ctx).ok).toBe(false);
-    expect(applyAction(buy("iron sword", 10), ctx).ok).toBe(false); // player has none
-    expect(applyAction(buy("wild herbs", 1), ctx).ok).toBe(false); // Brena doesn't buy herbs
+    expect(applyAction(buy("iron ore", 40), ctx).ok).toBe(false);
+    expect(applyAction(buy("iron sword", 100), ctx).ok).toBe(false); // player has none
+    expect(applyAction(buy("wild herbs", 10), ctx).ok).toBe(false); // Brena doesn't buy herbs
     expect(applyAction(buy("iron ore", 0), ctx).ok).toBe(false);
-    ctx.state.gold = 2;
-    expect(applyAction(buy("iron ore", 3), ctx)).toEqual({ ok: false, message: "You only have 2 gold." });
+    ctx.state.money = 20;
+    expect(applyAction(buy("iron ore", 30), ctx)).toEqual({ ok: false, message: "You only have 2 silver." });
     expect(ctx.state.pendingPurchase).toBeNull();
   });
 
   it("accepting moves the item to the NPC and the gold to the player", () => {
-    const ctx = freshCtx({ pendingPurchase: { item: "iron ore [F]", price: 3 } });
-    expect(acceptPurchase(ctx)).toEqual({ ok: true, message: "Traveler sold you the iron ore [F] for 3 gold." });
-    expect(ctx.world.player.gold).toBe(53);
+    const ctx = freshCtx({ pendingPurchase: { item: "iron ore [F]", price: 30 } });
+    expect(acceptPurchase(ctx)).toEqual({ ok: true, message: "Traveler sold you the iron ore [F] for 3 silver." });
+    expect(ctx.world.player.money).toBe(530);
     expect(ctx.world.player.inventory["iron ore [F]"]).toBe(2);
-    expect(ctx.state.gold).toBe(32);
+    expect(ctx.state.money).toBe(320);
     expect(ctx.state.inventory["iron ore [F]"]).toBe(1);
     expect(ctx.state.relationship).toBe(2);
   });
 
   it("accepting rechecks the player's item and the NPC's gold", () => {
-    const gone = freshCtx({ pendingPurchase: { item: "iron ore [F]", price: 3 } });
+    const gone = freshCtx({ pendingPurchase: { item: "iron ore [F]", price: 30 } });
     gone.world.player.inventory = {};
     expect(acceptPurchase(gone).ok).toBe(false);
-    const broke = freshCtx({ pendingPurchase: { item: "iron ore [F]", price: 3 }, gold: 1 });
+    const broke = freshCtx({ pendingPurchase: { item: "iron ore [F]", price: 30 }, money: 10 });
     expect(acceptPurchase(broke).ok).toBe(false);
-    expect(broke.world.player.gold).toBe(50);
+    expect(broke.world.player.money).toBe(500);
   });
 
   it("declining clears the offer and moves nothing", () => {
-    const ctx = freshCtx({ pendingPurchase: { item: "iron ore [F]", price: 3 } });
+    const ctx = freshCtx({ pendingPurchase: { item: "iron ore [F]", price: 30 } });
     expect(declinePurchase(ctx).ok).toBe(true);
     expect(ctx.state.pendingPurchase).toBeNull();
-    expect(ctx.world.player.gold).toBe(50);
+    expect(ctx.world.player.money).toBe(500);
   });
 
   it("a won haggle raises the NPC's pending buy offer", () => {
     // d20 19: big win → 24% → 17% after Brena's haggling. Iron sword: 20 → floor(20 * 1.17) = 23.
-    const ctx = freshCtx({ pendingPurchase: { item: "iron sword [D]", price: 15 } }, () => 18.5 / 20);
+    const ctx = freshCtx({ pendingPurchase: { item: "iron sword [D]", price: 150 } }, () => 18.5 / 20);
     ctx.world.player.inventory["iron sword [D]"] = 1;
     const r = haggle("It's worth more than that.", ctx);
-    expect(ctx.state.pendingPurchase).toEqual({ item: "iron sword [D]", price: 23 });
-    expect(r.message).toContain("You now offer 23 gold for their iron sword [D].");
+    expect(ctx.state.pendingPurchase).toEqual({ item: "iron sword [D]", price: 234 });
+    expect(r.message).toContain("You now offer 2 gold 3 silver 4 copper for their iron sword [D].");
   });
 
   it("a fight cancels a pending buy offer", () => {
     const parsed = parseAction("attack_player", {});
-    const ctx = freshCtx({ pendingPurchase: { item: "iron ore [F]", price: 3 }, provocations: 3, mood: "angry" });
+    const ctx = freshCtx({ pendingPurchase: { item: "iron ore [F]", price: 30 }, provocations: 3, mood: "angry" });
     if (parsed.ok) applyAction(parsed, ctx);
     expect(ctx.state.pendingPurchase).toBeNull();
   });
 });
 
 describe("tiered copies in trade", () => {
-  const persona = brena as NpcPersona;
+  const persona = parsePersona(brena);
 
   it("NPC prices scale with tier: a masterwork iron sword [B] costs 2.25x", () => {
-    expect(npcPrice(persona, "iron sword [D]")).toBe(40);
-    expect(npcPrice(persona, "iron sword [B]")).toBe(90);
+    expect(npcPrice(persona, "iron sword [D]")).toBe(400);
+    expect(npcPrice(persona, "iron sword [B]")).toBe(900);
   });
 
   it("Brena stocks both an ordinary and a masterwork sword, offered separately", () => {
     const ctx: ActionContext = { persona, state: createNpcState(persona), world: createDemoWorld(), rng: () => 0.5 };
     const tool = toolsFor(ctx).find((t) => t.name === "offer_item")!;
     expect((tool.parameters as any).properties.item.enum).toEqual(expect.arrayContaining(["iron sword [D]", "iron sword [B]"]));
-    expect(tool.description).toContain("iron sword [B] (90 gold)");
+    expect(tool.description).toContain("iron sword [B] (9 gold)");
   });
 
   it("lists stock cheapest first, in the tool and the situation", () => {
@@ -322,25 +326,25 @@ describe("tiered copies in trade", () => {
 
   it("an offer naming just 'iron sword' resolves to the only copy in stock", () => {
     const ctx = freshCtx({ inventory: { "iron sword [B]": 1 } });
-    ctx.world.player.gold = 100;
-    expect(applyAction(offer("iron sword", 90), ctx).ok).toBe(true);
-    expect(ctx.state.pendingOffer).toEqual({ item: "iron sword [B]", price: 90 });
+    ctx.world.player.money = 1000;
+    expect(applyAction(offer("iron sword", 900), ctx).ok).toBe(true);
+    expect(ctx.state.pendingOffer).toEqual({ item: "iron sword [B]", price: 900 });
   });
 
   it("can't undercut a masterwork's price with the ordinary price", () => {
     const ctx = freshCtx({ inventory: { "iron sword [B]": 1 } });
-    expect(applyAction(offer("iron sword [B]", 40), ctx).ok).toBe(false);
+    expect(applyAction(offer("iron sword [B]", 400), ctx).ok).toBe(false);
   });
 
   it("selling a better copy pays more", () => {
     const ctx = freshCtx();
-    expect(maxBuyPrice(persona, ctx.state, "iron sword [D]")).toBe(20);
-    expect(maxBuyPrice(persona, ctx.state, "iron sword [B]")).toBe(45);
+    expect(maxBuyPrice(persona, ctx.state, "iron sword [D]")).toBe(200);
+    expect(maxBuyPrice(persona, ctx.state, "iron sword [B]")).toBe(450);
   });
 
   it("buying moves the exact copy", () => {
-    const ctx = freshCtx({ inventory: { "iron sword [D]": 1, "iron sword [B]": 1 }, pendingOffer: { item: "iron sword [B]", price: 90 } });
-    ctx.world.player.gold = 100;
+    const ctx = freshCtx({ inventory: { "iron sword [D]": 1, "iron sword [B]": 1 }, pendingOffer: { item: "iron sword [B]", price: 900 } });
+    ctx.world.player.money = 1000;
     expect(acceptOffer(ctx).ok).toBe(true);
     expect(ctx.state.inventory).toEqual({ "iron sword [D]": 1 });
     expect(ctx.world.player.inventory["iron sword [B]"]).toBe(1);
@@ -348,7 +352,7 @@ describe("tiered copies in trade", () => {
 });
 
 describe("offer_training", () => {
-  const persona = brena as NpcPersona;
+  const persona = parsePersona(brena);
   const ctx = (overrides: Partial<NpcState> = {}, trainingTalk = true): ActionContext => ({
     persona,
     state: createNpcState(persona, overrides),
@@ -379,8 +383,8 @@ describe("offer_training", () => {
     const c = ctx();
     const r = applyAction(offerTraining("smithing", 2), c);
     expect(r.ok).toBe(true);
-    expect(c.state.pendingTraining).toEqual({ skill: "smithing", hours: 2, cost: 10 });
-    expect(c.world.player.gold).toBe(50);
+    expect(c.state.pendingTraining).toEqual({ skill: "smithing", hours: 2, cost: 100 });
+    expect(c.world.player.money).toBe(500);
   });
 
   it("rejects offers the game wouldn't allow", () => {

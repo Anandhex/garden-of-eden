@@ -1,6 +1,7 @@
 import { type Skill, skillLevel } from "../npc/skills.js";
 import type { CraftJob, NpcPersona, NpcState } from "../npc/types.js";
 import { type Rng, rollDie } from "./dice.js";
+import { fitsIn } from "./gear.js";
 import { ITEM_TIERS, ITEMS, itemKey, parseItem } from "./items.js";
 
 /**
@@ -90,6 +91,13 @@ export function startCraft(persona: NpcPersona, state: NpcState, recipe: Recipe,
   const job: CraftJob = { recipeId: recipe.id, output: itemKey(recipe.output, tier), qty: recipe.qty, until: now + recipe.hours * 60, doing: recipe.doing };
   state.job = job;
   return job;
+}
+
+/** Would the NPC have room for what a recipe makes, once its inputs are used up? */
+export function fitsCraft(inventory: Record<string, number>, slots: number, recipe: Recipe): boolean {
+  const after = { ...inventory };
+  for (const [name, qty] of Object.entries(recipe.inputs)) removeItem(after, name, qty);
+  return fitsIn(after, slots, { [itemKey(recipe.output)]: recipe.qty });
 }
 
 /** Finish the job if its time has come (`now` in absolute minutes): the output goes into stock. Returns the finished job, if any. */

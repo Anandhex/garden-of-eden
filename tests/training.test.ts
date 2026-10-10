@@ -18,9 +18,10 @@ import {
 import { createNpcState } from "../src/npc/state.js";
 import type { NpcPersona, NpcState } from "../src/npc/types.js";
 import { createDemoWorld } from "../src/world/world.js";
+import { parsePersona } from "../src/npc/personaSchema.js";
 
-const persona = brena as NpcPersona; // smithing 5, foraging 1, blunt 4, ... greed 0
-const pell = pellJson as NpcPersona; // haggling 5, speechcraft 4, ... greed 0.9
+const persona = parsePersona(brena); // smithing 5, foraging 1, blunt 4, ... greed 0
+const pell = parsePersona(pellJson); // haggling 5, speechcraft 4, ... greed 0.9
 const setup = (state: Partial<NpcState> = {}) => ({ state: createNpcState(persona, state), world: createDemoWorld() });
 
 describe("clock", () => {
@@ -68,9 +69,9 @@ describe("training", () => {
   it("time passes, the player pays, and trust grows a little", () => {
     const { state, world } = setup();
     const r = train(persona, state, world, "smithing", 3);
-    expect(r.cost).toBe(15); // 3h toward novice at 5/h
-    expect(world.player.gold).toBe(35);
-    expect(state.gold).toBe(persona.startingGold + 15); // the fee goes to the teacher
+    expect(r.cost).toBe(150); // 3h toward novice at 5 silver/h
+    expect(world.player.money).toBe(350);
+    expect(state.money).toBe(persona.startingMoney + 150); // the fee goes to the teacher
     expect(formatTime(world)).toBe("Day 1, 17:00 (evening)");
     expect(state.relationship).toBe(2);
   });
@@ -99,7 +100,7 @@ describe("training", () => {
 
   it("caps session length", () => {
     const { state, world } = setup();
-    world.player.gold = 1000;
+    world.player.money = 10000;
     expect(train(persona, state, world, "smithing", 100).hoursSpent).toBe(MAX_SESSION_HOURS);
   });
 
@@ -120,41 +121,41 @@ describe("training", () => {
 });
 
 describe("training fees", () => {
-  it("cost 5 gold per hour per tier being taught", () => {
-    expect([1, 2, 3, 4, 5].map((tier) => feePerHour(persona, createNpcState(persona, { relationship: 50 }), tier))).toEqual([5, 10, 15, 20, 25]);
+  it("cost 5 silver per hour per tier being taught", () => {
+    expect([1, 2, 3, 4, 5].map((tier) => feePerHour(persona, createNpcState(persona, { relationship: 50 }), tier))).toEqual([50, 100, 150, 200, 250]);
   });
 
   it("a session crossing a level charges each hour at its own rate", () => {
     const { state, world } = setup();
-    world.player.gold = 100;
+    world.player.money = 1000;
     // 4h toward novice at 5/h, then 2h toward apprentice at 10/h.
     const q = quoteTraining(persona, state, world, "smithing", 6);
-    expect(q).toMatchObject({ ok: true, hours: 6, cost: 40, endLevel: 1, endProgress: 2 });
+    expect(q).toMatchObject({ ok: true, hours: 6, cost: 400, endLevel: 1, endProgress: 2 });
   });
 
   it("stops when the player can't pay for the next hour", () => {
     const { state, world } = setup();
-    world.player.gold = 12;
+    world.player.money = 120;
     const r = train(persona, state, world, "smithing", 8);
-    expect(r).toMatchObject({ ok: true, hoursSpent: 2, cost: 10 });
-    expect(world.player.gold).toBe(2);
+    expect(r).toMatchObject({ ok: true, hoursSpent: 2, cost: 100 });
+    expect(world.player.money).toBe(20);
   });
 
   it("refuses with the price if the player can't afford even one hour", () => {
     const { state, world } = setup();
-    world.player.gold = 3;
+    world.player.money = 30;
     const r = train(persona, state, world, "smithing", 2);
     expect(r.ok).toBe(false);
-    expect(r.message).toBe("One hour of smithing with Brena Ashford costs 5 gold; you have 3.");
+    expect(r.message).toBe("One hour of smithing with Brena Ashford costs 5 silver; you have 3 silver.");
     expect(world.hour).toBe(14);
-    expect(state.gold).toBe(persona.startingGold);
+    expect(state.money).toBe(persona.startingMoney);
   });
 
   it("quoting changes nothing", () => {
     const { state, world } = setup();
     quoteTraining(persona, state, world, "smithing", 4);
-    expect(world.player.gold).toBe(50);
-    expect(state.gold).toBe(persona.startingGold);
+    expect(world.player.money).toBe(500);
+    expect(state.money).toBe(persona.startingMoney);
     expect(world.player.skillProgress.smithing).toBeUndefined();
     expect(world.hour).toBe(14);
   });
@@ -163,27 +164,27 @@ describe("training fees", () => {
 describe("greedy NPCs", () => {
   it("a money-hungry NPC charges far more to someone they don't trust", () => {
     // Pell, greed 0.9: at trust 0, 1.9x; at trust 50, 1.45x; at trust 100, list price.
-    expect(feePerHour(pell, createNpcState(pell, { relationship: 0 }), 2)).toBe(19);
-    expect(feePerHour(pell, createNpcState(pell, { relationship: 50 }), 2)).toBe(15);
-    expect(feePerHour(pell, createNpcState(pell, { relationship: 100 }), 2)).toBe(10);
+    expect(feePerHour(pell, createNpcState(pell, { relationship: 0 }), 2)).toBe(190);
+    expect(feePerHour(pell, createNpcState(pell, { relationship: 50 }), 2)).toBe(145);
+    expect(feePerHour(pell, createNpcState(pell, { relationship: 100 }), 2)).toBe(100);
   });
 
   it("a fair NPC charges the same at any trust", () => {
-    expect(feePerHour(persona, createNpcState(persona, { relationship: 0 }), 2)).toBe(10);
-    expect(feePerHour(persona, createNpcState(persona, { relationship: 100 }), 2)).toBe(10);
+    expect(feePerHour(persona, createNpcState(persona, { relationship: 0 }), 2)).toBe(100);
+    expect(feePerHour(persona, createNpcState(persona, { relationship: 100 }), 2)).toBe(100);
   });
 
   it("the same session costs more from Pell than from Brena at trust 0", () => {
     const world = createDemoWorld();
     world.player.skills = {};
-    world.player.gold = 1000;
+    world.player.money = 10000;
     // Both set to teach foraging, so only greed differs.
     const brenaForager = { ...persona, teaches: "foraging" as const };
     const pellForager = { ...pell, teaches: "foraging" as const };
     const fromBrena = quoteTraining(brenaForager, createNpcState(brenaForager), world, "foraging", 2);
     const fromPell = quoteTraining(pellForager, createNpcState(pellForager), world, "foraging", 2);
-    expect(fromBrena.cost).toBe(10);
-    expect(fromPell.cost).toBe(20);
+    expect(fromBrena.cost).toBe(100);
+    expect(fromPell.cost).toBe(190); // 95 copper an hour (1.9x)
   });
 });
 
@@ -202,7 +203,7 @@ describe("trust limits how far an NPC will teach", () => {
 
   it("stops a session at the trust cap and says why", () => {
     const { state, world } = setup();
-    world.player.gold = 1000;
+    world.player.money = 10000;
     world.player.skills.smithing = 1;
     world.player.skillProgress.smithing = 6; // 2h from apprentice; adept needs trust 20
     const r = train(persona, state, world, "smithing", 8);
@@ -223,8 +224,8 @@ describe("training talk", () => {
   it("tells the NPC what it can teach now, at what price, and what needs more trust", () => {
     const { state, world } = setup();
     const text = describeTeaching(persona, state, world)!;
-    expect(text).toContain("smithing (to apprentice, 5 gold/hour)");
-    expect(text).toContain("They have 50 gold.");
+    expect(text).toContain("smithing (to apprentice, 5 silver/hour)");
+    expect(text).toContain("They have 5 gold.");
     world.player.skills.smithing = 2; // next would be adept: needs trust 20
     expect(describeTeaching(persona, state, world)).toContain("smithing (needs trust 20)");
   });
@@ -253,7 +254,7 @@ describe("each NPC teaches one skill: their specialty", () => {
     const { state, world } = setup();
     const r = train(persona, state, world, "blunt", 2); // Brena is an expert, but blunt isn't what she teaches
     expect(r).toMatchObject({ ok: false, message: "Brena Ashford only teaches smithing." });
-    expect(world.player.gold).toBe(50);
+    expect(world.player.money).toBe(500);
   });
 
   it("only mentions the specialty when asked about training", () => {

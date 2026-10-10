@@ -1,0 +1,43 @@
+{
+  "id": "bandit",
+  "name": "bandit",
+  "species": "human",
+  "tier": "E",
+  "potential": ["E", "B"],
+  "ageRange": [18, 45],
+  "stats": {
+    "maxHp": 35,
+    "maxMp": 0,
+    "attributes": {
+      "strength": 13,
+      "agility": 12,
+      "endurance": 12,
+      "intelligence": 9,
+      "willpower": 9,
+      "charisma": 8,
+      "perception": 11,
+      "luck": 10
+    }
+  },
+  "skills": { "blunt": 2, "one_handed": 1, "evasion": 1, "intimidation": 2, "sneak": 2 },
+  "weapon": "cudgel",
+  "armor": "leather armor",
+  "fleeAt": 0.35,
+  "loot": [
+    { "item": "cudgel", "qty": 1, "chance": 0.6 },
+    { "item": "leather armor", "qty": 1, "chance": 0.3 },
+    { "item": "bread loaf", "qty": 1, "chance": 0.4 }
+  ],
+  "money": ["2 silver", "1 gold 2 silver"],
+  "barks": {
+    "idle": ["Road's closed, friend. Unless you pay the toll.", "Keep walking."],
+    "attack": ["Your purse or your teeth!", "Should've paid the toll!"],
+    "hurt": ["Argh! You'll pay for that!"],
+    "flee": ["Not worth it! I'm out!"]
+  },
+  "aggressive": true,
+  "hunts": [
+    { "activity": "raiding a merchant cart", "rank": "E", "chance": 0.3 }
+  ],
+  "rivalry": 0.05
+}

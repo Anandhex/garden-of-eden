@@ -1,15 +1,70 @@
-import { normalizeInventory } from "../game/items.js";
+import { carrySlots, fitsIn } from "../game/gear.js";
+import { itemKey, normalizeInventory } from "../game/items.js";
+import { type Challenge, createLife, effectiveStats, gainXp, type LifeContext, overcome, TIERS, tierIndex, upgradeLife } from "../game/life.js";
+import { speciesOf } from "../world/species.js";
+import type { NpcStats } from "./stats.js";
 import type { NpcPersona, NpcState } from "./types.js";
 
-/** A fresh NPC at the start of a conversation. */
-export function createNpcState(persona: NpcPersona, overrides: Partial<NpcState> = {}): NpcState {
+/** What the NPC's growth depends on: species and authored stats. (Their potential is in their life.) */
+export function lifeContext(persona: NpcPersona): LifeContext {
+  return { species: speciesOf(persona.species), base: persona.stats };
+}
+
+/** The NPC's stats right now: authored stats plus rank growth and age (game/life.ts). Use this, not persona.stats, in rules. */
+export function statsOf(persona: NpcPersona, state: Pick<NpcState, "life">): NpcStats {
+  return effectiveStats(persona.stats, state.life);
+}
+
+/** Slots of goods the NPC can keep: their pack (from strength) plus any storage (a shopkeeper's chest or bag). */
+export function npcSlots(persona: NpcPersona, state: Pick<NpcState, "life">): number {
+  return carrySlots(statsOf(persona, state).attributes.strength) + (persona.storage?.slots ?? 0);
+}
+
+/** Would the NPC have room after `changes` (item key → quantity, negative for taken out)? */
+export function npcHasRoom(persona: NpcPersona, state: NpcState, changes: Record<string, number>): boolean {
+  return fitsIn(state.inventory, npcSlots(persona, state), changes);
+}
+
+/** Give the NPC XP. Returns a line for the log if it made them ready for a breakthrough, else null. */
+export function npcGainXp(persona: NpcPersona, state: NpcState, xp: number): string | null {
+  if (state.outcome === "dead") return null;
+  if (!gainXp(state.life, lifeContext(persona), xp)) return null;
+  return `${persona.name} is ready for a breakthrough to rank ${TIERS[tierIndex(state.life.tier) + 1]}.`;
+}
+
+/**
+ * The NPC got through a challenge (a fight won, a fine piece made): titles, and
+ * a breakthrough to the next rank if they were ready. A breakthrough is something
+ * they remember. Returns lines for the log.
+ */
+export function npcOvercome(persona: NpcPersona, state: NpcState, challenge: Challenge, day: number): string[] {
+  if (state.outcome === "dead") return [];
+  const result = overcome(persona.name, state.life, lifeContext(persona), challenge, day);
+  if (result.rose) {
+    state.memories.push({
+      id: `rank-${result.rose}`,
+      day,
+      text: `On day ${day} you broke through to rank ${result.rose} by ${challenge.what.replace(persona.name, "yourself")}.`,
+    });
+  }
+  return result.log;
+}
+
+/**
+ * A fresh NPC at the start of a conversation. `day` is the world day it's made on,
+ * so a new NPC is `persona.age` years old that day.
+ */
+export function createNpcState(persona: NpcPersona, overrides: Partial<NpcState> = {}, day = 1): NpcState {
+  const fresh = createLife(speciesOf(persona.species), persona.age, persona.tier, day, persona.potential);
+  const life = overrides.life ? upgradeLife(overrides.life, fresh) : fresh;
+  const stats = effectiveStats(persona.stats, life);
   const state: NpcState = {
     mood: "neutral",
     relationship: 0,
-    hp: persona.stats.maxHp,
-    mp: persona.stats.maxMp,
+    hp: stats.maxHp,
+    mp: stats.maxMp,
     inventory: { ...persona.startingInventory },
-    gold: persona.startingGold,
+    money: persona.startingMoney,
     conversationOver: false,
     pendingOffer: null,
     pendingPurchase: null,
@@ -30,8 +85,17 @@ export function createNpcState(persona: NpcPersona, overrides: Partial<NpcState>
     questBoard: [],
     pendingQuest: null,
     job: null,
+    deathCause: null,
+    equipment: {
+      weapon: itemKey(persona.weapon),
+      ...(persona.armor ? { armor: itemKey(persona.armor) } : {}),
+    },
     ...overrides,
+    life,
   };
+  // A save from before ranks and ages may hold more HP than an older body now allows.
+  state.hp = Math.min(state.hp, stats.maxHp);
+  state.mp = Math.min(state.mp, stats.maxMp);
   // Inventory keys always carry a tier ("dagger" → "dagger [E]").
   state.inventory = normalizeInventory(state.inventory);
   return state;

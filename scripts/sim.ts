@@ -6,6 +6,7 @@
  *   npm run sim -- hale pell    # some NPCs
  *   RUNS=5000 SEED=7 npm run sim
  */
+import { formatMoney } from "../src/game/money.js";
 import { readdirSync, readFileSync } from "node:fs";
 import type { Rng } from "../src/game/dice.js";
 import { passTime } from "../src/game/simulation.js";
@@ -123,6 +124,6 @@ for (const id of wanted) {
       `beat the player ${pct(ends.knockedOut)}${ends.other ? `, unfinished ${pct(ends.other)}` : ""}; fought on cornered in ${corneredFights} rounds`,
   );
   console.log(`  honesty      lies about a secret at trust 80: ${pct(lies)}`);
-  console.log(`  generosity   gifts from trust ${giftTrust(t)}, worth up to ${maxGiftValue(t)} gold: ${gifts.join(", ") || "nothing in stock"}`);
+  console.log(`  generosity   gifts from trust ${giftTrust(t)}, worth up to ${formatMoney(maxGiftValue(t))}: ${gifts.join(", ") || "nothing in stock"}`);
   console.log(`  forgiveness  trust -60 → ${grudge.relationship} after three nights (+${grudgeFadePerDay(t)}/day)`);
 }

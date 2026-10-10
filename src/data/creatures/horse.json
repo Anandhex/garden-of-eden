@@ -1,0 +1,35 @@
+{
+  "id": "horse",
+  "name": "horse",
+  "species": "horse",
+  "tier": "G",
+  "potential": ["G", "F"],
+  "ageRange": [4, 18],
+  "stats": {
+    "maxHp": 40,
+    "maxMp": 0,
+    "attributes": {
+      "strength": 16,
+      "agility": 13,
+      "endurance": 16,
+      "intelligence": 4,
+      "willpower": 7,
+      "charisma": 8,
+      "perception": 12,
+      "luck": 10
+    }
+  },
+  "skills": { "unarmed": 1 },
+  "attack": { "name": "kick", "die": 6, "skill": "unarmed" },
+  "fleeAt": 0.9,
+  "loot": [],
+  "barks": {
+    "idle": ["*snorts and stamps a hoof*", "*whickers softly*"],
+    "attack": ["*rears up and kicks*"],
+    "hurt": ["*screams*"],
+    "flee": ["*bolts down the road*"]
+  },
+  "aggressive": false,
+  "hunts": [],
+  "rivalry": 0
+}

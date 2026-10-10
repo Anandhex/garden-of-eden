@@ -2,6 +2,10 @@
   "id": "brena",
   "name": "Brena Ashford",
   "role": "the village blacksmith of Millbrook",
+  "species": "human",
+  "age": 34,
+  "tier": "C",
+  "potential": "A",
   "personality": [
     "gruff",
     "honest",
@@ -76,7 +80,7 @@
         "qty": 1
       },
       "reward": {
-        "gold": 8
+        "money": "8 silver"
       }
     },
     {
@@ -91,7 +95,7 @@
         "qty": 3
       },
       "reward": {
-        "gold": 12
+        "money": "1 gold 2 silver"
       }
     },
     {
@@ -106,19 +110,20 @@
         "qty": 1
       },
       "reward": {
-        "gold": 30,
+        "money": "3 gold",
         "trust": 25
       }
     }
   ],
   "weapon": "forge hammer",
+  "storage": { "name": "the forge chest", "slots": 12 },
   "startingInventory": {
     "iron sword [D]": 2,
     "iron sword [B]": 1,
     "dagger [E]": 3,
     "horseshoe [G]": 10
   },
-  "startingGold": 35,
+  "startingMoney": "3 gold 5 silver",
   "buys": [
     "iron ore",
     "iron sword",
@@ -126,8 +131,8 @@
     "horseshoe"
   ],
   "prices": {
-    "iron sword": 40,
-    "dagger": 15,
-    "horseshoe": 2
+    "iron sword": "4 gold",
+    "dagger": "1 gold 5 silver",
+    "horseshoe": "2 silver"
   }
 }

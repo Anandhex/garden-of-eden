@@ -1,0 +1,40 @@
+{
+  "id": "wolf",
+  "name": "wolf",
+  "species": "wolf",
+  "tier": "F",
+  "potential": ["F", "C"],
+  "ageRange": [2, 9],
+  "stats": {
+    "maxHp": 22,
+    "maxMp": 0,
+    "attributes": {
+      "strength": 12,
+      "agility": 15,
+      "endurance": 12,
+      "intelligence": 3,
+      "willpower": 9,
+      "charisma": 4,
+      "perception": 15,
+      "luck": 10
+    }
+  },
+  "skills": { "unarmed": 2, "evasion": 2, "sneak": 3, "hunting": 3 },
+  "attack": { "name": "bite", "die": 6, "skill": "unarmed" },
+  "fleeAt": 0.3,
+  "loot": [
+    { "item": "wolf pelt", "qty": 1, "chance": 0.8 }
+  ],
+  "barks": {
+    "idle": ["*a low growl from the trees*", "*howls somewhere off to the north*"],
+    "attack": ["*snarls and lunges*", "*snaps at your legs*"],
+    "hurt": ["*yelps*"],
+    "flee": ["*whines and bolts into the brush*"]
+  },
+  "aggressive": true,
+  "hunts": [
+    { "activity": "hunting a deer", "rank": "F", "chance": 0.5 },
+    { "activity": "hunting a wild boar", "rank": "E", "chance": 0.2 }
+  ],
+  "rivalry": 0.15
+}

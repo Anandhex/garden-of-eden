@@ -9,9 +9,10 @@ import { OllamaProvider } from "../src/llm/ollama.js";
 import { NpcAgent } from "../src/npc/NpcAgent.js";
 import type { NpcPersona } from "../src/npc/types.js";
 import { createDemoWorld } from "../src/world/world.js";
+import { parsePersona } from "../src/npc/personaSchema.js";
 
 const llm = new OllamaProvider();
-const newNpc = () => new NpcAgent(brena as NpcPersona, llm);
+const newNpc = () => new NpcAgent(parsePersona(brena), llm);
 
 describe.skipIf(!process.env.LIVE)("live: Brena on the local model", { timeout: 60_000 }, () => {
   beforeAll(() => llm.warmUp(), 120_000);
@@ -34,7 +35,7 @@ describe.skipIf(!process.env.LIVE)("live: Brena on the local model", { timeout: 
     const world = createDemoWorld();
     const r = await npc.respond("I'd like to buy a dagger.", world);
     expect(r.actions).toContainEqual(expect.objectContaining({ name: "offer_item", ok: true }));
-    expect(world.player.gold).toBe(50);
+    expect(world.player.money).toBe(500);
 
     const after = await npc.acceptOffer(world);
     expect(after.sale.ok).toBe(true);

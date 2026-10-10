@@ -20,8 +20,12 @@ export const config = {
   knockoutRecoveryHours: 8,
   /** Share of max HP the player wakes with after a knockout. */
   knockoutHpShare: 0.25,
-  /** Share of the player's gold the winner takes. */
-  knockoutGoldShare: 0.25,
+  /** Share of the player's money the winner takes. */
+  knockoutMoneyShare: 0.25,
+  // How many in-game days make a year. NPCs and creatures age (and can die of old age) on this calendar.
+  daysPerYear: Math.max(1, Number(process.env.DAYS_PER_YEAR ?? 12)),
+  // In a fight, real seconds the player has to act. If they don't, their turn is lost and the opponent strikes. 0 turns it off.
+  combatTickSeconds: Math.max(0, Number(process.env.COMBAT_TICK_SECONDS ?? 6)),
   // In-game minutes each kind of turn takes. /wait and training still move whole hours.
   turnMinutes: { talk: 2, trade: 5, fight: 1 },
   // Safety valve: max model round-trips (speech + tool calls) per player line.

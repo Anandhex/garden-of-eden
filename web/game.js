@@ -4,6 +4,11 @@
 
 const TILE = 32;
 const $ = (id) => document.getElementById(id);
+/** Copper → "1 gold 2 silver 5 copper" (the server counts all money in copper; 1 gold = 10 silver = 100 copper). */
+const coins = (copper) => {
+  const g = Math.floor(copper / 100), s = Math.floor((copper % 100) / 10), c = copper % 10;
+  return [g && `${g} gold`, s && `${s} silver`, c && `${c} copper`].filter(Boolean).join(" ") || "0 copper";
+};
 const canvas = $("map");
 const ctx = canvas.getContext("2d");
 
@@ -14,12 +19,27 @@ let moving = false; // a step request is in flight
 let walkToken = 0; // bumped to cancel a click-to-walk path
 let tab = "skills";
 const logs = {}; // npc id -> [{ kind, text }]
+let lastNewsId = null; // newest server news shown (null until the first state arrives)
+let fightClock = null; // { left, at }: seconds left to act, and when we heard
+
+/** Take a new state from the server: show news we haven't seen (e.g. a turn lost to the combat clock). */
+function setState(s) {
+  state = s;
+  const news = s.news ?? [];
+  if (lastNewsId === null) lastNewsId = news.at(-1)?.id ?? 0; // don't replay old news on load
+  for (const ev of news) {
+    if (ev.id <= lastNewsId) continue;
+    lastNewsId = ev.id;
+    handleEvent(ev, ev.npc, null);
+  }
+  fightClock = s.fight ? { left: s.fight.secondsLeft, tick: s.fight.tick, at: performance.now() } : null;
+}
 
 // ---------- server calls ----------
 
 async function getState() {
   const res = await fetch("/api/state");
-  state = await res.json();
+  setState(await res.json());
   renderAll();
 }
 
@@ -91,7 +111,7 @@ function handleEvent(ev, npcId, bubble) {
     case "opened":
       return null;
     case "done":
-      state = ev.state;
+      setState(ev.state);
       return bubble;
   }
   return bubble;
@@ -103,7 +123,7 @@ async function step(dx, dy) {
   try {
     const res = await fetch("/api/move", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ dx, dy }) });
     const data = await res.json();
-    if (data.state) state = data.state;
+    if (data.state) setState(data.state);
     if (data.reason) feed(data.reason);
     for (const line of data.log ?? []) feed(line);
     if (talking) {
@@ -128,7 +148,14 @@ const solid = (x, y) => {
   const t = state.map.tiles[y]?.[x];
   return t === undefined || t === "tree" || t === "wall" || t === "water";
 };
-const npcAt = (x, y) => state.npcs.find((n) => n.x === x && n.y === y && !n.away);
+const creatureAt = (x, y) => state.creatures.find((c) => c.x === x && c.y === y);
+const npcAt = (x, y) => state.npcs.find((n) => n.x === x && n.y === y && !n.away) ?? creatureAt(x, y);
+/** The creature to fight: the one you're engaged with, else the closest in reach. */
+const nearestCreature = () =>
+  state.creatures.find((c) => c.engaged) ??
+  state.creatures.filter((c) => dist(state.position, c) <= state.map.talkRange).sort((a, b) => dist(state.position, a) - dist(state.position, b))[0];
+const fightCreature = (c) => act({ action: "hunt", creature: c.uid });
+const runFrom = (c) => act({ action: "escape", creature: c.uid });
 const nearest = () =>
   state.npcs.filter((n) => !n.dead && !n.away && dist(state.position, n) <= state.map.talkRange).sort((a, b) => dist(state.position, a) - dist(state.position, b))[0];
 
@@ -193,10 +220,13 @@ function renderChat(rebuildLog = false) {
   if (!talking) return;
   const npc = npcById(talking);
   $("chat-name").textContent = npc.name;
-  $("chat-role").textContent = npc.role;
+  $("repair-btn").hidden = !npc.repairs;
+  $("chat-role").textContent = `${npc.role} · ${npc.age}-year-old ${npc.species}${npc.ageStage === "elder" || npc.ageStage === "venerable" ? ` (${npc.ageStage})` : ""}`;
   const stats = $("chat-stats");
   stats.replaceChildren();
-  for (const s of [`mood: ${npc.mood}`, `trust: ${npc.trust}`, `HP ${npc.hp}/${npc.maxHp}`, npc.busy ? `busy ${npc.busy}` : null, npc.inCombat ? "⚔ in a fight" : null]) {
+  $("chat-name").textContent = npc.titles.length > 0 ? `${npc.name}, ${npc.titles.join(", ")}` : npc.name;
+  const rank = npc.atPeak ? `rank ${npc.rank} (peak)` : npc.readyToBreakThrough ? `rank ${npc.rank} (ready to break through)` : `rank ${npc.rank} (${npc.rankXp}/${npc.rankXpNext} xp, max ${npc.potential})`;
+  for (const s of [rank, `mood: ${npc.mood}`, `trust: ${npc.trust}`, `HP ${npc.hp}/${npc.maxHp}`, npc.busy ? `busy ${npc.busy}` : null, npc.inCombat ? "⚔ in a fight" : null]) {
     if (!s) continue;
     const span = document.createElement("span");
     span.textContent = s;
@@ -254,10 +284,10 @@ function renderOffers(npc) {
     row.append(span, btns);
     box.append(row);
   };
-  if (p.quest) add("quest", `Job [${p.quest.tier}] "${p.quest.title}": bring ${p.quest.qty} ${p.quest.item} for ${p.quest.gold} gold.`);
-  if (p.training) add("training", `Train ${p.training.skill.replace("_", "-")} for ${p.training.hours}h, ${p.training.cost} gold (you have ${state.player.gold}).`);
-  if (p.purchase) add("purchase", `Sell your ${p.purchase.item} for ${p.purchase.price} gold?`);
-  if (p.offer) add("offer", `Buy ${p.offer.item} for ${p.offer.price} gold? (you have ${state.player.gold})`);
+  if (p.quest) add("quest", `Job [${p.quest.tier}] "${p.quest.title}": bring ${p.quest.qty} ${p.quest.item} for ${coins(p.quest.money)}.`);
+  if (p.training) add("training", `Train ${p.training.skill.replace("_", "-")} for ${p.training.hours}h, ${coins(p.training.cost)} (you have ${coins(state.player.money)}).`);
+  if (p.purchase) add("purchase", `Sell your ${p.purchase.item} for ${coins(p.purchase.price)}?`);
+  if (p.offer) add("offer", `Buy ${p.offer.item} for ${coins(p.offer.price)}? (you have ${state.player.money})`);
 }
 
 function sendLine(mode, text) {
@@ -295,7 +325,7 @@ function showTraining() {
       const info = document.createElement("div");
       info.textContent = t.skill.replace("_", "-");
       const small = document.createElement("small");
-      small.textContent = `up to ${t.upTo}, ${t.feePerHour} gold/hour${t.locked ? `, ${t.locked}` : ""}`;
+      small.textContent = `up to ${t.upTo}, ${coins(t.feePerHour)}/hour${t.locked ? `, ${t.locked}` : ""}`;
       info.append(small);
       const hours = document.createElement("select");
       for (const n of [2, 4, 8]) hours.add(new Option(`${n}h`, n));
@@ -308,7 +338,7 @@ function showTraining() {
         openModal((b) => {
           const p = document.createElement("p");
           p.textContent = quote.ok
-            ? `${quote.message} You have ${quote.gold} gold.`
+            ? `${quote.message} You have ${coins(quote.money)}.`
             : quote.message;
           b.append(p);
           if (quote.ok) {
@@ -333,6 +363,33 @@ function showTraining() {
   });
 }
 
+/** A smith's repair list: your worn gear, equipped or packed, with what each costs. */
+function showRepairs() {
+  const npc = npcById(talking);
+  openModal((body) => {
+    const h = document.createElement("h3");
+    h.textContent = `${npc.name} can mend your gear`;
+    body.append(h);
+    const p = state.player;
+    const worn = [
+      ...["weapon", "armor"].filter((s) => p.gear[s]?.repairCost > 0).map((s) => ({ which: s, item: p.gear[s].item, cost: p.gear[s].repairCost })),
+      ...p.items.filter((i) => i.repairCost > 0).map((i) => ({ which: i.item, item: i.item, cost: i.repairCost })),
+    ];
+    if (worn.length === 0) body.append(emptyP("Nothing of yours needs mending."));
+    for (const w of worn) {
+      const row = document.createElement("div");
+      row.className = "row";
+      const a = document.createElement("span");
+      a.textContent = `${w.item} — ${coins(w.cost)}`;
+      row.append(a, button("Repair", () => {
+        $("modal").close();
+        act({ action: "repair", npc: talking, which: w.which });
+      }, w.cost > p.money));
+      body.append(row);
+    }
+  });
+}
+
 function showWares() {
   const npc = npcById(talking);
   openModal((body) => {
@@ -345,10 +402,14 @@ function showWares() {
       const a = document.createElement("span");
       a.textContent = `${w.item} ×${w.qty}`;
       const b = document.createElement("span");
-      b.textContent = w.price ? `${w.price} gold` : "not for sale";
+      b.textContent = w.price ? coins(w.price) : `not for sale (${w.reason})`;
       row.append(a, b);
       body.append(row);
     }
+    const stock = document.createElement("p");
+    stock.className = "empty";
+    stock.textContent = `Stock: ${npc.stock.used}/${npc.stock.slots} slots${npc.stock.storage ? ` (pack and ${npc.stock.storage})` : ""}.`;
+    body.append(stock);
     const p = document.createElement("p");
     p.className = "empty";
     p.textContent = "Ask to buy something and they'll make an offer. Haggle to lower the price.";
@@ -387,7 +448,7 @@ function renderSheet() {
     body.append(wrap);
   };
   if (tab === "skills") {
-    h(`${p.name}, level ${p.level}`);
+    h(`${p.name}${p.titles.length > 0 ? `, ${p.titles.join(", ")}` : ""}, level ${p.level} (rank ${p.rank})`);
     row("XP", `${p.xp}/${p.xpNext}`);
     bar(p.xp / p.xpNext);
     h("Attributes");
@@ -399,11 +460,25 @@ function renderSheet() {
       if (s.needed) bar(s.progress / s.needed);
     }
   } else if (tab === "inv") {
-    h("Inventory");
-    row("Gold", String(p.gold));
-    const items = Object.entries(p.inventory).filter(([, q]) => q > 0);
-    if (items.length === 0) body.append(emptyP("Nothing but lint."));
-    for (const [k, q] of items) row(k, `×${q}`);
+    h("Equipped");
+    for (const slot of ["weapon", "armor"]) {
+      const g = p.gear[slot];
+      const r = row(slot, g ? `${g.item}${g.broken ? " (broken)" : ""}` : "nothing");
+      if (g) r.append(button("Take off", () => act({ action: "unequip", slot }), p.pack.used >= p.pack.slots));
+    }
+    body.append(emptyP(`Fighting with ${p.fightingWith}; armour stops ${p.armorValue} a hit. You can use gear up to tier ${p.gearTier}.`));
+    h(`Pack (${p.pack.used}/${p.pack.slots} slots)`);
+    row("Money", coins(p.money));
+    if (p.items.length === 0) body.append(emptyP("Nothing but lint."));
+    for (const it of p.items) {
+      const r = row(it.item, `×${it.qty}`);
+      if (it.slot) {
+        const b = button("Equip", () => act({ action: "equip", item: it.item }), Boolean(it.needs));
+        if (it.needs) b.title = it.needs;
+        r.append(b);
+      }
+    }
+    body.append(emptyP("Gear takes a slot each; other goods stack 20 to a slot. A full pack takes nothing more."));
   } else {
     h("Active quests");
     if (p.quests.length === 0) body.append(emptyP("None. Ask around for work."));
@@ -411,7 +486,7 @@ function renderSheet() {
       row(`[${q.tier}] ${q.title}`, `${q.have}/${q.qty} ${q.item}`);
       const sub = document.createElement("div");
       sub.className = "empty";
-      sub.textContent = `For ${q.giver}. Reward ${q.gold} gold.`;
+      sub.textContent = `For ${q.giver}. Reward ${coins(q.money)}.`;
       body.append(sub);
     }
     if (p.completed) body.append(emptyP(`${p.completed} completed.`));
@@ -421,6 +496,15 @@ function renderSheet() {
     }
   }
 }
+/** A small button for a row. */
+function button(label, onClick, disabled = false) {
+  const b = document.createElement("button");
+  b.className = "small";
+  b.textContent = label;
+  b.disabled = disabled || working;
+  b.onclick = onClick;
+  return b;
+}
 const emptyP = (t) => Object.assign(document.createElement("p"), { className: "empty", textContent: t });
 
 // ---------- header ----------
@@ -429,7 +513,7 @@ function renderHeader() {
   $("time").textContent = state.time.text;
   const p = state.player;
   $("hpbar").textContent = `HP ${p.hp}/${p.maxHp}`;
-  $("gold").textContent = `${p.gold} gold`;
+  $("gold").textContent = `${coins(p.money)}`;
   $("llm").textContent = state.llm.ready ? "model ready" : "model offline";
   $("llm").className = `pill ${state.llm.ready ? "ok" : "err"}`;
   $("banner").hidden = state.llm.ready;
@@ -536,6 +620,11 @@ function drawPerson(x, y, color, label, opts = {}) {
     ctx.beginPath();
     ctx.roundRect(px - 8, py - 4, 16, 17, 5);
     ctx.fill();
+    if (opts.player) {
+      ctx.strokeStyle = "#ffd27a";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
     ctx.fillStyle = "#f0d2b0";
     ctx.beginPath();
     ctx.arc(px, py - 9, 7, 0, Math.PI * 2);
@@ -550,14 +639,89 @@ function drawPerson(x, y, color, label, opts = {}) {
   ctx.lineWidth = 3;
   ctx.strokeStyle = "rgba(0,0,0,.7)";
   ctx.strokeText(label, px, py - 22);
-  ctx.fillStyle = opts.near ? "#ffd27a" : "#fff";
+  ctx.fillStyle = opts.player || opts.near ? "#ffd27a" : "#fff";
   ctx.fillText(label, px, py - 22);
+  if (opts.player) {
+    ctx.fillStyle = "#ffd27a";
+    ctx.beginPath();
+    ctx.moveTo(px, py - 30);
+    ctx.lineTo(px - 4, py - 36);
+    ctx.lineTo(px + 4, py - 36);
+    ctx.closePath();
+    ctx.fill();
+  }
   if (opts.hp !== undefined && opts.hp < 1) {
     ctx.fillStyle = "#000a";
     ctx.fillRect(px - 12, py + 15, 24, 4);
     ctx.fillStyle = "#e0675b";
     ctx.fillRect(px - 12, py + 15, 24 * Math.max(0, opts.hp), 4);
   }
+}
+
+/**
+ * A creature: a four-legged shape for animals, a person for bandits. Packs stand
+ * close, so the label is just the rank, plus the name for the one you're facing.
+ */
+function drawCreature(c, near) {
+  const px = c.x * TILE + TILE / 2;
+  const py = c.y * TILE + TILE / 2;
+  const label = near || c.engaged ? `${c.name} [${c.rank}]` : `[${c.rank}]`;
+  if (c.kind === "bandit") {
+    drawPerson(c.x, c.y, c.color, label, { near, hp: c.hp / c.maxHp });
+  } else {
+    ctx.fillStyle = "rgba(0,0,0,.3)";
+    ctx.beginPath();
+    ctx.ellipse(px, py + 10, 12, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = c.color;
+    ctx.beginPath();
+    ctx.roundRect(px - 11, py - 4, 20, 11, 5); // body
+    ctx.fill();
+    ctx.beginPath();
+    ctx.roundRect(px + 5, py - 9, 9, 8, 3); // head
+    ctx.fill();
+    ctx.fillRect(px - 9, py + 5, 3, 6); // legs
+    ctx.fillRect(px + 4, py + 5, 3, 6);
+    ctx.font = "bold 11px system-ui";
+    ctx.textAlign = "center";
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "rgba(0,0,0,.7)";
+    ctx.strokeText(label, px, py - 16);
+    ctx.fillStyle = near ? "#ffd27a" : "#fff";
+    ctx.fillText(label, px, py - 16);
+    if (c.hp < c.maxHp) {
+      ctx.fillStyle = "#000a";
+      ctx.fillRect(px - 12, py + 13, 24, 4);
+      ctx.fillStyle = "#e0675b";
+      ctx.fillRect(px - 12, py + 13, 24 * Math.max(0, c.hp / c.maxHp), 4);
+    }
+  }
+  if (c.engaged) {
+    ctx.strokeStyle = "#ff6b5b";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(c.x * TILE + 1, c.y * TILE + 1, TILE - 2, TILE - 2);
+  }
+}
+
+/** In a fight: a bar under the player for the seconds left to act before the opponent strikes. */
+function drawFightClock() {
+  if (!fightClock || working) return;
+  const left = Math.max(0, fightClock.left - (performance.now() - fightClock.at) / 1000);
+  const share = left / fightClock.tick;
+  const px = state.position.x * TILE + TILE / 2;
+  const py = state.position.y * TILE + TILE + 2;
+  ctx.fillStyle = "#000a";
+  ctx.fillRect(px - 16, py, 32, 5);
+  ctx.fillStyle = share > 0.5 ? "#7ac77a" : share > 0.2 ? "#e0b45b" : "#e0675b";
+  ctx.fillRect(px - 16, py, 32 * share, 5);
+  ctx.font = "bold 11px system-ui";
+  ctx.textAlign = "center";
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = "rgba(0,0,0,.7)";
+  const label = `your move: ${Math.ceil(left)}s`;
+  ctx.strokeText(label, px, py + 16);
+  ctx.fillStyle = "#fff";
+  ctx.fillText(label, px, py + 16);
 }
 
 function draw(time = performance.now()) {
@@ -571,7 +735,16 @@ function draw(time = performance.now()) {
     if (n.away) continue;
     drawPerson(n.x, n.y, n.color, n.dead ? `${n.name} †` : n.name, { dead: n.dead, near: near?.id === n.id, hp: n.hp / n.maxHp });
   }
-  drawPerson(state.position.x, state.position.y, "#3f7fd0", state.player.name, {});
+  const prey = nearestCreature();
+  for (const c of state.creatures) drawCreature(c, prey?.uid === c.uid);
+  drawPerson(state.position.x, state.position.y, "#3f7fd0", `${state.player.name} (YOU)`, { player: true });
+  drawFightClock();
+  if (prey && !talking) {
+    ctx.font = "bold 13px system-ui";
+    ctx.textAlign = "center";
+    ctx.fillStyle = prey.engaged ? "#ff8a7a" : "#ffd27a";
+    ctx.fillText(prey.engaged ? "F: fight · R: run" : "F: fight", prey.x * TILE + TILE / 2, prey.y * TILE + TILE + 12);
+  }
   if (near && talking !== near.id) {
     ctx.font = "bold 13px system-ui";
     ctx.textAlign = "center";
@@ -597,6 +770,12 @@ addEventListener("keydown", (e) => {
   } else if (e.key.toLowerCase() === "e") {
     const n = nearest();
     if (n) openChat(n.id);
+  } else if (e.key.toLowerCase() === "f" && !talking) {
+    const c = nearestCreature();
+    if (c) fightCreature(c);
+  } else if (e.key.toLowerCase() === "r" && !talking) {
+    const c = state.creatures.find((x) => x.engaged);
+    if (c) runFrom(c);
   }
 });
 
@@ -639,8 +818,14 @@ canvas.addEventListener("click", (e) => {
   const rect = canvas.getBoundingClientRect();
   const x = Math.floor(((e.clientX - rect.left) / rect.width) * state.map.w);
   const y = Math.floor(((e.clientY - rect.top) / rect.height) * state.map.h);
-  const npc = state.npcs.find((n) => n.x === x && n.y === y);
   const range = state.map.talkRange;
+  const beast = creatureAt(x, y);
+  if (beast) {
+    if (dist(state.position, beast) <= range) return fightCreature(beast);
+    const path = findPath(state.position, (c) => dist(c, beast) <= range);
+    return path ? walk(path) : feed("You can't find a way there.");
+  }
+  const npc = state.npcs.find((n) => n.x === x && n.y === y);
   if (npc) {
     if (dist(state.position, npc) <= range) return openChat(npc.id);
     if (npc.dead || npc.away) return;
@@ -676,6 +861,7 @@ $("tools").addEventListener("click", (e) => {
   if (!what || !talking) return;
   if (what === "train") showTraining();
   else if (what === "wares") showWares();
+  else if (what === "repair") showRepairs();
   else act({ action: what, npc: talking });
 });
 for (const b of document.querySelectorAll("[data-wait]")) {
@@ -693,13 +879,26 @@ $("newgame").onclick = async () => {
   const res = await fetch("/api/new", { method: "POST" });
   const data = await res.json();
   if (data.state) {
-    state = data.state;
+    setState(data.state);
     for (const k of Object.keys(logs)) delete logs[k];
     closeChat();
     $("feed").replaceChildren();
     renderAll();
   }
 };
+
+// In a fight the server's combat clock may play the opponent's turn: poll for it.
+setInterval(async () => {
+  if (!state?.fight || working || moving) return;
+  try {
+    const res = await fetch("/api/state?poll=1");
+    if (working || moving) return;
+    setState(await res.json());
+    renderAll();
+  } catch {
+    // the next poll will try again
+  }
+}, 500);
 
 // Ollama may start after the page does: keep checking until it's up.
 setInterval(() => {

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import brena from "../src/data/npcs/brena.json" with { type: "json" };
 import hale from "../src/data/npcs/hale.json" with { type: "json" };
 import pell from "../src/data/npcs/pell.json" with { type: "json" };
-import { acceptQuest, questRewardGold, turnInQuests } from "../src/game/quests.js";
+import { acceptQuest, questRewardMoney, turnInQuests } from "../src/game/quests.js";
 import { passTime } from "../src/game/simulation.js";
 import type { ChatRequest, ChatResult, LLMProvider } from "../src/llm/provider.js";
 import { NpcAgent } from "../src/npc/NpcAgent.js";
@@ -29,7 +29,7 @@ import { createDemoWorld } from "../src/world/world.js";
 import type { Rng } from "../src/game/dice.js";
 import { face, rolls } from "./dice.test.js";
 
-const withTraits = (traits: NpcPersona["traits"]): NpcPersona => ({ ...(brena as NpcPersona), traits });
+const withTraits = (traits: NpcPersona["traits"]): NpcPersona => ({ ...parsePersona(brena), traits });
 const ctxFor = (persona: NpcPersona, overrides: Partial<NpcState> = {}, rng: Rng = rolls(0.5)): ActionContext => ({
   persona,
   state: createNpcState(persona, overrides),
@@ -44,7 +44,7 @@ describe("trait rules", () => {
   });
 
   it("keep Brena's old constants: 3 insults, flee at 40%, morale 15", () => {
-    const t = traitsOf(brena as NpcPersona);
+    const t = traitsOf(parsePersona(brena));
     expect([provokeLimit(t), fleeAt(t), moraleTarget(t)]).toEqual([3, 0.4, 15]);
   });
 
@@ -83,7 +83,7 @@ describe("bravery", () => {
   // Brena at 44 HP takes 8 (d20 15, d6 6, dagger) and drops to 36/90 = 40%.
   const hitAt = (traits: NpcPersona["traits"]) => {
     const c = ctxFor(withTraits(traits), { hp: 44 }, rolls(face(15, 20), face(6, 6), face(15, 20)));
-    c.world.player.inventory.dagger = 1;
+    c.world.player.equipment = { weapon: "dagger [E]" };
     playerAttack(c);
     return c.state;
   };
@@ -100,7 +100,7 @@ describe("bravery", () => {
 
 describe("words in the prompt", () => {
   it("shows notable traits as words and never as numbers", () => {
-    const prompt = buildSystemPrompt(hale as NpcPersona);
+    const prompt = buildSystemPrompt(parsePersona(hale));
     expect(prompt).toContain("quick-tempered, cowardly, dishonest, stingy");
     expect(prompt).not.toMatch(/\btemper\b|bravery|\b0\.\d/i);
   });
@@ -175,13 +175,13 @@ describe("honesty: dishonest NPCs may lie about secrets", () => {
 
   it("chance to lie comes from honesty; honest and middling NPCs never lie", () => {
     expect(lieChance({ honesty: 0 })).toBe(0.75);
-    expect(lieChance(traitsOf(hale as NpcPersona))).toBeCloseTo(0.6);
+    expect(lieChance(traitsOf(parsePersona(hale)))).toBeCloseTo(0.6);
     expect(lieChance({ honesty: 0.5 })).toBe(0);
-    expect(reveal(brena as NpcPersona, () => 0).result.lie).toBeUndefined();
+    expect(reveal(parsePersona(brena), () => 0).result.lie).toBeUndefined();
   });
 
   it("a lie keeps the secret, sticks for the day, and is shown to the NPC; tomorrow they may tell", () => {
-    const { c, result } = reveal(hale as NpcPersona, () => 0.1);
+    const { c, result } = reveal(parsePersona(hale), () => 0.1);
     expect(result).toMatchObject({ ok: true, lie: true });
     expect(result.message).not.toContain("cellar");
     expect(c.state.revealedSecrets).toEqual([]);
@@ -207,7 +207,7 @@ describe("generosity: gifts and quest bonuses", () => {
   };
 
   it("offers give_item only to players trusted enough, on trade talk, for cheap enough items", () => {
-    const generous = withTraits({ generosity: 1 }); // trust 30, up to 20 gold
+    const generous = withTraits({ generosity: 1 }); // trust 30, up to 2 gold
     const c = { ...ctxFor(generous, { relationship: 30 }), tradeTalk: true };
     const tool = toolsFor(c).find((t) => t.name === "give_item");
     expect(tool).toBeDefined();
@@ -216,7 +216,7 @@ describe("generosity: gifts and quest bonuses", () => {
     expect(toolsFor({ ...c, tradeTalk: false }).some((t) => t.name === "give_item")).toBe(false);
     c.state.relationship = 29;
     expect(toolsFor(c).some((t) => t.name === "give_item")).toBe(false);
-    expect([giftTrust({ generosity: 0 }), maxGiftValue({ generosity: 0.4 })]).toEqual([90, 8]);
+    expect([giftTrust({ generosity: 0 }), maxGiftValue({ generosity: 0.4 })]).toEqual([90, 80]); // 8 silver
   });
 
   it("a gift moves the item for free, once a day, and is rechecked in code", () => {
@@ -225,7 +225,7 @@ describe("generosity: gifts and quest bonuses", () => {
     expect(applyAction(gift("dagger [E]"), c).ok).toBe(true);
     expect(c.world.player.inventory["dagger [E]"]).toBe(1);
     expect(c.state.inventory["dagger [E]"]).toBe(2);
-    expect(c.world.player.gold).toBe(50);
+    expect(c.world.player.money).toBe(500);
     expect(applyAction(gift("dagger [E]"), c).ok).toBe(false); // one a day
     c.world.day += 1;
     expect(applyAction(gift("horseshoe"), c).ok).toBe(true);
@@ -237,16 +237,16 @@ describe("generosity: gifts and quest bonuses", () => {
   it("a generous NPC adds a bonus to quest rewards, fixed when the quest is taken and paid on turn-in", () => {
     const generous = withTraits({ generosity: 1 });
     const meal = generous.quests!.find((q) => q.id === "hot_meal")!;
-    expect(questRewardGold(generous, meal)).toBe(10); // 8 + 25%
-    expect(questRewardGold(brena as NpcPersona, meal)).toBe(8); // generosity 0.4: no bonus
+    expect(questRewardMoney(generous, meal)).toBe(100); // 8 + 25%
+    expect(questRewardMoney(parsePersona(brena), meal)).toBe(80); // generosity 0.4: no bonus
 
     const c = ctxFor(generous);
     c.state.pendingQuest = "hot_meal";
     const active = acceptQuest(generous, c.state, c.world.player)!;
-    expect(active.reward.gold).toBe(10);
+    expect(active.reward.money).toBe(100);
     c.world.player.inventory["stew [G]"] = 1;
     turnInQuests(generous, c.state, c.world);
-    expect(c.world.player.gold).toBe(60);
+    expect(c.world.player.money).toBe(600);
   });
 });
 
@@ -265,10 +265,10 @@ describe("sociability: how much they talk", () => {
   };
 
   it("sociable NPCs get a longer reply budget and are told they may say more", async () => {
-    expect(await replyBudget(brena as NpcPersona)).toBe(150);
-    expect(await replyBudget(pell as NpcPersona)).toBe(210); // sociability 0.9: x1.4
-    expect(buildSystemPrompt(pell as NpcPersona)).toContain("in 2-3 short sentences");
-    expect(buildSystemPrompt(brena as NpcPersona)).toContain("in 1-2 short sentences");
+    expect(await replyBudget(parsePersona(brena))).toBe(150);
+    expect(await replyBudget(parsePersona(pell))).toBe(210); // sociability 0.9: x1.4
+    expect(buildSystemPrompt(parsePersona(pell))).toContain("in 2-3 short sentences");
+    expect(buildSystemPrompt(parsePersona(brena))).toContain("in 1-2 short sentences");
   });
 });
 

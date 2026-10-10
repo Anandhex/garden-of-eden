@@ -1,13 +1,19 @@
 import { formatTime } from "../game/clock.js";
 import { describeQuestsForNpc, findQuest, isQuestTalk } from "../game/quests.js";
 import { describeTeaching, isTrainingTalk } from "../game/training.js";
-import { bestWeapon, itemLabel } from "../game/items.js";
+import { itemLabel } from "../game/items.js";
+import { armorValue, equippedWeapon } from "../game/gear.js";
 import { isTradeTalk, itemsForSale, minPrice, npcPrice } from "./actions.js";
 import { isTooHurtToWork } from "../game/healing.js";
 import { describeTraits, provokeLimit, replyLength, traitsOf } from "./traits.js";
 import { describeSkills } from "./skills.js";
+import { describeLife } from "../game/life.js";
+import { titleNames } from "../game/titles.js";
+import { speciesOf } from "../world/species.js";
+import { statsOf } from "./state.js";
 import { describeAttributes, describeCondition } from "./stats.js";
 import type { NpcPersona, NpcState, WorldSnapshot } from "./types.js";
+import { formatMoney } from "../game/money.js";
 
 /**
  * Build the NPC's system prompt from its persona.
@@ -46,13 +52,13 @@ ${list(p.knowledge)}
 - Fights happen only through tools; the game rolls every hit and miss. Never claim you hit or got hit unless you were told so.`;
 }
 
-/** "With 50 gold, they can afford: horseshoe [G], dagger [E], iron sword [D]. Too dear for them: iron sword [B]." */
-function describeAffordable(persona: NpcPersona, state: NpcState, gold: number, forSale: string[]): string {
+/** "With 5 gold, they can afford: horseshoe [G], dagger [E], iron sword [D]. Too dear for them: iron sword [B]." */
+function describeAffordable(persona: NpcPersona, state: NpcState, money: number, forSale: string[]): string {
   const price = (item: string) => minPrice(persona, state, item) ?? Infinity;
-  const can = forSale.filter((item) => price(item) <= gold).map(itemLabel);
-  const cannot = forSale.filter((item) => price(item) > gold).map(itemLabel);
+  const can = forSale.filter((item) => price(item) <= money).map(itemLabel);
+  const cannot = forSale.filter((item) => price(item) > money).map(itemLabel);
   return (
-    `With ${gold} gold, they can afford: ${can.join(", ") || "nothing you sell"}.` +
+    `With ${formatMoney(money)}, they can afford: ${can.join(", ") || "nothing you sell"}.` +
     (cannot.length > 0 ? ` Too dear for them: ${cannot.join(", ")}.` : "")
   );
 }
@@ -88,7 +94,7 @@ function buildSituation(
   const notForSale = Object.keys(state.inventory).filter((item) => (state.inventory[item] ?? 0) > 0 && !forSale.includes(item));
   const stock =
     [
-      ...forSale.map((item) => `${itemLabel(item)} x${state.inventory[item]} (${npcPrice(persona, item)} gold each)`),
+      ...forSale.map((item) => `${itemLabel(item)} x${state.inventory[item]} (${formatMoney(npcPrice(persona, item)!)} each)`),
       ...notForSale.map((item) => `${itemLabel(item)} x${state.inventory[item]}`),
     ].join(", ") || "nothing";
   const carrying =
@@ -96,15 +102,19 @@ function buildSituation(
       .map(([item, qty]) => `${itemLabel(item)} x${qty}`)
       .join(", ") || "nothing";
   const offer = state.pendingOffer;
+  const stats = statsOf(persona, state);
 
   const lines = [
     `Time: ${formatTime(world)}. Place: ${world.location}.`,
     world.nearby.length > 0 ? `Nearby: ${world.nearby.join(", ")}.` : null,
     world.recentEvents.length > 0 ? `Recent news: ${world.recentEvents.join(" ")}` : null,
-    `Your condition: ${describeCondition(state.hp, persona.stats.maxHp)} (HP ${state.hp}/${persona.stats.maxHp}, MP ${state.mp}/${persona.stats.maxMp}).`,
+    `You: ${describeLife(speciesOf(persona.species).name, state.life, world.day)}.`,
+    `Your condition: ${describeCondition(state.hp, stats.maxHp)} (HP ${state.hp}/${stats.maxHp}, MP ${state.mp}/${stats.maxMp}).`,
     `Your mood: ${state.mood}. ${player.name} is ${describeTrust(state.relationship)} (trust ${state.relationship}).`,
+    // Titles are earned in code, so they're true: the NPC may have heard of them.
+    (player.titles ?? []).length > 0 ? `${player.name} is known as ${titleNames(player.titles!)}.` : null,
     state.inCombat
-      ? `You are in a FIGHT with ${player.name}. They are ${describeCondition(player.hp, player.maxHp)} (HP ${player.hp}/${player.maxHp}) and armed with ${itemLabel(bestWeapon(player.inventory).name)}. You strike at them every turn until the fight ends.`
+      ? `You are in a FIGHT with ${player.name}. They are ${describeCondition(player.hp, player.maxHp)} (HP ${player.hp}/${player.maxHp}) and armed with ${itemLabel(equippedWeapon(player).name)}${player.equipment?.armor && armorValue(player) > 0 ? `, wearing ${itemLabel(player.equipment.armor)}` : ""}. You strike at them every turn until the fight ends.`
       : null,
     state.inCombat && state.lastCombatNote ? `Last exchange: ${state.lastCombatNote}` : null,
     !state.inCombat && isTooHurtToWork(persona, state)
@@ -117,12 +127,12 @@ function buildSituation(
     !state.inCombat && state.provocations >= 2
       ? `${player.name} has insulted you ${state.provocations} times in a row${state.provocations >= provokeLimit(traitsOf(persona)) ? "; your patience is gone" : ""}.`
       : null,
-    trading ? `Your stock: ${stock}. Your purse: ${state.gold} gold.` : null,
+    trading ? `Your stock: ${stock}. Your purse: ${formatMoney(state.money)}.` : null,
     state.discountPct > 0 ? `You're willing to sell for up to ${state.discountPct}% off.` : null,
     state.failedHaggles > 0 ? `${player.name} has tried to haggle you down ${state.failedHaggles} time(s) and failed.` : null,
-    offer ? `You offered ${player.name} a ${offer.item} for ${offer.price} gold and are waiting for their answer.` : null,
+    offer ? `You offered ${player.name} a ${offer.item} for ${formatMoney(offer.price)} and are waiting for their answer.` : null,
     state.pendingPurchase
-      ? `You offered ${state.pendingPurchase.price} gold for ${player.name}'s ${state.pendingPurchase.item} and are waiting for their answer.`
+      ? `You offered ${formatMoney(state.pendingPurchase.price)} for ${player.name}'s ${state.pendingPurchase.item} and are waiting for their answer.`
       : null,
     training ? describeTeaching(persona, state, world) : null,
     questing ? describeQuestsForNpc(persona, state, player) : null,
@@ -130,13 +140,13 @@ function buildSituation(
       ? `You offered them the job "${findQuest(persona, state, state.pendingQuest)?.title ?? state.pendingQuest}" and are waiting for their answer.`
       : null,
     state.pendingTraining
-      ? `You offered to teach ${player.name} ${state.pendingTraining.skill.replace("_", "-")} for ${state.pendingTraining.hours}h (${state.pendingTraining.cost} gold) and are waiting for their answer.`
+      ? `You offered to teach ${player.name} ${state.pendingTraining.skill.replace("_", "-")} for ${state.pendingTraining.hours}h (${formatMoney(state.pendingTraining.cost)}) and are waiting for their answer.`
       : null,
     trading
-      ? `${player.name} has ${player.gold} gold and carries: ${carrying}.`
-      : `${player.name} has ${player.gold} gold.`,
+      ? `${player.name} has ${formatMoney(player.money)} and carries: ${carrying}.`
+      : `${player.name} has ${formatMoney(player.money)}.`,
     // Worked out in code: the model kept getting "is 50 enough for 40?" wrong.
-    trading && forSale.length > 0 ? describeAffordable(persona, state, player.gold, forSale) : null,
+    trading && forSale.length > 0 ? describeAffordable(persona, state, player.money, forSale) : null,
   ].filter((l): l is string => l !== null);
 
   return `<situation>\n${lines.join("\n")}\n</situation>`;

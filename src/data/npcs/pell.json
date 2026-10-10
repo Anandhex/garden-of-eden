@@ -2,6 +2,10 @@
   "id": "pell",
   "name": "Old Pell",
   "role": "the innkeeper of the Gilded Goose in Millbrook",
+  "species": "human",
+  "age": 68,
+  "tier": "E",
+  "potential": "E",
   "personality": [
     "money-hungry",
     "chatty",
@@ -35,7 +39,7 @@
     {
       "id": "debts",
       "about": "your money troubles: a debt you owe",
-      "text": "You owe the mayor 200 gold, and you've been skimming from the town's tax box kept at the inn to pay it back.",
+      "text": "You owe the mayor 20 gold, and you've been skimming from the town's tax box kept at the inn to pay it back.",
       "debt": "mayor"
     }
   ],
@@ -77,7 +81,7 @@
         "qty": 2
       },
       "reward": {
-        "gold": 6
+        "money": "6 silver"
       }
     },
     {
@@ -92,7 +96,7 @@
         "qty": 3
       },
       "reward": {
-        "gold": 20
+        "money": "2 gold"
       }
     },
     {
@@ -107,18 +111,19 @@
         "qty": 1
       },
       "reward": {
-        "gold": 55
+        "money": "5 gold 5 silver"
       }
     }
   ],
   "weapon": "cudgel",
+  "storage": { "name": "the inn's storeroom", "slots": 16 },
   "startingInventory": {
     "ale [G]": 20,
     "stew [G]": 5,
     "bread loaf [G]": 6,
     "healing salve [E]": 2
   },
-  "startingGold": 120,
+  "startingMoney": "12 gold",
   "buys": [
     "bread loaf",
     "ale",
@@ -129,14 +134,14 @@
     {
       "id": "mayor",
       "creditor": "the mayor",
-      "amount": 200
+      "amount": "20 gold"
     }
   ],
-  "reserveGold": 20,
+  "reserveMoney": "2 gold",
   "prices": {
-    "ale": 2,
-    "stew": 4,
-    "bread loaf": 1,
-    "healing salve": 14
+    "ale": "2 silver",
+    "stew": "4 silver",
+    "bread loaf": "1 silver",
+    "healing salve": "1 gold 4 silver"
   }
 }
