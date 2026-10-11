@@ -1,0 +1,12 @@
+{
+  "name": "@millbrook/server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The game: NPC agents, rules, saves, the CLI and the HTTP server",
+  "type": "module",
+  "dependencies": {
+    "@millbrook/shared": "0.1.0",
+    "ollama": "^0.6.4",
+    "zod": "^4.6.5"
+  }
+}

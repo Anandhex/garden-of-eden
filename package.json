@@ -4,20 +4,31 @@
   "private": true,
   "description": "LLM-driven NPCs running locally on Ollama",
   "type": "module",
+  "workspaces": [
+    "packages/shared",
+    "packages/server",
+    "packages/client"
+  ],
   "scripts": {
-    "chat": "tsx --env-file-if-exists=.env src/cli.ts",
-    "web": "tsx --env-file-if-exists=.env src/web/server.ts",
-    "typecheck": "tsc --noEmit",
+    "chat": "tsx --env-file-if-exists=.env packages/server/src/cli.ts",
+    "web": "npm run build -w @millbrook/client && tsx --env-file-if-exists=.env packages/server/src/web/server.ts",
+    "web:voices": "tsx packages/server/scripts/voices.ts web",
+    "dev": "tsx packages/server/scripts/dev.ts",
+    "voices:install": "tsx packages/server/scripts/voices.ts install",
+    "voices": "tsx packages/server/scripts/voices.ts serve",
+    "build": "npm run build -w @millbrook/client",
+    "typecheck": "tsc --noEmit -p packages/shared && tsc --noEmit -p packages/server && tsc --noEmit -p packages/client",
     "test": "vitest run",
-    "test:live": "LIVE=1 vitest run tests/live.test.ts",
-    "bench": "tsx scripts/bench.ts",
-    "sim": "tsx scripts/sim.ts",
-    "replay": "tsx scripts/replay.ts",
-    "bench:traits": "tsx scripts/bench-traits.ts"
-  },
-  "dependencies": {
-    "ollama": "^0.6.4",
-    "zod": "^4.6.5"
+    "test:live": "LIVE=1 vitest run packages/server/tests/live.test.ts",
+    "bench": "tsx packages/server/scripts/bench.ts",
+    "bench:voice": "tsx --env-file-if-exists=.env packages/server/scripts/bench-voice.ts",
+    "sim": "tsx packages/server/scripts/sim.ts",
+    "replay": "tsx packages/server/scripts/replay.ts",
+    "bench:traits": "tsx packages/server/scripts/bench-traits.ts",
+    "bench:director": "tsx packages/server/scripts/bench-director.ts",
+    "gen": "tsx --env-file-if-exists=.env packages/server/scripts/generate-npc.ts",
+    "check-npcs": "tsx packages/server/scripts/check-npcs.ts",
+    "bench:style": "tsx --env-file-if-exists=.env packages/server/scripts/bench-style.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",

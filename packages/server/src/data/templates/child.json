@@ -1,0 +1,274 @@
+{
+  "id": "child",
+  "describe": "a village child who runs errands and hears every rumour",
+  "minor": true,
+  "roles": [
+    "a child of Millbrook who runs errands round the square for a copper coin",
+    "a village child who carries messages round Millbrook for a copper coin"
+  ],
+  "species": [
+    "human"
+  ],
+  "age": [
+    8,
+    13
+  ],
+  "tier": [
+    "G"
+  ],
+  "growth": [
+    1,
+    4
+  ],
+  "greed": [
+    0.1,
+    0.4
+  ],
+  "traits": {
+    "temper": [
+      0.2,
+      0.6
+    ],
+    "bravery": [
+      0.3,
+      0.8
+    ],
+    "honesty": [
+      0.4,
+      0.9
+    ],
+    "generosity": [
+      0.4,
+      0.9
+    ],
+    "sociability": [
+      0.7,
+      1
+    ],
+    "forgiveness": [
+      0.6,
+      1
+    ]
+  },
+  "attributes": {
+    "strength": [
+      5,
+      8
+    ],
+    "agility": [
+      11,
+      15
+    ],
+    "endurance": [
+      7,
+      10
+    ],
+    "intelligence": [
+      9,
+      14
+    ],
+    "charisma": [
+      10,
+      14
+    ],
+    "perception": [
+      12,
+      16
+    ],
+    "luck": [
+      10,
+      14
+    ]
+  },
+  "hp": [
+    15,
+    25
+  ],
+  "mp": [
+    0,
+    3
+  ],
+  "skills": {
+    "foraging": [
+      0,
+      2
+    ],
+    "sneak": [
+      1,
+      2
+    ],
+    "speechcraft": [
+      0,
+      1
+    ],
+    "evasion": [
+      1,
+      2
+    ]
+  },
+  "weapon": [
+    "stick"
+  ],
+  "stock": {},
+  "money": [
+    0,
+    30
+  ],
+  "buys": [],
+  "prices": {},
+  "schedule": [
+    {
+      "from": 7,
+      "to": 12,
+      "activity": "work",
+      "place": "square"
+    },
+    {
+      "from": 12,
+      "to": 13,
+      "activity": "eat",
+      "place": "home"
+    },
+    {
+      "from": 13,
+      "to": 17,
+      "activity": "socialise",
+      "place": "square"
+    },
+    {
+      "from": 17,
+      "to": 19,
+      "activity": "eat",
+      "place": "home"
+    },
+    {
+      "from": 19,
+      "to": 7,
+      "activity": "sleep",
+      "place": "home"
+    }
+  ],
+  "knows": {
+    "millbrook.*": "certain",
+    "news.*": "certain",
+    "mine_road.*": "rumour",
+    "people.*": "rumour"
+  },
+  "maxQuestTier": "G",
+  "names": {
+    "female": [
+      "Pip",
+      "Wynn",
+      "Lark",
+      "Dot",
+      "Kit",
+      "Mab",
+      "Sal",
+      "Tansy"
+    ],
+    "male": [
+      "Tam",
+      "Robin",
+      "Jem",
+      "Kip",
+      "Ollie",
+      "Perrin",
+      "Sim",
+      "Tib"
+    ],
+    "family": [
+      "Hollis",
+      "Marsh",
+      "Thatcher",
+      "Brook",
+      "Fallow",
+      "Reed",
+      "Cotter",
+      "Ashby",
+      "Linden",
+      "Furrow",
+      "Penny",
+      "Stile"
+    ]
+  },
+  "voice": {
+    "female": {
+      "lang": "en-GB",
+      "pitch": 1.4,
+      "rate": 1.1,
+      "gender": "female",
+      "browser": [
+        "Kate",
+        "Serena",
+        "Moira",
+        "Google UK English Female",
+        "Microsoft Libby Online (Natural) - English (United Kingdom)"
+      ],
+      "piper": {
+        "model": "en_GB-semaine-medium",
+        "speaker": 3,
+        "lengthScale": 0.9
+      }
+    },
+    "male": {
+      "lang": "en-GB",
+      "pitch": 1.35,
+      "rate": 1.1,
+      "gender": "male",
+      "browser": [
+        "Daniel",
+        "Arthur",
+        "Oliver",
+        "Google UK English Male",
+        "Microsoft Ryan Online (Natural) - English (United Kingdom)"
+      ],
+      "piper": {
+        "model": "en_GB-semaine-medium",
+        "speaker": 3,
+        "lengthScale": 0.9
+      }
+    }
+  },
+  "fallback": {
+    "personality": [
+      [
+        "curious",
+        "cheeky",
+        "quick"
+      ],
+      [
+        "bright-eyed",
+        "talkative",
+        "restless"
+      ],
+      [
+        "earnest",
+        "nosy",
+        "kind"
+      ]
+    ],
+    "speechStyle": [
+      "Talks fast in bursts, asks questions back, and says 'honest!' when believed or not.",
+      "Breathless and eager, full of 'and then' and 'did you know', and always wants a copper for news."
+    ],
+    "backstory": [
+      "{first} has lived in Millbrook all of {age} years and knows every shortcut, every dog and every bit of gossip at the square.",
+      "{first} runs errands round the square for coppers and keeps an ear out for news to trade for sweets."
+    ],
+    "appearance": [
+      "A small, freckled child with scabbed knees and a cap pulled down to the ears.",
+      "A skinny child in hand-me-down clothes, quick as a sparrow, with ink-smudged fingers."
+    ],
+    "goals": [
+      [
+        "Earn enough coppers for honey cakes",
+        "Find out what's really in the bandit camp"
+      ],
+      [
+        "Be the first to hear any news",
+        "Get taken on as an apprentice one day"
+      ]
+    ],
+    "fallbackLine": "Huh? Say it again!"
+  }
+}

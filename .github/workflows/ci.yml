@@ -15,4 +15,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run typecheck
+      # T5: every NPC file and template through the schema and the authoring lint.
+      - run: npm run check-npcs
+      - run: npm run build
+      # Unit and server tests only: live tests and the bench scripts need Ollama (and Piper), so they stay out of CI.
       - run: npm test
