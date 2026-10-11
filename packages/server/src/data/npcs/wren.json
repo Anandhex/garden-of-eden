@@ -1,0 +1,145 @@
+{
+  "id": "wren",
+  "name": "Wren Tally",
+  "role": "the apprentice at Millbrook forge",
+  "species": "human",
+  "age": 19,
+  "tier": "E",
+  "potential": "B",
+  "personality": [
+    "quiet",
+    "earnest",
+    "fiercely loyal to Brena",
+    "quick to learn"
+  ],
+  "greed": 0.2,
+  "traits": {
+    "temper": 0.4,
+    "bravery": 0.55,
+    "honesty": 0.85,
+    "generosity": 0.5,
+    "sociability": 0.35,
+    "forgiveness": 0.2
+  },
+  "speechStyle": "Few words, careful and plain. Says 'Mistress Ashford' when speaking of Brena. Never jokes about the forge.",
+  "fallbackLine": "...Give me a moment.",
+  "voice": {
+    "lang": "en-GB",
+    "pitch": 1.15,
+    "rate": 1,
+    "gender": "female",
+    "browser": [
+      "Kate",
+      "Martha",
+      "Moira",
+      "Google UK English Female",
+      "Microsoft Libby Online (Natural) - English (United Kingdom)"
+    ],
+    "piper": {
+      "model": "en_GB-semaine-medium",
+      "speaker": 3
+    }
+  },
+  "backstory": "Wren has worked the bellows and the anvil under Brena Ashford for three years, and can make most of what she makes, if not as well.",
+  "goals": [
+    "Keep the forge fires lit",
+    "Honour what Brena taught",
+    "Make a blade worthy of the Ashford name"
+  ],
+  "knows": {
+    "millbrook.*": "certain",
+    "mine_road.*": "certain",
+    "news.*": "certain",
+    "people.brena": "certain",
+    "people.wren": "certain",
+    "people.pell": "certain",
+    "people.hale": "certain",
+    "people.rook": "rumour",
+    "people.tomas": "certain"
+  },
+  "secrets": [],
+  "stats": {
+    "maxHp": 60,
+    "maxMp": 8,
+    "attributes": {
+      "strength": 13,
+      "agility": 11,
+      "endurance": 13,
+      "intelligence": 11,
+      "willpower": 12,
+      "charisma": 9,
+      "perception": 12,
+      "luck": 10
+    }
+  },
+  "skills": {
+    "smithing": 3,
+    "blunt": 2,
+    "one_handed": 1,
+    "haggling": 1,
+    "evasion": 1
+  },
+  "teaches": "smithing",
+  "maxQuestTier": "D",
+  "quests": [],
+  "weapon": "dagger",
+  "storage": {
+    "name": "the forge chest",
+    "slots": 12
+  },
+  "startingInventory": {
+    "horseshoe [G]": 2
+  },
+  "startingMoney": "5 silver",
+  "buys": [
+    "iron ore",
+    "iron sword",
+    "dagger",
+    "horseshoe"
+  ],
+  "prices": {
+    "iron sword": "3 gold 6 silver",
+    "dagger": "1 gold 3 silver",
+    "horseshoe": "2 silver"
+  },
+  "appearance": "A wiry young woman with cropped hair and burn-flecked forearms, in a leather apron a size too big.",
+  "relationships": {
+    "brena": {
+      "trust": 60,
+      "affection": 70,
+      "respect": 60
+    },
+    "pell": {
+      "affection": 20
+    }
+  },
+  "schedule": [
+    {
+      "from": 6,
+      "to": 20,
+      "activity": "work",
+      "place": "forge"
+    },
+    {
+      "from": 20,
+      "to": 21,
+      "activity": "eat",
+      "place": "inn"
+    },
+    {
+      "from": 21,
+      "to": 6,
+      "activity": "sleep",
+      "place": "home"
+    }
+  ],
+  "services": [
+    {
+      "kind": "repair"
+    },
+    {
+      "kind": "training"
+    }
+  ],
+  "successorOf": "brena"
+}

@@ -1,0 +1,38 @@
+{
+  "id": "merchants",
+  "name": "the merchants of Millbrook",
+  "description": "The village's traders and craftsfolk: the smith, the innkeeper, and the carters who bring ore down the mine road.",
+  "members": [
+    "pell",
+    "brena",
+    "wren"
+  ],
+  "attitudes": {
+    "bandits": -1,
+    "guard": -0.5
+  },
+  "attitudeReasons": {
+    "guard": "the guard takes a toll at the gate and does little for it"
+  },
+  "ranks": [
+    {
+      "name": "unwelcome",
+      "minStanding": -100
+    },
+    {
+      "name": "a customer",
+      "minStanding": -20
+    },
+    {
+      "name": "a valued customer",
+      "minStanding": 20
+    },
+    {
+      "name": "a member of the merchants",
+      "minStanding": 40,
+      "member": true
+    }
+  ],
+  "joinable": true,
+  "discount": 10
+}

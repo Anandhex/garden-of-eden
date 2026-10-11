@@ -1,0 +1,307 @@
+{
+  "id": "merchant",
+  "describe": "a market trader with a cart of odds and ends",
+  "roles": [
+    "a market trader at the Millbrook square",
+    "a pedlar who keeps a stall at the Millbrook square"
+  ],
+  "species": [
+    "human",
+    "halfling",
+    "dwarf"
+  ],
+  "age": [
+    25,
+    60
+  ],
+  "tier": [
+    "F",
+    "E"
+  ],
+  "growth": [
+    0,
+    1
+  ],
+  "greed": [
+    0.5,
+    0.85
+  ],
+  "traits": {
+    "temper": [
+      0.2,
+      0.5
+    ],
+    "bravery": [
+      0.2,
+      0.5
+    ],
+    "honesty": [
+      0.3,
+      0.7
+    ],
+    "generosity": [
+      0.2,
+      0.5
+    ],
+    "sociability": [
+      0.6,
+      0.9
+    ],
+    "forgiveness": [
+      0.4,
+      0.7
+    ]
+  },
+  "attributes": {
+    "charisma": [
+      11,
+      15
+    ],
+    "intelligence": [
+      10,
+      13
+    ],
+    "perception": [
+      10,
+      13
+    ]
+  },
+  "hp": [
+    35,
+    50
+  ],
+  "mp": [
+    0,
+    8
+  ],
+  "skills": {
+    "haggling": [
+      2,
+      4
+    ],
+    "speechcraft": [
+      1,
+      3
+    ],
+    "evasion": [
+      0,
+      1
+    ],
+    "one_handed": [
+      0,
+      1
+    ]
+  },
+  "teaches": "haggling",
+  "weapon": [
+    "dagger",
+    "stick"
+  ],
+  "stock": {
+    "bread loaf": [
+      2,
+      6
+    ],
+    "healing salve": [
+      1,
+      3
+    ],
+    "wild herbs": [
+      2,
+      5
+    ],
+    "wool": [
+      0,
+      3
+    ]
+  },
+  "money": [
+    300,
+    1200
+  ],
+  "buys": [
+    "wild herbs",
+    "rabbit pelt",
+    "wolf pelt",
+    "wool",
+    "eggs"
+  ],
+  "prices": {
+    "bread loaf": [
+      12,
+      16
+    ],
+    "healing salve": [
+      140,
+      180
+    ],
+    "wild herbs": [
+      35,
+      45
+    ],
+    "wool": [
+      45,
+      60
+    ]
+  },
+  "storage": {
+    "name": "a market cart",
+    "slots": 10
+  },
+  "schedule": [
+    {
+      "from": 7,
+      "to": 17,
+      "activity": "work",
+      "place": "square"
+    },
+    {
+      "from": 17,
+      "to": 19,
+      "activity": "socialise",
+      "place": "inn"
+    },
+    {
+      "from": 19,
+      "to": 21,
+      "activity": "eat",
+      "place": "inn"
+    },
+    {
+      "from": 21,
+      "to": 7,
+      "activity": "sleep",
+      "place": "home"
+    }
+  ],
+  "knows": {
+    "millbrook.*": "certain",
+    "news.*": "rumour",
+    "mine_road.*": "rumour",
+    "people.*": "rumour",
+    "the_city": "rumour"
+  },
+  "maxQuestTier": "E",
+  "names": {
+    "female": [
+      "Ada",
+      "Bess",
+      "Cora",
+      "Edith",
+      "Greta",
+      "Hilde",
+      "Ida",
+      "Mae",
+      "Nell",
+      "Rosa",
+      "Tilda",
+      "Una"
+    ],
+    "male": [
+      "Abel",
+      "Bram",
+      "Cob",
+      "Dunstan",
+      "Edwin",
+      "Fenn",
+      "Gil",
+      "Hob",
+      "Jory",
+      "Osric",
+      "Ned",
+      "Wat"
+    ],
+    "family": [
+      "Hollis",
+      "Marsh",
+      "Thatcher",
+      "Brook",
+      "Fallow",
+      "Reed",
+      "Cotter",
+      "Ashby",
+      "Linden",
+      "Furrow",
+      "Penny",
+      "Stile"
+    ]
+  },
+  "voice": {
+    "female": {
+      "lang": "en-GB",
+      "pitch": 1.05,
+      "rate": 1.1,
+      "gender": "female",
+      "browser": [
+        "Kate",
+        "Serena",
+        "Moira",
+        "Google UK English Female",
+        "Microsoft Libby Online (Natural) - English (United Kingdom)"
+      ],
+      "piper": {
+        "model": "en_GB-semaine-medium",
+        "speaker": 0
+      }
+    },
+    "male": {
+      "lang": "en-GB",
+      "pitch": 0.95,
+      "rate": 1.1,
+      "gender": "male",
+      "browser": [
+        "Daniel",
+        "Arthur",
+        "Oliver",
+        "Google UK English Male",
+        "Microsoft Ryan Online (Natural) - English (United Kingdom)"
+      ],
+      "piper": {
+        "model": "en_GB-semaine-medium",
+        "speaker": 1
+      }
+    }
+  },
+  "fallback": {
+    "personality": [
+      [
+        "chatty",
+        "shrewd",
+        "friendly"
+      ],
+      [
+        "sharp-eyed",
+        "quick-talking",
+        "cautious"
+      ],
+      [
+        "warm",
+        "calculating",
+        "curious"
+      ]
+    ],
+    "speechStyle": [
+      "Quick and friendly, always naming a price. Calls everyone 'love' or 'friend'.",
+      "Talks fast, with a trader's patter, and never says no without offering something else."
+    ],
+    "backstory": [
+      "{name} travelled the roads with a cart for years before settling at the Millbrook square.",
+      "{first} buys what the hunters and farmers bring in and sells it on with a smile and a margin."
+    ],
+    "appearance": [
+      "A many-pocketed coat and a coin purse that never leaves one hand.",
+      "Neat, in a bright scarf, with a pencil behind one ear and a ledger under the arm."
+    ],
+    "goals": [
+      [
+        "Turn a profit every market day",
+        "Get a stall with a roof"
+      ],
+      [
+        "Find a buyer for the odd things in the cart",
+        "Keep on the right side of the watch"
+      ]
+    ],
+    "fallbackLine": "Now then, where was I?"
+  }
+}
