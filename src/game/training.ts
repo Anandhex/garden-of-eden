@@ -6,6 +6,7 @@ import { isTooHurtToWork } from "./healing.js";
 import { XP } from "./life.js";
 import { npcGainXp } from "../npc/state.js";
 import { formatMoney } from "./money.js";
+import { holdsGrudge, RESPECT_FOR_TIER, respectOf } from "../npc/relationship.js";
 
 /**
  * Training: the player learns a skill from an NPC, one hour at a time.
@@ -42,6 +43,20 @@ export function trustCap(relationship: number): number {
     if (relationship >= TRUST_FOR_TIER[tier]!) cap = tier;
   }
   return cap;
+}
+
+/** The highest tier the NPC will teach someone they rate this much: expert and master take respect (npc/relationship.ts). */
+export function respectCap(respect: number): number {
+  let cap = 0;
+  for (let tier = 1; tier < RESPECT_FOR_TIER.length; tier++) {
+    if (RESPECT_FOR_TIER[tier] === 0 || respect >= RESPECT_FOR_TIER[tier]!) cap = tier;
+  }
+  return cap;
+}
+
+/** The highest tier this NPC will teach this player now: limited by both trust and respect. */
+export function teachCap(state: NpcState, player: WorldSnapshot["player"]): number {
+  return Math.min(trustCap(state.relationship), respectCap(respectOf(state, player)));
 }
 
 /**
@@ -99,8 +114,9 @@ export interface TrainingQuote {
   limitedByTrust: boolean;
 }
 
-function refusal(persona: NpcPersona, state: NpcState): string | null {
+function refusal(persona: NpcPersona, state: NpcState, day: number): string | null {
   if (state.outcome || state.inCombat) return `${persona.name} is in no state to teach anyone.`;
+  if (holdsGrudge(state, day)) return `${persona.name} won't teach you while they hold a grudge against you.`;
   if (isTooHurtToWork(persona, state)) return `${persona.name} is too badly hurt to teach until they've healed.`;
   if (state.mood === "angry") return `${persona.name} is too angry to teach you.`;
   if (state.relationship < 0) return `${persona.name} won't teach you; there's no goodwill between you.`;
@@ -122,14 +138,14 @@ export function quoteTraining(
   const start = skillLevel(player.skills, skill);
   const progress0 = player.skillProgress[skill] ?? 0;
   const teacherLevel = skillLevel(persona.skills, skill);
-  const byTrust = trustCap(state.relationship);
+  const byTrust = teachCap(state, player);
   const cap = Math.min(teacherLevel, byTrust);
   const limitedByTrust = byTrust < teacherLevel;
   const fail = (message: string): TrainingQuote => ({
     ok: false, message, hours: 0, cost: 0, endLevel: start, endProgress: progress0, cap, limitedByTrust,
   });
 
-  const blocked = refusal(persona, state);
+  const blocked = refusal(persona, state, world.day);
   if (blocked) return fail(blocked);
   const specialty = trainerSkill(persona);
   if (skill !== specialty) {
@@ -141,10 +157,13 @@ export function quoteTraining(
   }
   if (start >= cap) {
     const needed = TRUST_FOR_TIER[start + 1]!;
-    return fail(
-      `${persona.name} won't teach you ${TIERS[start + 1]} ${label(skill)} yet. ` +
-        `That takes more trust (${state.relationship} now, ${needed} needed).`,
-    );
+    const respectNeeded = RESPECT_FOR_TIER[start + 1]!;
+    const respect = respectOf(state, player);
+    const why =
+      state.relationship < needed
+        ? `That takes more trust (${state.relationship} now, ${needed} needed).`
+        : `They don't rate you highly enough yet (respect ${respect} now, ${respectNeeded} needed): prove yourself.`;
+    return fail(`${persona.name} won't teach you ${TIERS[start + 1]} ${label(skill)} yet. ${why}`);
   }
 
   hours = Math.max(1, Math.min(MAX_SESSION_HOURS, Math.floor(hours)));
@@ -247,14 +266,14 @@ export function isTrainingTalk(line: string): boolean {
 export function describeTeaching(persona: NpcPersona, state: NpcState, world: WorldSnapshot): string | null {
   const teachable = teachableSkills(persona, world);
   if (teachable.length === 0) return null;
-  const byTrust = trustCap(state.relationship);
+  const byTrust = teachCap(state, world.player);
   const now: string[] = [];
   const later: string[] = [];
   for (const { skill, upTo } of teachable) {
     const next = skillLevel(world.player.skills, skill) + 1;
     const fee = feePerHour(persona, state, next);
     if (next <= byTrust) now.push(`${label(skill)} (to ${TIERS[Math.min(upTo, byTrust)]}, ${formatMoney(fee)}/hour)`);
-    else later.push(`${label(skill)} (needs trust ${TRUST_FOR_TIER[next]})`);
+    else later.push(`${label(skill)} (needs trust ${TRUST_FOR_TIER[next]}${RESPECT_FOR_TIER[next]! > 0 ? ` and respect ${RESPECT_FOR_TIER[next]}` : ""})`);
   }
   return (
     `You teach one thing for pay: your trade. You could teach them now: ${now.join(", ") || "nothing yet"}.` +

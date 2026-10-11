@@ -29,15 +29,32 @@
     "Get iron ore now that bandits block the mine road",
     "Make an honest living"
   ],
-  "knowledge": [
-    "Bandits have been raiding the mine road to the north for two weeks",
-    "The innkeeper, Old Pell, hears all the rumors in town"
-  ],
+  "knows": {
+    "millbrook.*": "certain",
+    "mine_road.*": "certain",
+    "news.*": "certain",
+    "the_city": "certain",
+    "people.brena": "certain",
+    "people.pell": "certain",
+    "people.hale": "certain",
+    "people.rook": "rumour",
+    "people.tomas": "certain",
+    "people.mayor": "certain",
+    "people.mayor.vault": "certain",
+    "people.guard_captain": "rumour"
+  },
   "secrets": [
     {
       "id": "vault_key",
       "about": "a key you forged for someone last month",
-      "text": "Last month you forged a key for a hooded stranger who paid in old coins. Two days later the mayor's vault was robbed, and you suspect your key opened it."
+      "text": "Last month you forged a key for a hooded stranger who paid in old coins. Two days later the mayor's vault was robbed, and you suspect your key opened it.",
+      "keywords": [
+        "key",
+        "keys",
+        "vault",
+        "forged",
+        "lock"
+      ]
     }
   ],
   "stats": {
@@ -103,7 +120,7 @@
       "title": "My father's hammer",
       "tier": "B",
       "minTrust": 60,
-      "description": "Bandits took your father's old forge hammer when they hit the mine road. You want it back more than anything.",
+      "description": "Bandits took your father's old forge hammer when they hit the mine road. Their leader, Rook, keeps it at his camp at the north end of the road, with his men around him. You want it back more than anything.",
       "objective": {
         "type": "deliver",
         "item": "forge hammer",
@@ -116,7 +133,10 @@
     }
   ],
   "weapon": "forge hammer",
-  "storage": { "name": "the forge chest", "slots": 12 },
+  "storage": {
+    "name": "the forge chest",
+    "slots": 12
+  },
   "startingInventory": {
     "iron sword [D]": 2,
     "iron sword [B]": 1,
@@ -134,5 +154,113 @@
     "iron sword": "4 gold",
     "dagger": "1 gold 5 silver",
     "horseshoe": "2 silver"
+  },
+  "appearance": "A broad-shouldered woman in her thirties, forearms scarred from the forge, dark hair tied back, in a scorched leather apron.",
+  "quirks": [
+    {
+      "when": {
+        "activity": [
+          "work"
+        ],
+        "topic": [
+          "sword",
+          "dagger",
+          "horseshoe",
+          "forge",
+          "make",
+          "order",
+          "commission",
+          "smith",
+          "blade"
+        ]
+      },
+      "line": "You're mid-work at the anvil: you answer shop talk in short grunts between hammer blows, and you don't stop working."
+    },
+    {
+      "when": {
+        "activity": [
+          "eat",
+          "socialise"
+        ],
+        "topic": [
+          "sword",
+          "dagger",
+          "horseshoe",
+          "forge",
+          "make",
+          "order",
+          "commission",
+          "smith",
+          "blade"
+        ]
+      },
+      "line": "You're off work for the night: forge talk can wait till morning, though you'll answer if pushed."
+    },
+    {
+      "when": {
+        "topic": [
+          "tomas",
+          "brother"
+        ]
+      },
+      "line": "Talk of Tomas makes you go quiet and grip whatever's in your hand."
+    }
+  ],
+  "loves": [
+    {
+      "name": "stew",
+      "words": [
+        "stew"
+      ],
+      "item": "stew"
+    },
+    {
+      "name": "a well-made blade",
+      "words": [
+        "well-made",
+        "masterwork",
+        "fine blade"
+      ],
+      "item": "iron sword",
+      "minTier": "C"
+    }
+  ],
+  "schedule": [
+    {
+      "from": 6,
+      "to": 20,
+      "activity": "work",
+      "place": "forge"
+    },
+    {
+      "from": 20,
+      "to": 21,
+      "activity": "eat",
+      "place": "inn"
+    },
+    {
+      "from": 21,
+      "to": 6,
+      "activity": "sleep",
+      "place": "home"
+    }
+  ],
+  "signature": {
+    "trigger": "good_work_day",
+    "effect": "masterwork",
+    "describe": "a masterwork, the best piece she'll make this season"
+  },
+  "services": [
+    {
+      "kind": "repair"
+    },
+    {
+      "kind": "training"
+    }
+  ],
+  "romance": {
+    "open": true,
+    "minAffection": 50,
+    "minTrust": 40
   }
 }

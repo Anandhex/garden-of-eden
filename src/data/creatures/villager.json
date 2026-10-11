@@ -1,0 +1,38 @@
+{
+  "id": "villager",
+  "name": "villager",
+  "species": "human",
+  "tier": "G",
+  "potential": ["G", "E"],
+  "ageRange": [16, 60],
+  "stats": {
+    "maxHp": 25,
+    "maxMp": 0,
+    "attributes": {
+      "strength": 10,
+      "agility": 10,
+      "endurance": 10,
+      "intelligence": 10,
+      "willpower": 8,
+      "charisma": 10,
+      "perception": 10,
+      "luck": 10
+    }
+  },
+  "skills": { "unarmed": 1, "foraging": 1 },
+  "attack": { "name": "fists", "die": 3, "skill": "unarmed" },
+  "fleeAt": 0.8,
+  "loot": [
+    { "item": "bread loaf", "qty": 1, "chance": 0.5 }
+  ],
+  "money": ["2 copper", "3 silver"],
+  "barks": {
+    "idle": ["Morning.", "Mind the cart, stranger.", "Fresh bread at the Goose today, they say.", "Bandits again, did you hear?"],
+    "attack": ["Get off me!", "Help! Guard!"],
+    "hurt": ["Ow! What's wrong with you?"],
+    "flee": ["Guard! GUARD!", "Murder! Somebody help!"]
+  },
+  "aggressive": false,
+  "hunts": [],
+  "rivalry": 0
+}

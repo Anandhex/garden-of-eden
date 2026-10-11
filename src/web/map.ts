@@ -53,6 +53,13 @@ export const NPC_SPOTS: Record<string, NpcSpot> = {
     location: "outside the Gilded Goose inn",
     nearby: ["the Gilded Goose door", "a hanging inn sign", "a rain barrel"],
   },
+  rook: {
+    x: 16,
+    y: 2,
+    color: "#3d3228",
+    location: "the bandit camp at the north end of the mine road",
+    nearby: ["a smouldering campfire", "a stolen ore cart", "his men watching from the trees"],
+  },
   brena: {
     x: 18,
     y: 8,
@@ -62,11 +69,40 @@ export const NPC_SPOTS: Record<string, NpcSpot> = {
   },
 };
 
+/**
+ * Where each NPC stands at each place they go (N6 schedules). Their own spot (NPC_SPOTS)
+ * is where they work; these are the others. "home" isn't on the map: they're indoors.
+ */
+export const PLACE_SPOTS: Record<string, Record<string, { x: number; y: number }>> = {
+  forge: { brena: { x: 18, y: 8 }, pell: { x: 17, y: 8 }, hale: { x: 19, y: 8 }, rook: { x: 19, y: 7 } },
+  inn: { pell: { x: 8, y: 10 }, brena: { x: 9, y: 11 }, hale: { x: 7, y: 10 }, rook: { x: 10, y: 10 } },
+  gate: { hale: { x: 4, y: 8 }, brena: { x: 4, y: 10 }, pell: { x: 5, y: 8 }, rook: { x: 5, y: 10 } },
+  square: { brena: { x: 11, y: 10 }, pell: { x: 11, y: 11 }, hale: { x: 10, y: 11 }, rook: { x: 11, y: 8 } },
+  camp: { rook: { x: 16, y: 2 }, brena: { x: 17, y: 3 }, pell: { x: 15, y: 3 }, hale: { x: 18, y: 3 } },
+};
+
+/** The place a tile belongs to, for the player's location: the nearest place spot within reach, else the square. */
+export function placeAtTile(pos: { x: number; y: number }): string {
+  let best = { place: "square", d: Infinity };
+  for (const [place, spots] of Object.entries(PLACE_SPOTS)) {
+    for (const spot of Object.values(spots)) {
+      const d = Math.hypot(pos.x - spot.x, pos.y - spot.y);
+      if (d < best.d) best = { place, d };
+    }
+  }
+  return best.d <= 4 ? best.place : "square";
+}
+
 /** Where each kind of creature roams (inclusive tile rectangles). Creatures never leave their area. */
 export const CREATURE_DENS: Record<string, { x0: number; y0: number; x1: number; y1: number; color: string }> = {
   wolf: { x0: 15, y0: 12, x1: 23, y1: 16, color: "#8a8f96" },
   bandit: { x0: 8, y0: 1, x1: 16, y1: 2, color: "#5a4636" },
   horse: { x0: 2, y0: 12, x1: 4, y1: 16, color: "#8b5a2b" },
+  // Places spawn rules can put creatures (src/data/spawns.json), on top of each kind's own den.
+  villager: { x0: 13, y0: 10, x1: 15, y1: 12, color: "#c9b48a" },
+  village_square: { x0: 13, y0: 10, x1: 15, y1: 12, color: "#c9b48a" },
+  bandit_camp: { x0: 14, y0: 1, x1: 19, y1: 3, color: "#5a4636" },
+  forest_edge: { x0: 20, y0: 10, x1: 23, y1: 11, color: "#8a8f96" },
 };
 
 function build() {

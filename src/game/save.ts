@@ -8,14 +8,19 @@ import { type Creature, type CreatureTemplate, spawnGroup, upgradeCreature } fro
 import { DeathRegistry } from "./deaths.js";
 import { bestAllowedWeapon, equip, playerGearRank } from "./gear.js";
 import { defaultRng, type Rng } from "./dice.js";
+import { eventIdFor } from "../npc/knowledge.js";
+import type { SpawnLedger } from "./spawning.js";
+import type { GameEvent } from "./events.js";
 
 /**
  * 2: crafting jobs end at an absolute minute (was an absolute hour).
  * 3: NPCs have a life (rank, XP, age), and the world holds creatures.
  * 4: money is copper/silver/gold, counted in copper, in `money` fields (was whole `gold`).
  * 5: equipment slots (weapon, armour) with durability; fights use what's equipped.
+ * 6: N4-N6: the event log, the raid day, and NPC memory, relationships, needs and schedules.
+ *    Older NPC states get the new fields' defaults on load (createNpcState).
  */
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 
 /** Copper per old "gold": the old unit became a silver coin, so every price keeps its place. */
 const COPPER_PER_OLD_GOLD = 10;
@@ -57,6 +62,8 @@ export interface SavedWorld extends WorldSnapshot {
   position?: { x: number; y: number };
   /** Non-talking NPCs (game/creatures.ts), by uid. */
   creatures: Record<string, Creature>;
+  /** Which creatures each spawn rule has out (game/spawning.ts). */
+  spawns?: SpawnLedger;
 }
 
 const SaveSchema = z.object({
@@ -73,6 +80,9 @@ const SaveSchema = z.object({
   deaths: z.record(z.string(), z.unknown()),
   position: z.object({ x: z.number().int(), y: z.number().int() }).optional(),
   creatures: z.record(z.string(), z.record(z.string(), z.unknown())).optional(),
+  spawns: z.record(z.string(), z.object({ key: z.string(), uids: z.array(z.string()) })).optional(),
+  events: z.array(z.record(z.string(), z.unknown())).optional(),
+  lastRaidDay: z.number().int().optional(),
 });
 
 /** The starting creatures (DEMO_SPAWNS) for the templates given. Unknown template ids are skipped. */
@@ -97,6 +107,8 @@ export function newWorld(
     npcStates: Object.fromEntries(Object.entries(personas).map(([id, persona]) => [id, createNpcState(persona, {}, demo.day)])),
     deaths: {},
     creatures: spawnStartingCreatures(creatureTemplates, demo.day, rng),
+    spawns: {},
+    events: [],
   };
 }
 
@@ -148,7 +160,8 @@ function upgradeSave(
     timeOfDay: raw.timeOfDay,
     location: raw.location,
     nearby: raw.nearby,
-    recentEvents: raw.recentEvents,
+    // Older saves kept event text: map it to its lore id, and drop what isn't in the lore.
+    recentEvents: raw.recentEvents.map((e) => eventIdFor(e)).filter((id): id is string => id !== null),
     player,
     npcStates,
     deaths: raw.deaths,
@@ -161,6 +174,9 @@ function upgradeSave(
         )
       : spawnStartingCreatures(creatureTemplates, raw.day),
     ...(raw.position ? { position: raw.position } : {}),
+    spawns: raw.spawns ?? {},
+    events: (raw.events ?? []) as unknown as GameEvent[],
+    ...(raw.lastRaidDay !== undefined ? { lastRaidDay: raw.lastRaidDay } : {}),
   };
 }
 

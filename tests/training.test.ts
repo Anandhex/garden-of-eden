@@ -86,6 +86,7 @@ describe("training", () => {
     world.player.skills.blunt = 3;
     world.player.skillProgress.blunt = 14;
     state.relationship = 40; // expert needs trust 40
+    state.respect = 15; // and respect 15 (N5)
     const r = train(hammer, state, world, "blunt", 8);
     expect(r).toMatchObject({ ok: true, hoursSpent: 2, levelsGained: 1 });
     expect(world.player.skills.blunt).toBe(4);

@@ -181,7 +181,10 @@ describe("honesty: dishonest NPCs may lie about secrets", () => {
   });
 
   it("a lie keeps the secret, sticks for the day, and is shown to the NPC; tomorrow they may tell", () => {
-    const { c, result } = reveal(parsePersona(hale), () => 0.1);
+    // Hale's secret without its cover story (covers are tested in tests/n4.test.ts).
+    const base = parsePersona(hale);
+    const plain: NpcPersona = { ...base, secrets: [{ id: "left_post", about: base.secrets[0]!.about, text: base.secrets[0]!.text }] };
+    const { c, result } = reveal(plain, () => 0.1);
     expect(result).toMatchObject({ ok: true, lie: true });
     expect(result.message).not.toContain("cellar");
     expect(c.state.revealedSecrets).toEqual([]);

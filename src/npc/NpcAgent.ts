@@ -3,7 +3,7 @@ import { payDebts } from "../game/debts.js";
 import { defaultRng, type Rng } from "../game/dice.js";
 import { type UseResult, useHealingItem } from "../game/healing.js";
 import { resolveItem } from "../game/items.js";
-import { acceptQuest, isQuestTalk, refreshNeedQuests, type TurnInResult, turnInQuests } from "../game/quests.js";
+import { acceptQuest, describeObjective, isQuestTalk, refreshNeedQuests, type TurnInResult, turnInQuests } from "../game/quests.js";
 import { busyWith, passMinutes, passTime } from "../game/simulation.js";
 import { isTrainingTalk, type TrainingResult, train } from "../game/training.js";
 import type { ChatMessage, ChatResult, LLMProvider, ToolDef } from "../llm/provider.js";
@@ -34,7 +34,7 @@ import { buildEventMessage, buildSystemPrompt, buildTurnMessage } from "./person
 import { XP } from "../game/life.js";
 import { rankForLevel } from "../game/levels.js";
 import { NEAR_DEATH_SHARE, playerWonFight } from "../game/titles.js";
-import { createNpcState, npcGainXp, npcOvercome, statsOf } from "./state.js";
+import { createNpcState, npcGainXp, npcHasRoom, npcOvercome, statsOf } from "./state.js";
 import { replyTokenFactor, traitsOf } from "./traits.js";
 import type {
   AppliedAction,
@@ -44,7 +44,24 @@ import type {
   TurnResult,
   WorldSnapshot,
 } from "./types.js";
-import { formatMoney } from "../game/money.js";
+import { formatMoney, parseMoney } from "../game/money.js";
+import { playerHasRoom } from "../game/gear.js";
+import { itemLabel, itemValue } from "../game/items.js";
+import { absoluteHour } from "../game/clock.js";
+import { collectCommission, type CollectResult, type CommissionQuote, orderCommission } from "../game/commissions.js";
+import { settlePlayerPromise } from "../game/commitments.js";
+import { tellLie, type LieResult } from "../game/deception.js";
+import { recordEvent } from "../game/events.js";
+import { type FavourKind, type FavourQuote, grantFavour, isFavourTalk, loanDue, offerFavour, retrieveHidden } from "../game/favours.js";
+import { note } from "../game/journal.js";
+import { acceptService, isServiceTalk, type ServiceResult } from "../game/services.js";
+import { addEmotion } from "./emotions.js";
+import { fireOpening, initiativeFor, type InitiativeTrigger } from "./initiative.js";
+import { remember } from "./memory.js";
+import { detectIntroduction, introduce, markMet, maskPlayerName } from "./names.js";
+import { adjust, AFFECTION, amendsFine, holdsGrudge, settleGrudge, TALK_AFFECTION_PER_DAY } from "./relationship.js";
+import { giftTrust, lovedItem, reactToTriggers } from "./triggers.js";
+import { isAmendsTalk, setMood } from "./actions.js";
 
 /** In-game minutes a repair takes. */
 export const REPAIR_MINUTES = 30;
@@ -68,6 +85,12 @@ export class NpcAgent {
   private questTalk = false;
   /** Whether the current player line sounds like begging (gates end_fight). */
   private pleading = false;
+  /** Whether the current player line sounds sorry (gates make_amends). */
+  private amendsTalk = false;
+  /** Whether the current player line asks a favour (gates offer_favour). */
+  private favourTalk = false;
+  /** Whether the current player line asks for a room or healing (gates offer_service). */
+  private serviceTalk = false;
   /** The player's last line, so a follow-up persuasion knows what it's about. */
   private lastPlayerLine = "";
   /**
@@ -108,9 +131,14 @@ export class NpcAgent {
     return this.state.outcome === "dead";
   }
 
-  /** What the NPC is busy making, or null if they're free to talk. The game shouldn't let the player interact while busy. */
+  /** What the NPC is busy with (making something, or asleep), or null if they're free to talk. The game shouldn't let the player interact while busy. */
   busyWith(world: WorldSnapshot): string | null {
-    return busyWith(this.state, world);
+    const job = busyWith(this.state, world);
+    if (job) return job;
+    // Asleep this hour (game/schedule.ts): only once an hour's tick has put them to bed.
+    const a = this.state.activity;
+    if (a && a.activity === "sleep" && a.at === absoluteHour(world) && !this.state.inCombat) return "asleep";
+    return null;
   }
 
   /** Run one player turn: the NPC replies and may act. */
@@ -129,14 +157,280 @@ export class NpcAgent {
     if (topic.questing) refreshNeedQuests(this.persona, this.state, world.player);
     this.lastPlayerLine = playerLine;
     this.pleading = isPleading(playerLine);
+    this.amendsTalk = isAmendsTalk(playerLine);
+    this.favourTalk = isFavourTalk(playerLine);
+    this.serviceTalk = isServiceTalk(playerLine);
+    // Before the model sees anything: a name they're told, vouches they've heard, fears and loves.
+    const name = detectIntroduction(playerLine);
+    if (name) introduce(this.persona, this.state, world.player, name, world.day);
+    this.applyVouches(world);
+    const triggered = this.state.inCombat ? { lines: [], mood: null } : reactToTriggers(this.persona, this.state, world, playerLine);
+    if (triggered.mood && triggered.mood !== this.state.mood && !(triggered.mood === "happy" && this.state.mood !== "neutral")) {
+      setMood(this.state, triggered.mood);
+    }
     const fighting = this.state.inCombat;
     const turn = await this.withTopic(topic, () =>
-      this.runTurn(buildTurnMessage(this.persona, this.state, world, playerLine, topic), world, onText),
+      this.runTurn(buildTurnMessage(this.persona, this.state, world, playerLine, topic, triggered.lines), world, onText),
     );
     this.pleading = false;
+    this.amendsTalk = false;
+    this.favourTalk = false;
+    this.serviceTalk = false;
+    if (!turn.fallback) {
+      if (!fighting) this.rememberTone(turn, playerLine, world);
+      this.spentTimeTogether(world);
+    }
     const result = this.continueFight(turn, world);
     this.spend(world, fighting || this.state.inCombat ? "fight" : "talk");
     return result;
+  }
+
+  /**
+   * What the player's words did, as the NPC's own mood call showed it (N5): a hostile
+   * mood after their line is an insult remembered (worse in front of others); a happy
+   * one, a kindness. Once a day each; the memory is written by code, not the model.
+   */
+  private rememberTone(turn: TurnResult, playerLine: string, world: WorldSnapshot): void {
+    const moods = turn.actions.filter((a) => a.name === "change_mood" && a.ok).map((a) => (a.args as { mood?: string }).mood);
+    const quote = playerLine.length > 80 ? `${playerLine.slice(0, 77)}...` : playerLine;
+    const traits = traitsOf(this.persona);
+    const publicly = (world.present ?? []).length > 0;
+    if (moods.includes("angry") || moods.includes("annoyed")) {
+      const angry = moods.includes("angry");
+      remember(this.state, { id: `insulted-${world.day}`, day: world.day, text: `they insulted you${publicly ? " in front of others" : ""}: "${quote}"`, importance: angry ? 6 : 4, valence: -1 }, traits);
+      addEmotion(this.state, "resentment", (angry ? 0.5 : 0.3) + (publicly ? 0.2 : 0), `them insulting you${publicly ? " in front of others" : ""}`, world.day, true);
+      if (publicly) addEmotion(this.state, "embarrassment", 0.4, "being insulted in front of others", world.day, true);
+      adjust(this.state, "affection", AFFECTION.insult);
+      recordEvent(world, { kind: "insulted", actor: "player", target: this.persona.id, details: playerLine, importance: angry ? 6 : 4 });
+    } else if (moods.includes("happy")) {
+      remember(this.state, { id: `kind-${world.day}`, day: world.day, text: `they were kind to you: "${quote}"`, importance: 3, valence: 1 }, traits);
+      adjust(this.state, "affection", AFFECTION.gift);
+      recordEvent(world, { kind: "complimented", actor: "player", target: this.persona.id, details: playerLine, importance: 3 });
+    }
+  }
+
+  /** Time together builds affection, a little, a few times a day; and now they've met. */
+  private spentTimeTogether(world: WorldSnapshot): void {
+    const key = `talk:${world.day}`;
+    const times = this.state.triggerDay[key] ?? 0;
+    if (times < TALK_AFFECTION_PER_DAY && !this.state.inCombat && this.state.relationship >= 0) {
+      adjust(this.state, "affection", AFFECTION.talk);
+      this.state.triggerDay[key] = times + 1;
+    }
+    for (const k of Object.keys(this.state.triggerDay)) if (k.startsWith("talk:") && k !== key) delete this.state.triggerDay[k];
+    markMet(this.state, world.day);
+  }
+
+  /** NPCs who vouched for the player (the vouch favour) lift this NPC's trust, once each. */
+  private applyVouches(world: WorldSnapshot): void {
+    for (const voucher of world.player.vouchedBy ?? []) {
+      if (voucher === this.persona.name || this.state.vouchedDay[voucher] !== undefined) continue;
+      this.state.vouchedDay[voucher] = world.day;
+      adjust(this.state, "trust", 5);
+    }
+  }
+
+  /**
+   * Speak first, if a trigger says so (npc/initiative.ts): a promise due, a job
+   * they gave you, a grudge, a greeting. Null if they have nothing to open with.
+   */
+  async speakFirst(world: WorldSnapshot, onText: (delta: string) => void = () => {}): Promise<(TurnResult & { trigger: InitiativeTrigger }) | null> {
+    if (this.isDead || this.busyWith(world)) return null;
+    const opening = initiativeFor(this.persona, this.state, world);
+    if (!opening) return null;
+    const event = fireOpening(this.persona, this.state, world, opening);
+    const turn = await this.runTurn(buildEventMessage(this.persona, this.state, world, `${event} Speak first: one short line.`), world, onText);
+    markMet(this.state, world.day);
+    return { ...turn, trigger: opening.trigger };
+  }
+
+  /** Chime in on a group scene (game/scene.ts) with one line, reacting to what was just said. */
+  async interject(world: WorldSnapshot, onText: (delta: string) => void = () => {}): Promise<TurnResult> {
+    if (this.isDead || this.busyWith(world)) return { text: "", actions: [] };
+    const event = `You're nearby and heard that. Chime in with one short line if you have something to say, to ${world.player.name} or the others.`;
+    const turn = await this.runTurn(buildEventMessage(this.persona, this.state, world, event), world, onText);
+    this.spend(world, "talk");
+    return turn;
+  }
+
+  /** The player introduces themselves (/introduce): the NPC learns their name and reacts. */
+  async introduceSelf(world: WorldSnapshot, onText: (delta: string) => void = () => {}): Promise<TurnResult> {
+    introduce(this.persona, this.state, world.player, world.player.name, world.day);
+    const turn = await this.runTurn(buildEventMessage(this.persona, this.state, world, `${world.player.name} tells you their name: ${world.player.name}.`), world, onText);
+    markMet(this.state, world.day);
+    this.spend(world, "talk");
+    return turn;
+  }
+
+  /**
+   * The player gives the NPC something (/give): an item or money ("2 silver"). Trust
+   * comes from the value, much more for something they love (npc/triggers.ts); a gift
+   * worth the amends fine settles a grudge. The NPC reacts.
+   */
+  async receiveGift(what: string, world: WorldSnapshot, onText: (delta: string) => void = () => {}): Promise<TurnResult & { gift: { ok: boolean; message: string; trust: number } }> {
+    const player = world.player;
+    const fail = (message: string) => ({ text: "", actions: [], gift: { ok: false, message, trust: 0 } });
+    if (this.state.inCombat) return fail("Not in the middle of a fight.");
+    const money = parseMoney(what);
+    const item = money === null ? (resolveItem(player.inventory, what) ?? null) : null;
+    if (money === null && !item) return fail(`You don't have ${what}.`);
+    if (money !== null && (money <= 0 || money > player.money)) return fail(`You don't have ${formatMoney(Math.max(0, money))} to give.`);
+    if (item && !npcHasRoom(this.persona, this.state, { [item]: 1 })) return fail(`${this.persona.name} has no room for it.`);
+    const trust = giftTrust(this.persona, this.state, item ? { item } : { money: money! }, world.day);
+    const loved = item ? lovedItem(this.persona, item) : undefined;
+    if (item) {
+      player.inventory[item] = (player.inventory[item] ?? 0) - 1;
+      if (player.inventory[item] === 0) delete player.inventory[item];
+      this.state.inventory[item] = (this.state.inventory[item] ?? 0) + 1;
+    } else {
+      player.money -= money!;
+      this.state.money += money!;
+      payDebts(this.persona, this.state);
+    }
+    adjust(this.state, "trust", trust);
+    adjust(this.state, "affection", loved ? AFFECTION.lovedGift : AFFECTION.gift);
+    this.state.lastGiftReceivedDay = world.day;
+    const value = item ? (itemValue(item) ?? 0) : money!;
+    const settles = holdsGrudge(this.state, world.day) && value >= amendsFine(this.persona);
+    if (settles) settleGrudge(this.state);
+    const what_ = item ? `a ${itemLabel(item)}` : formatMoney(money!);
+    if (loved) {
+      addEmotion(this.state, "joy", 0.5, `the ${loved.name} they gave you`, world.day, true);
+      note(player, { id: `love:${this.persona.id}:${loved.name}`, day: world.day, npc: this.persona.id, kind: "love", text: `${this.persona.name} loves ${loved.name}.` });
+    }
+    remember(this.state, { id: `gift-${world.day}`, day: world.day, text: `they gave you ${what_}${loved ? `, and you love ${loved.name}` : ""}`, importance: loved ? 6 : 4, valence: 1 }, traitsOf(this.persona));
+    recordEvent(world, { kind: "gift", actor: "player", target: this.persona.id, details: what_, importance: loved ? 6 : 4 });
+    const event = `${player.name} gave you ${what_} as a gift.${loved ? ` You love ${loved.name}!` : ""}${settles ? " It's enough to make up for what they did; you let the grudge go." : ""}`;
+    const turn = await this.runTurn(buildEventMessage(this.persona, this.state, world, event), world, onText);
+    this.spend(world, "talk");
+    return { ...turn, gift: { ok: true, trust, message: `You gave ${this.persona.name} ${what_}.${loved ? " They love it." : ""}` } };
+  }
+
+  /** The player tells a lie (/lie). Rolled in code (game/deception.ts); the NPC reacts. */
+  async hearLie(claim: string, world: WorldSnapshot, onText: (delta: string) => void = () => {}, onRoll: (r: LieResult) => void = () => {}): Promise<TurnResult & { lie: LieResult }> {
+    const result = tellLie(this.persona, this.state, world, claim, this.rng);
+    onRoll(result);
+    if (!result.ok) return { text: "", actions: [], lie: result };
+    if (!result.believed) setMood(this.state, "annoyed", traitsOf(this.persona));
+    const turn = await this.runTurn(buildEventMessage(this.persona, this.state, world, result.message), world, onText);
+    this.spend(world, "talk");
+    return { ...turn, lie: result };
+  }
+
+  /** The player asks a favour (/ask). Code decides (game/favours.ts); the NPC offers the terms or turns them down. */
+  async askFavour(kind: FavourKind, world: WorldSnapshot, item?: string, onText: (delta: string) => void = () => {}): Promise<TurnResult & { favour: FavourQuote }> {
+    const quote = offerFavour(this.persona, this.state, world, kind, item);
+    const asked = `${world.player.name} asked you a favour (${kind.replace("_", " ")}).`;
+    const event = quote.ok
+      ? `${asked} You're willing: you'll ${quote.message}. Say these terms; they'll accept or decline, and they'll owe you one.`
+      : `${asked} You won't: ${quote.message} Turn them down.`;
+    const turn = await this.runTurn(buildEventMessage(this.persona, this.state, world, event), world, onText);
+    this.spend(world, "talk");
+    return { ...turn, favour: quote };
+  }
+
+  /** The player accepted the favour on offer: it's done, and they owe one back. */
+  async acceptFavour(world: WorldSnapshot, onText: (delta: string) => void = () => {}): Promise<TurnResult & { favour: { ok: boolean; message: string } }> {
+    const result = grantFavour(this.persona, this.state, world);
+    const turn = await this.runTurn(buildEventMessage(this.persona, this.state, world, result.message), world, onText);
+    this.spend(world, "talk");
+    return { ...turn, favour: result };
+  }
+
+  /** The player turned down the favour on offer. */
+  async declineFavour(world: WorldSnapshot, onText: (delta: string) => void = () => {}): Promise<TurnResult> {
+    this.state.pendingFavour = null;
+    const turn = await this.runTurn(buildEventMessage(this.persona, this.state, world, `${world.player.name} changed their mind about the favour.`), world, onText);
+    this.spend(world, "talk");
+    return turn;
+  }
+
+  /** The player pays the fine the NPC named to settle a grudge (make_amends). */
+  async acceptAmends(world: WorldSnapshot, onText: (delta: string) => void = () => {}): Promise<TurnResult & { amends: { ok: boolean; message: string } }> {
+    const offer = this.state.pendingAmends;
+    const player = world.player;
+    const fail = (message: string) => ({ text: "", actions: [], amends: { ok: false, message } });
+    if (!offer) return fail("Nothing to settle.");
+    if (player.money < offer.fine) return fail(`It costs ${formatMoney(offer.fine)}; you have ${formatMoney(player.money)}.`);
+    player.money -= offer.fine;
+    this.state.money += offer.fine;
+    payDebts(this.persona, this.state);
+    settleGrudge(this.state);
+    recordEvent(world, { kind: "amends", actor: "player", target: this.persona.id, details: formatMoney(offer.fine), importance: 5 });
+    remember(this.state, { id: `amends-${world.day}`, day: world.day, text: `they paid ${formatMoney(offer.fine)} to make amends`, importance: 5, valence: 1 }, traitsOf(this.persona));
+    const message = `${player.name} paid you ${formatMoney(offer.fine)} to make amends. The grudge is settled.`;
+    const turn = await this.runTurn(buildEventMessage(this.persona, this.state, world, message), world, onText);
+    this.spend(world, "talk");
+    return { ...turn, amends: { ok: true, message } };
+  }
+
+  /** The player won't pay the fine. */
+  async declineAmends(world: WorldSnapshot, onText: (delta: string) => void = () => {}): Promise<TurnResult> {
+    this.state.pendingAmends = null;
+    const turn = await this.runTurn(buildEventMessage(this.persona, this.state, world, `${world.player.name} won't pay to make amends.`), world, onText);
+    this.spend(world, "talk");
+    return turn;
+  }
+
+  /**
+   * The player accepted a service (heal, lodging): charged once, applied in code. For
+   * lodging, `sleepHours` says how long the caller should let the village live while they sleep.
+   */
+  async acceptService(world: WorldSnapshot, onText: (delta: string) => void = () => {}): Promise<TurnResult & { service: ServiceResult }> {
+    const result = acceptService(this.persona, this.state, world);
+    if (!result.ok) return { text: "", actions: [], service: result };
+    const turn = await this.runTurn(buildEventMessage(this.persona, this.state, world, `${result.message} Say a line as you do it.`, true), world, onText);
+    this.spend(world, "trade");
+    return { ...turn, service: result };
+  }
+
+  /** The player turned down a service. */
+  async declineService(world: WorldSnapshot, onText: (delta: string) => void = () => {}): Promise<TurnResult> {
+    this.state.pendingService = null;
+    const turn = await this.runTurn(buildEventMessage(this.persona, this.state, world, `${world.player.name} doesn't want that after all.`), world, onText);
+    this.spend(world, "talk");
+    return turn;
+  }
+
+  /** The player orders something (/commission): the deposit is paid and the NPC names a time. */
+  async commission(item: string, world: WorldSnapshot, onText: (delta: string) => void = () => {}): Promise<TurnResult & { order: CommissionQuote }> {
+    const order = orderCommission(this.persona, this.state, world, item);
+    if (!order.ok) return { text: "", actions: [], order };
+    const event = `${world.player.name} ordered ${order.message}, and paid the deposit. Promise them it'll be ready by then.`;
+    const turn = await this.runTurn(buildEventMessage(this.persona, this.state, world, event, true), world, onText);
+    this.spend(world, "trade");
+    return { ...turn, order };
+  }
+
+  /** The player collects a finished commission (/collect). */
+  async collect(world: WorldSnapshot, onText: (delta: string) => void = () => {}): Promise<TurnResult & { collect: CollectResult }> {
+    const late = this.state.commission?.late === true;
+    const result = collectCommission(this.persona, this.state, world);
+    if (!result.ok) return { text: "", actions: [], collect: result };
+    const event = `${result.message}${late ? " You finished it late; you already took some off." : ""} Hand it over with a line.`;
+    const turn = await this.runTurn(buildEventMessage(this.persona, this.state, world, event, true), world, onText);
+    this.spend(world, "trade");
+    return { ...turn, collect: result };
+  }
+
+  /** The player repays a loan (/repay): on time keeps their word; late still settles it. */
+  async repay(world: WorldSnapshot, onText: (delta: string) => void = () => {}): Promise<TurnResult & { repay: { ok: boolean; message: string } }> {
+    const loan = loanDue(world.player, this.persona.id);
+    const fail = (message: string) => ({ text: "", actions: [], repay: { ok: false, message } });
+    if (!loan || !loan.amount) return fail(`You don't owe ${this.persona.name} anything.`);
+    if (world.player.money < loan.amount) return fail(`You owe ${formatMoney(loan.amount)}; you have ${formatMoney(world.player.money)}.`);
+    world.player.money -= loan.amount;
+    this.state.money += loan.amount;
+    payDebts(this.persona, this.state);
+    const line = settlePlayerPromise(this.persona, this.state, loan, world);
+    const turn = await this.runTurn(buildEventMessage(this.persona, this.state, world, `${world.player.name} paid back the ${formatMoney(loan.amount)} you lent them. ${line}`), world, onText);
+    this.spend(world, "trade");
+    return { ...turn, repay: { ok: true, message: `You paid ${this.persona.name} back ${formatMoney(loan.amount)}. ${line}` } };
+  }
+
+  /** The player takes back what the NPC hid for them (/retrieve). No model call. */
+  retrieve(world: WorldSnapshot): { ok: boolean; message: string } {
+    return retrieveHidden(this.persona, this.state, world.player);
   }
 
   /**
@@ -225,11 +519,43 @@ export class NpcAgent {
    * After the player's attack: if the NPC died, ran (by a failed morale roll or the
    * flee tool) or begged, the player won the fight. Returns any titles they earned.
    */
-  private playerWon(world: WorldSnapshot, hit: { begged?: boolean }): { titles?: string[] } {
+  private playerWon(world: WorldSnapshot, hit: { begged?: boolean }): { titles?: string[]; spoils?: string[] } {
     const s = this.state;
     if (!(s.outcome === "dead" || s.outcome === "fled" || hit.begged)) return {};
     const titles = playerWonFight(world.player, s.life.tier, world.day);
-    return titles.length > 0 ? { titles } : {};
+    const spoils = s.outcome === "dead" ? this.dropSpoils(world) : [];
+    return { ...(titles.length > 0 ? { titles } : {}), ...(spoils.length > 0 ? { spoils } : {}) };
+  }
+
+  /**
+   * An NPC with `dropsOnDeath` (a bandit leader, not a shopkeeper) was killed by the player:
+   * the player takes their purse and what fits from their pack. What doesn't fit stays on the body.
+   */
+  private dropSpoils(world: WorldSnapshot): string[] {
+    const s = this.state;
+    if (!this.persona.dropsOnDeath) return [];
+    const player = world.player;
+    const taken: string[] = [];
+    const left: string[] = [];
+    for (const [item, qty] of Object.entries(s.inventory)) {
+      if (qty <= 0) continue;
+      if (!playerHasRoom(player, { [item]: qty })) {
+        left.push(item);
+        continue;
+      }
+      player.inventory[item] = (player.inventory[item] ?? 0) + qty;
+      delete s.inventory[item];
+      taken.push(`${itemLabel(item)} x${qty}`);
+    }
+    if (s.money > 0) {
+      taken.push(formatMoney(s.money));
+      player.money += s.money;
+      s.money = 0;
+    }
+    return [
+      ...(taken.length > 0 ? [`You take from ${this.persona.name}'s body: ${taken.join(", ")}.`] : []),
+      ...(left.length > 0 ? [`No room in your pack for: ${left.map(itemLabel).join(", ")}. You leave it.`] : []),
+    ];
   }
 
   /**
@@ -297,9 +623,9 @@ export class NpcAgent {
 
   /** The player accepted the NPC's quest offer: it goes in their quest log, and the NPC reacts. */
   async acceptQuest(world: WorldSnapshot, onText: (delta: string) => void = () => {}): Promise<TurnResult & { quest: string | null }> {
-    const quest = acceptQuest(this.persona, this.state, world.player);
+    const quest = acceptQuest(this.persona, this.state, world.player, world);
     const event = quest
-      ? `${world.player.name} accepted your job "${quest.title}": bring ${quest.objective.qty} ${quest.objective.item}.`
+      ? `${world.player.name} accepted your job "${quest.title}": ${describeObjective(quest)}.`
       : `${world.player.name} wanted to accept, but that job is no longer available.`;
     const turn = await this.runTurn(buildEventMessage(this.persona, this.state, world, event), world, onText);
     this.spend(world, "talk");
@@ -516,7 +842,15 @@ export class NpcAgent {
       trainingTalk: this.trainingTalk,
       questTalk: this.questTalk,
       pleading: this.pleading,
+      amendsTalk: this.amendsTalk,
+      favourTalk: this.favourTalk,
+      serviceTalk: this.serviceTalk,
     };
+  }
+
+  /** Anything the model reads: the player's real name swapped for what this NPC knows them as (npc/names.ts). */
+  private mask(text: string, world: WorldSnapshot): string {
+    return maskPlayerName(text, world.player, this.state);
   }
 
   /**
@@ -528,7 +862,7 @@ export class NpcAgent {
     world: WorldSnapshot,
     onText: (delta: string) => void,
   ): Promise<TurnResult> {
-    this.history.push({ role: "user", content: userContent });
+    this.history.push({ role: "user", content: this.mask(userContent, world) });
 
     let text = "";
     const actions: AppliedAction[] = [];
@@ -569,7 +903,7 @@ export class NpcAgent {
           const fallback = this.persona.fallbackLine ?? "I need a moment before I can answer that.";
           emit(text ? ` ${fallback}` : fallback);
           this.history.push({ role: "assistant", content: fallback });
-          return { text, actions };
+          return { text, actions, fallback: true };
         }
       }
       moodFilter.end();
@@ -607,7 +941,7 @@ export class NpcAgent {
             ? { ok: false, message: "You already attacked this turn." }
             : applyAction(parsed, this.context(world));
         actions.push({ name: call.name, args: call.arguments, ...outcome });
-        this.history.push({ role: "tool", toolName: call.name, content: outcome.message });
+        this.history.push({ role: "tool", toolName: call.name, content: this.mask(outcome.message, world) });
       }
       // Loop again so the NPC can react to the tool results (and say her line).
     }
