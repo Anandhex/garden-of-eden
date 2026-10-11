@@ -2,6 +2,7 @@ import { carrySlots, fitsIn } from "../game/gear.js";
 import { itemKey, normalizeInventory } from "../game/items.js";
 import { type Challenge, createLife, effectiveStats, gainXp, type LifeContext, overcome, TIERS, tierIndex, upgradeLife } from "../game/life.js";
 import { speciesOf } from "../world/species.js";
+import { FRESH_NEEDS } from "../game/needs.js";
 import type { NpcStats } from "./stats.js";
 import type { NpcPersona, NpcState } from "./types.js";
 
@@ -60,7 +61,36 @@ export function createNpcState(persona: NpcPersona, overrides: Partial<NpcState>
   const stats = effectiveStats(persona.stats, life);
   const state: NpcState = {
     mood: "neutral",
+    moodHours: 0,
     relationship: 0,
+    fear: 0,
+    respect: 0,
+    affection: 0,
+    romanceStage: 0,
+    knownName: null,
+    nameSource: null,
+    metBefore: false,
+    lastMetDay: null,
+    noticed: null,
+    wonCheckDay: {},
+    grudge: null,
+    pendingAmends: null,
+    emotions: [],
+    beliefs: [],
+    commitments: [],
+    owedFavours: [],
+    pendingFavour: null,
+    keptForPlayer: {},
+    pendingService: null,
+    commission: null,
+    needs: { ...FRESH_NEEDS },
+    activity: null,
+    tipsyUntil: null,
+    goodDay: null,
+    initiative: {},
+    triggerDay: {},
+    lastGiftReceivedDay: null,
+    vouchedDay: {},
     hp: stats.maxHp,
     mp: stats.maxMp,
     inventory: { ...persona.startingInventory },
@@ -116,4 +146,9 @@ export function startEncounter(state: NpcState): void {
   state.pendingPurchase = null;
   state.pendingTraining = null;
   state.pendingQuest = null;
+  state.pendingFavour = null;
+  state.pendingService = null;
+  state.pendingAmends = null;
+  // They'll remark on how the player looks afresh.
+  state.noticed = null;
 }

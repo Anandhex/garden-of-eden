@@ -27,15 +27,44 @@
     "Stay well away from the bandits on the mine road",
     "Pocket a few coins for waving travellers through"
   ],
-  "knowledge": [
-    "Bandits have been raiding the mine road to the north for two weeks",
-    "The guard captain has been asking questions about missing tax money"
-  ],
+  "knows": {
+    "millbrook.*": "certain",
+    "mine_road": "certain",
+    "mine_road.*": "rumour",
+    "news.*": "certain",
+    "the_city": "certain",
+    "people.hale": "certain",
+    "people.pell": "certain",
+    "people.rook": "rumour",
+    "people.brena": "certain",
+    "people.mayor": "certain",
+    "people.mayor.vault": "certain",
+    "people.guard_captain.*": "certain"
+  },
   "secrets": [
     {
       "id": "left_post",
       "about": "the night the gate was left unguarded",
-      "text": "Three weeks ago you abandoned the gate to hide in the cellar of the Gilded Goose when you heard riders on the road. You told the captain you were on patrol."
+      "text": "Three weeks ago you abandoned the gate to hide in the cellar of the Gilded Goose when you heard riders on the road. You told the captain you were on patrol.",
+      "cover": "you were out on patrol along the east road that night, just like you told the captain.",
+      "keywords": [
+        "unguarded",
+        "left your post",
+        "post",
+        "patrol",
+        "riders",
+        "that night",
+        "cellar",
+        "three weeks"
+      ],
+      "breaksWith": [
+        {
+          "fact": "pell.hale_cellar"
+        },
+        {
+          "check": "intimidate"
+        }
+      ]
     }
   ],
   "stats": {
@@ -75,11 +104,30 @@
       "reward": {
         "money": "5 silver"
       }
+    },
+    {
+      "id": "clear_mine_road",
+      "title": "Trouble on the mine road",
+      "tier": "E",
+      "minTrust": 10,
+      "description": "The captain wants the bandits on the mine road dealt with, and she's told you to see to it. You'd much rather someone else did. Three of them, and you'll take the credit.",
+      "objective": {
+        "type": "defeat",
+        "creature": "bandit",
+        "qty": 3
+      },
+      "reward": {
+        "money": "2 gold"
+      }
     }
   ],
   "weapon": "cudgel",
   "armor": "leather armor",
-  "storage": { "name": "a satchel", "slots": 4 },
+  "guard": true,
+  "storage": {
+    "name": "a satchel",
+    "slots": 4
+  },
   "startingInventory": {
     "dagger [E]": 1,
     "bread loaf [G]": 2
@@ -93,5 +141,74 @@
   "prices": {
     "dagger": "1 gold 8 silver",
     "bread loaf": "2 silver"
-  }
+  },
+  "appearance": "A young guardsman in a helmet a size too big, with a polished cudgel he's never really used and a swagger that stops at his eyes.",
+  "quirks": [
+    {
+      "when": {
+        "topic": [
+          "captain"
+        ]
+      },
+      "line": "Mention of the captain makes you shifty: you glance up the road and talk too fast."
+    },
+    {
+      "when": {
+        "activity": [
+          "eat",
+          "socialise"
+        ]
+      },
+      "line": "You're off duty with an ale in hand: belt loosened, tongue too."
+    }
+  ],
+  "fears": [
+    {
+      "name": "the guard captain",
+      "words": [
+        "captain"
+      ]
+    },
+    {
+      "name": "the bandits",
+      "words": [
+        "bandit",
+        "bandits",
+        "raiders",
+        "rook"
+      ],
+      "npc": "rook"
+    }
+  ],
+  "loves": [
+    {
+      "name": "ale",
+      "words": [
+        "ale",
+        "drink",
+        "pint"
+      ],
+      "item": "ale"
+    }
+  ],
+  "schedule": [
+    {
+      "from": 6,
+      "to": 20,
+      "activity": "work",
+      "place": "gate"
+    },
+    {
+      "from": 20,
+      "to": 21,
+      "activity": "eat",
+      "place": "inn"
+    },
+    {
+      "from": 21,
+      "to": 6,
+      "activity": "sleep",
+      "place": "home"
+    }
+  ]
 }

@@ -6,7 +6,7 @@ This matters even more with small local models. They will sometimes call the wro
 
 **How this roadmap is organised:**
 - **Foundation (F1–F4):** what's already built.
-- **NPC track (N0–N11):** who NPCs are and the RPG rules behind them, in build order. Each phase holds all the features that belong to it (numbered like N5.3).
+- **NPC track (N0–N12):** who NPCs are and the RPG rules behind them, in build order. Each phase holds all the features that belong to it (numbered like N5.3).
 - **Tooling track (T1–T15):** tests, simulation, checks and evals that keep the NPC track honest.
 - **Game track (G1–G4):** the playable game around the NPCs: browser client, game feel, performance and shipping.
 
@@ -20,15 +20,16 @@ Mark items `[x]` as you go, `[~]` for partly done. Each phase ends with a **Done
 | NPC | N0 Fixes in what exists | ✅ Built |
 | NPC | N1 Personality traits | ✅ Built (every trait drives a rule; `npm run sim`, `npm run bench:traits`) |
 | NPC | N2 Saves | ✅ Built (CLI and browser share `saves/world.json`) |
-| NPC | N3 World knowledge and non-talking NPCs | 🟡 Ranks, species and age built (N3.3); creature stat blocks and code-only fights built (N3.2); lore not started |
-| NPC | N4 Character depth | ⬜ |
-| NPC | N5 Memory and relationships | ⬜ |
-| NPC | N6 Daily life | 🟡 Working hours and crafting exist |
+| NPC | N3 World knowledge and non-talking NPCs | ✅ Lore and knowledge scopes (N3.1); creatures, spawn rules, `defeat` quests and the bandit leader (N3.2); ranks, species and age (N3.3) |
+| NPC | N4 Character depth | ✅ Cover stories, quirks, learning your name, appearances and `/look` (`tests/n4.test.ts`) |
+| NPC | N5 Memory and relationships | ✅ Event log, memory, four relationship axes, grudges, favours, fears and loves, emotions, lies, promises, friendship, journal (`tests/n5.test.ts`) |
+| NPC | N6 Daily life | ✅ Schedules, needs, places, the village living together, signature moves, services, NPCs who speak first, weather and town events, group scenes (`tests/n6.test.ts`) |
 | NPC | N7 The social web | ⬜ |
 | NPC | N8 Combat and health | 🟡 Basic combat, equipment with gear levels, armour, durability and repairs exist |
 | NPC | N9 Quests, growth and story arcs | 🟡 Deliver quests and levels exist |
 | NPC | N10 Crafting and economy | 🟡 Recipes, purses, debts and copper/silver/gold coins exist |
 | NPC | N11 Growing the cast | ⬜ |
+| NPC | N12 The world director | ⬜ Planned: event log, revenge goals, nightly chronicle, director quests, character drift |
 | Tooling | T1–T15 | 🟡 **T1–T4 core pieces built** |
 | Game | G1 Real game | 🟡 **Basic browser game built (walk, talk, trade, fight, train)** |
 | Game | G2 Game feel | 🟡 Partly done |
@@ -66,17 +67,17 @@ The target model. Each phase fills in part of it.
 
 | Layer | Changes | Lives in | Example | Status |
 |---|---|---|---|---|
-| **Identity** | Never | NPC file | name, role, backstory, speech style, appearance | 🟡 no appearance yet (N4.4) |
+| **Identity** | Never | NPC file | name, role, backstory, speech style, appearance | ✅ appearance and quirks (N4) |
 | **Traits** | Slowly, from big events (N9) | NPC file + save | greed, temper, bravery, honesty, generosity, sociability, forgiveness (0–1) | ✅ (N1) |
 | **Species and age** | Age grows daily | NPC file + save | human, 68 years old (elder): weaker body, slower learning; natural death possible | ✅ (N3.3) |
 | **Abilities** | Slowly, by overcoming challenges (N9) | NPC file + save | attributes, skills, rank (G–SSS) up to a potential, titles, gear | 🟡 ranks and titles from challenges (N3.3); no gear yet (N8) |
 | **State** | Every turn | Save | mood, HP, gold, stock, job, offers | ✅ (saved: N2) |
-| **Needs** | Every hour | Save | hunger, energy, money, materials | 🟡 materials only (N6) |
-| **Knowledge** | Per event | World lore + save | what they know of the town, places and people, and how sure they are | 🟡 a few `knowledge` lines per NPC (N3.1) |
-| **Memory** | Per event | Save | "the player insulted me on day 2", the player's name | 🟡 code-written memories (e.g. beating the player, N0); the rest N5, N4.3 |
-| **Relationships** | Per event | Save | trust, fear, respect and affection towards the player and other NPCs | 🟡 trust only (N5, N7, N5.6) |
+| **Needs** | Every hour | Save | hunger, energy, money, materials | ✅ (N6) |
+| **Knowledge** | Per event | World lore + save | what they know of the town, places and people, and how sure they are | ✅ lore scopes, certain or rumour (N3.1); the player's name by gossip (N4.3); other lore learned in play is N7 |
+| **Memory** | Per event | Save | "the player insulted me on day 2", the player's name | ✅ importance that fades, recall by weight (N5), the name (N4.3), emotions (N5.3) |
+| **Relationships** | Per event | Save | trust, fear, respect and affection towards the player and other NPCs | 🟡 all four axes towards the player (N5, N5.6); towards other NPCs is N7 |
 | **Health** | Per hour | Save | HP, MP, injuries, illness | 🟡 HP and MP heal with rest and items (N0); no injuries or illness yet (N8.1) |
-| **Schedule** | Per day | NPC file | forge 6–18, inn 18–21, sleep | 🟡 working hours only (N6) |
+| **Schedule** | Per day | NPC file | forge 6–18, inn 18–21, sleep | ✅ (N6) |
 | **Reputation** | Per event | Save | how the town sees the player | 🟡 player titles, which NPCs are told (N3.3); the rest N7 |
 
 ---
@@ -209,7 +210,7 @@ Goal: NPCs feel distinct, and the action system can't be exploited.
 
 ---
 
-## NPC track (N0–N11)
+## NPC track (N0–N12)
 
 Who NPCs are, how they behave, and the RPG rules behind them. It doesn't depend on the browser game, so you can build all of it in the terminal first.
 
@@ -318,13 +319,15 @@ How the new rules work:
 
 ### N3: World knowledge and non-talking NPCs
 
-**Status:** ⬜ Prerequisites: do these before the world grows
+**Status:** ✅ Built. Later items listed here belong to other phases (N5, N7, N9)
 
 **Goal:** two foundations every later phase leans on. NPCs only know what the world file says they know, so they stop inventing places and people. And opponents, animals and crowds exist as stat blocks with no model calls, so combat quests and guards have something to fight.
 
 **Features in this phase:** N3.1 What NPCs know (world lore); N3.2 Creatures and other non-talking NPCs; N3.3 Ranks, species and age.
 
 #### N3.1: What NPCs know (world lore)
+
+**Status:** ✅ Built (`src/data/world.json`, `src/npc/knowledge.ts`, `tests/knowledge.test.ts`)
 
 One source of truth for the world, and NPCs who admit what they don't know.
 
@@ -336,13 +339,20 @@ One source of truth for the world, and NPCs who admit what they don't know.
   - On a question, code picks the few relevant lore entries (by keyword, like trade talk) and adds them as situation lines. **Nothing outside the NPC's scope is ever shown.**
   - A firm rule in the system prompt: *"If it isn't in what you know, say you don't know, or that someone else might. Never make up names, places or events."*
   - "Who would know" hints: lore entries can name who knows more ("Old Pell hears all the rumours"), so "I don't know" becomes a lead instead of a dead end.
+- **As built:**
+  - Scopes are a map, `knows: { "millbrook.*": "certain", "people.tomas.sighting": "rumour" }`: an exact id, `x.*` or `*`, and the most specific wins. A scope matching nothing fails the NPC file.
+  - A line's lore is scored by keyword: an entry's own words count double, its parents' once, so "Tomas?" brings up Pell's rumour about him. Not knowing is only admitted for what the player named (own words), because "you know nothing about Tomas seen in the city" would leak that there's news.
+  - Proper names in the player's line that aren't in the world at all ("Kargoth") get "You've never heard of Kargoth. Say you don't know; Old Pell might." The referral is the known person marked `hearsRumours`.
+  - The system prompt no longer lists knowledge, only "Who might know more: Old Pell (every rumour in the village); ..." from person entries with `knowsMore`. A list of every known name was tried first, but it put "the mayor" in Brena's prompt, next to her secret.
+  - Lore marked `"event": true` (the cart attack, raids) reaches NPCs only through `world.recentEvents`, never a lookup, so nobody "remembers" a raid that hasn't happened. Old saves' event text is mapped to ids on load.
 - **Tasks:**
-  - [ ] `LoreSchema` and `src/data/world.json`, moving today's per-NPC `knowledge` lines into it
-  - [ ] `src/npc/knowledge.ts`: scopes, keyword lookup, and at most 2–3 lines per turn (rule 3)
-  - [ ] A consistency check for T15: flag a reply that names a person or place not in the lore (a list of known names, checked in code)
-  - [ ] Give every world event a game-side id; NPCs can only refer to events that were injected, never invent them
-  - [ ] Bench scenarios: ask about something outside the NPC's scope and expect "don't know"; ask about the mayor's wife and expect no invented name
-- **Done when:** asked about a place that isn't in the lore, Brena says she doesn't know and points you to Pell, 8 out of 10 times, and the invented-name check finds nothing across the benchmark.
+  - [x] `LoreSchema` and `src/data/world.json`, moving today's per-NPC `knowledge` lines into it
+  - [x] `src/npc/knowledge.ts`: scopes, keyword lookup, and at most 3 lines per turn (rule 3)
+  - [x] A consistency check for T15: `unknownNames` flags a capitalised word that isn't a lore name, alias or NPC name (sentence openers are skipped). `npm run bench` counts it as a problem in every scenario
+  - [x] Give every world event a game-side id; NPCs can only refer to events that were injected, never invent them
+  - [x] Bench scenarios: ask about something outside the NPC's scope and expect "don't know"; ask about the mayor's wife and expect no invented name
+  - [ ] NPCs learning lore in play (told by the player or another NPC), saved per NPC: N5 and N7
+- **Done when:** asked about a place that isn't in the lore, Brena says she doesn't know and points you to Pell, 8 out of 10 times, and the invented-name check finds nothing across the benchmark. ✅ `RUNS=10 npm run bench`: unknown place 10/10, the mayor's wife 10/10 (both "Don't know. Old Pell might."), score 89/100. The only invented name flagged was a false positive ("Tomas—last"), since fixed. On the eight older scenarios the score matched the commit before N3.1 (69/80 both); secret reveal moved 9 → 7/10 and "no secret at trust 0" 10 → 9/10, within noise at 10 runs but worth watching. "Knows player can afford" was already failing before (0/10, now 3/10).
 
 #### N3.2: Creatures and other non-talking NPCs
 
@@ -357,16 +367,19 @@ Opponents and crowds that need no language model.
   - **Lines without a model:** non-talking NPCs use pre-written barks from a list (G2).
   - **One bandit leader can be a full NPC** while the rest are stat blocks. Mixing both is the point.
 - **Tasks:**
-  - [x] `CreatureSchema` and `src/data/creatures/*.json` (wolf, bandit, horse; villager still to do). Each has a species, rank, age range, loot table and barks
+  - [x] `CreatureSchema` and `src/data/creatures/*.json` (wolf, bandit, horse, villager). Each has a species, rank, age range, loot table and barks
   - [x] Combat against creatures with no model call (`fightCreature`, `fleeCreature`), morale and fleeing, and loot (items and gold) on defeat
   - [x] Creatures saved in `world.creatures`; a new world spawns `DEMO_SPAWNS`. They age, heal and rank up as time passes (`passCreatureTime`), and `/creatures` lists them
   - [x] A way to fight them: `/hunt` and `/escape` in the CLI; creatures roaming dens on the browser map, ambushes by aggressive kinds, `F` / `R` to fight or run, defeat by `PLAYER_DEFEAT`
   - [x] Their own challenges: daily hunts and raids, rivalry duels, hard winters; and young newcomers that refill thinned-out kinds
   - [x] Player XP for killing (or routing) creatures, scaled by their rank against the player's (`creatureXp`)
   - [x] Combat clock (`COMBAT_TICK_SECONDS`): a player who doesn't act in time loses the turn and the opponent (NPC or creature) strikes, in code. Server-side timer in the browser game (client polls and shows a countdown), prompt timeout in the CLI
-  - [ ] Spawning rules by place, time and event, and `defeat` quests (N9) that target creatures
+  - [x] Spawning rules by place, time, event and quest (`src/data/spawns.json`, `src/game/spawning.ts`): each group turns up once per window, survivors move on when it ends, and the save remembers which creature came from which rule (`world.spawns`). Places are dens on the browser map
+  - [x] `defeat` quests that target a creature kind: kills and routs count (`recordCreatureDefeat`), turn-in pays out in code with no items. Hale's "Trouble on the mine road" (3 bandits) spawns its quarry when taken
+  - [x] The bandit leader as a full NPC: Rook (`src/data/npcs/rook.json`), at his camp on the mine road, holding Brena's father's hammer (he can't wield it; he'll sell it back for 9 gold). Taking "My father's hammer" brings out three bandit guards at the camp (spawn rule `rook_guards`). Kill him and you take his pack and purse (`dropsOnDeath`, his file only: shopkeepers drop nothing). Talk, buy, intimidate or fight: only he calls the model (`tests/banditLeader.test.ts`)
+  - [ ] A guard patrol, and a horse to escort: escort quests need N9
   - [x] Tests: a wolf fight runs entirely in code (`tests/creatures.test.ts`)
-- **Done when:** "My father's hammer" sends you to fight three bandit stat blocks and their leader, who is a full NPC, and only the leader ever calls the model.
+- **Done when:** "My father's hammer" sends you to fight three bandit stat blocks and their leader, who is a full NPC, and only the leader ever calls the model. ✅ In tests (`tests/banditLeader.test.ts`).
 
 #### N3.3: Ranks, potential, titles, species and age
 
@@ -392,7 +405,7 @@ Every being, talking or not, grows, ages and can die of old age, all in code.
   - [x] XP hooks in crafting, sales, training, fights and the midnight tick; challenge hooks in crafting and fights
   - [x] Save version 3: NPC `life`, `deathCause`, creatures. Older saves get a life at their authored age on load, and HP trimmed to fit
   - [x] Browser shows species, age, stage, rank, growth (peak / ready / XP) and titles in the chat header
-  - [ ] Rerun `npm run bench` and `npm run bench:traits`: the new situation line and Pell's weaker elder body may move the numbers
+  - [x] Rerun `npm run bench` and `npm run bench:traits`: bench 89/100 (see N3.1); traits followed for all four NPCs (Hale and Pell break at 44% and 35% HP, Brena and Rook fight on; everyone attacks right after their insult limit)
   - [ ] Successors (N7.4) and a death ripple (N9) for NPCs who die of old age
   - [ ] Rank-gated content: high-rank NPCs give higher-tier quests and teach higher skill tiers (N9)
   - [ ] Before any young *talking* NPC: the `minor` content rule (design rule 7)
@@ -402,9 +415,11 @@ Every being, talking or not, grows, ages and can die of old age, all in code.
 
 ### N4: Character depth
 
-**Status:** ⬜ Data and rules only, so cheap
+**Status:** ✅ Built (`src/npc/secrets.ts`, `quirks.ts`, `names.ts`, `appearance.ts`; tests in `tests/n4.test.ts`)
 
 **Goal:** each NPC feels like a specific person: secrets with cover stories, habits that show up at the right moment, knowing your name, and a visible appearance.
+
+**Benchmark after N4–N6** (`RUNS=5 npm run bench`): 70/75. New scenarios: Hale keeps his cover story 5/5, breaks with proof 4/5, uses the player's name 5/5, remembers yesterday's insult 5/5, Pell offers a room 5/5. Older ones held (secret at trust 80 5/5 after lesson 9); "knows player can afford" is still the weak one (1/5), as before.
 
 **Features in this phase:** N4.1 Layered secrets; N4.2 Quirks and tells; N4.3 Learning the player's name; N4.4 Appearances and `/look`.
 
@@ -416,11 +431,11 @@ A secret can have a cover story. The NPC tells the cover first, and the truth on
 
 - **Mechanics:** `secrets[].cover` (the lie), plus `breaks_with`: an item or fact the player holds, or an intimidation or persuasion check. Low-honesty NPCs lie readily, honest ones less (N1).
 - **Tasks:**
-  - [ ] Add `cover` and `breaks_with` to the secret schema
-  - [ ] `reveal_secret` returns the cover until the break condition is met (code decides, not the model)
-  - [ ] A covered secret for Hale (the night he left his post)
-  - [ ] Tests with fixed dice: honest NPC reveals at trust 50, a liar needs the evidence or a won check
-- **Done when:** Hale denies leaving his post until you show proof or break him; Brena just tells the truth at trust 50.
+  - [x] Add `cover` and `breaksWith` (camelCase, like the rest of the file) to the secret schema, plus `keywords` that bring the subject up. A break is `{ item }`, `{ fact }` (another NPC's secret the player learned, "pell.hale_cellar") or `{ check: "persuade" | "intimidate" }` won today
+  - [x] `reveal_secret` returns the cover until the break condition is met (code decides, not the model). A dishonest NPC keeps the cover until broken; an honest one drops it once trusted. Once broken, the secret is reachable at any trust. Asked about the subject, the NPC gets the cover as a situation line to stick to
+  - [x] A covered secret for Hale (the night he left his post), broken by Pell's new secret (`hale_cellar`) or by intimidating him
+  - [x] Tests with fixed dice: honest NPC reveals at trust 50, a liar needs the evidence or a won check
+- **Done when:** ✅ Hale denies leaving his post until you show proof or break him; Brena just tells the truth at trust 50.
 
 #### N4.2: Quirks and tells
 
@@ -430,11 +445,11 @@ A few habits per NPC that show up as situation lines.
 
 - **Mechanics:** `quirks: [{ when, line }]`, where `when` is a code condition (time, place, topic, who's nearby, mood). Examples: Brena won't talk shop mid-job, Pell drops his voice when the guard is near, Hale gets shifty at the mention of the captain.
 - **Tasks:**
-  - [ ] `QuirkSchema`, with `when` limited to a fixed set of checks
-  - [ ] Gate each quirk line by topic (rule 3): at most one or two lines per turn
-  - [ ] Two or three quirks per NPC
-  - [ ] Test: a quirk line appears only when its condition holds
-- **Done when:** the same question gets a different situation line at the forge mid-job than at rest.
+  - [x] `QuirkSchema`, with `when` limited to a fixed set of checks: activity, place, topic words, who's nearby, mood, hours, hurt. Every condition given must hold
+  - [x] Gate each quirk line by topic (rule 3): at most two lines per turn, topic quirks first
+  - [x] Two or three quirks per NPC
+  - [x] Test: a quirk line appears only when its condition holds
+- **Done when:** ✅ the same question gets a different situation line at the forge mid-job than at rest.
 
 #### N4.3: Learning the player's name
 
@@ -444,10 +459,10 @@ NPCs learn who you are, and remember it.
 
 - **Mechanics:** the player has a name. Each NPC has `knownName: string | null` and `metBefore: boolean` in state. They learn it when you tell them (detected in code from "I'm …" or "my name is …", or through `/introduce`), or through gossip (N7) as a rumour. Below a trust level they still call you "stranger"; above it, by name. On a return visit after a gap (N2), they greet you as someone they know, using memory (N5).
 - **Tasks:**
-  - [ ] Name detection in code, plus `knownName` and `metBefore` in state and save
-  - [ ] The situation says who they think you are: "They told you their name is Anand" / "a stranger you've never met"
-  - [ ] Tests: a name is learned once, persists, and spreads through gossip as a rumour
-- **Done when:** after you introduce yourself and earn some trust, Brena uses your name, and Pell already knows it from her.
+  - [x] Name detection in code, plus `knownName`, `nameSource`, `metBefore` and `lastMetDay` in state and save. `/introduce`, and `--name=Anand` for the CLI
+  - [x] The situation says who they think you are: "They told you their name is Anand" / "a stranger you've never met". Until told, the model never sees the real name: NpcAgent swaps it for what the NPC knows in everything it sends (`maskPlayerName`)
+  - [x] Tests: a name is learned once, persists, and spreads through gossip as a rumour (`src/game/gossip.ts`, when NPCs share a place)
+- **Done when:** ✅ after you introduce yourself and earn some trust, Brena uses your name, and Pell already knows it from her (over supper at the inn).
 
 #### N4.4: Appearances and `/look`
 
@@ -460,17 +475,18 @@ What NPCs look like, and what they notice about you.
   - `/look` shows it to the player, with no model call.
   - **NPCs notice the player:** a drawn or bloody weapon, a visible wound, rich or ragged clothes, a stolen item they recognise (N7.5). The most notable one becomes a situation line ("They're carrying your stolen dagger").
 - **Tasks:**
-  - [ ] `appearance` in the schema, and `describeAppearance(state)` in code
-  - [ ] `/look`, and a player appearance built from their gear and condition
-  - [ ] A notice rule that shows at most one line per turn (rule 3)
-  - [ ] Tests: the visible state follows HP, equipment and needs
-- **Done when:** `/look` at a wounded Brena mentions the wound, and she comments when you walk in with a bloody sword.
+  - [x] `appearance` in the schema, and `describeNpcAppearance` in code: wounds, soot at the forge, weapons and armour, a little drunk (an evening ale), tired, hungry
+  - [x] `/look [npc|me]` (and a Look button), and a player appearance built from their gear and condition. A weapon is bloody for two hours after drawing blood
+  - [x] A notice rule that shows at most one line per turn (rule 3), once per encounter for each thing; loved or feared gear counts most
+  - [x] Tests: the visible state follows HP, equipment and needs
+  - [ ] Stolen items they recognise (N7.5)
+- **Done when:** ✅ `/look` at a wounded Brena mentions the wound, and she comments when you walk in with a bloody sword.
 
 ---
 
 ### N5: Memory and relationships
 
-**Status:** ⬜ The heart of living NPCs
+**Status:** ✅ Built (`src/game/events.ts`, `src/npc/memory.ts`, `src/npc/relationship.ts`; tests in `tests/n5.test.ts`)
 
 **Goal:** NPCs remember what you did, and it changes how they treat you days later.
 
@@ -490,13 +506,13 @@ What NPCs look like, and what they notice about you.
 - **Grudges:** being attacked or robbed sets a grudge that blocks trading and training until it fades or you make amends (a gift, a quest or paying a fine).
 
 **Tasks:**
-- [ ] `src/game/events.ts` (the event log) and `src/npc/memory.ts` (witnessed facts, decay, recall)
-- [ ] Record events from the existing actions (the hooks are in `applyAction`, `acceptOffer`, `turnInQuests`, `playerAttack`)
-- [ ] Split `relationship` into `{ trust, fear, respect }`, and move each gate to the axis that fits it
-- [ ] Grudges and amends: `make_amends`, offered only while a grudge exists
+- [x] `src/game/events.ts` (the event log, saved in the world, least important pruned past 300) and `src/npc/memory.ts` (witnessed facts, decay, recall). Bad memories fade at a half-life of 3 to 12 days by `forgiveness`, good ones at 10
+- [x] Record events from the existing actions: insults and kindness (from the NPC's own mood call after the player's line), purchases, sales, attacks, threats, quests, gifts, secrets, lies, promises, favours, amends, services
+- [x] Add `fear`, `respect` and `affection` next to trust (`relationship` stays the trust field, to keep saves and rules). Fear and respect also grow with the player's rank above the NPC. Gates moved: discounts from intimidation need fear (a brave NPC is shaken but won't cut prices); C-tier and higher quests need respect (`minRespect` too); expert and master training need respect 15 and 30
+- [x] Grudges and amends: being attacked sets a grudge (2 to 10 days by forgiveness) that blocks trade, training, repairs and services. `make_amends` is offered only while a grudge exists and the player sounds sorry; the fine is set in code. A quest or a gift worth the fine settles it too
 - [ ] Optional, later: an LLM summary of a conversation's *tone* into one fact, using Ollama's `format` with a Zod schema. Code events stay the source of truth
 
-**Done when:** insult Brena, `/wait 24`, come back, and she's still cold and says why. Help her with two quests, and her respect unlocks something trust alone didn't.
+**Done when:** ✅ insult Brena, `/wait 24`, come back, and she's still cold and says why. Help her with two quests, and her respect unlocks something trust alone didn't (expert smithing).
 
 **Features in this phase:** N5.1 Asking for favours; N5.2 Fears and loves; N5.3 Lasting emotions; N5.4 The player can lie; N5.5 Promises and commitments; N5.6 Affection, friendship and romance; N5.7 The player's journal.
 
@@ -508,10 +524,10 @@ The player can ask for something outside the shop and quests.
 
 - **Mechanics:** favour kinds such as `vouch`, `lend_gold`, `hide_item` and `warn_me`. Code decides from trust, fear, respect and traits (generosity, honesty), and sets the cost. Following the "offer, then confirm" rule, the NPC offers terms and the player accepts. A favour creates a debt of favour that the NPC can call in later.
 - **Tasks:**
-  - [ ] `src/game/favours.ts`: kinds, requirements, cost, `owedFavours` in state
-  - [ ] `/ask <favour>` in the CLI, and a gated `offer_favour` tool
-  - [ ] Tests: refused below the needed trust, accepted above, and a favour is owed after
-- **Done when:** a trusted player gets a loan from Brena and she later asks for a favour back.
+  - [x] `src/game/favours.ts`: kinds, requirements, terms, `owedFavours` in state. A loan is a promise to repay (N5.5); vouching lifts other NPCs' trust once; hidden items come back with `/retrieve`; a warning comes as an opening line after a raid (N6.3)
+  - [x] `/ask <favour>` in the CLI, and a gated `offer_favour` tool (favour talk only, and only the kinds they'd grant)
+  - [x] Tests: refused below the needed trust, accepted above, and a favour is owed after
+- **Done when:** ✅ a trusted player gets a loan from Brena and she later asks for a favour back (a day later she calls it in: a job on her board, "A favour returned").
 
 #### N5.2: Fears and loves
 
@@ -521,10 +537,10 @@ Specific things an NPC reacts to strongly.
 
 - **Mechanics:** `fears` and `loves` lists of people, items, topics or places. A mention or sighting shifts mood and trust by an amount set in code. A gift of a loved item is worth more than gold. A fear raises the chance of fleeing and lowers the morale roll.
 - **Tasks:**
-  - [ ] Schema, plus the detection of mentions (keyword lists, not the model)
-  - [ ] Gift flow and the morale modifier from fears
-  - [ ] Tests: a loved gift raises trust more than its gold value, a feared name shifts mood
-- **Done when:** a well-made blade wins Brena over faster than coins do, and Pell panics when the mayor is named.
+  - [x] Schema (`{ name, words, item?, minTier?, npc? }`), plus the detection of mentions (keyword lists, not the model). Once a day each; the player's journal notes what they found out
+  - [x] Gift flow (`/give <item|money>`) and the morale modifier from fears in sight (+3 to the morale target)
+  - [x] Tests: a loved gift raises trust more than its gold value, a feared name shifts mood
+- **Done when:** ✅ a well-made blade wins Brena over faster than coins do, and Pell panics when the mayor is named.
 
 #### N5.3: Lasting emotions
 
@@ -534,10 +550,10 @@ Moods that last past one conversation: grief, pride, embarrassment, resentment.
 
 - **Mechanics:** an `emotions` list in state with a strength and a decay rate (set by `forgiveness` for negative ones). Events from the log (N5) add emotions: a job well done gives pride, a public haggle loss gives resentment. Emotions nudge mood and drive a situation line.
 - **Tasks:**
-  - [ ] `src/npc/emotions.ts`: add, decay and describe
-  - [ ] Hook into the event log (N5) and the save (N2)
-  - [ ] Tests: decay over `/wait`, and slower decay for grudge-holders
-- **Done when:** after you insult Pell in front of others, he's cool with you a day later and warm again a week later.
+  - [x] `src/npc/emotions.ts`: add, decay and describe. Moods now drift back to a baseline (feelings, then needs) after three hours away from the player
+  - [x] Hook into the event log (N5) and the save (N2): insults (worse in front of others), a public haggle loss, a masterwork, a quest done, being lied to, a broken promise
+  - [x] Tests: decay over `/wait`, and slower decay for grudge-holders
+- **Done when:** ✅ after you insult Pell in front of others, he's cool with you a day later and warm again a week later.
 
 #### N5.4: The player can lie
 
@@ -547,10 +563,10 @@ The player can bluff, and the NPC may see through it.
 
 - **Mechanics:** `/lie <claim>`, or a lie detected in what the player says. Rolled: the player's charisma + speechcraft against the NPC's perception + an "insight" bonus from their traits. If it works, the claim is believed and stored as a fact (N5), e.g. "they said the mayor sent them". If it fails, it's spotted: trust and respect drop, and it's remembered and gossiped (N7). A lie that's later contradicted by evidence is found out after the fact.
 - **Tasks:**
-  - [ ] `src/game/deception.ts`: the roll, and believed claims stored as facts with a `false` flag the NPC doesn't see
-  - [ ] When a believed lie is later contradicted (another NPC, an item, an event), mark it found out and apply the penalty
-  - [ ] Tests with fixed dice: believed, spotted, and found out later
-- **Done when:** telling Hale "the captain sent me" works on a good roll, and he turns cold once he learns otherwise.
+  - [x] `src/game/deception.ts`: the roll, and believed claims stored as beliefs with a `false` flag the NPC doesn't see. Only `/lie` for now; spotting lies in plain talk would need the model's help
+  - [x] When a believed lie is later contradicted, mark it found out and apply the penalty: each night a chance (25% if it names someone they know for certain, 5% otherwise). `exposeLie` is there for gossip and items to call (N7)
+  - [x] Tests with fixed dice: believed, spotted, and found out later
+- **Done when:** ✅ telling Hale "the captain sent me" works on a good roll, and he turns cold once he learns otherwise.
 
 #### N5.5: Promises and commitments
 
@@ -560,11 +576,12 @@ When an NPC promises something, code tracks it.
 
 - **Mechanics:** a `commitments` list in state: `{ what, due, toWhom }`. Created by game actions (a commission is due at a time, a favour is owed, a quest has a deadline), never by parsing the model's words. Keeping a promise raises reputation; breaking one costs trust and is gossiped. This applies to the player's commitments too.
 - **Tasks:**
-  - [ ] `src/game/commitments.ts`: create, check on time passing, keep or break
-  - [ ] Hook commissions (N10), favours (N5.1) and quest deadlines (N9) into it
-  - [ ] A situation line when something is due ("You promised them the sword by sundown")
-  - [ ] Tests: kept and broken promises apply their effects once
-- **Done when:** Brena finishes a commission late, apologises unprompted, and gives a discount.
+  - [x] `src/game/commitments.ts`: create, check on time passing, keep or break
+  - [x] Hook commissions and favours (loans) into it. Commissions came forward from N10 for this (`src/game/commissions.ts`, `/commission`, `/collect`): the NPC names a time from the work alone, not their schedule, so a late order runs late
+  - [ ] Quest deadlines (N9)
+  - [x] A situation line when something is due ("You promised them the sword by sundown")
+  - [x] Tests: kept and broken promises apply their effects once
+- **Done when:** ✅ Brena finishes a commission late, apologises unprompted, and gives a discount (20% off).
 
 #### N5.6: Affection, friendship and romance
 
@@ -578,11 +595,11 @@ Liking someone, as its own score.
   - **Romance is opt-in**, per NPC (`romance: { open: true, orientation, conditions }`) and per player setting. It has stages, needs a minimum affection and trust, and is never available for NPCs marked `minor: true`.
   - **Content limits come first** (design rule 7): what the game allows is set in config and enforced in code, before any romance content exists.
 - **Tasks:**
-  - [ ] Add `affection` to relationships (N5), and friendship stages with unlocks
-  - [ ] `minor` and `romance` fields in the schema; the schema rejects `romance.open` on a minor
-  - [ ] Content settings in `config.ts`, and tests that a minor NPC never gets romance tools or lines, and can't be attacked if that's the chosen rule
-  - [ ] Romance stages for one adult NPC, as an optional proof of the system
-- **Done when:** helping Pell over several days makes him a friend with a friend's discount, and the tests show no route to romance with a minor NPC.
+  - [x] Add `affection` to relationships (N5), and friendship stages with unlocks: a friend's discount of 10%, 15% for a close friend. Affection comes from time together (a little, three times a day), gifts, loved gifts, quests; insults, lies found out and attacks take it away
+  - [x] `minor` and `romance` fields in the schema; the schema rejects `romance.open` on a minor
+  - [x] Content settings in `config.ts` (`content.romance`, off unless `ROMANCE=on`; `content.minorsCanBeAttacked`, off), and tests that a minor NPC never gets romance and can't be attacked
+  - [x] Romance stages for one adult NPC (Brena), as a proof: from affection and trust, shown as one situation line. No romance tools or scenes yet
+- **Done when:** ✅ helping Pell over several days makes him a friend with a friend's discount, and the tests show no route to romance with a minor NPC.
 
 #### N5.7: The player's journal
 
@@ -592,10 +609,10 @@ What the player has learned, kept for them.
 
 - **Mechanics:** a `journal` in the player save, filled in **by code from events (N5)**, never from the model's words: secrets revealed (N4.1), likes and dislikes discovered (N5.2), rumours heard and whether they turned out true (N7.1), promises made (N5.5), names learned, and quest notes. `/journal [npc]` shows it. Later, G1's interface can show it as pages.
 - **Tasks:**
-  - [ ] `src/game/journal.ts`: entries from events, grouped by NPC
-  - [ ] `/journal` in the CLI
-  - [ ] Tests: each kind of event adds the right entry once
-- **Done when:** after a session with Brena, `/journal brena` lists her secret, the stew she loves and the sword she promised you.
+  - [x] `src/game/journal.ts`: entries from events, grouped by NPC (secrets, cover stories heard, loves, fears, promises, names, quests, lies, favours). Rumours (N7.1) later
+  - [x] `/journal [npc]` in the CLI, and grouped by NPC in the browser's Quests tab
+  - [x] Tests: each kind of event adds the right entry once
+- **Done when:** ✅ after a session with Brena, `/journal brena` lists her secret, the stew she loves and the sword she promised you.
 
 **Also from the old memory plan:**
 - [ ] Optional: rank memories with a small local embedding model (`ollama pull nomic-embed-text`, ~270 MB, `ollama.embed()`) once keyword recall isn't enough
@@ -605,7 +622,7 @@ What the player has learned, kept for them.
 
 ### N6: Daily life
 
-**Status:** 🟡 Core recovery and simulation tooling built
+**Status:** ✅ Built (`src/game/schedule.ts`, `needs.ts`, `village.ts`; tests in `tests/n6.test.ts`)
 
 **Goal:** NPCs live a day. They're somewhere specific at each hour, for a reason you can see.
 
@@ -617,13 +634,13 @@ What the player has learned, kept for them.
 - **Mood follows needs:** a hungry or tired NPC drifts towards annoyed. This is shown to the model as a situation line ("You're tired and hungry").
 
 **Tasks:**
-- [ ] `src/game/schedule.ts` and `src/game/needs.ts`, and extend `passTime` to every NPC in the `World` (N2)
-- [ ] Locations: `forge`, `inn`, `square`, `home`. A player location, and `/go <place>`
-- [ ] Crafting and selling only happen during "work" blocks; replaces today's fixed 6:00–20:00
-- [ ] Brena eats at Pell's inn in the evening and pays him, which is the first trade between NPCs (N7)
-- [ ] Tests: 24 hours with fixed dice give the expected locations and activities
+- [x] `src/game/schedule.ts` and `src/game/needs.ts`, and `passVillage` (`src/game/village.ts`) runs every NPC an hour at a time, together. Needs override the schedule: starving → eat, exhausted → sleep, broke → work through supper
+- [x] Locations: `forge`, `inn`, `square`, `gate`, `camp`, `home`. A player location, `/go <place>` and `/where` in the CLI; in the browser NPCs move between spots on the map and are gone when home or asleep
+- [x] Crafting and selling only happen during "work" blocks; replaces today's fixed 6:00–20:00 (NPCs without a schedule keep it). Villagers don't shop at the bandit camp
+- [x] Brena eats at Pell's inn in the evening and pays him, which is the first trade between NPCs (N7). Sociable NPCs have an ale (and look a little drunk)
+- [x] Tests: 24 hours with fixed dice give the expected locations and activities
 
-**Done when:** `/wait 24` shows Brena forging by day, eating at the inn in the evening and sleeping at night. She's only reachable where she is, and a starving NPC acts differently.
+**Done when:** ✅ `/wait 24` shows Brena forging by day, eating at the inn in the evening and sleeping at night. She's only reachable where she is, and a starving NPC acts differently.
 
 **Features in this phase:** N6.1 Signature moves; N6.2 Healers and services; N6.3 NPCs who start things; N6.4 Weather, seasons and town events; N6.5 Group scenes.
 
@@ -635,10 +652,10 @@ One memorable, rule-based thing each NPC does reliably.
 
 - **Mechanics:** `signature: { trigger, effect }` evaluated in code. Examples: on a good forge day (a high roll during a work block) Brena makes a masterwork, and Pell keeps a hidden stock for trusted regulars. The model narrates the result.
 - **Tasks:**
-  - [ ] `SignatureSchema` with a fixed set of triggers and effects
-  - [ ] Evaluate during work blocks (N6)
-  - [ ] Tests with fixed dice
-- **Done when:** over many forge days Brena sometimes makes a masterwork, at a rate you can state and test.
+  - [x] `SignatureSchema` with a fixed set of triggers (`good_work_day`, `trusted_regular`) and effects (`masterwork`, `hidden_stock`)
+  - [x] Evaluate during work blocks (N6): the first work hour rolls d20 + luck modifier ≥ 18; Pell's strong salve stays off the shelf (and away from villagers) until trust 50
+  - [x] Tests with fixed dice, and a seeded rate test
+- **Done when:** ✅ over many forge days Brena sometimes makes a masterwork, at a rate you can state and test: 3 days in 20 (15%) with average luck.
 
 #### N6.2: Healers and services
 
@@ -648,10 +665,10 @@ Some NPCs sell services, not items.
 
 - **Mechanics:** a `services` list in the NPC file: heal, repair (N10), lodging, training (exists), with a price from code. They use the existing offer flow (`offer_service`, gated on topic). Lodging lets the player sleep (N6) and save.
 - **Tasks:**
-  - [ ] `ServiceSchema` and a gated `offer_service` tool
-  - [ ] Healing restores HP for gold; a room at Pell's inn restores HP and MP overnight
-  - [ ] Tests: a service charges once and applies its effect
-- **Done when:** a hurt player pays Pell for a room and wakes up healed.
+  - [x] `ServiceSchema` and a gated `offer_service` tool (service talk only)
+  - [x] Healing restores HP for gold (30 HP); a room at Pell's inn restores HP overnight (the player has no MP yet), and the village lives on while you sleep
+  - [x] Tests: a service charges once and applies its effect
+- **Done when:** ✅ a hurt player pays Pell for a room and wakes up healed.
 
 #### N6.3: NPCs who start things
 
@@ -661,10 +678,10 @@ NPCs speak first when they have a reason.
 
 - **Mechanics:** **triggers in code** decide when an NPC opens a conversation: a promise is due (N5.5), they have news for you (N7), a need is urgent (a quest they'd give you), a grudge or fear when they see you, or a greeting the first time you enter their place. The model writes only the one opening line, from a short event line ("You have news: the mine road is open again"). A cooldown stops nagging, and at most one NPC speaks first per scene.
 - **Tasks:**
-  - [ ] `src/npc/initiative.ts`: triggers, priority and cooldowns
-  - [ ] The CLI (later the game) shows an NPC's opening line when you arrive or when time passes
-  - [ ] Tests: each trigger fires once per cooldown, and the highest-priority one wins
-- **Done when:** walking into the forge the day after accepting her quest, Brena calls out "Got that ore yet?" before you say anything, and doesn't repeat it on every turn.
+  - [x] `src/npc/initiative.ts`: triggers (an apology owed, a promise due, a grudge or fear on sight, a favour to call in, a job they gave you, news, a need, a first greeting), priority and cooldowns (12 game hours, or once ever)
+  - [x] The CLI shows an NPC's opening line when you arrive or when time passes; the browser when you open a conversation
+  - [x] Tests: each trigger fires once per cooldown, and the highest-priority one wins
+- **Done when:** ✅ walking into the forge the day after accepting her quest, Brena calls out "Got that ore yet?" before you say anything, and doesn't repeat it on every turn.
 
 #### N6.4: Weather, seasons and town events
 
@@ -674,10 +691,11 @@ Days that differ.
 
 - **Mechanics:** weather per day (rolled from the season), seasons over weeks, and scheduled or random town events: a market day, a festival, a bandit raid. Each changes needs (cold raises hunger and the demand for pelts), prices, schedules (no work in a storm) and the news line. All in code; the model only hears it in words.
 - **Tasks:**
-  - [ ] `src/game/weather.ts` and `src/game/events-calendar.ts`
-  - [ ] Effects on needs (N6), prices (N10) and schedules
-  - [ ] Tests: a winter day raises pelt demand, and a raid day changes the news and closes the mine road
-- **Done when:** a bandit raid shows up in every NPC's news and in prices, and Pell's pelt quest pays more in winter.
+  - [x] `src/game/weather.ts` (four seasons over `config.daysPerYear`; each day's weather is a hash of the day, so nothing is saved) and `src/game/events-calendar.ts` (market every 7th day, the midsummer festival, a raid day after a raid)
+  - [x] Effects on needs (cold makes everyone hungrier), prices (pelts ×1.5 in the cold; weapons and armour ×1.25 and ore ×1.5 after a raid; `npcPrice` takes the world), schedules (no outdoor work in a storm, the festival evening in the square) and village sales (doubled on market day)
+  - [x] Tests: a winter day raises pelt demand, and a raid day changes the news and closes the mine road
+  - [ ] Closing the road in the creature world too (spawns, travel)
+- **Done when:** ✅ a bandit raid shows up in every NPC's news and in prices, and Pell's pelt quest pays more in winter.
 
 #### N6.5: Group scenes
 
@@ -696,11 +714,11 @@ The player talking with several NPCs at once.
   - Each NPC keeps their own history and situation, plus a short "what just happened in the scene" line, so they react to each other ("Don't listen to her, Brena overcharges everyone").
   - **Vouching:** a trusted NPC's word can raise another's trust (N7).
 - **Tasks:**
-  - [ ] `src/game/scene.ts`: who's present, turn-taking rules, interjection chance
-  - [ ] A shared scene log fed into each participant's situation (kept short, rule 3)
-  - [ ] The CLI shows who's speaking, and `/to <npc>` addresses one
-  - [ ] Tests with a fake model: only one interjection per turn, and the addressed NPC always answers
-- **Done when:** haggling with Brena at the inn, Pell chimes in once, and Brena reacts to what he said.
+  - [x] `src/game/scene.ts`: who's present, turn-taking rules (the NPC named first is addressed), interjection chance (the topic, sociability, strong feelings), a two-turn cooldown
+  - [x] A shared scene log fed into each participant's situation (kept short, rule 3: the last three lines)
+  - [x] The CLI shows who's speaking, and `/to <npc>` addresses one; the browser shows a chime-in in the open chat
+  - [x] Tests with a fake model: only one interjection per turn, and the addressed NPC always answers
+- **Done when:** ✅ haggling with Brena at the inn, Pell chimes in once, and Brena reacts to what he said.
 
 **Also from the old living-world plan:**
 - [ ] Optional: off-screen planning. Once per in-game day, each NPC makes one short low-priority call to update its plans from its memories, never delaying a conversation with the player
@@ -722,7 +740,7 @@ The player talking with several NPCs at once.
 
 **Tasks:**
 - [ ] `relationships` in NPC files, and in the save (N2)
-- [ ] `src/game/gossip.ts`: exchanges when NPCs share a place, fading with each retelling
+- [~] `src/game/gossip.ts`: exchanges when NPCs share a place, fading with each retelling. Started for N4.3: the player's name, and memories of importance 6+ about the player, retold at −2 importance; NPC-to-NPC relationships and accuracy still to do
 - [ ] Reputation from gossip, and starting trust from reputation
 - [ ] A guard NPC, crimes, a bounty, and `/surrender` or `/pay fine`
 - [ ] Death ripple: quests fail, items drop, and friends' relationships with the player change
@@ -822,7 +840,10 @@ Crime beyond violence.
 - [x] Gear level: nobody equips gear above their rank (player rank from level). Checked for NPC and creature files
 - [x] Durability: hits wear weapons and armour, worn copies carry it in their key and sell for less, broken gear does nothing; smiths repair for a fee (`/repair`) and mend their own overnight
 - [x] Burden: pack slots from strength (gear 1 slot each, goods stack 20), shopkeeper storage (`storage` in NPC files); every transfer checks room
-- [ ] Wear on creatures' gear (bandit cudgels and leather); today only NPCs' and the player's gear wears
+- [x] Wear on creatures' gear: bandits' own cudgels and leather wear and drop as they are; natural weapons dull with age instead and never mend
+- [x] The underworld (`src/game/underworld.ts`): bandits with broken weapons buy from dishonest villagers on the black market; strong gangs raid the richest shop, fought out in code (`tests/underworld.test.ts`)
+- [x] Raid news for every NPC: `news.bandit_raid` and `news.raid_repelled` in `src/data/world.json` (event-only lore entries), pushed to `world.recentEvents`
+- [ ] Raids in the player's sight: a raid on a shop while the player is nearby becomes a fight they can join
 - [ ] `src/game/abilities.ts`, MP costs, and `src/game/status.ts`
 - [ ] A combat style picker from traits, plus tests for each style with fixed dice
 - [ ] `/subdue`, an `unconscious` outcome, loot and `/loot`
@@ -934,7 +955,7 @@ An NPC goal becomes a tracked arc with stages, e.g. Brena's "find out what happe
 - [x] Coins: copper, silver and gold (1 g = 10 s = 100 c), counted in copper in code (`src/game/money.ts`). The model sees and names prices as coin phrases, read back in code; data files use coin phrases. Old saves convert on load (save v4: 1 old gold = 1 silver, so balance is unchanged)
 - [ ] Rerun `npm run bench`: the trade scenarios now expect coin prices ("1 gold 5 silver")
 - [ ] Recipes take input tiers, and output tier = f(inputs, skill, roll)
-- [ ] `offer_commission` (offered on trade turns), deposits, a pickup flow, and `/collect`
+- [~] `offer_commission` (offered on trade turns), deposits, a pickup flow, and `/collect`. Built for N5.5 as a command (`/commission`, `/collect`, deposits, made in work hours); the model tool is still to do
 - [ ] Price modifiers from stock and demand, computed in `npcPrice`
 - [ ] Trade between NPCs on schedule (N6 and N7)
 
@@ -974,6 +995,62 @@ More townsfolk without writing every one by hand.
 - [ ] Settle the content limits in `config.ts` and the `minor` rules (no romance; the chosen combat rule) before writing the file
 - [ ] A child NPC with a distinct voice, a small role in the town (errands, rumours) and tests that every limit holds
 - **Done when:** the child NPC passes the voice benchmark (T15), and the tests prove no romance tools or lines and the chosen combat rule.
+
+---
+
+### N12: The world director
+
+**Status:** ⬜ After N5, N7 and N9. The event log (N12.1) and revenge (N12.2) can start any time
+
+**Goal:** the world tells its own stories. What NPCs and creatures do (fights, raids, thefts, deaths) becomes news, lore, new quests, grudges and slow changes in character, without anyone writing them by hand.
+
+**The rule (design rule 1, again):** a **director** model call *proposes*; code *decides*. The director never changes state. Its proposals go through a validator that accepts or rejects each one and logs why. Anything that can be a rule (who wants revenge, how much a trait moves) is a rule in code; the director only writes the words and picks among options code offers.
+
+**Features in this phase:** N12.1 The event log; N12.2 Revenge and grudges as goals; N12.3 The nightly chronicle; N12.4 Director quests; N12.5 Character drift.
+
+#### N12.1: The event log
+
+Everything that happens, recorded by code as typed events: `{ id, day, hour, kind: "fight" | "raid" | "theft" | "death" | "sale" | "quest" | ..., who, against, where, outcome, importance }`. Saved, with old low-importance events pruned. Memory (N5), gossip (N7) and the director all read from it; nothing parses the model's words to make one.
+
+- [~] `src/game/events.ts`: `recordEvent`, importance set in code at each hook, pruning (least important first, past 300); saved in the world (save v6). Built in N5 for memory; a Zod `EventSchema` for loading is still to do
+- [~] Hooks wherever state changes for a reason: player actions towards NPCs are recorded (N5). Still to do: NPC and creature fights among themselves, raids and the black market (`underworld.ts`), deaths
+- [ ] Witnesses: who saw it (same place, awake), set in code. Only witnesses know an event at first; gossip (N7) spreads it
+
+#### N12.2: Revenge and grudges as goals
+
+Being attacked, robbed or humiliated gives an NPC a **revenge goal**, in code. Their traits decide what they do with it: high temper and bravery confront you; low bravery hires bandits, spreads rumours or refuses to trade; high forgiveness lets it fade. Making amends (N5) clears it.
+
+- [ ] `goals` in state (not only the persona file), with `kind: "revenge"`, a target and a strength that fades by `forgiveness`
+- [ ] Revenge actions as code-made offers or triggers: refusing service, a rumour (N7.1), an ambush by hired bandits (spawn rule with `quest`-like trigger), a confrontation (N6 proactive line)
+- [ ] Tests: the same attack on Brena, Hale and Rook leads to three different responses, decided by traits
+
+#### N12.3: The nightly chronicle
+
+At midnight (or during `/wait`), code picks the 3–5 most important events of the day and makes **one small director call per event**, with tools:
+- `add_lore` (a news or history entry): the id must be new; it may only name people and places already in the lore (the invented-name check, `unknownNames`); who knows it is set by code from the witnesses, never by the model. New lore starts as **rumour** for everyone but witnesses.
+- `add_news`: a `"event": true` entry pushed to `recentEvents`, for things everyone hears.
+
+Caps: at most N new entries a day; news expires after a few days unless something refers to it; near-duplicates of recent entries are rejected. Runs only while the player isn't mid-conversation, on the same `qwen3:4b-instruct` (one model on 8 GB).
+
+- [ ] `src/director/chronicle.ts`, its tools and Zod schemas, and the validator with an accept/reject log
+- [ ] Lore that grows during play saved per world (`world.lore`), merged with `world.json` at load
+- [ ] Bench: 20 seeded event days; count rejected proposals, invented names and contradictions with existing lore
+
+#### N12.4: Director quests
+
+From an event and an NPC's goals or needs, the director proposes a quest: title, description, why they want it. Code checks the objective is one it can check (`deliver`, `defeat`, later `escort`), sets the tier from what's asked, and pays the reward from the giver's own purse. "Bandits stole my best blade; bring it back" after a raid is the model case.
+
+- [ ] `propose_quest` tool and validator; director quests go on the NPC's `questBoard` like need quests
+- [ ] Defeat quests can come with a spawn rule (their quarry turns up)
+
+#### N12.5: Character drift
+
+The director may propose a trait shift with a reason that names an event ("Hale grew braver after holding the gate in the raid"). Code checks the event is real and involves them, and caps it (±0.05 per event, ±0.2 over a lifetime from their authored traits). Personality *text* and speech style never change: the system prompt stays identical turn to turn (prompt caching) and the character keeps their voice.
+
+- [ ] `propose_trait_shift`, validated and capped; shifts saved in state; `traitsOf` reads authored + drift
+- [ ] Tests: no shift without a qualifying event; caps hold over a thousand nights in `npm run sim`
+
+- **Done when:** over 30 simulated days, the chronicle adds lore that passes the invented-name check every time, every director quest is completable in code, and an NPC attacked by the player acts on it the next day, in a way that differs by their traits.
 
 ---
 
@@ -1187,6 +1264,7 @@ The big question: **where does the model run for players?**
 6. **N5 Memory and relationships → N6 Daily life → N7 Social web:** the heart of living NPCs. Do them in this order.
 7. **N8 Combat and health, N9 Quests and growth, N10 Economy:** any order once N6 exists. Pick the one your game needs most.
 8. **N11 Growing the cast:** once the town needs more people.
+9. **N12 The world director:** after N5, N7 and N9. Its event log and revenge goals can come earlier; they help N5 and N7 too.
 
 **Alongside:**
 - **Tooling:**
@@ -1218,6 +1296,8 @@ Things the tests and benchmark showed. Each fix is in the code, with a comment e
 6. **Watch the wording of rules:** "Each message starts with a `<situation>` block" made the model write one into every reply. "…for you to read; never write one yourself" fixed it.
 7. **The model speaks before the game answers.** Prices and terms it says before an offer is checked can be wrong, so that text is dropped and it says the real terms afterwards.
 8. **Measure, don't guess:** most of these only showed up as a drop in a pass rate. Run `npm run bench` after every change.
+9. **A nudge at the right moment beats a longer prompt (N4–N6).** With the N4–N6 lines in the situation block, Brena stopped calling `reveal_secret` at trust 80 (0/5); taking single lines out didn't bring it back, and taking several out did. What fixed it (8/8) was one line only when the player's words touch the secret: "They're asking about … call reveal_secret first." The same for a broken cover story: Hale came clean 1/3 → 5/5 once the tool's description said he'd been caught out.
+10. **Lines mustn't contradict each other.** "You trust them deeply" next to "a stranger you've never met" muddled the model. When two facts pull opposite ways, code should pick the words.
 
 ## Further reading
 

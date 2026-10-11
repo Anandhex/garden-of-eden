@@ -10,14 +10,14 @@ RPG characters that talk with a local language model (Ollama), and act in the ga
 npm install
 ollama pull qwen3:4b-instruct   # once; Ollama must be running
 npm run web                     # play in the browser at http://localhost:3000
-npm run chat                    # talk to Brena the blacksmith
-npm run chat -- pell            # talk to Old Pell the innkeeper
+npm run chat                    # start at Brena's forge
+npm run chat -- pell --name=Ash # start at Old Pell's inn, as Ash
 ```
 
 | Script | What it does |
 |---|---|
 | `npm run web` | Play in the browser: walk around Millbrook and talk to everyone (`PORT=3001` to change port, `-- --new` for a fresh game) |
-| `npm run chat [-- <npc>]` | Talk to an NPC in the terminal |
+| `npm run chat [-- <npc>] [--name=<you>]` | Play in the terminal, starting where that NPC is |
 | `npm test` | Unit tests (no model needed, fast) |
 | `npm run test:live` | Tests against the real model (needs Ollama) |
 | `npm run bench [-- <models...>]` | Pass rates on key behaviours, to compare models and prompt changes |
@@ -41,18 +41,28 @@ Each NPC file has `traits` from 0 to 1. The model only sees them as words ("quic
 | Trait | What it changes |
 |---|---|
 | `temper` | Insults before they attack (5 when placid, 2 for a hothead), and how much trust each insult costs |
-| `bravery` | When they may flee, how hard their morale check is, and what a scared NPC does when cut off: a coward begs, the braver fight on |
-| `honesty` | Dishonest NPCs may lie instead of revealing a secret, and stick to the lie for the rest of the day |
-| `generosity` | Gifts to players they trust (`give_item`, once a day, cheap things), and a bonus on quest rewards |
-| `sociability` | How long their replies may be |
-| `forgiveness` | How fast a grudge (negative trust) fades, each night |
+| `bravery` | When they may flee, how hard their morale check is, what a scared NPC does when cut off (a coward begs, the braver fight on), and how much a threat scares them |
+| `honesty` | Dishonest NPCs may lie instead of revealing a secret, keep cover stories until broken, and spot your lies better |
+| `generosity` | Gifts to players they trust (`give_item`, once a day, cheap things), a bonus on quest rewards, and how readily and how much they lend |
+| `sociability` | How long their replies may be, how often they gossip and chime in, and an evening ale |
+| `forgiveness` | How fast negative trust, bad memories, bad feelings and grudges fade |
 | `greed` (top-level field) | Training fees, buy prices, and greed eases once debts are paid |
 
 `npm run sim` prints what each NPC's traits add up to.
 
 ### Feel things and remember how you treat them
-- **Mood:** happy, neutral, annoyed, angry, afraid or sad. Insults and compliments change it.
-- **Trust:** from −100 to 100. It's moved by mood changes, purchases, sales, lessons, quests and checks, all in code. Trust unlocks secrets, better training and hidden quests.
+- **Mood:** happy, neutral, annoyed, angry, afraid or sad. Insults and compliments change it. A few hours after you leave, it drifts back to how they feel in themselves (their feelings, then hunger and tiredness).
+- **Four relationship axes** ([`relationship.ts`](src/npc/relationship.ts)), all moved in code:
+  - **Trust** (−100 to 100): unlocks secrets, gifts, training tiers and hidden quests.
+  - **Fear** (0 to 100): from threats, attacks and your rank above theirs. A won intimidation only buys a discount if they're scared enough; brave NPCs are shaken, not cheaper.
+  - **Respect** (−100 to 100): from finished quests and your rank. C-tier and higher quests, and expert and master training, need it.
+  - **Affection** (−100 to 100): from time together, gifts and help. Friends give 10% off, close friends 15%. Romance is off unless you set `ROMANCE=on`, and never with an NPC marked `minor`.
+- **Memory** ([`memory.ts`](src/npc/memory.ts)): what you did is written down by code (an insult, a purchase, an attack, a quest), with an importance that fades; bad memories fade at their `forgiveness`. The three that weigh most come up each turn: "Yesterday, they insulted you: …".
+- **Lasting emotions** ([`emotions.ts`](src/npc/emotions.ts)): resentment, embarrassment, pride, gratitude, grief. An insult in front of others stings for days; a masterwork leaves them proud.
+- **Grudges:** attack someone and they won't trade with or teach you until it fades or you make amends: say sorry and they name a fine, or bring a gift or finish a job for them.
+- **Fears and loves:** mention the mayor to Pell and he's frightened; give Brena stew or a well-made blade and she warms to you far faster than coins would. Your journal notes what you find out.
+- **Your name:** they call you a stranger until you tell them ("I'm Ash", or `/introduce`), and the model never sees your real name until then. Names spread as gossip: Pell may hear it from Brena over supper.
+- **They notice you:** a bloody sword, a bad wound, fine gear, money. Once an encounter, one thing at a time.
 
 ### Sell to you
 - They offer an item at a price, and **nothing changes hands until you say yes** (a y/n prompt).
@@ -78,10 +88,40 @@ Each NPC file has `traits` from 0 to 1. The model only sees them as words ("quic
 - **Failure:** annoys them (persuade) or makes them angry (intimidate). A failed threat counts as an insult towards their patience.
 - **Retries are limited:** each failure makes the next attempt 2 harder, and after 3 failures of a kind they refuse until the next day.
 
+### Know only what the world says they know ([`src/data/world.json`](src/data/world.json))
+- **One source of truth:** places, people (including ones you never meet, like the mayor and Tomas), history and news, each with an id like `people.mayor.household`.
+- **Each NPC has knowledge scopes** (`knows`): which lore they know, and how sure they are (`certain` or `rumour`). Brena knows the mine road but not the mayor's household; Pell knows nearly everything, some of it only as rumour.
+- **Code picks the lore your line is about** (by keyword, at most 3 lines a turn) and adds it to the situation block. **Nothing outside their scope is ever shown**, and asking about something they don't know gets a line telling them to say so, often with a lead ("Old Pell might know"). A name that isn't in the world at all ("the ruins of Kargoth") gets the same treatment.
+- **Today's events are lore ids** (`world.recentEvents`), so NPCs only hear of events the game put there. Event entries (`"event": true`, like a raid) never come up from a keyword lookup.
+- `npm run bench` flags any reply that names a person or place that isn't in the lore (`unknownNames` in [`src/npc/knowledge.ts`](src/npc/knowledge.ts)).
+
 ### Keep secrets
 - A secret is **never in the prompt**, so at low trust they can't leak it, because they don't know it.
 - Above trust 50 they get a `reveal_secret` tool, and only then are they told the secret to tell you in their own words.
 - **Dishonest NPCs may lie** instead (rolled in code from `honesty`): they keep the secret and stick to their story until the next day.
+- **Cover stories** ([`secrets.ts`](src/npc/secrets.ts)): some secrets have a `cover`. Hale tells you he was on patrol, however much he trusts you, until something breaks it: proof you carry, a fact you learned (Pell's own secret about who hid in his cellar), or beating him in a `/intimidate` that day. Then the truth comes out at any trust.
+
+### Lie to them (`/lie <claim>`)
+- Your charisma + speechcraft against their perception, plus insight (dishonest NPCs spot lies better), easier if they trust you.
+- Believed: they take it as true (the game knows it isn't). Spotted: trust and respect drop, and they remember. A believed lie can come out later: each night there's a chance, more if it names someone they could check with.
+
+### Ask favours (`/ask <lend_gold|vouch|hide_item|warn_me> [item]`)
+- Code decides from trust, fear, respect and generosity, and sets the terms; you confirm. A loan is a promise to repay by a date (`/repay`): break it and they remember. Every favour leaves you owing one, and a day later they'll ask for it back.
+
+### Keep promises, and make them keep theirs
+- **Commissions** (`/commission <item>`, `/collect`): pay half up front and they make it in their working hours. They name a time from the work alone, so a late order can run late; then they apologise without being asked and take 20% off.
+
+### Live a day ([`schedule.ts`](src/game/schedule.ts), [`needs.ts`](src/game/needs.ts), [`village.ts`](src/game/village.ts))
+- Each NPC has a schedule: Brena works the forge 6–20, eats at the Gilded Goose (and pays Pell), and sleeps at home. Hunger and energy tick every hour; a starving NPC goes to eat, an exhausted one to bed, a broke one works through supper. Hungry or tired, they say so and get short-tempered.
+- You can only talk to someone where they are, and not while they sleep. The whole village lives together when time passes: suppers, an ale for the sociable, gossip.
+- **Signature moves:** Brena has a good forge day 3 days in 20, and her next piece comes out a tier better. Pell keeps a strong salve under the bar for trusted regulars.
+- **Services:** Pell rents rooms (you sleep till 6:00 and wake healed) and tends wounds.
+- **They speak first** when they have a reason: a job they gave you, a promise due, a grudge, a favour to call in, news, or a first greeting. Once per reason, not every turn.
+- **Weather, seasons and town events:** four seasons over the year (`DAYS_PER_YEAR`), weather by day, a market every seventh day, a midsummer festival. Pelts are dear in winter; after a raid, weapons and ore cost more and the mine road is shut.
+- **Group scenes:** with several NPCs at one place, the one you name answers, and at most one other may chime in. Each hears what the others just said.
+
+### Remember it for you (`/journal [npc]`)
+- Your journal fills itself from what happens: secrets told and cover stories heard, what they love and fear, promises, who knows your name, quests and lies.
 
 ### Teach one skill (`/train`, or just ask)
 - Each NPC teaches **only their specialty** (`teaches`): Brena teaches smithing, Pell teaches haggling.
@@ -106,7 +146,7 @@ Each NPC file has `traits` from 0 to 1. The model only sees them as words ("quic
   - **Written ones** in their NPC file. Some send you to another NPC.
   - **Ones made from their needs**, like "short of iron ore, bring 8". The reward comes from their own purse, so a broke NPC offers no paid work.
 - **Rewards** are money, XP (by tier) and trust. Generous NPCs add a bonus, fixed when you take the quest. `/turnin` hands in finished quests.
-- For now every quest is "bring N of an item", because that's the only kind the game can check.
+- **Two kinds of objective,** both checked in code: `deliver` ("bring 3 wild herbs") and `defeat` ("kill or drive off 3 bandits"). Killing or routing a creature of that kind counts towards it; `/quests` shows how far along you are. Corporal Hale's "Trouble on the mine road" is one, and taking it brings the bandits out (see spawn rules below).
 
 ### Make things and run a business (`/wait`)
 - They craft with recipes based on their skills: smithing turns iron ore into horseshoes, daggers and swords; Pell brews ale and cooks stew.
@@ -163,7 +203,7 @@ Same rules for you and for NPCs ([`src/game/gear.ts`](src/game/gear.ts)).
 - The NPC sees one line about itself each turn: "You: 68-year-old human (getting old), rank E." (plus ", known as Veteran" once it has titles).
 
 ### Creatures (non-talking NPCs)
-- **Stat blocks with no model:** wolves, bandits and a horse ([`src/data/creatures/`](src/data/creatures/)). Each has stats, skills, a natural attack or weapon, a loot table, and pre-written barks instead of speech. A new world spawns 3 wolves, 3 bandits and a horse; they're saved in `world.creatures`.
+- **Stat blocks with no model:** wolves, bandits, a horse and villagers ([`src/data/creatures/`](src/data/creatures/)). Each has stats, skills, a natural attack or weapon, a loot table, and pre-written barks instead of speech. A new world spawns 3 wolves, 3 bandits and a horse; they're saved in `world.creatures`.
 - **They live by the same rules:** they age, earn XP, need a challenge to rank up, earn titles, and die of old age. `/creatures` lists them with their growth.
 - **They grow without you**, all rolled in code ([`src/game/creatures.ts`](src/game/creatures.ts)):
   - **Hunts and raids:** each day a wolf may hunt a deer (rank F) or a wild boar (E), and a bandit may raid a merchant cart (E). Success is a challenge at that rank; failure costs a fifth of their HP.
@@ -171,7 +211,15 @@ Same rules for you and for NPCs ([`src/game/gear.ts`](src/game/gear.ts)).
   - **Hard winters:** at the turn of a year, sometimes (35%). Every creature rolls endurance: surviving it is a challenge at their own rank; failing costs half their HP, and kills the very old.
   - **Newcomers:** when a kind is below its starting numbers, a young one may arrive each day.
   - In the browser, the big news (breakthroughs, titles, deaths, winters, newcomers) shows in the side feed.
+- **Rook, the bandit leader, is a full NPC** at his camp at the north end of the mine road, mixed in with bandit stat blocks. He holds Brena's father's hammer: buy it back, talk him round, or kill him and take it (and his purse). Taking Brena's "My father's hammer" brings three of his men out to guard him.
+- **Spawn rules** ([`src/data/spawns.json`](src/data/spawns.json), [`src/game/spawning.ts`](src/game/spawning.ts)) bring more out by place, time, event or quest: a crowd of villagers in the square by day, wolves at the forest edge at night, a bandit after the cart attack, three bandits once you take Hale's quest. Each group turns up once per window; when the window ends, survivors move on.
 - **Fighting them** runs entirely in code, no model: your swing, their morale, their bite. Kills drop loot; a creature that beats you or drives you off grows from it.
+- **Their gear wears like yours.** Each bandit has his own cudgel and leather armour, which wear with every blow (in fights with you, rivalry duels and cart raids) and drop as they are when he dies, along with his purse and anything he stole. Bandits have no smith: what breaks stays broken, and a bandit without a working weapon fights with his fists. Teeth and claws aren't gear: they never wear from fighting and can't be mended, but they dull with age (elder animals bite for 1 less, very old ones for 2).
+
+### The underworld ([`src/game/underworld.ts`](src/game/underworld.ts))
+Every night at 02:00, rolled in code:
+- **The black market:** a bandit whose weapon is broken or gone tries to buy one, in secret, from a villager dishonest enough to deal (honesty under 0.5) who has one he can wield. The gang pays 1.5× the price from its purses, which cart raids fill. Brena won't; Hale, who stocks and buys daggers, will. The seller remembers it; you only hear a rumour. Selling daggers to Hale can arm the bandits.
+- **Raids:** when at least 3 armed bandits clearly outmatch a shop's defenders (the shopkeeper plus any NPC with `"guard": true`, so Hale), they may band together and raid the richest shop. The fight wears everyone's gear. Winners carry off up to 3 pieces (gear first, then the dearest goods), arming themselves with weapons they can use, and a quarter of the shop's money; kill them to get it back. Losers run (and come back the next day); some may die. Villagers are beaten, never killed. Both sides gain XP and challenges, and the people involved remember it.
   - **XP for you:** a kill is worth 40% of a quest of the creature's rank (a rank-F wolf: 20 XP), halved for each rank it's below yours; running one off is worth half. It can level you up (and earn rank titles).
   - **Browser:** wolves roam the south-east meadow, bandits the north road, a horse by the inn. Each shows its rank. **Wolves and bandits jump you when you come close.** `F` (or click) to fight, `R` to run; you can't walk off or wait mid-fight. One you escaped from leaves you be for 30 minutes.
   - **Terminal:** `/hunt <creature>` swings once, `/escape <creature>` runs.
@@ -188,25 +236,36 @@ Same rules for you and for NPCs ([`src/game/gear.ts`](src/game/gear.ts)).
 A top-down map of Millbrook where you walk and talk without the terminal. The server ([`src/web/server.ts`](src/web/server.ts)) wraps the same `NpcAgent` and rules as the CLI, so everything above works; the browser only draws and sends what you do.
 
 - **Move** with WASD or the arrow keys, or click a tile to walk there (one game minute per step; the village keeps living as time passes).
-- **Talk** by clicking a villager, or press `E` next to one. Replies stream in as the model writes them. Walking away ends the conversation.
-- **Say it your way:** the dropdown next to the chat box switches between Say, Persuade, Intimidate and Haggle. Rolls show in the chat.
-- **Offers** (quests, sales, purchases, training) appear as Accept/Decline cards. Nothing costs you until you accept.
-- **Buttons:** Hand in quests, Train… (shows the price, asks to confirm), Wares, Flee, Attack, and one-click opening lines.
-- **Side panel:** attributes, skills, inventory, quests and journal. **Header:** clock, HP, money, Wait 1h/4h, New game, model status.
+- **NPCs follow their day:** they move between the forge, the inn, the gate, the square and the camp, and vanish indoors when they go home or to bed.
+- **Talk** by clicking a villager, or press `E` next to one. They may speak first. Replies stream in as the model writes them; if someone else is nearby they may chime in, in italics. Walking away ends the conversation.
+- **Say it your way:** the dropdown next to the chat box switches between Say, Persuade, Intimidate, Haggle and Lie. Rolls show in the chat.
+- **Offers** (quests, sales, purchases, training, favours, amends, rooms and healing) appear as Accept/Decline cards. Nothing costs you until you accept.
+- **Buttons:** Hand in quests, Train…, Wares, Repair…, Look, Introduce yourself, Give…, Ask a favour…, Order… / Collect order, Repay loan, Flee, Attack, and one-click opening lines.
+- **Side panel:** your look, attributes, skills, inventory, quests and your journal by NPC. **Header:** clock, weather and season, HP, money, Wait 1h/4h, New game, model status.
 - Saves to the same `saves/world.json` as the CLI, after every action. `PORT=3001 npm run web` changes the port; `npm run web -- --new` starts fresh.
-- Limits: NPCs stand still (schedules are N6), one action runs at a time, and there is no `/use` button yet.
+- Limits: one action runs at a time, and there is no `/use` button yet.
 
 ## Commands (terminal)
 
 | Command | |
 |---|---|
-| *(anything else)* | Say it to the NPC |
+| *(anything else)* | Say it to the NPC you're with (name someone here to talk to them instead) |
+| `/go <place>`, `/where` | Walk to the forge, inn, square, gate or camp; see where everyone is |
+| `/to <npc>` | Turn to someone here |
+| `/look [npc\|me]` | How they (or you) look right now. No model call |
+| `/introduce` | Tell them your name |
+| `/give <item\|money>` | Give a gift: `/give stew`, `/give 5 silver` |
+| `/lie <claim>` | Tell a lie (rolled) |
+| `/ask <favour> [item]` | Ask a favour: `lend_gold`, `vouch`, `hide_item <item>`, `warn_me` |
+| `/repay`, `/retrieve` | Pay back a loan; take back what they hid for you |
+| `/commission <item>`, `/collect` | Order something they make (asks first); pick it up |
+| `/journal [npc]` | What you've learned, by NPC |
 | `/haggle <words>` | Haggle over price |
 | `/persuade <words>`, `/intimidate <words>` | Social checks |
 | `/attack`, `/flee` | Fight, or run from a fight |
 | `/train <skill> [hours]` | Pay for a lesson (asks first) |
 | `/turnin` | Hand in finished quests |
-| `/wait <hours>` | Let time pass: you rest and heal, the NPC may craft or sell |
+| `/wait <hours>` | Let time pass: you rest and heal, and the whole village lives those hours |
 | `/use <item>` | Use a healing item from your inventory |
 | `/gear` | What you wear and carry: equipment, durability, pack slots |
 | `/equip <item>`, `/unequip <weapon\|armor>` | Equip gear from your pack (if your level allows), or put it away (if there's room) |
@@ -220,16 +279,17 @@ A top-down map of Millbrook where you walk and talk without the terminal. The se
 | `/save` | Save now (it also saves after every action) |
 | `/quit` | Leave |
 
-Free commands (`/state`, `/skills`, `/quests`, `/wait`, `/use`, `/save`) work even when the NPC is busy.
+Free commands (`/state`, `/quests`, `/where`, `/go`, `/look`, `/journal`, `/wait`, `/use`, `/save`) work even when the NPC is busy or not there.
 
 ## Adding an NPC
 
-Create `src/data/npcs/<id>.json` (copy [`brena.json`](src/data/npcs/brena.json)) and run it with `npm run chat -- <id>`. The tests check every file in that folder. To see them in the browser game, also give them a spot in [`src/web/map.ts`](src/web/map.ts) (`NPC_SPOTS`); the web server refuses to start if an NPC has none.
+Create `src/data/npcs/<id>.json` (copy [`brena.json`](src/data/npcs/brena.json)) and run it with `npm run chat -- <id>`. The tests check every file in that folder. To see them in the browser game, also give them a spot in [`src/web/map.ts`](src/web/map.ts) (`NPC_SPOTS`, and `PLACE_SPOTS` for the places their schedule takes them); the web server refuses to start if an NPC has none.
 
 | Field | Notes |
 |---|---|
 | `species`, `age`, `tier`, `potential` | Species (default `human`, must be one that talks), age in years at the start, starting rank, and the highest rank they can ever reach (same as `tier` = never grows) |
-| `name`, `role`, `personality`, `speechStyle`, `backstory`, `goals`, `knowledge` | Goes into the system prompt. Don't put secrets here (including in `goals`) |
+| `name`, `role`, `personality`, `speechStyle`, `backstory`, `goals` | Goes into the system prompt. Don't put secrets here (including in `goals`) |
+| `knows` | Which lore from [`world.json`](src/data/world.json) they know: `{ "millbrook.*": "certain", "people.tomas.sighting": "rumour" }`. An exact id, `x.*` (x and everything under it) or `*`; the most specific wins. A scope that matches nothing fails to load |
 | `greed` (0–1), `greedWhenDebtFree` | Marks up training fees and marks down buy prices at low trust |
 | `traits` | `temper`, `bravery`, `honesty`, `generosity`, `sociability`, `forgiveness`, each 0–1 (missing ones are 0.5). See "Have a personality" above |
 | `fallbackLine` | Optional. What they say if the model fails twice in a row |
@@ -238,9 +298,17 @@ Create `src/data/npcs/<id>.json` (copy [`brena.json`](src/data/npcs/brena.json))
 | `weapon`, `armor` | Items from [`ITEMS`](src/game/items.ts): a weapon, and optional armour, both at or below the NPC's `tier` |
 | `storage` | Optional. A shopkeeper's chest or bag: `{ "name": "the forge chest", "slots": 12 }`. Their starting inventory must fit pack + storage |
 | `startingInventory`, `prices`, `buys`, `startingMoney` | Item names, optionally with a tier: `"iron sword [B]"`. Amounts (`prices`, `startingMoney`, quest `reward.money`, debts) are coin phrases like `"1 gold 5 silver"` or `"15s"`, or whole copper |
-| `secrets` | `{ id, about, text }`. `about` is a vague hint the model sees at high trust |
+| `secrets` | `{ id, about, text }`. `about` is a vague hint the model sees at high trust. Optional `cover` (the story they tell instead), `keywords` and `breaksWith`: `[{ "item": … }, { "fact": "pell.hale_cellar" }, { "check": "intimidate" }]` |
+| `appearance` | What they look like; wounds, soot, weapons and tiredness are added in code |
+| `quirks` | `[{ "when": { "activity": ["work"], "topic": ["sword"] }, "line": "…" }]`. Conditions: `activity`, `place`, `topic`, `nearby` (NPC ids), `mood`, `hours`, `hurt`; all must hold |
+| `fears`, `loves` | `[{ "name": "the mayor", "words": ["mayor"], "item"?, "minTier"?, "npc"? }]` |
+| `schedule` | `[{ "from": 6, "to": 20, "activity": "work", "place": "forge" }, …]` covering all 24 hours. Activities: `work`, `eat`, `socialise`, `sleep`, `travel`; places: `forge`, `inn`, `square`, `gate`, `camp`, `home` |
+| `signature` | `{ "trigger": "good_work_day" \| "trusted_regular", "effect": "masterwork" \| "hidden_stock", "items"?, "minTrust"?, "describe" }` |
+| `services` | `[{ "kind": "lodging", "price": "8 silver" }]`: `heal` and `lodging` need a price |
+| `minor`, `romance` | `minor: true` rules out romance (the schema refuses `romance.open` on a minor) and, by default, being attacked |
 | `debts`, `reserveMoney` | Optional. Paid down automatically from earnings |
-| `maxQuestTier`, `quests` | Highest tier they give, and written quests (`deliver` objectives) |
+| `dropsOnDeath` | Optional. Killed by the player, they drop their pack and purse (the bandit leader). Leave it off for shopkeepers |
+| `maxQuestTier`, `quests` | Highest tier they give, and written quests (`deliver` an item, or `defeat` a creature kind) |
 
 ## Project layout
 
@@ -253,6 +321,16 @@ src/
     NpcAgent.ts       one NPC: turn loop, tool calls, offers, fights, topics
     actions.ts        tools the model can call, and the rules that check them
     persona.ts        system prompt and <situation> block
+    knowledge.ts      world lore: scopes, keyword lookup, events, the invented-name check
+    memory.ts         witnessed facts that fade, and recall
+    relationship.ts   trust, fear, respect, affection; grudges, friendship, romance and content rules
+    emotions.ts       lasting feelings, and the mood they settle into
+    secrets.ts        cover stories and what breaks them
+    quirks.ts         habits shown when their condition holds
+    names.ts          learning the player's name, and hiding it from the model until then
+    appearance.ts     how NPCs and the player look, and what NPCs notice
+    triggers.ts       fears, loves and gifts
+    initiative.ts     when an NPC speaks first
     moodPrefix.ts     strips "Annoyed." when the model writes its mood instead of calling the tool
     traits.ts         personality traits and the rule each one drives
     skills.ts, stats.ts, state.ts, types.ts
@@ -263,9 +341,20 @@ src/
     life.ts           ranks, potential, challenges, age stages and natural death, for NPCs and creatures
     titles.ts         titles earned by deeds, and their bonuses
     gear.ts           equipment, gear level, durability and repairs, pack slots and storage
-    creatures.ts      non-talking NPCs: templates, spawning, code-only fights, loot
-  data/npcs/          brena.json, pell.json, hale.json
-  data/creatures/     wolf.json, bandit.json, horse.json
+    creatures.ts      non-talking NPCs: templates, spawning, code-only fights, gear and loot
+    spawning.ts       spawn rules: creatures by place, time, event or quest
+    underworld.ts     at night: bandits buying weapons on the black market, and raids on shops
+    events.ts         the event log
+    schedule.ts needs.ts village.ts   places, schedules, hunger and energy, the village living together
+    gossip.ts         what NPCs tell each other about the player
+    scene.ts          group conversations: who's addressed, who chimes in
+    favours.ts commitments.ts commissions.ts services.ts deception.ts journal.ts
+    signature.ts      each NPC's signature move
+    weather.ts events-calendar.ts   seasons, weather, market days, festivals, raid days
+  data/npcs/          brena.json, pell.json, hale.json, rook.json (the bandit leader)
+  data/creatures/     wolf.json, bandit.json, horse.json, villager.json
+  data/world.json     world lore: places, people, history, news
+  data/spawns.json    spawn rules
   world/world.ts      demo world, player and starting creatures
   world/species.ts    species: lifespans, rank caps, learn rates
   web/

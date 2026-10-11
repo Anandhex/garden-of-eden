@@ -12,7 +12,8 @@ export function createDemoWorld(): WorldSnapshot {
     timeOfDay: "afternoon",
     location: "Millbrook forge",
     nearby: ["anvil", "glowing forge", "rack of tools", "a stray dog"],
-    recentEvents: ["Bandits attacked a merchant cart on the mine road this morning."],
+    // Lore ids (src/data/world.json): NPCs only hear of events the game put here.
+    recentEvents: ["news.cart_attack"],
     player: {
       name: "Traveler",
       money: 500, // 5 gold

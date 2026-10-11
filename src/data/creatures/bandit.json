@@ -24,8 +24,6 @@
   "armor": "leather armor",
   "fleeAt": 0.35,
   "loot": [
-    { "item": "cudgel", "qty": 1, "chance": 0.6 },
-    { "item": "leather armor", "qty": 1, "chance": 0.3 },
     { "item": "bread loaf", "qty": 1, "chance": 0.4 }
   ],
   "money": ["2 silver", "1 gold 2 silver"],
@@ -39,5 +37,6 @@
   "hunts": [
     { "activity": "raiding a merchant cart", "rank": "E", "chance": 0.3 }
   ],
-  "rivalry": 0.05
+  "rivalry": 0.05,
+  "raids": true
 }

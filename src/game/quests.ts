@@ -13,6 +13,13 @@ import {
   type QuestTier,
 } from "./levels.js";
 import { formatMoney } from "./money.js";
+import { priceFactor } from "./events-calendar.js";
+import { recordEvent } from "./events.js";
+import { favourRepaid } from "./favours.js";
+import { note } from "./journal.js";
+import { addEmotion } from "../npc/emotions.js";
+import { remember } from "../npc/memory.js";
+import { adjust, AFFECTION, holdsGrudge, questRespect, respectForQuestTier, respectOf, settleGrudge } from "../npc/relationship.js";
 
 /**
  * Quests. An NPC's quests come from two places: written ones in their file
@@ -64,7 +71,8 @@ export function refreshNeedQuests(persona: NpcPersona, state: NpcState, player: 
       reward: { money },
     });
   }
-  state.questBoard = board;
+  // Favours being called in (game/favours.ts) stay on the board until done.
+  state.questBoard = [...state.questBoard.filter((q) => q.favour && !taken.has(q.id)), ...board];
 }
 
 /** Every quest this NPC could ever give right now, ignoring the player. */
@@ -79,10 +87,16 @@ export interface QuestView {
   tooHard: QuestDef[];
 }
 
-/** What this player may see from this NPC. Quests above their trust stay hidden. */
+/** Respect a quest needs: its own minRespect, or what its tier calls for (npc/relationship.ts). */
+export function questRespectNeeded(q: QuestDef): number {
+  return Math.max(q.minRespect ?? 0, respectForQuestTier(q.tier));
+}
+
+/** What this player may see from this NPC. Quests above their trust or respect stay hidden. */
 export function questsFor(persona: NpcPersona, state: NpcState, player: PlayerState): QuestView {
   const taken = new Set([...player.quests.active.map((q) => q.id), ...player.quests.completed]);
-  const visible = npcQuests(persona, state).filter((q) => !taken.has(q.id) && state.relationship >= q.minTrust);
+  const respect = respectOf(state, player);
+  const visible = npcQuests(persona, state).filter((q) => !taken.has(q.id) && state.relationship >= q.minTrust && (questRespectNeeded(q) === 0 || respect >= questRespectNeeded(q)));
   return {
     available: visible.filter((q) => canTakeQuestTier(player.level, q.tier)),
     tooHard: visible.filter((q) => !canTakeQuestTier(player.level, q.tier)),
@@ -93,13 +107,50 @@ export function findQuest(persona: NpcPersona, state: NpcState, id: string): Que
   return npcQuests(persona, state).find((q) => q.id === id);
 }
 
-function describeObjective(q: QuestDef): string {
-  return `bring ${q.objective.qty} ${q.objective.item}`;
+/** Plural of a creature kind for quest text: "bandit" → "bandits", "wolf" → "wolves". */
+function creaturePlural(kind: string, qty: number): string {
+  const name = kind.replace(/_/g, " ");
+  if (qty === 1) return name;
+  return name.endsWith("f") ? `${name.slice(0, -1)}ves` : name.endsWith("s") ? name : `${name}s`;
 }
 
-/** Money (copper) the NPC pays for a quest: the written reward plus a generous NPC's bonus (questRewardBonus). */
-export function questRewardMoney(persona: NpcPersona, q: QuestDef): number {
-  return q.reward.money + Math.round(q.reward.money * questRewardBonus(traitsOf(persona)));
+/** "bring 3 wild herbs", "kill or drive off 3 bandits". */
+export function describeObjective(q: Pick<QuestDef, "objective">): string {
+  const o = q.objective;
+  return o.type === "deliver" ? `bring ${o.qty} ${o.item}` : `kill or drive off ${o.qty} ${creaturePlural(o.creature, o.qty)}`;
+}
+
+/** How far the player has got: items carried for a delivery, creatures beaten for a defeat. */
+export function questProgress(player: PlayerState, q: QuestDef & { progress?: number }): { have: number; need: number; done: boolean } {
+  const o = q.objective;
+  const have = o.type === "deliver" ? countItem(player.inventory, o.item) : Math.min(o.qty, q.progress ?? 0);
+  return { have, need: o.qty, done: have >= o.qty };
+}
+
+/**
+ * The player killed or drove off a creature of this kind (a template id): it counts
+ * towards every active defeat quest for that kind. Returns lines for the player.
+ */
+export function recordCreatureDefeat(player: PlayerState, kind: string): string[] {
+  const lines: string[] = [];
+  for (const q of player.quests.active) {
+    if (q.objective.type !== "defeat" || q.objective.creature !== kind) continue;
+    if ((q.progress ?? 0) >= q.objective.qty) continue;
+    q.progress = (q.progress ?? 0) + 1;
+    const done = q.progress >= q.objective.qty;
+    lines.push(`Quest "${q.title}": ${q.progress}/${q.objective.qty}${done ? `. Done: report back to ${q.giverName}.` : "."}`);
+  }
+  return lines;
+}
+
+/**
+ * Money (copper) the NPC pays for a quest: the written reward plus a generous NPC's bonus
+ * (questRewardBonus), times what the goods are worth today (pelts in winter: game/events-calendar.ts).
+ */
+export function questRewardMoney(persona: NpcPersona, q: QuestDef, world?: Pick<WorldSnapshot, "day" | "recentEvents" | "lastRaidDay">): number {
+  const demand = world && q.objective.type === "deliver" ? priceFactor(q.objective.item, world) : 1;
+  const base = Math.round(q.reward.money * demand);
+  return base + Math.round(base * questRewardBonus(traitsOf(persona)));
 }
 
 export function questXp(q: QuestDef): number {
@@ -107,9 +158,9 @@ export function questXp(q: QuestDef): number {
 }
 
 /** For the model on quest turns: what it can offer, and what it would refuse as too dangerous. */
-export function describeQuestsForNpc(persona: NpcPersona, state: NpcState, player: PlayerState): string {
+export function describeQuestsForNpc(persona: NpcPersona, state: NpcState, player: PlayerState, world?: Pick<WorldSnapshot, "day" | "recentEvents" | "lastRaidDay">): string {
   const { available, tooHard } = questsFor(persona, state, player);
-  const offer = available.map((q) => `"${q.id}" [${q.tier}] ${q.title}: ${describeObjective(q)} for ${formatMoney(questRewardMoney(persona, q))} (${q.description})`);
+  const offer = available.map((q) => `"${q.id}" [${q.tier}] ${q.title}: ${describeObjective(q)} for ${formatMoney(questRewardMoney(persona, q, world))} (${q.description})`);
   const refuse = tooHard.map((q) => `[${q.tier}] ${q.title} (needs level ${QUEST_TIER_MIN_LEVEL[q.tier]})`);
   return (
     `They are level ${player.level}. Work you could give them: ${offer.join("; ") || "nothing right now"}.` +
@@ -122,6 +173,7 @@ export function questOfferError(persona: NpcPersona, state: NpcState, player: Pl
   const quest = findQuest(persona, state, id);
   if (!quest) return `You have no quest called "${id}".`;
   if (state.relationship < quest.minTrust) return "You don't trust them enough for that one.";
+  if (questRespectNeeded(quest) > 0 && respectOf(state, player) < questRespectNeeded(quest)) return "You don't rate them highly enough for that one yet.";
   if (player.quests.active.some((q) => q.id === id) || player.quests.completed.includes(id)) {
     return "They've already taken that one.";
   }
@@ -132,19 +184,26 @@ export function questOfferError(persona: NpcPersona, state: NpcState, player: Pl
 }
 
 /** The player accepted the NPC's quest offer. */
-export function acceptQuest(persona: NpcPersona, state: NpcState, player: PlayerState): ActiveQuest | null {
+export function acceptQuest(
+  persona: NpcPersona,
+  state: NpcState,
+  player: PlayerState,
+  world?: Pick<WorldSnapshot, "day" | "recentEvents" | "lastRaidDay">,
+): ActiveQuest | null {
   const id = state.pendingQuest;
   state.pendingQuest = null;
   const quest = id ? findQuest(persona, state, id) : undefined;
   if (!quest || questOfferError(persona, state, player, quest.id)) return null;
-  // The reward is fixed when the quest is taken, generosity bonus included.
+  // The reward is fixed when the quest is taken, generosity bonus and today's demand included.
   const active: ActiveQuest = {
     ...quest,
-    reward: { ...quest.reward, money: questRewardMoney(persona, quest) },
+    reward: { ...quest.reward, money: questRewardMoney(persona, quest, world) },
     giverId: persona.id,
     giverName: persona.name,
+    ...(world ? { acceptedDay: world.day } : {}),
   };
   player.quests.active.push(active);
+  if (world) note(player, { id: `quest:${quest.id}`, day: world.day, npc: persona.id, kind: "quest", text: `Took "${quest.title}" for ${persona.name}: ${describeObjective(quest)}.` });
   return active;
 }
 
@@ -166,9 +225,13 @@ export function turnInQuests(persona: NpcPersona, state: NpcState, world: WorldS
   const mine = player.quests.active.filter((q) => q.giverId === persona.id);
   if (mine.length === 0) return { completed: [], message: `You have no quests for ${persona.name}.`, levelsGained: 0 };
 
-  const ready = mine.filter((q) => countItem(player.inventory, q.objective.item) >= q.objective.qty);
+  const ready = mine.filter((q) => questProgress(player, q).done);
   if (ready.length === 0) {
-    const what = mine.map((q) => `${q.title} (${countItem(player.inventory, q.objective.item)}/${q.objective.qty} ${q.objective.item})`);
+    const what = mine.map((q) => {
+      const { have, need } = questProgress(player, q);
+      const what = q.objective.type === "deliver" ? ` ${q.objective.item}` : ` ${creaturePlural(q.objective.creature, need)}`;
+      return `${q.title} (${have}/${need}${what})`;
+    });
     return { completed: [], message: `Not ready yet: ${what.join(", ")}.`, levelsGained: 0 };
   }
 
@@ -176,15 +239,17 @@ export function turnInQuests(persona: NpcPersona, state: NpcState, world: WorldS
   let levelsGained = 0;
   const noRoom: string[] = [];
   for (const quest of ready) {
-    const { item, qty } = quest.objective;
-    // They have to have somewhere to put it.
-    if (!npcHasRoom(persona, state, { [itemKey(item)]: qty })) {
-      noRoom.push(quest.title);
-      continue;
+    const o = quest.objective;
+    if (o.type === "deliver") {
+      // They have to have somewhere to put it.
+      if (!npcHasRoom(persona, state, { [itemKey(o.item)]: o.qty })) {
+        noRoom.push(quest.title);
+        continue;
+      }
+      removeItem(player.inventory, o.item, o.qty);
+      const key = itemKey(o.item);
+      state.inventory[key] = (state.inventory[key] ?? 0) + o.qty;
     }
-    removeItem(player.inventory, item, qty);
-    const key = itemKey(item);
-    state.inventory[key] = (state.inventory[key] ?? 0) + qty;
 
     const paid = Math.min(quest.reward.money, state.money);
     state.money -= paid;
@@ -192,12 +257,22 @@ export function turnInQuests(persona: NpcPersona, state: NpcState, world: WorldS
     const xp = questXp(quest);
     levelsGained += gainXp(player, xp);
     state.relationship = Math.min(100, state.relationship + (quest.reward.trust ?? DEFAULT_QUEST_TRUST));
+    // Help earns respect and affection, settles a grudge, and leaves them grateful (N5).
+    adjust(state, "respect", questRespect(quest.tier));
+    adjust(state, "affection", AFFECTION.quest);
+    if (holdsGrudge(state, world.day)) settleGrudge(state);
+    if (quest.favour) favourRepaid(state, quest.id);
+    addEmotion(state, "gratitude", 0.5, `their help with "${quest.title}"`, world.day, true);
+    remember(state, { id: `quest-${quest.id}`, day: world.day, text: `they finished your job "${quest.title}"`, importance: 6, valence: 1 }, traitsOf(persona));
+    recordEvent(world, { kind: "quest-done", actor: "player", target: persona.id, details: quest.title, importance: 6 });
+    note(player, { id: `quest:${quest.id}`, day: world.day, npc: persona.id, kind: "quest", text: `Finished "${quest.title}" for ${persona.name}.` });
 
     player.quests.active = player.quests.active.filter((q) => q.id !== quest.id);
     player.quests.completed.push(quest.id);
     state.questBoard = state.questBoard.filter((q) => q.id !== quest.id);
     const short = paid < quest.reward.money ? ` (you could only pay ${formatMoney(paid)} of the ${formatMoney(quest.reward.money)} promised)` : "";
-    parts.push(`${player.name} finished "${quest.title}": handed you ${qty} ${item}; you paid ${formatMoney(paid)}${short}; they gained ${xp} XP`);
+    const did = o.type === "deliver" ? `handed you ${o.qty} ${o.item}` : `${describeObjective(quest).replace(/^kill or drive off/, "killed or drove off")}`;
+    parts.push(`${player.name} finished "${quest.title}": ${did}; you paid ${formatMoney(paid)}${short}; they gained ${xp} XP`);
   }
   const levelNote = levelsGained > 0 ? ` They're now level ${player.level}!` : "";
   const titles = playerProgressTitles(player, world.day);

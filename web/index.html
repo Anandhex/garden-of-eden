@@ -10,6 +10,7 @@
 <header>
   <h1>Millbrook</h1>
   <span id="time" class="pill">…</span>
+  <span id="today" class="pill" title="Weather, season and what's on in town">…</span>
   <span id="hpbar" class="pill">HP</span>
   <span id="gold" class="pill">0 copper</span>
   <span class="spacer"></span>
@@ -41,6 +42,7 @@
           <option value="persuade">Persuade</option>
           <option value="intimidate">Intimidate</option>
           <option value="haggle">Haggle</option>
+          <option value="lie">Lie</option>
         </select>
         <input id="line" autocomplete="off" placeholder="Say something…" maxlength="300">
         <button id="send">Send</button>
@@ -50,6 +52,14 @@
         <button data-do="train">Train…</button>
         <button data-do="wares">Wares</button>
         <button data-do="repair" id="repair-btn">Repair…</button>
+        <button data-do="look">Look</button>
+        <button data-do="introduce">Introduce yourself</button>
+        <button data-do="give">Give…</button>
+        <button data-do="favour">Ask a favour…</button>
+        <button data-do="order" id="order-btn">Order…</button>
+        <button data-do="collect" id="collect-btn">Collect order</button>
+        <button data-do="repay" id="repay-btn">Repay loan</button>
+        <button data-do="retrieve" id="retrieve-btn">Take back what they hid</button>
         <button data-do="flee" class="danger">Flee</button>
         <button data-do="attack" class="danger">Attack</button>
       </div>

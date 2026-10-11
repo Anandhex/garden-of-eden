@@ -111,12 +111,13 @@ describe("N0 healing and rest", () => {
 
   it("hurt NPCs use their own healing items: on the hour, and instead of attacking in a fight", () => {
     const world = createDemoWorld();
-    const state = createNpcState(pell, { hp: 10 });
+    // Only his everyday salves (his strong one is hidden stock, N6.1).
+    const state = createNpcState(pell, { hp: 10, inventory: { "healing salve [E]": 2 } });
     passMinutes(pell, state, world, 60, () => 0.99);
     expect(state.hp).toBe(31); // +1 regen (END 9), +20 salve
     expect(state.inventory["healing salve [E]"]).toBe(1);
 
-    const fight = ctxFor(pell, createDemoWorld(), createNpcState(pell, { hp: 15, inCombat: true }));
+    const fight = ctxFor(pell, createDemoWorld(), createNpcState(pell, { hp: 15, inCombat: true, inventory: { "healing salve [E]": 2 } }));
     const turn = npcFightTurn(fight);
     expect(turn.name).toBe("use_item");
     expect(fight.state.hp).toBe(35);

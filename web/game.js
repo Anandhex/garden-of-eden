@@ -81,11 +81,18 @@ function handleEvent(ev, npcId, bubble) {
   if (bubble && ev.t !== "text" && ev.t !== "done") bubble.el.classList.remove("typing");
   switch (ev.t) {
     case "text": {
+      // In a group scene (N6.5) another NPC may chime in: their words go in the open chat, with their name.
+      const log = talking ?? ev.npc;
+      if (bubble && bubble.npc !== ev.npc) {
+        bubble.el.classList.remove("typing");
+        bubble = null;
+      }
       if (!bubble) {
-        const entry = { kind: "npc", text: "" };
-        (logs[ev.npc] ??= []).push(entry);
-        const el = addBubble(ev.npc, entry);
-        bubble = { entry, el };
+        const other = ev.npc !== log ? npcById(ev.npc)?.name : null;
+        const entry = { kind: other ? "npc other" : "npc", text: other ? `${other}: ` : "" };
+        (logs[log] ??= []).push(entry);
+        const el = addBubble(log, entry);
+        bubble = { entry, el, npc: ev.npc };
         el.classList.add("typing");
       }
       bubble.entry.text += ev.delta;
@@ -109,6 +116,9 @@ function handleEvent(ev, npcId, bubble) {
       if (talking === ev.npc) closeChat();
       return null;
     case "opened":
+      return null;
+    case "quote":
+      if (ev.kind === "commission") confirmOrder(ev);
       return null;
     case "done":
       setState(ev.state);
@@ -201,7 +211,7 @@ async function openChat(id) {
   const npc = npcById(id);
   if (!npc) return;
   if (npc.dead) return feed(`${npc.name} is dead.`);
-  if (npc.away) return feed(`${npc.name} has run off.`);
+  if (npc.away) return feed(npc.absent ?? `${npc.name} isn't around.`);
   if (dist(state.position, npc) > state.map.talkRange) return feed(`You are too far from ${npc.name}.`);
   talking = id;
   logs[id] ??= [];
@@ -226,7 +236,24 @@ function renderChat(rebuildLog = false) {
   stats.replaceChildren();
   $("chat-name").textContent = npc.titles.length > 0 ? `${npc.name}, ${npc.titles.join(", ")}` : npc.name;
   const rank = npc.atPeak ? `rank ${npc.rank} (peak)` : npc.readyToBreakThrough ? `rank ${npc.rank} (ready to break through)` : `rank ${npc.rank} (${npc.rankXp}/${npc.rankXpNext} xp, max ${npc.potential})`;
-  for (const s of [rank, `mood: ${npc.mood}`, `trust: ${npc.trust}`, `HP ${npc.hp}/${npc.maxHp}`, npc.busy ? `busy ${npc.busy}` : null, npc.inCombat ? "⚔ in a fight" : null]) {
+  const bond = [
+    npc.friendship,
+    npc.respect ? `respect ${npc.respect}` : null,
+    npc.fear ? `fear ${npc.fear}` : null,
+    npc.knowsYouAs ? `knows you as ${npc.knowsYouAs}` : "doesn't know your name",
+  ].filter(Boolean).join(", ");
+  for (const s of [
+    rank,
+    `mood: ${npc.mood}`,
+    `trust: ${npc.trust}`,
+    bond,
+    `HP ${npc.hp}/${npc.maxHp}`,
+    npc.doing,
+    npc.grudge ? `grudge: ${npc.grudge}` : null,
+    npc.feeling ? `feels ${npc.feeling}` : null,
+    npc.busy ? `busy ${npc.busy}` : null,
+    npc.inCombat ? "⚔ in a fight" : null,
+  ]) {
     if (!s) continue;
     const span = document.createElement("span");
     span.textContent = s;
@@ -246,12 +273,20 @@ function renderChat(rebuildLog = false) {
   renderQuick(npc);
   $("tools").querySelector('[data-do="train"]').hidden = npc.teaches.length === 0;
   $("tools").querySelector('[data-do="wares"]').hidden = npc.wares.length === 0;
+  $("order-btn").hidden = npc.makes.length === 0 || npc.commission !== null;
+  $("collect-btn").hidden = npc.commission?.status !== "ready";
+  $("repay-btn").hidden = !npc.loan;
+  $("retrieve-btn").hidden = !npc.kept;
+  $("tools").querySelector('[data-do="introduce"]').hidden = npc.knowsYouAs === state.player.name;
 }
 
 function renderQuick(npc) {
   const box = $("quick");
   box.replaceChildren();
   const lines = ["Hello there.", "What's for sale?", "Any work for me?", "Could you teach me something?", "Tell me about this place."];
+  if (npc.services.some((x) => x.kind === "lodging")) lines.push("Could I get a room for the night?");
+  if (npc.services.some((x) => x.kind === "heal") && state.player.hp < state.player.maxHp) lines.push("Could you tend my wounds?");
+  if (npc.grudge) lines.push("I'm sorry. How can I make it right?");
   for (const l of lines) {
     const b = document.createElement("button");
     b.type = "button";
@@ -284,10 +319,13 @@ function renderOffers(npc) {
     row.append(span, btns);
     box.append(row);
   };
-  if (p.quest) add("quest", `Job [${p.quest.tier}] "${p.quest.title}": bring ${p.quest.qty} ${p.quest.item} for ${coins(p.quest.money)}.`);
+  if (p.quest) add("quest", `Job [${p.quest.tier}] "${p.quest.title}": ${p.quest.goal} for ${coins(p.quest.money)}.`);
   if (p.training) add("training", `Train ${p.training.skill.replace("_", "-")} for ${p.training.hours}h, ${coins(p.training.cost)} (you have ${coins(state.player.money)}).`);
   if (p.purchase) add("purchase", `Sell your ${p.purchase.item} for ${coins(p.purchase.price)}?`);
-  if (p.offer) add("offer", `Buy ${p.offer.item} for ${coins(p.offer.price)}? (you have ${state.player.money})`);
+  if (p.offer) add("offer", `Buy ${p.offer.item} for ${coins(p.offer.price)}? (you have ${coins(state.player.money)})`);
+  if (p.favour) add("favour", `Favour: ${p.favour.kind.replace("_", " ")}${p.favour.amount ? ` of ${coins(p.favour.amount)}` : ""}${p.favour.item ? ` (${p.favour.item})` : ""}. You'll owe them one.`);
+  if (p.amends) add("amends", `Pay ${coins(p.amends.fine)} to make amends?`);
+  if (p.service) add("service", `${p.service.kind === "lodging" ? "A room for the night" : "Tend your wounds"} for ${coins(p.service.price)}?`);
 }
 
 function sendLine(mode, text) {
@@ -417,6 +455,73 @@ function showWares() {
   });
 }
 
+/** Give a gift: an item from your pack, or some coin. */
+function showGive() {
+  const npc = npcById(talking);
+  openModal((body) => {
+    const h = document.createElement("h3");
+    h.textContent = `Give ${npc.name} something`;
+    body.append(h);
+    for (const it of state.player.items) {
+      const row = document.createElement("div");
+      row.className = "row";
+      row.append(Object.assign(document.createElement("span"), { textContent: `${it.item} ×${it.qty}` }));
+      row.append(button("Give", () => ($("modal").close(), act({ action: "give", npc: talking, what: it.item }))));
+      body.append(row);
+    }
+    const row = document.createElement("div");
+    row.className = "row";
+    const amount = Object.assign(document.createElement("input"), { placeholder: "e.g. 5 silver", size: 10 });
+    row.append(amount, button("Give coin", () => amount.value.trim() && ($("modal").close(), act({ action: "give", npc: talking, what: amount.value.trim() }))));
+    body.append(row);
+    body.append(emptyP("Something they love counts for more than its price."));
+  });
+}
+
+/** Ask a favour: a loan, a good word, hiding something, a warning. */
+function showFavours() {
+  const words = { lend_gold: "Lend me some gold", vouch: "Put in a good word for me", hide_item: "Hide something for me", warn_me: "Warn me if there's danger" };
+  openModal((body) => {
+    body.append(Object.assign(document.createElement("h3"), { textContent: "Ask a favour" }));
+    for (const [kind, label] of Object.entries(words)) {
+      const row = document.createElement("div");
+      row.className = "row";
+      row.append(Object.assign(document.createElement("span"), { textContent: label }));
+      let pick = null;
+      if (kind === "hide_item") {
+        pick = document.createElement("select");
+        for (const it of state.player.items) pick.add(new Option(it.item, it.item));
+        row.append(pick);
+      }
+      row.append(button("Ask", () => ($("modal").close(), act({ action: "ask", npc: talking, favour: kind, item: pick?.value })), kind === "hide_item" && state.player.items.length === 0));
+      body.append(row);
+    }
+    body.append(emptyP("They decide from how well they know and rate you. Every favour leaves you owing one."));
+  });
+}
+
+/** Order something the NPC makes (a commission). */
+function showOrders() {
+  const npc = npcById(talking);
+  openModal((body) => {
+    body.append(Object.assign(document.createElement("h3"), { textContent: `Order from ${npc.name}` }));
+    for (const item of npc.makes) {
+      const row = document.createElement("div");
+      row.className = "row";
+      row.append(Object.assign(document.createElement("span"), { textContent: item }));
+      row.append(button("Ask the price", () => act({ action: "commission", npc: talking, item })));
+      body.append(row);
+    }
+  });
+}
+
+function confirmOrder(ev) {
+  openModal((body) => {
+    body.append(Object.assign(document.createElement("p"), { textContent: ev.text }));
+    if (ev.ok) body.append(button("Order and pay the deposit", () => ($("modal").close(), act({ action: "commission", npc: talking, item: ev.item, confirm: true }))));
+  });
+}
+
 // ---------- side sheet ----------
 
 function renderSheet() {
@@ -449,6 +554,7 @@ function renderSheet() {
   };
   if (tab === "skills") {
     h(`${p.name}${p.titles.length > 0 ? `, ${p.titles.join(", ")}` : ""}, level ${p.level} (rank ${p.rank})`);
+    body.append(emptyP(p.look));
     row("XP", `${p.xp}/${p.xpNext}`);
     bar(p.xp / p.xpNext);
     h("Attributes");
@@ -490,9 +596,13 @@ function renderSheet() {
       body.append(sub);
     }
     if (p.completed) body.append(emptyP(`${p.completed} completed.`));
-    if (p.journal.length) {
-      h("Journal");
-      for (const j of p.journal.slice(-10).reverse()) row(`Day ${j.day}`, j.text);
+    h("Journal");
+    if (p.journal.length === 0) body.append(emptyP("Nothing yet. Secrets, likes, promises and names you learn go here."));
+    for (const g of p.journal) {
+      const sub = document.createElement("h4");
+      sub.textContent = g.who;
+      body.append(sub);
+      for (const l of g.lines.slice(-8)) body.append(emptyP(l));
     }
   }
 }
@@ -511,6 +621,8 @@ const emptyP = (t) => Object.assign(document.createElement("p"), { className: "e
 
 function renderHeader() {
   $("time").textContent = state.time.text;
+  $("today").textContent = `${state.time.weather}, ${state.time.season}${state.time.events.length ? ` · ${state.time.events.join(", ")}` : ""}`;
+  $("today").title = state.time.today;
   const p = state.player;
   $("hpbar").textContent = `HP ${p.hp}/${p.maxHp}`;
   $("gold").textContent = `${coins(p.money)}`;
@@ -659,14 +771,14 @@ function drawPerson(x, y, color, label, opts = {}) {
 }
 
 /**
- * A creature: a four-legged shape for animals, a person for bandits. Packs stand
+ * A creature: a four-legged shape for animals, a person for bandits and villagers. Packs stand
  * close, so the label is just the rank, plus the name for the one you're facing.
  */
 function drawCreature(c, near) {
   const px = c.x * TILE + TILE / 2;
   const py = c.y * TILE + TILE / 2;
   const label = near || c.engaged ? `${c.name} [${c.rank}]` : `[${c.rank}]`;
-  if (c.kind === "bandit") {
+  if (c.kind === "bandit" || c.kind === "villager") {
     drawPerson(c.x, c.y, c.color, label, { near, hp: c.hp / c.maxHp });
   } else {
     ctx.fillStyle = "rgba(0,0,0,.3)";
@@ -862,6 +974,9 @@ $("tools").addEventListener("click", (e) => {
   if (what === "train") showTraining();
   else if (what === "wares") showWares();
   else if (what === "repair") showRepairs();
+  else if (what === "give") showGive();
+  else if (what === "favour") showFavours();
+  else if (what === "order") showOrders();
   else act({ action: what, npc: talking });
 });
 for (const b of document.querySelectorAll("[data-wait]")) {

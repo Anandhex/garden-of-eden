@@ -33,4 +33,13 @@ export const config = {
   // Prompt tokens to stay under (system prompt + tools + history). Leaves room in numCtx for the reply.
   contextTokenBudget: 3000,
   llmRetries: 1,
+  // Content limits (design rule 7), enforced in code before any feature that touches them.
+  content: {
+    // Romance is opt-in for the player (ROMANCE=on) and per NPC (romance.open), and never with a minor.
+    romance: process.env.ROMANCE === "on",
+    // Whether NPCs marked `minor` can be attacked at all.
+    minorsCanBeAttacked: false,
+  },
+  // The player's name when they haven't chosen one. NPCs who don't know it hear this instead of a real name.
+  defaultPlayerName: "Traveler",
 };

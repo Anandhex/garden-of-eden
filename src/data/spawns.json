@@ -1,0 +1,43 @@
+{
+  "rules": [
+    {
+      "id": "market_crowd",
+      "creature": "villager",
+      "count": 3,
+      "place": "village_square",
+      "hours": [
+        8,
+        18
+      ]
+    },
+    {
+      "id": "night_wolves",
+      "creature": "wolf",
+      "count": 2,
+      "place": "forest_edge",
+      "hours": [
+        21,
+        4
+      ]
+    },
+    {
+      "id": "cart_raiders",
+      "creature": "bandit",
+      "count": 1,
+      "event": "news.cart_attack"
+    },
+    {
+      "id": "mine_road_gang",
+      "creature": "bandit",
+      "count": 3,
+      "quest": "clear_mine_road"
+    },
+    {
+      "id": "rook_guards",
+      "creature": "bandit",
+      "count": 3,
+      "place": "bandit_camp",
+      "quest": "fathers_hammer"
+    }
+  ]
+}

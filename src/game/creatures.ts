@@ -9,7 +9,7 @@ import { SPECIES_IDS, speciesOf } from "../world/species.js";
 import { absoluteHour } from "./clock.js";
 import { attack, check, modifier, type Rng } from "./dice.js";
 import { regenPerHour, isSleepingHour } from "./healing.js";
-import { itemKey, parseItem, tierDamageBonus, type Weapon, weaponFor } from "./items.js";
+import { type ItemKey, itemKey, itemLabel, parseItem, tierDamageBonus, type Weapon, weaponFor } from "./items.js";
 import {
   createLife,
   describeLife,
@@ -29,7 +29,7 @@ import {
 } from "./life.js";
 import { creatureXp, gainXp as gainPlayerXp, rankForLevel } from "./levels.js";
 import { playerProgressTitles, playerWonFight } from "./titles.js";
-import { armorValue, equippedWeapon, gearLimit, playerHasRoom, soak, wearGear } from "./gear.js";
+import { type Equipment, equippedWeapon, gearLimit, isBroken, playerHasRoom, soak, wearGear } from "./gear.js";
 import { formatMoney, MoneySchema } from "./money.js";
 
 /**
@@ -89,6 +89,8 @@ export const CreatureSchema = z
     hunts: z.array(z.object({ activity: z.string().min(1), rank: z.enum(QUEST_TIERS), chance: unit })).default([]),
     /** Daily chance two of this kind fight for dominance. */
     rivalry: unit.default(0),
+    /** Bands together to raid the village at night when strong enough (game/underworld.ts). */
+    raids: z.boolean().default(false),
   })
   .strict()
   .superRefine((c, ctx) => {
@@ -125,7 +127,19 @@ export interface Creature {
   deathCause: string | null;
   /** Where it is on the browser map (web/server.ts places it). */
   pos?: { x: number; y: number };
+  /**
+   * Gear it wields and wears (bandits): its own copies, which wear with every
+   * blow and drop when it dies. Natural attacks (bites, kicks) aren't gear.
+   */
+  equipment?: Equipment;
+  /** Coins it carries (copper): from the template's range, plus what raids bring in. Dropped on death. */
+  money?: number;
+  /** Goods it carries off (stolen in raids). Dropped on death. */
+  pack?: Record<ItemKey, number>;
 }
+
+/** Natural weapons never mend: teeth and claws dull with age instead. Damage lost by age stage. */
+export const DULLING: Record<Life["stage"], number> = { young: 0, adult: 0, elder: 1, venerable: 2 };
 
 /** XP for a successful hunt or raid. */
 export const HUNT_XP = 10;
@@ -164,9 +178,34 @@ export function creatureStats(t: CreatureTemplate, c: Creature): NpcStats {
   return effectiveStats(t.stats, c.life);
 }
 
-export function creatureWeapon(t: CreatureTemplate): Weapon {
-  if (t.weapon) return weaponFor(t.weapon)!;
+/**
+ * What it fights with. A creature that uses gear fights with its own (worn)
+ * copy, and with fists if that's broken or gone. Without `c`, the template's.
+ */
+export function creatureWeapon(t: CreatureTemplate, c?: Creature): Weapon {
+  if (t.weapon) return c ? equippedWeapon(c) : weaponFor(t.weapon)!;
   return { name: t.attack!.name, die: t.attack!.die, skill: t.attack!.skill, tier: t.tier };
+}
+
+/** Extra damage on a hit: a weapon's tier, or for a natural attack its rank, less what age has dulled. */
+export function creatureDamageBonus(t: CreatureTemplate, c: Creature, weapon: Weapon = creatureWeapon(t, c)): number {
+  if (t.weapon) return tierDamageBonus(weapon.tier);
+  return tierDamageBonus(t.tier) - DULLING[c.life.stage];
+}
+
+/** Does it use gear and have no working weapon? Such creatures look for one (game/underworld.ts). */
+export function needsWeapon(t: CreatureTemplate, c: Creature): boolean {
+  return t.weapon !== undefined && (!c.equipment?.weapon || isBroken(c.equipment.weapon));
+}
+
+/** A roll in the template's money range, or 0. */
+function rollMoney(t: CreatureTemplate, rng: Rng): number {
+  return t.money ? t.money[0] + Math.floor(rng() * (t.money[1] - t.money[0] + 1)) : 0;
+}
+
+/** The gear a new one of this kind starts with: fresh copies of the template's weapon and armour. */
+function startingGear(t: CreatureTemplate): Equipment {
+  return { ...(t.weapon ? { weapon: itemKey(t.weapon) } : {}), ...(t.armor ? { armor: itemKey(t.armor) } : {}) };
 }
 
 /** A new individual of a kind: random age in the template's range (or `age`), full HP. */
@@ -176,7 +215,10 @@ export function spawnCreature(t: CreatureTemplate, uid: string, day: number, rng
   const [low, high] = t.potential.map((p) => QUEST_TIERS.indexOf(p));
   const potential = QUEST_TIERS[low! + Math.floor(rng() * (high! - low! + 1))]!;
   const life = createLife(speciesOf(t.species), age, t.tier, day, potential);
-  return { uid, template: t.id, name, hp: effectiveStats(t.stats, life).maxHp, life, outcome: null, deathCause: null };
+  const c: Creature = { uid, template: t.id, name, hp: effectiveStats(t.stats, life).maxHp, life, outcome: null, deathCause: null };
+  if (t.weapon || t.armor) c.equipment = startingGear(t);
+  if (t.money) c.money = rollMoney(t, rng);
+  return c;
 }
 
 /** Spawn `count` of a kind, named "wolf 1", "wolf 2", ... after any already in `into`. */
@@ -218,7 +260,7 @@ function creatureWins(t: CreatureTemplate, c: Creature, world: WorldSnapshot, xp
 }
 
 /** A creature got through a challenge of its own: XP, titles, maybe a breakthrough. */
-function creatureOvercomes(t: CreatureTemplate, c: Creature, xp: number, challenge: Challenge, day: number): string[] {
+export function creatureOvercomes(t: CreatureTemplate, c: Creature, xp: number, challenge: Challenge, day: number): string[] {
   const ready = creatureGainXp(t, c, xp);
   return [...(ready ? [ready] : []), ...overcome(c.name, c.life, creatureContext(t), challenge, day).log];
 }
@@ -233,7 +275,14 @@ export function goHunting(t: CreatureTemplate, c: Creature, day: number, rng: Rn
       c.hp = Math.max(1, c.hp - Math.ceil(stats.maxHp * HUNT_INJURY_SHARE));
       return [`${c.name} came back hurt from ${hunt.activity}.`];
     }
-    return creatureOvercomes(t, c, HUNT_XP, { kind: "hunt", rank: hunt.rank, what: hunt.activity }, day);
+    // Raiders come back with coin, and blunter blades.
+    const take = rollMoney(t, rng);
+    if (take > 0) c.money = (c.money ?? 0) + take;
+    const broke = c.equipment ? wearGear(c, "weapon") : null;
+    return [
+      ...creatureOvercomes(t, c, HUNT_XP, { kind: "hunt", rank: hunt.rank, what: hunt.activity }, day),
+      ...(broke ? [`${c.name}'s ${broke}`] : []),
+    ];
   }
   return [];
 }
@@ -258,19 +307,22 @@ export function creatureHour(t: CreatureTemplate, c: Creature, world: Pick<World
   return log;
 }
 
-/** One strike in a duel between two creatures. Never kills: duels for dominance end when one yields. */
+/** One strike in a duel between two creatures. Never kills: duels for dominance end when one yields. Gear wears. */
 function duelStrike(t: CreatureTemplate, from: Creature, to: Creature, rng: Rng): void {
   const a = creatureStats(t, from);
   const d = creatureStats(t, to);
-  const weapon = creatureWeapon(t);
+  const weapon = creatureWeapon(t, from);
   const hit = attack(
     rng,
     { strength: a.attributes.strength, weaponSkill: skillLevel(t.skills, weapon.skill) },
     { agility: d.attributes.agility, evasion: skillLevel(t.skills, "evasion") },
     weapon.die,
-    tierDamageBonus(weapon.tier),
+    creatureDamageBonus(t, from, weapon),
   );
-  if (hit.success) to.hp = Math.max(1, to.hp - hit.damage);
+  if (!hit.success) return;
+  to.hp = Math.max(1, to.hp - soak(hit.damage, to));
+  if (from.equipment) wearGear(from, "weapon");
+  if (to.equipment) wearGear(to, "armor");
 }
 
 /**
@@ -421,22 +473,32 @@ function playerBeatCreature(c: Creature, world: WorldSnapshot, routed: boolean):
   ];
 }
 
-/** Roll the template's loot table into the player's pack. What doesn't fit is left behind. */
-function takeLoot(t: CreatureTemplate, world: WorldSnapshot, rng: Rng): { loot: Record<string, number>; money: number; left: string[] } {
+/**
+ * What the player takes from a kill: its gear (as worn as it is), whatever it
+ * carried off, its purse, and a roll on the template's loot table. What doesn't
+ * fit in the player's pack is left behind.
+ */
+function takeLoot(t: CreatureTemplate, c: Creature, world: WorldSnapshot, rng: Rng): { loot: Record<string, number>; money: number; left: string[] } {
+  const found: Array<[ItemKey, number]> = [
+    ...Object.values(c.equipment ?? {}).map((key): [ItemKey, number] => [key, 1]),
+    ...Object.entries(c.pack ?? {}),
+  ];
+  for (const drop of t.loot) if (rng() < drop.chance) found.push([parseItem(drop.item)?.key ?? itemKey(drop.item), drop.qty]);
   const loot: Record<string, number> = {};
   const left: string[] = [];
-  for (const drop of t.loot) {
-    if (rng() < drop.chance) {
-      const key = parseItem(drop.item)?.key ?? itemKey(drop.item);
-      if (!playerHasRoom(world.player, { [key]: drop.qty })) {
-        left.push(key);
-        continue;
-      }
-      loot[key] = (loot[key] ?? 0) + drop.qty;
-      world.player.inventory[key] = (world.player.inventory[key] ?? 0) + drop.qty;
+  for (const [key, qty] of found) {
+    if (qty <= 0) continue;
+    if (!playerHasRoom(world.player, { [key]: qty })) {
+      left.push(key);
+      continue;
     }
+    loot[key] = (loot[key] ?? 0) + qty;
+    world.player.inventory[key] = (world.player.inventory[key] ?? 0) + qty;
   }
-  const money = t.money ? t.money[0] + Math.floor(rng() * (t.money[1] - t.money[0] + 1)) : 0;
+  c.equipment = {};
+  c.pack = {};
+  const money = c.money ?? 0;
+  c.money = 0;
   world.player.money += money;
   return { loot, money, left };
 }
@@ -445,13 +507,13 @@ function takeLoot(t: CreatureTemplate, world: WorldSnapshot, rng: Rng): { loot: 
 function creatureStrikes(t: CreatureTemplate, c: Creature, world: WorldSnapshot, rng: Rng, log: string[]): boolean {
   const player = world.player;
   const stats = creatureStats(t, c);
-  const weapon = creatureWeapon(t);
+  const weapon = creatureWeapon(t, c);
   const hit = attack(
     rng,
     { strength: stats.attributes.strength, weaponSkill: skillLevel(t.skills, weapon.skill) },
     { agility: player.attributes.agility, evasion: skillLevel(player.skills, "evasion") },
     weapon.die,
-    tierDamageBonus(weapon.tier),
+    creatureDamageBonus(t, c, weapon),
   );
   const line = bark(t, "attack", rng);
   if (line) log.push(`${c.name}: ${line}`);
@@ -465,6 +527,8 @@ function creatureStrikes(t: CreatureTemplate, c: Creature, world: WorldSnapshot,
   log.push(`${c.name}'s ${weapon.name} hits you for ${damage} (${player.hp}/${player.maxHp} HP).`);
   const broke = wearGear(player, "armor");
   if (broke) log.push(`Your ${broke}`);
+  const blunted = c.equipment ? wearGear(c, "weapon") : null;
+  if (blunted) log.push(`${c.name}'s ${blunted}`);
   if (player.hp > 0) return false;
   log.push(...creatureWins(t, c, world, XP.winFight + 5 * player.level, `bringing down ${player.name}`));
   return true;
@@ -490,11 +554,13 @@ export function fightCreature(t: CreatureTemplate, c: Creature, world: WorldSnap
     tierDamageBonus(weapon.tier),
   );
   if (hit.success) {
-    const damage = Math.max(1, hit.damage - (t.armor ? armorValue({ equipment: { armor: itemKey(t.armor) } }) : 0));
+    const damage = soak(hit.damage, c);
     c.hp = Math.max(0, c.hp - damage);
     log.push(`You hit ${c.name} with your ${weapon.name} for ${damage} (${c.hp}/${stats.maxHp} HP).`);
     const broke = wearGear(player, "weapon");
     if (broke) log.push(`Your ${broke}`);
+    const torn = c.equipment ? wearGear(c, "armor") : null;
+    if (torn) log.push(`${c.name}'s ${torn}`);
   } else {
     log.push(`You swing at ${c.name} and miss.`);
   }
@@ -503,7 +569,7 @@ export function fightCreature(t: CreatureTemplate, c: Creature, world: WorldSnap
     c.outcome = "dead";
     c.deathCause = player.name;
     log.push(`${c.name} is dead.`);
-    const spoils = takeLoot(t, world, rng);
+    const spoils = takeLoot(t, c, world, rng);
     const got = [...Object.entries(spoils.loot).map(([k, q]) => `${k} x${q}`), ...(spoils.money > 0 ? [`${formatMoney(spoils.money)}`] : [])];
     if (got.length > 0) log.push(`You take: ${got.join(", ")}.`);
     if (spoils.left.length > 0) log.push(`No room in your pack for: ${spoils.left.join(", ")}. You leave it.`);
@@ -598,14 +664,22 @@ export function fleeCreature(t: CreatureTemplate, c: Creature, world: WorldSnaps
   return { log, over: down ? "player down" : null, ...none };
 }
 
-/** Fill in what a creature saved by an older version lacks (its potential is then its current rank). */
+/**
+ * Fill in what a creature saved by an older version lacks: its potential (then
+ * its current rank), fresh gear from the template, and a middling purse.
+ */
 export function upgradeCreature(t: CreatureTemplate, c: Creature): Creature {
-  return { ...c, life: upgradeLife(c.life, createLife(speciesOf(t.species), 0, c.life.tier, 1, c.life.tier)) };
+  const up: Creature = { ...c, life: upgradeLife(c.life, createLife(speciesOf(t.species), 0, c.life.tier, 1, c.life.tier)) };
+  if (!up.equipment && (t.weapon || t.armor)) up.equipment = startingGear(t);
+  if (up.money === undefined && t.money) up.money = Math.round((t.money[0] + t.money[1]) / 2);
+  return up;
 }
 
 /** "wolf 2: 5-year-old wolf, rank E, 18/22 HP" */
 export function describeCreature(t: CreatureTemplate, c: Creature, day: number): string {
   const status = c.outcome === "dead" ? `dead (${c.deathCause})` : c.outcome === "fled" ? "fled" : `${c.hp}/${creatureStats(t, c).maxHp} HP`;
+  const gear = Object.values(c.equipment ?? {}).map(itemLabel);
+  const kit = gear.length > 0 ? `, with ${gear.join(" and ")}` : t.weapon ? ", unarmed" : "";
   const species = speciesOf(t.species);
-  return `${c.name}: ${describeLife(species.name, c.life, day)}, ${growthStatus(c.life, species)}, ${status}`;
+  return `${c.name}: ${describeLife(species.name, c.life, day)}, ${growthStatus(c.life, species)}, ${status}${kit}`;
 }

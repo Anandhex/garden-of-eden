@@ -1,0 +1,184 @@
+{
+  "lore": [
+    {
+      "id": "millbrook",
+      "kind": "place",
+      "name": "Millbrook",
+      "keywords": ["millbrook", "village", "town"],
+      "text": "A small village in the valley, between the iron mine to the north and the city down the valley. Most folk farm, mine or trade."
+    },
+    {
+      "id": "millbrook.forge",
+      "kind": "place",
+      "name": "the forge",
+      "keywords": ["forge", "smithy"],
+      "text": "Brena Ashford's forge on the east side of the village. Her father ran it before her."
+    },
+    {
+      "id": "millbrook.gilded_goose",
+      "kind": "place",
+      "name": "the Gilded Goose",
+      "aliases": ["Gilded Goose", "Goose"],
+      "keywords": ["inn", "tavern", "goose"],
+      "text": "Millbrook's only inn. Old Pell has run it for thirty years, and everyone in the village drinks there."
+    },
+    {
+      "id": "millbrook.gate",
+      "kind": "place",
+      "name": "the village gate",
+      "keywords": ["gate", "gatehouse"],
+      "text": "The west gate, on the road in from the city. The village guard keeps it, and Corporal Hale stands it most days."
+    },
+    {
+      "id": "mine_road",
+      "kind": "place",
+      "name": "the mine road",
+      "keywords": ["mine road", "mine", "north road", "iron ore", "ore"],
+      "text": "The road north from Millbrook to the iron mine. Ore for the forge comes down it on carts."
+    },
+    {
+      "id": "mine_road.bandits",
+      "kind": "news",
+      "name": "the bandits on the mine road",
+      "keywords": ["bandits", "bandit", "raids", "raiders", "robbers"],
+      "text": "Bandits have been raiding the mine road for two weeks. They rob the carts, and hardly any ore gets through.",
+      "ask": "people.pell"
+    },
+    {
+      "id": "news.cart_attack",
+      "kind": "news",
+      "name": "the attack on a merchant cart",
+      "keywords": ["cart", "merchant"],
+      "event": true,
+      "text": "Bandits attacked a merchant cart on the mine road this morning."
+    },
+    {
+      "id": "news.bandit_raid",
+      "kind": "news",
+      "name": "the bandit raid",
+      "keywords": ["raid", "robbed", "stolen"],
+      "event": true,
+      "text": "Bandits raided a shop in Millbrook during the night and made off with goods and coin."
+    },
+    {
+      "id": "news.raid_repelled",
+      "kind": "news",
+      "name": "the bandit raid that was driven off",
+      "keywords": ["raid", "drove off", "driven off"],
+      "event": true,
+      "text": "A bandit raid on a shop in Millbrook was driven off during the night."
+    },
+    {
+      "id": "the_city",
+      "kind": "place",
+      "name": "the city",
+      "keywords": ["city", "capital"],
+      "text": "A big walled city three days down the valley. The city guard is based there."
+    },
+    {
+      "id": "people.brena",
+      "kind": "person",
+      "name": "Brena Ashford",
+      "aliases": ["Brena", "Ashford"],
+      "keywords": ["blacksmith", "smith"],
+      "npc": "brena",
+      "knowsMore": "smithing, iron and the mine road",
+      "text": "Millbrook's blacksmith. She took over the forge from her father ten years ago. Gruff, but honest."
+    },
+    {
+      "id": "people.brena.trade",
+      "kind": "person",
+      "name": "Brena's business",
+      "keywords": ["business"],
+      "text": "Brena is the best smith in the valley, but she has no head for business."
+    },
+    {
+      "id": "people.pell",
+      "kind": "person",
+      "name": "Old Pell",
+      "aliases": ["Pell"],
+      "keywords": ["innkeeper"],
+      "npc": "pell",
+      "knowsMore": "every rumour in the village",
+      "hearsRumours": true,
+      "text": "The innkeeper of the Gilded Goose. He hears every rumour in Millbrook, and sells them like ale."
+    },
+    {
+      "id": "people.hale",
+      "kind": "person",
+      "name": "Corporal Hale",
+      "aliases": ["Hale", "Corporal"],
+      "keywords": ["guard", "guardsman"],
+      "npc": "hale",
+      "knowsMore": "who comes and goes through the gate",
+      "text": "A guard on the village gate. He got the post through his uncle, not his sword arm."
+    },
+    {
+      "id": "people.rook",
+      "kind": "person",
+      "name": "Rook",
+      "aliases": ["Rook"],
+      "keywords": ["leader", "boss", "gang", "camp"],
+      "npc": "rook",
+      "text": "The bandits on the mine road answer to a man called Rook. They say he was in the city guard once. He keeps camp at the north end of the road.",
+      "ask": "people.pell"
+    },
+    {
+      "id": "people.tomas",
+      "kind": "person",
+      "name": "Tomas Ashford",
+      "aliases": ["Tomas"],
+      "keywords": ["brother"],
+      "text": "Brena's younger brother. He joined the city guard and stopped writing home three months ago.",
+      "ask": "people.pell"
+    },
+    {
+      "id": "people.tomas.sighting",
+      "kind": "news",
+      "name": "Tomas seen in the city",
+      "keywords": ["seen", "sighting", "hooded stranger"],
+      "text": "A guardsman matching Tomas Ashford's description was seen drinking in the city with a hooded stranger."
+    },
+    {
+      "id": "people.mayor",
+      "kind": "person",
+      "name": "the mayor",
+      "aliases": ["Mayor Voss", "Aldric Voss", "Aldric", "Voss"],
+      "keywords": ["mayor"],
+      "text": "Aldric Voss, mayor of Millbrook. A wealthy man who keeps the village's money, and his own, in a vault at his house.",
+      "ask": "people.pell"
+    },
+    {
+      "id": "people.mayor.vault",
+      "kind": "news",
+      "name": "the robbery of the mayor's vault",
+      "keywords": ["vault", "robbery", "robbed", "theft"],
+      "text": "Last month someone robbed the mayor's vault. Nobody has been caught."
+    },
+    {
+      "id": "people.mayor.household",
+      "kind": "person",
+      "name": "the mayor's household",
+      "aliases": ["Odile", "Bram"],
+      "keywords": ["wife", "family", "household", "son", "children", "married"],
+      "text": "The mayor's wife, Odile, runs his household. Their son Bram is away at school in the city.",
+      "ask": "people.pell"
+    },
+    {
+      "id": "people.guard_captain",
+      "kind": "person",
+      "name": "the guard captain",
+      "aliases": ["Captain Holt", "Reyna Holt", "Holt", "Captain"],
+      "keywords": ["captain"],
+      "text": "Captain Reyna Holt commands Millbrook's small guard. Strict, and nobody's fool.",
+      "ask": "people.hale"
+    },
+    {
+      "id": "people.guard_captain.tax",
+      "kind": "news",
+      "name": "the missing tax money",
+      "keywords": ["tax", "taxes", "missing money"],
+      "text": "The guard captain has been asking questions about missing tax money."
+    }
+  ]
+}

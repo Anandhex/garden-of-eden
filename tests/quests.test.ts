@@ -1,3 +1,4 @@
+import { loadCreatureTemplates } from "../src/game/creatures.js";
 import { readdirSync, readFileSync } from "node:fs";
 import { MoneySchema } from "../src/game/money.js";
 import { describe, expect, it } from "vitest";
@@ -43,6 +44,8 @@ describe("levels", () => {
   });
 });
 
+const CREATURES = loadCreatureTemplates();
+
 describe("every NPC file's quests", () => {
   const files = readdirSync(NPC_DIR).filter((f) => f.endsWith(".json"));
   it.each(files)("%s has valid quests within its max tier", (file) => {
@@ -51,7 +54,8 @@ describe("every NPC file's quests", () => {
     for (const q of npc.quests ?? []) {
       expect(QUEST_TIERS, q.id).toContain(q.tier);
       expect(compareTiers(q.tier, npc.maxQuestTier), `${q.id} is above maxQuestTier`).toBeLessThanOrEqual(0);
-      expect(ITEMS, `${q.id} asks for an unknown item`).toHaveProperty([q.objective.item]);
+      if (q.objective.type === "defeat") expect(CREATURES, `${q.id} targets an unknown creature`).toHaveProperty([q.objective.creature]);
+      else expect(ITEMS, `${q.id} asks for an unknown item`).toHaveProperty([q.objective.item]);
       expect(MoneySchema.parse(q.reward.money)).toBeGreaterThan(0);
     }
   });
@@ -66,7 +70,7 @@ describe("who sees which quests", () => {
   it("quests above the NPC's trust are hidden entirely", () => {
     const world = createDemoWorld();
     const ids = (trust: number) => {
-      const v = questsFor(brena, createNpcState(brena, { relationship: trust }), world.player);
+      const v = questsFor(brena, createNpcState(brena, { relationship: trust, respect: 20 }), world.player);
       return [...v.available, ...v.tooHard].map((q) => q.id);
     };
     expect(ids(0)).toContain("hot_meal");
@@ -77,14 +81,14 @@ describe("who sees which quests", () => {
 
   it("quests above the player's level are known but can't be taken", () => {
     const world = createDemoWorld(); // level 1
-    const v = questsFor(brena, createNpcState(brena, { relationship: 60 }), world.player);
+    const v = questsFor(brena, createNpcState(brena, { relationship: 60, respect: 20 }), world.player);
     expect(v.available.map((q) => q.id)).toEqual(["hot_meal"]);
     expect(v.tooHard.map((q) => q.id)).toEqual(["burn_poultice", "fathers_hammer"]);
-    expect(questOfferError(brena, createNpcState(brena, { relationship: 60 }), world.player, "fathers_hammer")).toContain("needs 10");
+    expect(questOfferError(brena, createNpcState(brena, { relationship: 60, respect: 20 }), world.player, "fathers_hammer")).toContain("needs 10");
   });
 
   it("tells the model what to offer and what to refuse as too dangerous", () => {
-    const text = describeQuestsForNpc(brena, createNpcState(brena, { relationship: 60 }), createDemoWorld().player);
+    const text = describeQuestsForNpc(brena, createNpcState(brena, { relationship: 60, respect: 20 }), createDemoWorld().player);
     expect(text).toContain('"hot_meal" [G] A hot meal: bring 1 stew for 8 silver');
     expect(text).toContain("Too dangerous for them at their level, so refuse if asked: [F] Herbs for a burn (needs level 2); [B] My father's hammer (needs level 10)");
   });

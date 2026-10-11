@@ -30,17 +30,35 @@
     "Keep his money troubles private",
     "Stay out of trouble with the guard"
   ],
-  "knowledge": [
-    "Bandits have been raiding the mine road to the north for two weeks",
-    "A guardsman matching Tomas Ashford's description was seen drinking in the city with a hooded stranger",
-    "Brena the blacksmith is the best smith in the valley, but she has no head for business"
-  ],
+  "knows": {
+    "*": "certain",
+    "people.tomas.sighting": "rumour",
+    "people.guard_captain.tax": "rumour"
+  },
   "secrets": [
     {
       "id": "debts",
       "about": "your money troubles: a debt you owe",
       "text": "You owe the mayor 20 gold, and you've been skimming from the town's tax box kept at the inn to pay it back.",
-      "debt": "mayor"
+      "debt": "mayor",
+      "keywords": [
+        "debt",
+        "debts",
+        "owe",
+        "money troubles",
+        "tax box"
+      ]
+    },
+    {
+      "id": "hale_cellar",
+      "about": "who hid in your cellar the night riders came",
+      "text": "Three weeks ago Corporal Hale came pounding on your cellar door and hid among the ale barrels all night while riders went past on the road. He paid you 5 silver to keep quiet about it.",
+      "keywords": [
+        "cellar",
+        "hale",
+        "hid",
+        "riders"
+      ]
     }
   ],
   "stats": {
@@ -116,12 +134,16 @@
     }
   ],
   "weapon": "cudgel",
-  "storage": { "name": "the inn's storeroom", "slots": 16 },
+  "storage": {
+    "name": "the inn's storeroom",
+    "slots": 16
+  },
   "startingInventory": {
     "ale [G]": 20,
     "stew [G]": 5,
     "bread loaf [G]": 6,
-    "healing salve [E]": 2
+    "healing salve [E]": 2,
+    "healing salve [C]": 1
   },
   "startingMoney": "12 gold",
   "buys": [
@@ -143,5 +165,93 @@
     "stew": "4 silver",
     "bread loaf": "1 silver",
     "healing salve": "1 gold 4 silver"
-  }
+  },
+  "appearance": "A stooped old man with a silver fringe of hair, a stained apron and rings on three fingers. His eyes never stop moving.",
+  "quirks": [
+    {
+      "when": {
+        "nearby": [
+          "hale"
+        ]
+      },
+      "line": "Corporal Hale is within earshot: you drop your voice whenever money or rumours come up."
+    },
+    {
+      "when": {
+        "topic": [
+          "mayor",
+          "tax",
+          "debt",
+          "debts",
+          "owe"
+        ]
+      },
+      "line": "Talk of the mayor or the tax box makes you fuss with a cloth and change the subject."
+    }
+  ],
+  "fears": [
+    {
+      "name": "the mayor",
+      "words": [
+        "mayor"
+      ]
+    },
+    {
+      "name": "Rook",
+      "words": [
+        "rook"
+      ],
+      "npc": "rook"
+    }
+  ],
+  "loves": [
+    {
+      "name": "a juicy rumour",
+      "words": [
+        "gossip",
+        "rumour",
+        "rumor",
+        "secret"
+      ]
+    }
+  ],
+  "schedule": [
+    {
+      "from": 6,
+      "to": 20,
+      "activity": "work",
+      "place": "inn"
+    },
+    {
+      "from": 20,
+      "to": 21,
+      "activity": "socialise",
+      "place": "inn"
+    },
+    {
+      "from": 21,
+      "to": 6,
+      "activity": "sleep",
+      "place": "inn"
+    }
+  ],
+  "signature": {
+    "trigger": "trusted_regular",
+    "effect": "hidden_stock",
+    "items": [
+      "healing salve [C]"
+    ],
+    "minTrust": 50,
+    "describe": "the strong salve he keeps under the bar"
+  },
+  "services": [
+    {
+      "kind": "lodging",
+      "price": "8 silver"
+    },
+    {
+      "kind": "heal",
+      "price": "6 silver"
+    }
+  ]
 }
