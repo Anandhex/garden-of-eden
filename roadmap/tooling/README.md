@@ -1,4 +1,4 @@
-[← Roadmap](../ROADMAP.md)
+[← Roadmap](../../ROADMAP.md)
 
 # Tooling track (T1–T15)
 
@@ -50,7 +50,7 @@ Not NPC features: the support work that keeps all the phases above honest. Most 
 - **Done when:** unplugging Ollama mid-turn gives a fallback line and leaves HP, gold and trust exactly as they were.
 
 **T5: NPC authoring check.** `npm run check-npcs` lints more than the schema does.
-- [x] Built for N11 ([`lint.ts`](../packages/server/src/npc/lint.ts)): unknown items in `prices` and `buys`, quests above the NPC's `maxQuestTier` (never offered) or aimed at an unknown NPC, secrets whose breakers point at an unknown debt or fact, personality words the traits contradict ("cowardly" with bravery 0.8: the nearest thing to "a trait with no matching rule", since the schema already refuses unknown traits), `teaches` a skill the NPC lacks, relationships, successors, spouses and parents that don't exist or don't name them back, and the content limits for minors. `minTrust` can't exceed what's attainable (100): the schema already caps it
+- [x] Built for N11 ([`lint.ts`](../../packages/server/src/npc/lint.ts)): unknown items in `prices` and `buys`, quests above the NPC's `maxQuestTier` (never offered) or aimed at an unknown NPC, secrets whose breakers point at an unknown debt or fact, personality words the traits contradict ("cowardly" with bravery 0.8: the nearest thing to "a trait with no matching rule", since the schema already refuses unknown traits), `teaches` a skill the NPC lacks, relationships, successors, spouses and parents that don't exist or don't name them back, and the content limits for minors. `minTrust` can't exceed what's attainable (100): the schema already caps it
 - [x] Run it in CI (T2: a `npm run check-npcs` step, and `tests/n11.test.ts` lints every NPC file too) and at startup in the CLI and the web server (they refuse to start)
 
 **T6: Dev-only commands.**
@@ -82,18 +82,18 @@ Not NPC features: the support work that keeps all the phases above honest. Most 
 - [ ] Expected: no tool calls that break a rule (code already blocks those), and the reply stays in character. Strip `<situation>` and `</situation>` from player input before building the message
 
 **T13: Structured events for the game screen.** G1's client needs to know *what happened*, not just the text.
-- [x] Every turn returns a list of typed events alongside the text: `mood_changed`, `item_moved`, `gold_moved`, `attack`, `quest_offered`, `npc_busy`, `npc_died` (plus `trust_changed`, `hp_changed`, `following`). They're worked out by diffing the state before and after each action ([`turnEvents.ts`](../packages/server/src/game/turnEvents.ts), [`events.ts`](../packages/shared/src/events.ts)), so model and non-model paths report alike; moves and the combat clock send them too. The CLI prints them (`[events] …`) and the browser animates them
+- [x] Every turn returns a list of typed events alongside the text: `mood_changed`, `item_moved`, `gold_moved`, `attack`, `quest_offered`, `npc_busy`, `npc_died` (plus `trust_changed`, `hp_changed`, `following`). They're worked out by diffing the state before and after each action ([`turnEvents.ts`](../../packages/server/src/game/turnEvents.ts), [`events.ts`](../../packages/shared/src/events.ts)), so model and non-model paths report alike; moves and the combat clock send them too. The CLI prints them (`[events] …`) and the browser animates them
 - [~] These events can be the same records as the event log (N5). **Not done:** they're kept separate. The N5 log records *why* (an insult, a purchase) for memory and gossip; these record *what changed* for the screen. Merging them is optional
 
 **T14: NPC voices.** Optional: a small local text-to-speech model (such as Piper) per NPC, with a voice in their file.
 - [x] A `voice` in every NPC file (browser voice names, language, gender, pitch, rate, and an optional Piper model, speaker and speed), checked by the schema
-- [x] The default costs nothing next to the language model: the browser's own speech engine, a different voice per NPC ([`pick.ts`](../packages/client/src/voice/pick.ts)). Piper is optional (`npm run voices:install` once, then `npm run web:voices` or `npm run dev -- --voices`), through its HTTP server (`PIPER_URL`, model stays loaded) or the program (`PIPER_BIN`), with a sentence cache and a browser fallback per line ([`tts.ts`](../packages/server/src/voice/tts.ts)). One four-speaker model (`en_GB-semaine-medium`) voices the whole cast, so only one voice model is loaded
+- [x] The default costs nothing next to the language model: the browser's own speech engine, a different voice per NPC ([`pick.ts`](../../packages/client/src/voice/pick.ts)). Piper is optional (`npm run voices:install` once, then `npm run web:voices` or `npm run dev -- --voices`), through its HTTP server (`PIPER_URL`, model stays loaded) or the program (`PIPER_BIN`), with a sentence cache and a browser fallback per line ([`tts.ts`](../../packages/server/src/voice/tts.ts)). One four-speaker model (`en_GB-semaine-medium`) voices the whole cast, so only one voice model is loaded
 - [x] Measure memory and latency on 8 GB alongside the language model before committing (`npm run bench:voice`, 2026-10-11, M2 8 GB, piper-tts 1.8.0 HTTP server, `en_GB-semaine-medium`, 6 lines per voice, `qwen3:4b-instruct` loaded):
   - **Speed:** 125–620 ms per sentence warm, real-time factor 0.04–0.14 (a 3-second line takes under half a second), so each sentence is ready long before the one before it finishes playing.
   - **Alongside the model:** no slowdown either way that stood out from run-to-run noise. Model first token 205 → 228 ms, whole reply 2.7 → 3.2 s; Piper's p50 stayed in its usual range.
   - **Memory:** Piper's server is 268 MB (macOS `footprint`; `ps` RSS read 17 MB because the pages were compressed), next to 3.3 GB for the model. The Mac was already swapping (3.5 GB swap used, 16–36% free), so Piper fits but has no headroom on 8 GB with a browser open.
   - **Verdict:** keep the browser's voices as the default (free) and Piper as the opt-in for better voices; it's fast enough, and its cost is memory, not speed.
-- [x] Stream speech sentence by sentence, as text arrives ([`sentences.ts`](../packages/shared/src/sentences.ts), [`speaker.ts`](../packages/client/src/voice/speaker.ts)): Piper audio for the next sentence is fetched while the current one plays; stage directions aren't read out; the player speaking cuts the NPC off
+- [x] Stream speech sentence by sentence, as text arrives ([`sentences.ts`](../../packages/shared/src/sentences.ts), [`speaker.ts`](../../packages/client/src/voice/speaker.ts)): Piper audio for the next sentence is fetched while the current one plays; stage directions aren't read out; the player speaking cuts the NPC off
 - [x] Extra: push-to-talk for the player (hold 🎙 or `V`), with the browser's speech recognition (on-device where the browser offers it), so no second model shares the memory
 
 **T15: Voice and consistency evals.** NPCs that sound like themselves, stay consistent and don't break character, and are measured that way.

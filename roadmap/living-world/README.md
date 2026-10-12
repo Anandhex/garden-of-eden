@@ -6,7 +6,7 @@ Planned 2026-10-12 from the user's notes: "npc also acts as a living player, unp
 
 **The rules for the whole track:** the same as every phase before it. **Code decides, the model only writes words** (insult lines, creeds, place names, the reason an NPC gives), through the existing invented-name checks. Every decision is an event with a logged reason, and every random choice comes from a seeded stream (per NPC where it matters), so a save replays the same way and tests stay deterministic while the game stays unpredictable to the player. The admin view (N17) is how every later phase is watched and tuned, so it comes first.
 
-**How it's organised:** a vertical slice first (below), then seven stages, built in order; inside a stage, phases go in the order listed. Phases are numbered in build order (renumbered on 2026-10-12; the old numbers used in the planning chats are in the table at the end of this file).
+**How it's organised:** a vertical slice first (below), then seven stages, built in order; inside a stage, phases go in the order listed. Phases are numbered in build order.
 
 **Open decisions** (defaults used until the user says otherwise):
 - **How free NPCs are (N38):** default: social and economic actions first; violence (attack, murder, theft) behind a config flag, turned on once the guardrails hold.
@@ -105,36 +105,3 @@ Planned 2026-10-12 from the user's notes: "npc also acts as a living player, unp
 | N66 | [The player's own life](stage-7-the-player-in-the-world.md#n66-the-players-own-life) | 7 |
 | N67 | [NPCs come to you, and reputation by place](stage-7-the-player-in-the-world.md#n67-npcs-come-to-you-and-reputation-by-place) | 7 |
 | N68 | [Legends, songs and the realm's history](stage-7-the-player-in-the-world.md#n68-legends-songs-and-the-realms-history) | 7 |
-
-## Old phase numbers
-
-The planning chats of 2026-10-12 used the numbers on the left.
-
-| Old | New | | Old | New |
-|---|---|---|---|---|
-| N17 | N17 | | N43 | N18 |
-| N18 | N24 | | N44 | N19 |
-| N19 | N25 | | N45 | N22 |
-| N20 | N33 | | N46 | N65 |
-| N21 | N37 | | N47 | N66 |
-| N22 | N38 | | N48 | N48 |
-| N23 | N56 | | N49 | N53 |
-| N24 | N58 | | N50 | N55 |
-| N25 | N59 | | N51 | N57 |
-| N26 | N63 | | N52 | N44 |
-| N27 | N64 | | N53 | N21 |
-| N28 | N20 | | N54 | N39 |
-| N29 | N30 | | N55 | N34 |
-| N30 | N31 | | N56 | N52 |
-| N31 | N40 | | N57 | N49 |
-| N32 | N36 | | N58 | N35 |
-| N33 | N61 | | N59 | N23 |
-| N34 | N62 | | N60 | N26 |
-| N35 | N60 | | N61 | N27 |
-| N36 | N45 | | N62 | N28 |
-| N37 | N46 | | N63 | N54 |
-| N38 | N47 | | N64 | N51 |
-| N39 | N50 | | N65 | N43 |
-| N40 | N68 | | N66 | N41 |
-| N41 | N67 | | N67 | N32 |
-| N42 | N42 | | N68 | N29 |

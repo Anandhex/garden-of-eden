@@ -1,4 +1,4 @@
-[← Roadmap](../ROADMAP.md)
+[← Roadmap](../../ROADMAP.md)
 
 # Game track (G1–G4)
 
@@ -19,17 +19,17 @@ Browser (Phaser 3 + DOM panels)  ──HTTP, NDJSON stream──▶  Node server
    draws, input, voices                   owns NpcAgent + game state, queue
 ```
 
-- [x] Pick an engine: **Phaser 3** (3.90). The world view is one scene ([`WorldScene.ts`](../packages/client/src/world/WorldScene.ts)) with textures drawn in code (no image files); the chat, sheet and dialogs stay DOM ([`ui/`](../packages/client/src/ui)), because text input and long lists are easier there. Keys are read by the page, not Phaser, so typing in the chat never moves you
-- [x] Set up a monorepo: `packages/server`, `packages/client`, `packages/shared` (types). npm workspaces; `shared` is TypeScript source both sides import. The snapshot type in [`protocol.ts`](../packages/shared/src/protocol.ts) is checked against what the server builds
+- [x] Pick an engine: **Phaser 3** (3.90). The world view is one scene ([`WorldScene.ts`](../../packages/client/src/world/WorldScene.ts)) with textures drawn in code (no image files); the chat, sheet and dialogs stay DOM ([`ui/`](../../packages/client/src/ui)), because text input and long lists are easier there. Keys are read by the page, not Phaser, so typing in the chat never moves you
+- [x] Set up a monorepo: `packages/server`, `packages/client`, `packages/shared` (types). npm workspaces; `shared` is TypeScript source both sides import. The snapshot type in [`protocol.ts`](../../packages/shared/src/protocol.ts) is checked against what the server builds
 - [~] Server: streams NPC text back as newline-delimited JSON from `POST /api/act`, then a final `done` event with the new state. Kept NDJSON over `fetch` instead of SSE (it streams per request, which SSE doesn't), and plain `node:http` instead of Fastify (no dependency needed)
-- [x] **Request queue** ([`queue.ts`](../packages/server/src/web/queue.ts)): actions, moves and new games take turns instead of a second one getting a 409; a waiting request hears its place in line (`queued`), and past 8 waiting the server answers 429. The combat clock waits for the queue too
+- [x] **Request queue** ([`queue.ts`](../../packages/server/src/web/queue.ts)): actions, moves and new games take turns instead of a second one getting a 409; a waiting request hears its place in line (`queued`), and past 8 waiting the server answers 429. The combat clock waits for the queue too
 - [x] **Warm-up:** the first call after loading a model is slow. Send a tiny request when the game starts, and set `keep_alive: "30m"` so the model stays in memory
 - [x] Client: walk up to an NPC → press E → dialogue box. Render streamed text as it arrives (typewriter effect for free), in the chat and in a speech bubble over the NPC
 - [x] Apply actions in the client, from typed events (T13): mood → an emote over the NPC, items and coin float from whoever lost or gained them and the Inventory tab glows, attacks lunge and flash (and shake the screen when you're hit), job offers get a ❗. Companions (N8.2; there's no `set_following` tool, hiring is how someone follows you) walk the player's trail a tile or two behind, worked out on the server so talk range and blocking agree
 - [x] NPCs walk between places along a path instead of jumping; arrivals and departures fade. Night darkens the map; rain, storms and snow fall
 - [~] Build `WorldSnapshot` from real game state: location and nearby things come from the NPC's map spot; time is real. Player position isn't in the prompt yet (design rule 3: it would be a new always-on line)
 - [x] Hide latency: a "…" bubble shows the moment you speak, and after 3 s with no first token the NPC says a filler line from their file (G2 timeout budget)
-- [x] Tests for the server: [`server.test.ts`](../packages/server/tests/server.test.ts) boots the real server with no model and a fake Piper, and checks the state, the queue (three moves at once, each applied once), streaming and voices
+- [x] Tests for the server: [`server.test.ts`](../../packages/server/tests/server.test.ts) boots the real server with no model and a fake Piper, and checks the state, the queue (three moves at once, each applied once), streaming and voices
 
 **Done when:** you can walk to Brena in the browser, buy a sword, and see it in your inventory UI. ✅ Checked in the browser on 2026-10-11: clicked Brena, walked there, asked for an iron sword, accepted the 4-gold offer; the sword showed in the Inventory tab (and the stream carried `item_moved` and `gold_moved`).
 
