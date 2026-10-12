@@ -1,0 +1,140 @@
+[← Roadmap](../../ROADMAP.md)
+
+# Living world track (N17–N68)
+
+Planned 2026-10-12 from the user's notes: "npc also acts as a living player, unpredictable"; "ordinary townsfolk should age, marry and die because their offspring might become named NPCs"; "gossip should include everyone"; "chatter shouldn't be cosmetic"; "reporting should be global"; "a world view as an administrator, where I can pin an NPC or the player and see what they're doing"; new civilisations, new settlements found by explorers, kingdoms reacting to revolts, runaway slaves freeing others, NPCs taking quests to climb the grades, and NPCs who join armies, rise through the ranks and, when they die in war, are remembered as war dead.
+
+**The rules for the whole track:** the same as every phase before it. **Code decides, the model only writes words** (insult lines, creeds, place names, the reason an NPC gives), through the existing invented-name checks. Every decision is an event with a logged reason, and every random choice comes from a seeded stream (per NPC where it matters), so a save replays the same way and tests stay deterministic while the game stays unpredictable to the player. The admin view (N17) is how every later phase is watched and tuned, so it comes first.
+
+**How it's organised:** a vertical slice first (below), then seven stages, built in order; inside a stage, phases go in the order listed. Phases are numbered in build order (renumbered on 2026-10-12; the old numbers used in the planning chats are in the table at the end of this file).
+
+**Open decisions** (defaults used until the user says otherwise):
+- **How free NPCs are (N38):** default: social and economic actions first; violence (attack, murder, theft) behind a config flag, turned on once the guardrails hold.
+- **The model never picks an action:** code picks, the model narrates.
+- **Kingdom cap (N64):** default 6.
+- **Can the player found a kingdom (N64):** default yes, by holding a free settlement that meets the founding rules.
+- **Exploration rate (N63):** default a few trips per settlement per season.
+- **Discoveries on the player's map (N63):** default only once the player has heard of them (the admin view shows them at once).
+- **How long a journey takes in real time (N26):** default a day's walk is about 5–10 real minutes; set by the travel time scale.
+- **Which peoples and monsters (N54):** default the list in N54; dragons rare (a few in the realm).
+- **Can the player lead a faction (N57):** default yes, any kind an NPC could found.
+- **Can the player join an army (N55):** default yes, as a volunteer or a levy, with the same ranks as NPCs.
+- **Admin powers (N17):** read-only first; interventions (spawn, kill, edit traits, trigger an event, nudge the director) later, as their own phase.
+
+| Stage | Phases, in build order |
+|---|---|
+| [Milestone: vertical slice](#milestone-the-vertical-slice) | N17 → N18 → N25 → N26 → N33 → N37 → N38 → N40, for Millbrook and Highdale and the road between; play, then revise the plan |
+| [Stage 1: Foundations](stage-1-foundations.md) | N17 The admin world view → N18 Scale and storage → N19 Performance and model-call budgets → N20 Stories, drama and liveness metrics → N21 Callbacks to the player's choices → N22 Long-run balance tests → N23 Sharing worlds → N24 Global reporting |
+| [Stage 2: Everyone lives](stage-2-everyone-lives.md) | N25 Townsfolk lives → N26 The open road → N27 The wilds → N28 Fauna and flora → N29 A soundscape → N30 Seasons and the farming year → N31 Visible consequences on the map → N32 Interiors and homes → N33 Gossip for everyone → N34 Following people in the game → N35 Moving through time → N36 The mood of a place |
+| [Stage 3: NPCs choose](stage-3-npcs-choose.md) | N37 Chatter with consequences → N38 NPCs as living players → N39 The first hour → N40 Ambitions and careers → N41 Leisure and contests → N42 A shared quest market and adventurer grades → N43 Items with a history → N44 A nemesis |
+| [Stage 4: Society](stage-4-society.md) | N45 Family feuds and inheritance → N46 Secrets, spies and blackmail → N47 The underworld → N48 Law and trials → N49 Setbacks instead of game over → N50 Belief → N51 Magic → N52 Shaping what people believe → N53 Cultures and languages |
+| [Stage 5: Power and conflict](stage-5-power-and-conflict.md) | N54 Peoples and monsters → N55 Armies, soldiers and the war dead → N56 Grievances and uprisings → N57 Player-led factions → N58 Kingdoms react to unrest → N59 Runaways and liberation |
+| [Stage 6: A changing world](stage-6-a-changing-world.md) | N60 Ecology → N61 Epidemics → N62 Disasters → N63 Exploration, roads and new settlements → N64 New kingdoms |
+| [Stage 7: The player in the world](stage-7-the-player-in-the-world.md) | N65 The player's view → N66 The player's own life → N67 NPCs come to you, and reputation by place → N68 Legends, songs and the realm's history |
+
+
+## Milestone: the vertical slice
+
+**Status:** ⬜ Planned
+
+**Goal:** play the core of the living world before building all of it, and change the plan from what that shows.
+
+**Scope:** Millbrook and Highdale only (the rest of the realm runs as today), with **N17 → N18 → N25 → N26 → N33 → N37 → N38 → N40**, each cut down to what the two places need; N26 for the one road between them, so the slice tests travel as a journey. Then play it for a few in-game months, including several seeds' first hours (N39's question: does something grab the player in the first five minutes?).
+
+- [ ] **Player fantasies as checks:** write down the paths the game promises (for example: a nobody rising to lord, leading the slave revolt, building a trading house, becoming a famous adventurer, a soldier rising through the ranks). For each, list the phases it needs and check that it can be played end to end once they're built; gaps found become phases
+- [ ] Build the slice phases for the two places only
+- [ ] Play it; write down what feels alive and what feels like noise, using N17 and N20's metrics as well as notes
+- [ ] Revise the rest of the track from the notes (cut, merge, reorder or add phases) before Stage 2's remaining phases
+
+- **Done when:** a few in-game months in Millbrook and Highdale produce NPC choices, grudges and gossip the player notices and can act on, the playtest notes are written up, and this roadmap has been revised from them.
+
+
+## Phase index
+
+| Phase | Title | Stage |
+|---|---|---|
+| N17 | [The admin world view](stage-1-foundations.md#n17-the-admin-world-view) | 1 |
+| N18 | [Scale and storage](stage-1-foundations.md#n18-scale-and-storage) | 1 |
+| N19 | [Performance and model-call budgets](stage-1-foundations.md#n19-performance-and-model-call-budgets) | 1 |
+| N20 | [Stories, drama and liveness metrics](stage-1-foundations.md#n20-stories-drama-and-liveness-metrics) | 1 |
+| N21 | [Callbacks to the player's choices](stage-1-foundations.md#n21-callbacks-to-the-players-choices) | 1 |
+| N22 | [Long-run balance tests](stage-1-foundations.md#n22-long-run-balance-tests) | 1 |
+| N23 | [Sharing worlds](stage-1-foundations.md#n23-sharing-worlds) | 1 |
+| N24 | [Global reporting](stage-1-foundations.md#n24-global-reporting) | 1 |
+| N25 | [Townsfolk lives](stage-2-everyone-lives.md#n25-townsfolk-lives) | 2 |
+| N26 | [The open road](stage-2-everyone-lives.md#n26-the-open-road) | 2 |
+| N27 | [The wilds](stage-2-everyone-lives.md#n27-the-wilds) | 2 |
+| N28 | [Fauna and flora](stage-2-everyone-lives.md#n28-fauna-and-flora) | 2 |
+| N29 | [A soundscape](stage-2-everyone-lives.md#n29-a-soundscape) | 2 |
+| N30 | [Seasons and the farming year](stage-2-everyone-lives.md#n30-seasons-and-the-farming-year) | 2 |
+| N31 | [Visible consequences on the map](stage-2-everyone-lives.md#n31-visible-consequences-on-the-map) | 2 |
+| N32 | [Interiors and homes](stage-2-everyone-lives.md#n32-interiors-and-homes) | 2 |
+| N33 | [Gossip for everyone](stage-2-everyone-lives.md#n33-gossip-for-everyone) | 2 |
+| N34 | [Following people in the game](stage-2-everyone-lives.md#n34-following-people-in-the-game) | 2 |
+| N35 | [Moving through time](stage-2-everyone-lives.md#n35-moving-through-time) | 2 |
+| N36 | [The mood of a place](stage-2-everyone-lives.md#n36-the-mood-of-a-place) | 2 |
+| N37 | [Chatter with consequences](stage-3-npcs-choose.md#n37-chatter-with-consequences) | 3 |
+| N38 | [NPCs as living players](stage-3-npcs-choose.md#n38-npcs-as-living-players) | 3 |
+| N39 | [The first hour](stage-3-npcs-choose.md#n39-the-first-hour) | 3 |
+| N40 | [Ambitions and careers](stage-3-npcs-choose.md#n40-ambitions-and-careers) | 3 |
+| N41 | [Leisure and contests](stage-3-npcs-choose.md#n41-leisure-and-contests) | 3 |
+| N42 | [A shared quest market and adventurer grades](stage-3-npcs-choose.md#n42-a-shared-quest-market-and-adventurer-grades) | 3 |
+| N43 | [Items with a history](stage-3-npcs-choose.md#n43-items-with-a-history) | 3 |
+| N44 | [A nemesis](stage-3-npcs-choose.md#n44-a-nemesis) | 3 |
+| N45 | [Family feuds and inheritance](stage-4-society.md#n45-family-feuds-and-inheritance) | 4 |
+| N46 | [Secrets, spies and blackmail](stage-4-society.md#n46-secrets-spies-and-blackmail) | 4 |
+| N47 | [The underworld](stage-4-society.md#n47-the-underworld) | 4 |
+| N48 | [Law and trials](stage-4-society.md#n48-law-and-trials) | 4 |
+| N49 | [Setbacks instead of game over](stage-4-society.md#n49-setbacks-instead-of-game-over) | 4 |
+| N50 | [Belief](stage-4-society.md#n50-belief) | 4 |
+| N51 | [Magic](stage-4-society.md#n51-magic) | 4 |
+| N52 | [Shaping what people believe](stage-4-society.md#n52-shaping-what-people-believe) | 4 |
+| N53 | [Cultures and languages](stage-4-society.md#n53-cultures-and-languages) | 4 |
+| N54 | [Peoples and monsters](stage-5-power-and-conflict.md#n54-peoples-and-monsters) | 5 |
+| N55 | [Armies, soldiers and the war dead](stage-5-power-and-conflict.md#n55-armies-soldiers-and-the-war-dead) | 5 |
+| N56 | [Grievances and uprisings](stage-5-power-and-conflict.md#n56-grievances-and-uprisings) | 5 |
+| N57 | [Player-led factions](stage-5-power-and-conflict.md#n57-player-led-factions) | 5 |
+| N58 | [Kingdoms react to unrest](stage-5-power-and-conflict.md#n58-kingdoms-react-to-unrest) | 5 |
+| N59 | [Runaways and liberation](stage-5-power-and-conflict.md#n59-runaways-and-liberation) | 5 |
+| N60 | [Ecology](stage-6-a-changing-world.md#n60-ecology) | 6 |
+| N61 | [Epidemics](stage-6-a-changing-world.md#n61-epidemics) | 6 |
+| N62 | [Disasters](stage-6-a-changing-world.md#n62-disasters) | 6 |
+| N63 | [Exploration, roads and new settlements](stage-6-a-changing-world.md#n63-exploration-roads-and-new-settlements) | 6 |
+| N64 | [New kingdoms](stage-6-a-changing-world.md#n64-new-kingdoms) | 6 |
+| N65 | [The player's view](stage-7-the-player-in-the-world.md#n65-the-players-view) | 7 |
+| N66 | [The player's own life](stage-7-the-player-in-the-world.md#n66-the-players-own-life) | 7 |
+| N67 | [NPCs come to you, and reputation by place](stage-7-the-player-in-the-world.md#n67-npcs-come-to-you-and-reputation-by-place) | 7 |
+| N68 | [Legends, songs and the realm's history](stage-7-the-player-in-the-world.md#n68-legends-songs-and-the-realms-history) | 7 |
+
+## Old phase numbers
+
+The planning chats of 2026-10-12 used the numbers on the left.
+
+| Old | New | | Old | New |
+|---|---|---|---|---|
+| N17 | N17 | | N43 | N18 |
+| N18 | N24 | | N44 | N19 |
+| N19 | N25 | | N45 | N22 |
+| N20 | N33 | | N46 | N65 |
+| N21 | N37 | | N47 | N66 |
+| N22 | N38 | | N48 | N48 |
+| N23 | N56 | | N49 | N53 |
+| N24 | N58 | | N50 | N55 |
+| N25 | N59 | | N51 | N57 |
+| N26 | N63 | | N52 | N44 |
+| N27 | N64 | | N53 | N21 |
+| N28 | N20 | | N54 | N39 |
+| N29 | N30 | | N55 | N34 |
+| N30 | N31 | | N56 | N52 |
+| N31 | N40 | | N57 | N49 |
+| N32 | N36 | | N58 | N35 |
+| N33 | N61 | | N59 | N23 |
+| N34 | N62 | | N60 | N26 |
+| N35 | N60 | | N61 | N27 |
+| N36 | N45 | | N62 | N28 |
+| N37 | N46 | | N63 | N54 |
+| N38 | N47 | | N64 | N51 |
+| N39 | N50 | | N65 | N43 |
+| N40 | N68 | | N66 | N41 |
+| N41 | N67 | | N67 | N32 |
+| N42 | N42 | | N68 | N29 |
