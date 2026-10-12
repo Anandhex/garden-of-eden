@@ -4,24 +4,24 @@ The core idea behind every phase: **the LLM handles the talking and suggests act
 
 This matters even more with small local models. They will sometimes call the wrong tool, pass bad arguments, or forget to call a tool at all. Your code is the safety net.
 
-**How this roadmap is organised:**
+**How this roadmap is organised:** every track is a folder under `roadmap/` with a `README.md` overview; the two big tracks are split into stages, one file each, in build order.
 - **Foundation (F1–F4):** what's already built.
-- **NPC track (N0–N16):** who NPCs are and the RPG rules behind them, in build order. Each phase holds all the features that belong to it (numbered like N5.3).
+- **NPC track (N0–N16), in six stages:** who NPCs are and the RPG rules behind them, in build order. Each phase holds all the features that belong to it (numbered like N5.3).
 - **Living world track (N17–N68), in seven stages, with a vertical slice first:** the world running on its own: an admin view, everyone living, gossiping and choosing, uprisings, crackdowns, runaways, new settlements and kingdoms, stories, seasons, disease, disasters, ecology, ambitions, feuds, secrets, crime, belief, legends, a world that reaches out to the player, a quest market shared with NPC adventurers, armies of real soldiers, law, cultures, the player's own life, a realm to walk and explore (the open road, the wilds, and rich fauna and flora), other peoples and monsters (goblins, orcs, giants, dragons) with settlements, kingdoms and alliances of their own, magic with rules and laws, items with a history, leisure and contests, interiors and homes, a soundscape, the storage, budgets and balance tests that keep it all running, and what makes the player care: a nemesis, callbacks to their choices, a strong first hour, following people, shaping beliefs, setbacks instead of game over, moving through time and sharing worlds.
 - **Tooling track (T1–T15):** tests, simulation, checks and evals that keep the NPC track honest.
 - **Game track (G1–G4):** the playable game around the NPCs: browser client, game feel, performance and shipping.
 
-Each track has its own file (see **Where things are** below). Mark items `[x]` as you go, `[~]` for partly done. Each phase ends with a **Done when** check: don't move on until it passes. For what NPCs can do today, see [README.md](README.md).
+Each track has its own folder (see **Where things are** below). Mark items `[x]` as you go, `[~]` for partly done. Each phase ends with a **Done when** check: don't move on until it passes. For what NPCs can do today, see [README.md](README.md).
 
 ## Where things are
 
 | Track | File | What's in it |
 |---|---|---|
-| Foundation (F1–F4) | [roadmap/foundation.md](roadmap/foundation.md) | ✅ First conversation, stronger NPCs, RPG systems, testing |
-| NPC track (N0–N16) | [roadmap/npc-track.md](roadmap/npc-track.md) | ✅ Who NPCs are and the RPG rules behind them, through the realm, travel, localities and crowds |
+| Foundation (F1–F4) | [roadmap/foundation/](roadmap/foundation/README.md) | ✅ First conversation, stronger NPCs, RPG systems, testing |
+| NPC track (N0–N16) | [roadmap/npc-track/](roadmap/npc-track/README.md) | ✅ Six stages, one file each: [1 The core NPC](roadmap/npc-track/stage-1-the-core-npc.md) · [2 Inner life](roadmap/npc-track/stage-2-inner-life.md) · [3 Living together](roadmap/npc-track/stage-3-living-together.md) · [4 Action and growth](roadmap/npc-track/stage-4-action-and-growth.md) · [5 A growing town](roadmap/npc-track/stage-5-a-growing-town.md) · [6 The wider world](roadmap/npc-track/stage-6-the-wider-world.md) |
 | Living world track (N17–N68) | [roadmap/living-world/](roadmap/living-world/README.md) | ⬜ The vertical slice, then seven stages, one file each: [1 Foundations](roadmap/living-world/stage-1-foundations.md) · [2 Everyone lives](roadmap/living-world/stage-2-everyone-lives.md) · [3 NPCs choose](roadmap/living-world/stage-3-npcs-choose.md) · [4 Society](roadmap/living-world/stage-4-society.md) · [5 Power and conflict](roadmap/living-world/stage-5-power-and-conflict.md) · [6 A changing world](roadmap/living-world/stage-6-a-changing-world.md) · [7 The player in the world](roadmap/living-world/stage-7-the-player-in-the-world.md) |
-| Tooling track (T1–T15) | [roadmap/tooling.md](roadmap/tooling.md) | 🟡 Tests, simulation, checks and evals |
-| Game track (G1–G4) | [roadmap/game.md](roadmap/game.md) | 🟡 The browser client, game feel, performance, shipping |
+| Tooling track (T1–T15) | [roadmap/tooling/](roadmap/tooling/README.md) | 🟡 Tests, simulation, checks and evals |
+| Game track (G1–G4) | [roadmap/game/](roadmap/game/README.md) | 🟡 The browser client, game feel, performance, shipping |
 
 **Next up:** the [vertical slice](roadmap/living-world/README.md#milestone-the-vertical-slice), starting with [N17 The admin world view](roadmap/living-world/stage-1-foundations.md#n17-the-admin-world-view).
 
@@ -29,24 +29,24 @@ Each track has its own file (see **Where things are** below). Mark items `[x]` a
 
 | Track | Item | Status |
 |---|---|---|
-| Foundation | F1 First conversation · F2 Stronger NPCs · F3 RPG systems · F4 Testing | ✅ Built |
-| NPC | N0 Fixes in what exists | ✅ Built |
-| NPC | N1 Personality traits | ✅ Built (every trait drives a rule; `npm run sim`, `npm run bench:traits`) |
-| NPC | N2 Saves | ✅ Built (CLI and browser share `saves/world.json`) |
-| NPC | N3 World knowledge and non-talking NPCs | ✅ Lore and knowledge scopes (N3.1); creatures, spawn rules, `defeat` quests and the bandit leader (N3.2); ranks, species and age (N3.3) |
-| NPC | N4 Character depth | ✅ Cover stories, quirks, learning your name, appearances and `/look` (`tests/n4.test.ts`) |
-| NPC | N5 Memory and relationships | ✅ Event log, memory, four relationship axes, grudges, favours, fears and loves, emotions, lies, promises, friendship, journal (`tests/n5.test.ts`) |
-| NPC | N6 Daily life | ✅ Schedules, needs, places, the village living together, signature moves, services, NPCs who speak first, weather and town events, group scenes (`tests/n6.test.ts`) |
-| NPC | N7 The social web | ✅ NPC-to-NPC relationships, gossip, witnesses, reputation, crime and the guard, rumours, dilemmas, factions, successors, theft and stealth (`tests/n7.test.ts`) |
-| NPC | N8 Combat and health | ✅ Combat styles, MP abilities, statuses, subdue and loot, raids in sight, injuries and illness, companions (`tests/n8.test.ts`) |
-| NPC | N9 Quests, growth and story arcs | ✅ Seven goal types, chains, deadlines, quest flavour, skill trials, growth challenges, trait drift, player growth, arcs (`tests/n9.test.ts`) |
-| NPC | N10 Crafting and economy | ✅ Input tiers, stock and demand prices, restocking and NPC trade, `offer_commission` (`tests/n10.test.ts`) |
-| NPC | N11 Growing the cast | ✅ NPCs from templates (`npm run gen`), Pip the errand girl, and families: courtship, marriage, children who inherit talents and grow up (`tests/n11.test.ts`, `npm run bench:style`) |
-| NPC | N12 The world director | ✅ Event log with witnesses, revenge goals, nightly chronicle, director quests, character drift (`tests/n12.test.ts`, `npm run bench:director`) |
-| NPC | N13 The wider realm | ✅ Kingdoms, towns and villages, prosperity and building, taxes up the chain, factions and splits, treaties, raids and wars, beasts and dungeons, named risers and new talking NPCs, an active director, death as news (`tests/n13.test.ts`, `npm run sim:realm`) |
-| NPC | N14 Travel | ✅ Walk the realm's roads to any place: a map and talking people for every town and village, encounters on the road (`tests/n14.test.ts`) |
-| NPC | N15 Localities | ✅ Millbrook's map generated like every place's; the mine road, the bandit camp, the old mine and the woods are maps of their own around it; Millbrook's mayor and guard captain talk; everyone remembers by meaning (`tests/n15.test.ts`, save v10) |
-| NPC | N16 Crowds and classes | ✅ Maps sized to the place; every one of a place's people on its map, living their day minute by minute and talking to each other by rank and faction; anyone can be talked to, only traders sell; slaves, serfs, commoners, craftsmen, merchants, clergy, gentry, nobles and royals; the cast's breaks; time flows while you stand about (`tests/n16.test.ts`) |
+| Foundation | [F1 First conversation · F2 Stronger NPCs · F3 RPG systems · F4 Testing](roadmap/foundation/README.md) | ✅ Built |
+| NPC · S1 | [N0 Fixes in what exists](roadmap/npc-track/stage-1-the-core-npc.md#n0-fixes-in-what-exists) | ✅ Built |
+| NPC · S1 | [N1 Personality traits](roadmap/npc-track/stage-1-the-core-npc.md#n1-personality-traits-that-drive-the-rules) | ✅ Built (every trait drives a rule; `npm run sim`, `npm run bench:traits`) |
+| NPC · S1 | [N2 Saves](roadmap/npc-track/stage-1-the-core-npc.md#n2-saving-npcs-and-the-player) | ✅ Built (CLI and browser share `saves/world.json`) |
+| NPC · S1 | [N3 World knowledge and non-talking NPCs](roadmap/npc-track/stage-1-the-core-npc.md#n3-world-knowledge-and-non-talking-npcs) | ✅ Lore and knowledge scopes (N3.1); creatures, spawn rules, `defeat` quests and the bandit leader (N3.2); ranks, species and age (N3.3) |
+| NPC · S2 | [N4 Character depth](roadmap/npc-track/stage-2-inner-life.md#n4-character-depth) | ✅ Cover stories, quirks, learning your name, appearances and `/look` (`tests/n4.test.ts`) |
+| NPC · S2 | [N5 Memory and relationships](roadmap/npc-track/stage-2-inner-life.md#n5-memory-and-relationships) | ✅ Event log, memory, four relationship axes, grudges, favours, fears and loves, emotions, lies, promises, friendship, journal (`tests/n5.test.ts`) |
+| NPC · S3 | [N6 Daily life](roadmap/npc-track/stage-3-living-together.md#n6-daily-life) | ✅ Schedules, needs, places, the village living together, signature moves, services, NPCs who speak first, weather and town events, group scenes (`tests/n6.test.ts`) |
+| NPC · S3 | [N7 The social web](roadmap/npc-track/stage-3-living-together.md#n7-the-social-web) | ✅ NPC-to-NPC relationships, gossip, witnesses, reputation, crime and the guard, rumours, dilemmas, factions, successors, theft and stealth (`tests/n7.test.ts`) |
+| NPC · S4 | [N8 Combat and health](roadmap/npc-track/stage-4-action-and-growth.md#n8-combat-and-health) | ✅ Combat styles, MP abilities, statuses, subdue and loot, raids in sight, injuries and illness, companions (`tests/n8.test.ts`) |
+| NPC · S4 | [N9 Quests, growth and story arcs](roadmap/npc-track/stage-4-action-and-growth.md#n9-quests-growth-and-story-arcs) | ✅ Seven goal types, chains, deadlines, quest flavour, skill trials, growth challenges, trait drift, player growth, arcs (`tests/n9.test.ts`) |
+| NPC · S4 | [N10 Crafting and economy](roadmap/npc-track/stage-4-action-and-growth.md#n10-crafting-and-economy) | ✅ Input tiers, stock and demand prices, restocking and NPC trade, `offer_commission` (`tests/n10.test.ts`) |
+| NPC · S5 | [N11 Growing the cast](roadmap/npc-track/stage-5-a-growing-town.md#n11-growing-the-cast) | ✅ NPCs from templates (`npm run gen`), Pip the errand girl, and families: courtship, marriage, children who inherit talents and grow up (`tests/n11.test.ts`, `npm run bench:style`) |
+| NPC · S5 | [N12 The world director](roadmap/npc-track/stage-5-a-growing-town.md#n12-the-world-director) | ✅ Event log with witnesses, revenge goals, nightly chronicle, director quests, character drift (`tests/n12.test.ts`, `npm run bench:director`) |
+| NPC · S6 | [N13 The wider realm](roadmap/npc-track/stage-6-the-wider-world.md#n13-the-wider-realm) | ✅ Kingdoms, towns and villages, prosperity and building, taxes up the chain, factions and splits, treaties, raids and wars, beasts and dungeons, named risers and new talking NPCs, an active director, death as news (`tests/n13.test.ts`, `npm run sim:realm`) |
+| NPC · S6 | [N14 Travel](roadmap/npc-track/stage-6-the-wider-world.md#n14-travel) | ✅ Walk the realm's roads to any place: a map and talking people for every town and village, encounters on the road (`tests/n14.test.ts`) |
+| NPC · S6 | [N15 Localities](roadmap/npc-track/stage-6-the-wider-world.md#n15-localities) | ✅ Millbrook's map generated like every place's; the mine road, the bandit camp, the old mine and the woods are maps of their own around it; Millbrook's mayor and guard captain talk; everyone remembers by meaning (`tests/n15.test.ts`, save v10) |
+| NPC · S6 | [N16 Crowds and classes](roadmap/npc-track/stage-6-the-wider-world.md#n16-crowds-and-classes) | ✅ Maps sized to the place; every one of a place's people on its map, living their day minute by minute and talking to each other by rank and faction; anyone can be talked to, only traders sell; slaves, serfs, commoners, craftsmen, merchants, clergy, gentry, nobles and royals; the cast's breaks; time flows while you stand about (`tests/n16.test.ts`) |
 | Living world · slice | [Milestone: the vertical slice](roadmap/living-world/README.md#milestone-the-vertical-slice) | ⬜ Planned (Millbrook and Highdale; play, then revise) |
 | Living world · S1 | [N17 The admin world view](roadmap/living-world/stage-1-foundations.md#n17-the-admin-world-view) | ⬜ Planned (read-only first; pin NPCs, the player or a place) |
 | Living world · S1 | [N18 Scale and storage](roadmap/living-world/stage-1-foundations.md#n18-scale-and-storage) | ⬜ Planned |
@@ -100,11 +100,11 @@ Each track has its own file (see **Where things are** below). Mark items `[x]` a
 | Living world · S7 | [N66 The player's own life](roadmap/living-world/stage-7-the-player-in-the-world.md#n66-the-players-own-life) | ⬜ Planned |
 | Living world · S7 | [N67 NPCs come to you, and reputation by place](roadmap/living-world/stage-7-the-player-in-the-world.md#n67-npcs-come-to-you-and-reputation-by-place) | ⬜ Planned |
 | Living world · S7 | [N68 Legends, songs and the realm's history](roadmap/living-world/stage-7-the-player-in-the-world.md#n68-legends-songs-and-the-realms-history) | ⬜ Planned |
-| Tooling | T1–T15 | 🟡 **T1–T4 core pieces built; T5 authoring check built (N11); T13 typed events and T14 voices built (Piper measured); T15 blind voice test built (N11.2)** |
-| Game | G1 Real game | ✅ Phaser 3 client in an npm-workspaces monorepo (`packages/server`, `packages/client`, `packages/shared`), request queue, typed events animated, latency hidden (`packages/server/tests/server.test.ts`, `uiVoice.test.ts`) |
-| Game | G2 Game feel | 🟡 Partly done (filler lines on a slow first token added) |
-| Game | G3 Performance | 🟡 Mostly done (first-token time and memory pressure now measured by `npm run bench:voice`) |
-| Game | G4 Ship | ⬜ |
+| Tooling | [T1–T15](roadmap/tooling/README.md) | 🟡 **T1–T4 core pieces built; T5 authoring check built (N11); T13 typed events and T14 voices built (Piper measured); T15 blind voice test built (N11.2)** |
+| Game | [G1 Real game](roadmap/game/README.md#g1-connect-to-a-real-game) | ✅ Phaser 3 client in an npm-workspaces monorepo (`packages/server`, `packages/client`, `packages/shared`), request queue, typed events animated, latency hidden (`packages/server/tests/server.test.ts`, `uiVoice.test.ts`) |
+| Game | [G2 Game feel](roadmap/game/README.md#g2-game-feel-and-guardrails) | 🟡 Partly done (filler lines on a slow first token added) |
+| Game | [G3 Performance](roadmap/game/README.md#g3-performance-on-8-gb) | 🟡 Mostly done (first-token time and memory pressure now measured by `npm run bench:voice`) |
+| Game | [G4 Ship](roadmap/game/README.md#g4-ship) | ⬜ |
 
 ## Setup
 
@@ -155,21 +155,16 @@ The target model. Each phase fills in part of it.
 
 ## Order and checkpoints
 
-**The NPC track, in order:**
+**The tracks, in order:**
 
-1. **N0 Fixes:** ✅ done.
-2. **N1 Traits:** ✅ done.
-3. **N2 Saves:** next (core save/load is in). Memory, grudges and schedules mean nothing if they're lost on restart.
-4. **N3 World knowledge and non-talking NPCs:** prerequisites, before the world grows.
-5. **N4 Character depth:** cheap data-and-rules features.
-6. **N5 Memory and relationships → N6 Daily life → N7 Social web:** the heart of living NPCs. Do them in this order.
-7. **N8 Combat and health, N9 Quests and growth, N10 Economy:** any order once N6 exists. Pick the one your game needs most.
-8. **N11 Growing the cast:** once the town needs more people.
-9. **N12 The world director:** after N5, N7 and N9. Its event log and revenge goals can come earlier; they help N5 and N7 too.
-10. **N13 The wider realm:** after N12. N13.0 (death news) first, then N13.1 and the rest in order.
-11. **N14 Travel, then N15 Localities:** ✅ both done.
-12. **N16 Crowds and classes:** ✅ done.
-13. **The living world track (N17–N68), by stage:**
+1. **The NPC track (N0–N16), by stage:** ✅ all built.
+    - **Stage 1: The core NPC:** N0 → N1 → N2 → N3
+    - **Stage 2: Inner life:** N4 → N5
+    - **Stage 3: Living together:** N6 → N7
+    - **Stage 4: Action and growth:** N8 → N9 → N10
+    - **Stage 5: A growing town:** N11 → N12
+    - **Stage 6: The wider world:** N13 → N14 → N15 → N16
+2. **The living world track (N17–N68), by stage:**
     - **First, the vertical slice:** N17 → N18 → N25 → N26 → N33 → N37 → N38 → N40 for Millbrook, Highdale and the road between; play it and revise this plan before going on. Then finish the stages:
     - **Stage 1: Foundations:** N17 → N18 → N19 → N20 → N21 → N22 → N23 → N24
     - **Stage 2: Everyone lives:** N25 → N26 → N27 → N28 → N29 → N30 → N31 → N32 → N33 → N34 → N35 → N36

@@ -1,4 +1,4 @@
-[← Roadmap](../ROADMAP.md)
+[← Roadmap](../../ROADMAP.md)
 
 # Foundation (built)
 
@@ -82,7 +82,7 @@ Goal: NPCs feel distinct, and the action system can't be exploited.
 
 ## F3: RPG systems
 
-**Status:** ✅ Built. The rules for each are in [README.md](../README.md).
+**Status:** ✅ Built. The rules for each are in [README.md](../../README.md).
 
 - [x] **Stats:** HP, MP and 8 attributes (1–20), described to the model in words ("strong (STR 16)")
 - [x] **Skills:** 15 skills with tiers from 0 (untrained) to 5 (master). Combat, social and haggling skills add to rolls
