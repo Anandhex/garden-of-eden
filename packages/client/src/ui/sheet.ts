@@ -4,6 +4,9 @@ import { act, onRender } from "../game";
 import { game, store } from "../store";
 import { speaker } from "../voice/speaker";
 import { button } from "./modals";
+import { renderRealm } from "./realm";
+import { crowd } from "../crowd";
+import { CLASSES, CLASS_WORDS } from "@millbrook/shared";
 
 export function renderSheet(): void {
   const body = $("tab-body");
@@ -65,6 +68,20 @@ export function renderSheet(): void {
     }
     body.append(emptyP("Gear takes a slot each; other goods stack 20 to a slot. A full pack takes nothing more."));
   } else if (store.tab === "world") {
+    // The people of this place (N16), highest first, and the laws that bind them.
+    const r = crowd.sim?.roster;
+    if (r) {
+      h(`The people of ${r.place}`);
+      const out = crowd.pos.filter((x) => x.visible).length;
+      body.append(emptyP(`${r.people.length.toLocaleString()} townsfolk, ${out.toLocaleString()} out and about now${r.lord ? `, under ${r.lord}` : ""}${r.ruler && r.ruler !== r.lord ? `; the crown is ${r.ruler}'s` : ""}. ${r.laws.slavery ? "Slavery is lawful here." : r.laws.serfdom ? "Serfs are bound to the land here." : "Everyone here is free."}`));
+      for (const cls of [...CLASSES].reverse()) {
+        const n = r.people.filter((x) => x.cls === cls).length;
+        if (n > 0) row(cls === "gentry" ? "gentry" : cls === "artisan" ? "craftsmen" : `${CLASS_WORDS[cls]}s`, n.toLocaleString());
+      }
+      const facs = new Map<string, number>();
+      for (const x of r.people) if (x.factionName) facs.set(x.factionName, (facs.get(x.factionName) ?? 0) + 1);
+      if (facs.size > 0) body.append(emptyP(`Sworn to factions: ${[...facs].sort((a, b) => b[1] - a[1]).map(([n, c]) => `${n} (${c})`).join(", ")}.`));
+    }
     h("How the village sees you");
     body.append(emptyP(p.reputation.words ? `As ${p.reputation.words}.` : "Nobody's made up their mind about you yet."));
     row("trust · fear · respect · liking", `${p.reputation.trust} · ${p.reputation.fear} · ${p.reputation.respect} · ${p.reputation.affection}`);
@@ -85,6 +102,8 @@ export function renderSheet(): void {
     h("The chronicle");
     if (s.chronicle.lore.length === 0) body.append(emptyP("Nothing yet. It's written at midnight, from what happened."));
     for (const l of s.chronicle.lore) body.append(emptyP(l));
+  } else if (store.tab === "realm") {
+    renderRealm(body);
   } else {
     h("Active quests");
     if (p.quests.length === 0) body.append(emptyP("None. Ask around for work."));
@@ -105,6 +124,12 @@ export function renderSheet(): void {
 
 export function renderHeader(): void {
   const s = game();
+  // Out at a locality (N15): "Millbrook · The mine road".
+  const where = s.site.area.id === "village" ? s.site.name : `${s.site.name} · ${s.site.area.name}`;
+  $("site-name").textContent = where;
+  const ways = s.site.area.exits.length > 0 ? ` Walk off the map's edge: ${s.site.area.exits.join(", ")}.` : "";
+  $("site-name").title = `${s.site.home ? "Home: Millbrook" : `${s.site.name}, a ${s.site.kind}${s.site.kingdom ? ` of ${s.site.kingdom}` : ""}. Travel from the Realm tab.`}${ways}`;
+  document.title = where;
   $("time").textContent = s.time.text;
   $("today").textContent = `${s.time.weather}, ${s.time.season}${s.time.events.length ? ` · ${s.time.events.join(", ")}` : ""}`;
   $("today").title = s.time.today;

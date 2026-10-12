@@ -8,7 +8,7 @@
 </head>
 <body>
 <header>
-  <h1>Millbrook</h1>
+  <h1 id="site-name" title="Where you are">Millbrook</h1>
   <span id="time" class="pill">…</span>
   <span id="today" class="pill" title="Weather, season and what's on in town">…</span>
   <span id="hpbar" class="pill">HP</span>
@@ -18,8 +18,19 @@
   <button id="forage-btn" title="Gather herbs and pelts where they grow (by the gate)">Forage</button>
   <button id="craft-btn" title="Make something yourself: smithing at the forge, brewing and cooking at the inn">Craft…</button>
   <button id="sneak-btn" title="Try to move unseen here">Sneak</button>
+  <button id="time-btn" class="ghost" hidden>⏸ Time</button>
   <button data-wait="1">Wait 1h</button>
   <button data-wait="4">Wait 4h</button>
+  <span id="sim-controls">
+    <button id="sim-btn" title="Simulate mode: the village lives on its own while you watch. Move or click the map to take over.">▶ Simulate</button>
+    <select id="sim-speed" aria-label="Simulation speed">
+      <option value="slow">1h / 3s</option>
+      <option value="normal" selected>1h / 1s</option>
+      <option value="fast">4h / 0.5s</option>
+      <option value="days">1 day / 0.5s</option>
+    </select>
+    <span id="sim-status" class="pill" hidden></span>
+  </span>
   <button id="voice-btn" class="ghost" title="NPC voices (T14): click for voice settings">🔊 Voices</button>
   <button id="newgame" class="ghost">New game</button>
   <span id="llm" class="pill" title="Ollama status">model…</span>
@@ -83,6 +94,7 @@
         <button data-tab="inv" id="tab-inv">Inventory</button>
         <button data-tab="quests">Quests</button>
         <button data-tab="world">World</button>
+        <button data-tab="realm" title="The kingdoms, towns and villages beyond Millbrook">Realm</button>
       </nav>
       <div id="tab-body"></div>
     </section>

@@ -7,6 +7,7 @@ import { findPath, tileDistance, type CreatureView, type GameEvent, type NpcView
 import { fetchState, postMove, postNew, streamAct } from "./api";
 import { $ } from "./dom";
 import { game, store, world } from "./store";
+import { crowd, folkAt, nearestFolk, person } from "./crowd";
 import { speaker } from "./voice/speaker";
 
 // ---------- rendering hooks (set by main.ts) ----------
@@ -38,6 +39,29 @@ export const nearestCreature = (): CreatureView | undefined => {
 export const nearest = (): NpcView | undefined => {
   const s = game();
   return s.npcs.filter((n) => !n.dead && !n.away && dist(s.position, n) <= s.map.talkRange).sort((a, b) => dist(s.position, a) - dist(s.position, b))[0];
+};
+
+/**
+ * Who E talks to: the nearest NPC or townsperson in reach (N16). A townsperson's id
+ * is their persona id; they become a talking NPC on the server when spoken to.
+ */
+export const nearestTalker = (): { id: string; x: number; y: number } | undefined => {
+  const s = game();
+  const n = nearest();
+  const f = nearestFolk(s);
+  const nd = n ? dist(s.position, n) : Infinity;
+  if (f && f.d < nd) {
+    const p = crowd.pos[f.i]!;
+    return { id: person(f.i)!.id, x: p.x, y: p.y };
+  }
+  return n ? { id: n.id, x: n.x, y: n.y } : undefined;
+};
+
+/** Where one of the townsfolk is now (they may have walked on), or null. */
+const folkPos = (id: string) => {
+  const i = crowd.sim?.index.get(id);
+  const p = i === undefined ? undefined : crowd.pos[i];
+  return p?.visible ? p : null;
 };
 
 export function feed(text: string): void {
@@ -208,7 +232,7 @@ export function handleEvent(ev: StreamEvent, npcId: string | null, bubble: Bubbl
       return null;
     case "system":
       addNote("system", ev.text, npcId);
-      feed(ev.text);
+      if (npcId) feed(ev.text); // with no conversation, addNote already put it in the feed
       return null;
     case "error":
       addNote("fail", ev.text, npcId);
@@ -274,11 +298,14 @@ export const playerPath = (goal: (t: Tile) => boolean) => findPath(game().positi
 
 export async function walk(path: Tile[], then?: () => void): Promise<void> {
   const token = ++walkToken;
+  const map = game().map.id;
   let pos = { ...game().position };
   for (const next of path) {
     if (token !== walkToken) return;
     while (store.moving || store.working) await new Promise((r) => setTimeout(r, 30));
     if (!(await step(next.x - pos.x, next.y - pos.y))) return;
+    // Walked off the edge into the next area (N15): the rest of the route was on the old map.
+    if (game().map.id !== map) return;
     pos = { ...game().position };
     await new Promise((r) => setTimeout(r, 60));
   }
@@ -288,7 +315,22 @@ export async function walk(path: Tile[], then?: () => void): Promise<void> {
 export async function openChat(id: string): Promise<void> {
   if (store.working) return;
   const npc = npcById(id);
-  if (!npc) return;
+  if (!npc) {
+    // One of the townsfolk, not yet a talking NPC: the server makes them one as the chat opens.
+    const at = folkPos(id);
+    if (!at) return;
+    if (dist(game().position, at) > game().map.talkRange) return feed(`You are too far from ${person(crowd.sim!.index.get(id)!)?.name ?? "them"}.`);
+    speaker.stop();
+    store.talking = id;
+    store.logs[id] ??= [];
+    $("log").replaceChildren();
+    $("chat").hidden = false;
+    await act({ action: "open", npc: id });
+    if (!npcById(id)) return closeChat();
+    chatHooks.render(true);
+    if (store.talking === id) $("line").focus();
+    return;
+  }
   if (npc.dead) return feed(`${npc.name} is dead.`);
   if (npc.away) return feed(npc.absent ?? `${npc.name} isn't around.`);
   if (dist(game().position, npc) > game().map.talkRange) return feed(`You are too far from ${npc.name}.`);
@@ -346,6 +388,15 @@ export function clickTile(x: number, y: number): void {
     return path ? void walk(path) : feed("You can't find a way there.");
   }
   const npc = s.npcs.find((n) => n.x === x && n.y === y && !n.away);
+  const folk = npc ? null : folkAt(s, x, y);
+  if (folk !== null) {
+    const id = person(folk)!.id;
+    const at = crowd.pos[folk]!;
+    if (dist(s.position, at) <= range) return void openChat(id);
+    // They walk on while you walk up: head for where they are, then talk if they're still in reach.
+    const path = playerPath((c) => dist(c, at) <= range);
+    return path ? void walk(path, () => void openChat(id)) : feed("You can't find a way there.");
+  }
   if (npc) {
     if ((npc.dead || npc.unconscious) && dist(s.position, npc) <= range) {
       if (confirm(`${npc.name} lies ${npc.dead ? "dead" : "out cold"}. Take what they carry? (It's a crime, if anyone sees.)`)) void act({ action: "loot", npc: npc.id });

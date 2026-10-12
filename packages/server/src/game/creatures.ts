@@ -91,6 +91,11 @@ export const CreatureSchema = z
     rivalry: unit.default(0),
     /** Bands together to raid the village at night when strong enough (game/underworld.ts). */
     raids: z.boolean().default(false),
+    /**
+     * Breeds (N13.6): with two grown ones about and fewer than `cap` alive, a daily `chance`
+     * (in spring and summer) of a litter of young. Rolled at midnight (game/realm/rise.ts).
+     */
+    breeding: z.object({ chance: unit, litter: z.tuple([z.number().int().min(1), z.number().int().min(1)]), cap: z.number().int().min(2) }).strict().optional(),
   })
   .strict()
   .superRefine((c, ctx) => {
@@ -136,6 +141,12 @@ export interface Creature {
   money?: number;
   /** Goods it carries off (stolen in raids). Dropped on death. */
   pack?: Record<ItemKey, number>;
+  /** Made a name for itself (N13.7): it's a realm figure now (that figure's id). */
+  figure?: string;
+  /** One of a realm pack's beasts, on another place's map (N15): the pack's id. */
+  packId?: string;
+  /** Where it roams when that isn't its kind's or its spawn rule's den (N15: another place's woods or camp). */
+  den?: string;
 }
 
 /** Natural weapons never mend: teeth and claws dull with age instead. Damage lost by age stage. */

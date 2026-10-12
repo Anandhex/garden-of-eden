@@ -1,0 +1,80 @@
+{
+  "id": "spider",
+  "name": "giant spider",
+  "species": "spider",
+  "tier": "E",
+  "potential": [
+    "E",
+    "C"
+  ],
+  "ageRange": [
+    1,
+    5
+  ],
+  "stats": {
+    "maxHp": 26,
+    "maxMp": 0,
+    "attributes": {
+      "strength": 11,
+      "agility": 16,
+      "endurance": 10,
+      "intelligence": 4,
+      "willpower": 10,
+      "charisma": 2,
+      "perception": 15,
+      "luck": 10
+    }
+  },
+  "skills": {
+    "unarmed": 3,
+    "evasion": 3,
+    "sneak": 4,
+    "hunting": 3
+  },
+  "attack": {
+    "name": "fangs",
+    "die": 6,
+    "skill": "unarmed"
+  },
+  "fleeAt": 0.3,
+  "loot": [
+    {
+      "item": "spider silk",
+      "qty": 1,
+      "chance": 0.75
+    }
+  ],
+  "barks": {
+    "idle": [
+      "*a rustle high in the webs*",
+      "*something clicks in the reeds*"
+    ],
+    "attack": [
+      "*drops from above*",
+      "*lunges, fangs bared*"
+    ],
+    "hurt": [
+      "*hisses*"
+    ],
+    "flee": [
+      "*scuttles off into the reeds*"
+    ]
+  },
+  "aggressive": true,
+  "hunts": [
+    {
+      "activity": "wrapping a bird in silk",
+      "rank": "F",
+      "chance": 0.5
+    }
+  ],
+  "rivalry": 0.1,
+  "breeding": {
+    "chance": 0.1,
+    "litter": [
+      2,
+      5
+    ],
+    "cap": 6
+  }
+}

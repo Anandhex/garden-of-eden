@@ -1,12 +1,11 @@
 import { addEmotion } from "../npc/emotions.js";
-import { addLore, learnLore } from "../npc/knowledge.js";
+import { addLore } from "../npc/knowledge.js";
 import { remember } from "../npc/memory.js";
-import { adjust, AFFECTION } from "../npc/relationship.js";
-import { isEnemy, isFriend, relationTo } from "../npc/social.js";
 import { traitsOf } from "../npc/traits.js";
 import type { NpcPersona, NpcState, WorldSnapshot } from "../npc/types.js";
-import { learnEvent, recordEvent } from "./events.js";
-import { townLearns } from "./reputation.js";
+import { recordEvent } from "./events.js";
+import { type DeathNote, deathNewsId, hearOfDeath, knowAtOnce } from "./deathNews.js";
+import { currentPlan } from "./schedule.js";
 import { note } from "./journal.js";
 import { formatMoney } from "./money.js";
 import { itemLabel } from "./items.js";
@@ -68,38 +67,21 @@ export function deathRipple(members: Member[], world: WorldSnapshot, deadId: str
 
   // The news: a death everyone hears of, and a dynamic lore entry for it.
   const how = killer === null ? "of old age" : byPlayer ? (knownKiller ? `at the hands of ${player.name}` : "violently; nobody saw who did it") : `at the hands of ${killer}`;
-  const newsId = `news.death_${deadId}`;
+  const newsId = deathNewsId(deadId);
   addLore(world, { id: newsId, kind: "news", name: `the death of ${name}`, aliases: [], keywords: ["death", "dead", "died", "killed", "funeral"], text: `${name} died ${how}.`, event: true });
   if (!world.recentEvents.includes(newsId)) world.recentEvents.push(newsId);
   (world.newsDays ??= {})[newsId] = world.day;
 
-  // A killing that comes out: everyone knows who did it (the guard included: game/crime.ts).
+  // Death is news, not telepathy (N13.0): those who saw it, were there or are family know at once;
+  // everyone else hears when gossip brings it (game/gossip.ts), and reacts then.
   const killing = byPlayer && knownKiller ? (world.events ?? []).find((e) => e.kind === "killed" && e.target === deadId) : undefined;
-  for (const m of members) {
-    if (m.id === deadId || m.state.outcome === "dead") continue;
-    learnLore(m.state, newsId, "certain");
-    if (killing && learnEvent(killing, m.id)) townLearns(player, killing);
-    const t = traitsOf(m.persona, m.state);
-    const friend = isFriend(m.state, deadId);
-    if (friend) {
-      addEmotion(m.state, "grief", 0.8, `${name}'s death`, world.day);
-      if (byPlayer && knownKiller) {
-        adjust(m.state, "trust", -40);
-        adjust(m.state, "affection", AFFECTION.attack);
-        adjust(m.state, "fear", 15);
-        addEmotion(m.state, "resentment", 0.8, `them killing ${name}`, world.day, true);
-        m.state.grudge = { reason: `they killed ${name}, your friend`, day: world.day, until: world.day + 30, blood: relationTo(m.state, deadId).affection >= 60 };
-      }
-    } else if (isEnemy(m.state, deadId)) {
-      addEmotion(m.state, "joy", 0.2, `${name} being gone`, world.day);
-    }
-    if (byPlayer && knownKiller) {
-      adjust(m.state, "fear", 10);
-      remember(m.state, { id: `death-${deadId}`, day: world.day, text: `they killed ${name}`, importance: 9, valence: -1, ...(killing ? { event: killing.id } : {}) }, t);
-    } else {
-      remember(m.state, { id: `death-${deadId}`, day: world.day, text: `${name} died ${how}`, importance: friend ? 7 : 4, valence: 0 }, t);
-    }
-  }
+  const deathNote: DeathNote = { dead: deadId, name, how, byPlayer: byPlayer && knownKiller, ...(killing ? { killing: killing.id } : {}), day: world.day };
+  (world.deathNotes ??= {})[newsId] = deathNote;
+  const place = killing?.place ?? deathPlace(dead, world);
+  const knowing = knowAtOnce(members, world, deadId, byPlayer ? null : killer, place);
+  // The heir knows: they're sent for (takeOver).
+  if (dead.persona.successor) knowing.add(dead.persona.successor);
+  for (const m of members) if (knowing.has(m.id)) hearOfDeath(m, deathNote, world, "certain");
 
   // Their work dies with them, unless someone takes it on.
   const board = dead.state.questBoard;
@@ -113,6 +95,12 @@ export function deathRipple(members: Member[], world: WorldSnapshot, deadId: str
   if (heir) log.push(...takeOver(dead, heir, world, killer, knownKiller, board));
   else log.push(`${name} has no one to take over. ${dead.persona.role[0]!.toUpperCase()}${dead.persona.role.slice(1)} stands empty.`);
   return { log, failedQuests: failed.map((q) => q.id), successor: heir?.id ?? null };
+}
+
+/** Where they were when they died: their plan's place (null if asleep or at home). */
+function deathPlace(dead: Member, world: WorldSnapshot): string | null {
+  const plan = currentPlan(dead.persona, dead.state, world);
+  return plan.activity === "sleep" || plan.place === "home" ? null : plan.place;
 }
 
 /** The successor wakes into the world and takes over. Returns log lines. */

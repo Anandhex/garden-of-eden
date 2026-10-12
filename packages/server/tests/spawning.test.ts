@@ -19,7 +19,7 @@ import {
 } from "../src/game/spawning.js";
 import { parsePersona } from "../src/npc/personaSchema.js";
 import { createNpcState } from "../src/npc/state.js";
-import { CREATURE_DENS } from "../src/web/map.js";
+import { DEN_KEYS } from "../src/web/sites.js";
 import { createDemoWorld } from "../src/world/world.js";
 
 const templates = loadCreatureTemplates();
@@ -38,7 +38,7 @@ describe("spawn rule files", () => {
   it("the game's rules parse, and name real creatures and places", () => {
     const rules = loadSpawnRules();
     expect(rules.length).toBeGreaterThan(0);
-    expect(badSpawnRules(rules, templates, Object.keys(CREATURE_DENS))).toEqual([]);
+    expect(badSpawnRules(rules, templates, [...DEN_KEYS])).toEqual([]);
   });
 
   it("reject unknown fields and duplicate ids; flag missing creatures and places", () => {

@@ -32,7 +32,7 @@ import { createNpcState } from "../src/npc/state.js";
 import { adjustRelation } from "../src/npc/social.js";
 import { assemblePersona, fallbackIdentity, generateNpc, loadTemplates, rollTemplate, writeIdentity } from "../src/npc/templates.js";
 import type { NpcPersona } from "../src/npc/types.js";
-import { npcSpot, spotAt, isSolid } from "../src/web/map.js";
+import { MILLBROOK } from "../src/web/sites.js";
 import { createDemoWorld } from "../src/world/world.js";
 import { loadCreatureTemplates } from "../src/game/creatures.js";
 import type { ChatRequest, ChatResult, GenerateRequest, LLMProvider } from "../src/llm/provider.js";
@@ -79,7 +79,7 @@ const goodWords = {
 
 describe("N11.1 NPCs from templates", () => {
   it("every template file is valid, and the four the roadmap names are there", () => {
-    expect(Object.keys(templates).sort()).toEqual(["child", "farmer", "guard", "merchant"]);
+    expect(Object.keys(templates).sort()).toEqual(["bandit", "child", "farmer", "guard", "merchant"]);
     expect(templates.child!.minor).toBe(true);
   });
 
@@ -166,10 +166,10 @@ describe("N11.1 NPCs from templates", () => {
 
   it("a generated NPC gets a free spot on the map at its workplace", async () => {
     const { persona } = await generateNpc(templates.farmer!, seededRng(5));
-    const spot = npcSpot(persona.id, "square");
-    expect(isSolid(spot.x, spot.y)).toBe(false);
-    expect(spotAt("square", persona.id)).toEqual({ x: spot.x, y: spot.y });
-    expect(spotAt("square", "someone_else")).not.toEqual({ x: spot.x, y: spot.y });
+    const spot = MILLBROOK.npcSpot(persona.id, "square")!;
+    expect(MILLBROOK.isSolid(spot.x, spot.y)).toBe(false);
+    expect(MILLBROOK.spotAt("square", persona.id)).toEqual({ x: spot.x, y: spot.y });
+    expect(MILLBROOK.spotAt("square", "someone_else")).not.toEqual({ x: spot.x, y: spot.y });
   });
 
   it("the authoring check (T5) catches what the schema can't", () => {
@@ -428,8 +428,9 @@ describe("N11.3 children", () => {
   });
 
   it("no more than maxChildrenPerCouple, none past the population cap, and rest between births", () => {
-    config.family.maxPopulation = 6; // five NPCs in the world (Wren waits in the wings): room for one
     const town = marriedTown();
+    // Everyone alive in the world (the cast, and Millbrook's notables from the realm: N15; Wren waits in the wings): room for one more.
+    config.family.maxPopulation = town.members().filter((m) => !m.state.dormant && m.state.outcome !== "dead").length + 1;
     nights(town, 1 + config.family.pregnancyDays);
     expect(births(town)).toHaveLength(1);
     nights(town, 40);

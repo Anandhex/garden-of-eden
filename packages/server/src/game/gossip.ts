@@ -9,6 +9,7 @@ import type { Rng } from "./dice.js";
 import { type GameEvent, knowsEvent, learnEvent } from "./events.js";
 import { townLearns } from "./reputation.js";
 import { hearRumour, retold } from "./rumours.js";
+import { heardNews } from "./deathNews.js";
 
 /**
  * Gossip (N4.3, N7): when NPCs share a place they pass on what they know, all in
@@ -48,7 +49,7 @@ const firstName = (p: NpcPersona) => p.name.split(" ").find((w) => !/^(old|corpo
  * An hour together: each pair may swap what they know. `world` (optional) lets
  * events, the town's view and news travel too. Returns log lines (tests, debugging).
  */
-export function gossipTogether(group: Gossiper[], day: number, rng: Rng, world?: Pick<WorldSnapshot, "events" | "player" | "recentEvents">): string[] {
+export function gossipTogether(group: Gossiper[], day: number, rng: Rng, world?: Pick<WorldSnapshot, "events" | "player" | "recentEvents" | "deathNotes">): string[] {
   const log: string[] = [];
   for (const speaker of group) {
     for (const listener of group) {
@@ -95,7 +96,11 @@ export function gossipTogether(group: Gossiper[], day: number, rng: Rng, world?:
         for (const [id, certainty] of Object.entries(speaker.state.learned)) {
           const entry = worldLore().byId.get(id);
           if (!entry || entry.kind !== "news" || listener.state.learned[id] || rng() >= chance) continue;
-          if (learnLore(listener.state, id, "rumour")) log.push(`${speaker.persona.name} told ${listener.persona.name} the news: ${entry.text}${certainty === "rumour" ? " (or so they heard)" : ""}`);
+          const told = `${speaker.persona.name} told ${listener.persona.name} the news: ${entry.text}${certainty === "rumour" ? " (or so they heard)" : ""}`;
+          // A death heard of: they react now (N13.0). From a trusted teller who knows it for certain, they believe it.
+          if (world.deathNotes?.[id]) {
+            if (heardNews(listener, id, { ...world, day }, certainty === "certain" && belief >= 0.5 ? "certain" : "rumour")) log.push(told);
+          } else if (learnLore(listener.state, id, "rumour")) log.push(told);
         }
       }
       // Time together warms people a little, and builds a modest trust (up to FAMILIAR_TRUST) between those who aren't enemies:

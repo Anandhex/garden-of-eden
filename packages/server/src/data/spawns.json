@@ -3,11 +3,21 @@
     {
       "id": "market_crowd",
       "creature": "villager",
-      "count": 3,
+      "count": 5,
       "place": "village_square",
       "hours": [
         8,
         18
+      ]
+    },
+    {
+      "id": "road_folk",
+      "creature": "villager",
+      "count": 3,
+      "place": "west_road",
+      "hours": [
+        7,
+        17
       ]
     },
     {

@@ -187,6 +187,8 @@ export function describeObjective(q: Pick<QuestDef, "objective">): string {
       return `take word to ${nameOf(o.npc)}: "${o.message}"`;
     case "escort":
       return `bring the ${o.who.replace(/_/g, " ")} safely to ${placeName(o.to)}`;
+    case "clear":
+      return `clear ${o.name}, every level of it (/delve)`;
   }
 }
 
@@ -224,6 +226,11 @@ export function questProgress(player: PlayerState, q: QuestDef & { progress?: nu
 /** The player killed or drove off a creature of this kind: it counts towards defeat quests for that kind. Returns lines. */
 export function recordCreatureDefeat(player: PlayerState, kind: string): string[] {
   return bump(player, (q) => q.objective.type === "defeat" && q.objective.creature === kind);
+}
+
+/** The player cleared a dungeon (/delve to the bottom, N13.6). */
+export function recordClear(player: PlayerState, dungeon: string): string[] {
+  return bump(player, (q) => q.objective.type === "clear" && q.objective.dungeon === dungeon);
 }
 
 /** The player beat a named NPC (they died, fled, begged or were knocked out). */
@@ -439,6 +446,8 @@ function didWhat(q: ActiveQuest): string {
       return `took your message to ${nameOf(o.npc)}`;
     case "escort":
       return `brought the ${o.who.replace(/_/g, " ")} safely to ${placeName(o.to)}`;
+    case "clear":
+      return `cleared ${o.name}`;
   }
 }
 

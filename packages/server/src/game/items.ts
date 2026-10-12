@@ -46,6 +46,10 @@ export const ITEMS: Record<string, ItemDef> = {
   "wild herbs": { value: 30, tier: "F", heal: 5 },
   "rabbit pelt": { value: 50, tier: "F" },
   "wolf pelt": { value: 100, tier: "E" },
+  // From the beasts of other places' woods (N15)
+  "boar hide": { value: 60, tier: "F" },
+  "spider silk": { value: 150, tier: "E" },
+  "bear pelt": { value: 300, tier: "D" },
   // Medicine
   "healing salve": { value: 120, tier: "E", heal: 20 },
 };

@@ -97,6 +97,12 @@ export function worldLore(): Lore {
   return cached;
 }
 
+/** Is this id in src/data/world.json (not grown in play)? */
+export function isBaseLore(id: string): boolean {
+  worldLore();
+  return base!.byId.has(id);
+}
+
 /**
  * Use this world's grown lore (world.lore) on top of world.json. Call on load and
  * whenever an entry is added. Entries that clash with the file's ids are ignored.
@@ -297,6 +303,7 @@ const COMMON = new Set(
     "I I'm I'll I've I'd A An The This That These Those It It's Its He She We They You Your Yours My Mine Our Their His Her Him Me Us " +
     "Aye Nay Yes No Oh Ah Eh Hm Hmm Well Now Then So But And Or If When Why What Who Whom Whose Where How Here There Not Never " +
     "Mister Sir Madam Lady Lord Friend Stranger Citizen Traveler Traveller Gods God Gold Silver Copper " +
+    "King Queen Prince Princess Mayor Elder Captain Guildmaster Corporal " +
     "Monday Tuesday Wednesday Thursday Friday Saturday Sunday Day Night Morning Evening"
   ).split(" "),
 );
@@ -320,7 +327,7 @@ export function unknownNames(text: string, known: Set<string>): string[] {
   const tokens = text.replace(/[*_"“”]/g, " ").split(/[\s—–]+/).filter(Boolean);
   let sentenceStart = true;
   tokens.forEach((raw) => {
-    const word = raw.replace(/^[^A-Za-z]+|[^A-Za-z'’]+$/g, "").replace(/['’]s$/, "");
+    const word = raw.replace(/^[^A-Za-z]+|[^A-Za-z'’]+$/g, "").replace(/['’]s?$/, "");
     const opens = sentenceStart;
     sentenceStart = /[.!?:]["')]*$/.test(raw);
     if (!/^[A-Z][a-z]/.test(word) || COMMON.has(word) || known.has(word)) return;

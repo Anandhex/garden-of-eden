@@ -9,7 +9,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { NdjsonDecoder, type MoveResponse, type Snapshot, type StreamEvent } from "@millbrook/shared";
+import { findPath, NdjsonDecoder, type CrowdRoster, type MoveResponse, type Snapshot, type StreamEvent, type TickResponse } from "@millbrook/shared";
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
 const port = 41000 + Math.floor(Math.random() * 2000);
@@ -102,6 +102,43 @@ describe("game server (G1)", () => {
     expect(after.x - before.x).toBe(ok.length);
   });
 
+  it("walks off the village's north edge onto the mine road and back (N15); the notables are about", async () => {
+    const state = async () => (await (await fetch(`${base}/api/state`)).json()) as Snapshot;
+    /** Walk to a tile on the current map, one step at a time, around whoever's in the way. */
+    async function walkTo(goal: { x: number; y: number }, startMap: string): Promise<MoveResponse | null> {
+      for (let i = 0; i < 120; i++) {
+        const s = await state();
+        if (s.map.id !== startMap) return null;
+        const busy = (x: number, y: number) => s.npcs.some((n) => n.x === x && n.y === y && !n.companion) || s.creatures.some((c) => c.x === x && c.y === y);
+        const path = findPath(s.position, (t) => t.x === goal.x && t.y === goal.y, (x, y) => ["tree", "wall", "water", undefined].includes(s.map.tiles[y]?.[x]) || busy(x, y));
+        expect(path, `no way to ${goal.x},${goal.y}`).not.toBeNull();
+        const next = path![0]!;
+        const r = (await (await post("/api/move", { dx: next.x - s.position.x, dy: next.y - s.position.y })).json()) as MoveResponse;
+        if (r.state.map.id !== startMap) return r;
+      }
+      return null;
+    }
+    const home = await state();
+    expect(home.map.id).toBe("millbrook");
+    expect(home.site.area.id).toBe("village");
+    // Millbrook's mayor and guard captain from the realm are part of the cast now.
+    expect(home.npcs.map((n) => n.name)).toEqual(expect.arrayContaining(["Aldric Voss", "Reyna Holt"]));
+    // Rook's camp isn't in the village: he's never on its map.
+    expect(home.npcs.find((n) => n.id === "rook")!.x).toBe(-1);
+    const north = home.map.exits.find((e) => e.y === 0)!;
+    expect(north.label).toBe("To the mine road");
+    const out = await walkTo(north, home.map.id);
+    expect(out?.ok).toBe(true);
+    expect(out!.state.map.id).toBe("millbrook:road");
+    expect(out!.state.site.area.name).toBe("The mine road");
+    expect(out!.state.position).toEqual({ x: 12, y: 16 });
+    expect(out!.log.join(" ")).toMatch(/You walk out to the mine road/);
+    expect(out!.state.map.exits.map((e) => e.label).sort()).toEqual(["To Millbrook", "To the bandit camp on the mine road", "To the mouth of the old mine"]);
+    const back = (await (await post("/api/move", { dx: 0, dy: 1 })).json()) as MoveResponse;
+    expect(back.state.map.id).toBe("millbrook");
+    expect(back.state.position).toEqual({ x: north.x, y: 1 });
+  });
+
   it("streams an offline action as events and ends with the new state", async () => {
     const events = await actStream({ action: "wait", hours: 1 });
     const done = events.at(-1)!;
@@ -124,6 +161,33 @@ describe("game server (G1)", () => {
     expect(Buffer.from(await res.arrayBuffer()).toString("latin1")).toBe("RIFF....WAVE");
     expect(piperRequests.at(-1)).toEqual({ text: "Four gold.", voice: "en_GB-semaine-medium", speaker_id: 0, length_scale: 1.05 });
     expect((await post("/api/speak", { npc: "nobody", text: "Hi." })).status).toBe(400);
+  });
+
+  it("N16: the village's townsfolk, a minute passing as you stand about, and a townsperson who becomes a talking NPC", async () => {
+    const s0 = (await (await fetch(`${base}/api/state`)).json()) as Snapshot;
+    expect(s0.timeFlowSeconds).toBeGreaterThan(0);
+    const roster = (await (await fetch(`${base}/api/crowd`)).json()) as CrowdRoster | null;
+    if (s0.site.area.id !== "village") {
+      expect(roster).toBeNull();
+      return;
+    }
+    expect(roster!.map).toBe(s0.map.id);
+    expect(roster!.people.length).toBeGreaterThan(50);
+    expect(s0.crowd?.count).toBe(roster!.people.length);
+    expect(s0.map.zones.some((z) => z.kind === "square")).toBe(true);
+    const tick = (await (await post("/api/tick", {})).json()) as TickResponse;
+    expect(tick.ok).toBe(true);
+    const before = s0.time.hour * 60 + s0.time.minute;
+    const after = tick.state.time.hour * 60 + tick.state.time.minute;
+    expect((after - before + 1440) % 1440).toBe(1);
+    // Speak to one of them: they're made a talking NPC (too far to talk, but they're about now).
+    const p = roster!.people[3]!;
+    const events = await actStream({ action: "open", npc: p.id });
+    const done = events.at(-1) as Extract<StreamEvent, { t: "done" }>;
+    expect(done.t).toBe("done");
+    const npc = done.state.npcs.find((n) => n.id === p.id);
+    expect(npc?.name).toBe(p.name);
+    expect(events.some((e) => e.t === "system" || e.t === "opened")).toBe(true);
   });
 
   it("serves the built client (or says how to build it) and nothing outside it", async () => {

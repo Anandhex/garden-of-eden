@@ -1,3 +1,4 @@
+import type { DeathNote } from "../game/deathNews.js";
 import type { NpcVoice } from "@millbrook/shared";
 import type { QuestTier } from "../game/levels.js";
 import type { Life, Tier } from "../game/life.js";
@@ -8,7 +9,7 @@ import type { Skill, Skills } from "./skills.js";
 import type { Attributes } from "./stats.js";
 import type { Traits } from "./traits.js";
 import type { Certainty } from "./knowledge.js";
-import type { Activity, PlaceId, ScheduleBlock } from "../game/schedule.js";
+import type { Activity, AreaId, PlaceId, ScheduleBlock } from "../game/schedule.js";
 import type { Needs } from "../game/needs.js";
 import type { Emotion } from "./emotions.js";
 import type { Commitment } from "../game/commitments.js";
@@ -473,6 +474,10 @@ export interface WorldSnapshot {
   family?: FamilyState;
   /** Who has died, by NPC id (the permanent record). Set on saved worlds. */
   deaths?: Record<string, unknown>;
+  /** What each death's news means to whoever hears it later, by news id (game/deathNews.ts, N13.0). */
+  deathNotes?: Record<string, DeathNote>;
+  /** Millbrook's kingdom is at war (N13.5): weapons, armour and food cost more. Set nightly by the town. */
+  atWar?: boolean;
 }
 
 export interface AppliedAction {
@@ -574,6 +579,12 @@ export interface PlayerState {
   crafted?: Array<{ item: string; tier: string; day: number }>;
   /** Items gathered (/forage, /hunt) by place, for gather quests. */
   gathered?: Array<{ item: string; place: string; day: number }>;
+  /** Renown in the wider realm (N13): delving and clearing dungeons. Sets the player's rank in the adventurers' guild. */
+  renown?: number;
+  /** The settlement the player is in (N14): a realm id; Millbrook when unset. */
+  site?: string;
+  /** Where around that settlement (N15): its village (when unset), or a locality: the road, a camp, a mine, the woods. */
+  area?: AreaId;
 }
 
 export interface JournalEntry {
@@ -587,7 +598,17 @@ export interface JournalEntry {
 }
 
 /** What a quest asks for. Each type has one checker in code (game/quests.ts). */
-export type QuestObjective = DeliverObjective | DefeatObjective | DefeatNpcObjective | GatherObjective | CraftObjective | TalkToObjective | EscortObjective;
+export type QuestObjective = DeliverObjective | DefeatObjective | DefeatNpcObjective | GatherObjective | CraftObjective | TalkToObjective | EscortObjective | ClearObjective;
+
+/** Clear a dungeon of the realm, every level (N13.8): `/delve` it to the bottom. */
+export interface ClearObjective {
+  type: "clear";
+  /** Dungeon id (game/realm/types.ts). */
+  dungeon: string;
+  /** Its name, for words. */
+  name: string;
+  qty: 1;
+}
 
 /** Win against (or subdue) a named NPC. */
 export interface DefeatNpcObjective {

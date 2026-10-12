@@ -23,6 +23,7 @@
     "bench": "tsx packages/server/scripts/bench.ts",
     "bench:voice": "tsx --env-file-if-exists=.env packages/server/scripts/bench-voice.ts",
     "sim": "tsx packages/server/scripts/sim.ts",
+    "sim:realm": "tsx packages/server/scripts/sim-realm.ts",
     "replay": "tsx packages/server/scripts/replay.ts",
     "bench:traits": "tsx packages/server/scripts/bench-traits.ts",
     "bench:director": "tsx packages/server/scripts/bench-director.ts",

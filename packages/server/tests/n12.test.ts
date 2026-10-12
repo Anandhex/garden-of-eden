@@ -258,6 +258,8 @@ describe("N12 done when: 30 simulated days", () => {
     for (const q of directorQuests) {
       if (q.objective.type === "deliver") expect(ITEMS).toHaveProperty([q.objective.item]);
       else if (q.objective.type === "defeat") expect(templates).toHaveProperty([q.objective.creature]);
+      // Millbrook's needs (N13) reach its guard captain now she talks (N15): the dungeon by the mine.
+      else if (q.objective.type === "clear") expect(world.realm?.dungeons).toHaveProperty([q.objective.dungeon]);
       else throw new Error(`unexpected goal ${q.objective.type}`);
     }
     const log = world.directorLog ?? [];

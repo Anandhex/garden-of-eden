@@ -1,0 +1,78 @@
+{
+  "id": "boar",
+  "name": "boar",
+  "species": "boar",
+  "tier": "G",
+  "potential": [
+    "G",
+    "D"
+  ],
+  "ageRange": [
+    2,
+    8
+  ],
+  "stats": {
+    "maxHp": 20,
+    "maxMp": 0,
+    "attributes": {
+      "strength": 13,
+      "agility": 11,
+      "endurance": 13,
+      "intelligence": 3,
+      "willpower": 11,
+      "charisma": 3,
+      "perception": 10,
+      "luck": 10
+    }
+  },
+  "skills": {
+    "unarmed": 2,
+    "evasion": 1
+  },
+  "attack": {
+    "name": "tusks",
+    "die": 6,
+    "skill": "unarmed"
+  },
+  "fleeAt": 0.25,
+  "loot": [
+    {
+      "item": "boar hide",
+      "qty": 1,
+      "chance": 0.8
+    }
+  ],
+  "barks": {
+    "idle": [
+      "*grunting and rooting in the leaves*",
+      "*a snort from the bracken*"
+    ],
+    "attack": [
+      "*squeals and charges*",
+      "*lowers its tusks*"
+    ],
+    "hurt": [
+      "*shrieks*"
+    ],
+    "flee": [
+      "*bolts into the brush*"
+    ]
+  },
+  "aggressive": true,
+  "hunts": [
+    {
+      "activity": "rooting for acorns",
+      "rank": "G",
+      "chance": 0.6
+    }
+  ],
+  "rivalry": 0.15,
+  "breeding": {
+    "chance": 0.15,
+    "litter": [
+      2,
+      4
+    ],
+    "cap": 8
+  }
+}

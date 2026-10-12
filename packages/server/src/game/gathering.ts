@@ -29,6 +29,13 @@ export const FINDS: Partial<Record<PlaceId, Find[]>> = {
   ],
   square: [{ item: "wild herbs", skill: "foraging", target: 14 }],
   camp: [{ item: "iron ore", skill: "foraging", target: 15 }],
+  // The localities (N15): herbs and game in the woods, ore at the mine, a little of both on the road.
+  road: [{ item: "wild herbs", skill: "foraging", target: 12 }],
+  woods: [
+    { item: "wild herbs", skill: "foraging", target: 9 },
+    { item: "rabbit pelt", skill: "hunting", target: 11 },
+  ],
+  mine: [{ item: "iron ore", skill: "foraging", target: 12 }],
 };
 
 /** Hours one go at gathering takes. */

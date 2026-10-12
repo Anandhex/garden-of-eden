@@ -35,6 +35,8 @@ export const SPECIES: Record<string, SpeciesDef> = {
   wolf: { name: "a wolf", talks: false, adultAge: 2, elderAge: 8, maxAge: 14, maxTier: "B", learnRate: 1.2 },
   horse: { name: "a horse", talks: false, adultAge: 4, elderAge: 20, maxAge: 32, maxTier: "D", learnRate: 0.8 },
   bear: { name: "a bear", talks: false, adultAge: 4, elderAge: 20, maxAge: 32, maxTier: "A", learnRate: 0.9 },
+  boar: { name: "a boar", talks: false, adultAge: 2, elderAge: 10, maxAge: 18, maxTier: "C", learnRate: 1.1 },
+  spider: { name: "a giant spider", talks: false, adultAge: 1, elderAge: 6, maxAge: 10, maxTier: "B", learnRate: 1.2 },
 };
 
 export const SPECIES_IDS = Object.keys(SPECIES);
