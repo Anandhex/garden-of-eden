@@ -1,3 +1,4 @@
+export * from "./crowd.js";
 export * from "./events.js";
 export * from "./ndjson.js";
 export * from "./path.js";

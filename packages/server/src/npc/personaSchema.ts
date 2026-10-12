@@ -38,6 +38,7 @@ const QuestSchema = z.object({
     z.object({ type: z.literal("craft"), item: itemName, qty: z.number().int().positive(), minTier: z.enum(ITEM_TIERS) }),
     z.object({ type: z.literal("talk_to"), npc: z.string().min(1), message: z.string().min(1), qty: z.literal(1).default(1) }),
     z.object({ type: z.literal("escort"), who: z.string().min(1), to: z.enum(PLACES), qty: z.literal(1).default(1) }),
+    z.object({ type: z.literal("clear"), dungeon: z.string().min(1), name: z.string().min(1), qty: z.literal(1).default(1) }),
   ]),
   reward: z.object({ money: MoneySchema, xp: z.number().int().min(0).optional(), trust: z.number().optional() }),
   requires: z.array(z.string().min(1)).optional(),

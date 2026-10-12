@@ -31,5 +31,6 @@
   },
   "aggressive": false,
   "hunts": [],
-  "rivalry": 0
+  "rivalry": 0,
+  "breeding": { "chance": 0.03, "litter": [1, 1], "cap": 3 }
 }

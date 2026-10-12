@@ -13,9 +13,23 @@ import { absoluteHour } from "./clock.js";
 export const ACTIVITIES = ["work", "eat", "socialise", "sleep", "travel"] as const;
 export type Activity = (typeof ACTIVITIES)[number];
 
-/** Places in Millbrook. "home" is each NPC's own home: nobody else is there. */
-export const PLACES = ["forge", "inn", "square", "gate", "camp", "home"] as const;
+/**
+ * Places in and around Millbrook. "home" is each NPC's own home: nobody else is there.
+ * The first five are in the village; the rest are out in its localities (N15): the
+ * mine road north of the village, the bandit camp off it, the old mine at its end and
+ * the woods to the east. Each locality is its own map (web/sites.ts).
+ */
+export const PLACES = ["forge", "inn", "square", "gate", "camp", "home", "road", "woods", "mine"] as const;
 export type PlaceId = (typeof PLACES)[number];
+
+/** The areas around a settlement (N15): the village itself, and its localities. */
+export const AREAS = ["village", "road", "camp", "woods", "mine"] as const;
+export type AreaId = (typeof AREAS)[number];
+
+/** The map (area) a place is on. */
+export function areaOfPlace(place: PlaceId): AreaId {
+  return place === "camp" || place === "road" || place === "woods" || place === "mine" ? place : "village";
+}
 
 export const PLACE_NAMES: Record<PlaceId, string> = {
   forge: "Millbrook forge",
@@ -24,6 +38,9 @@ export const PLACE_NAMES: Record<PlaceId, string> = {
   gate: "the village gate",
   camp: "the bandit camp on the mine road",
   home: "home",
+  road: "the mine road",
+  woods: "the woods east of Millbrook",
+  mine: "the mouth of the old mine",
 };
 
 /** What's around at each place, for the NPC's situation ("Nearby: ..."). */
@@ -34,13 +51,16 @@ export const PLACE_NEARBY: Record<PlaceId, string[]> = {
   gate: ["the village gate", "a worn dirt road", "a bored-looking mule"],
   camp: ["a smouldering campfire", "a stolen ore cart", "his men watching from the trees"],
   home: [],
+  road: ["cart ruts", "a broken ore cart", "pines on both sides"],
+  woods: ["tall pines", "a game trail", "wolf tracks in the mud"],
+  mine: ["the dark mine mouth", "rusted rails", "spoil heaps"],
 };
 
-/** Walking minutes between any two places in the village. */
+/** Walking minutes between any two places in the village. Out to a locality, one more stretch each way. */
 export const WALK_MINUTES = 10;
 
 /** Out in the weather: nobody works here in a storm. */
-export const OUTDOOR: ReadonlySet<PlaceId> = new Set(["gate", "square", "camp"]);
+export const OUTDOOR: ReadonlySet<PlaceId> = new Set(["gate", "square", "camp", "road", "woods", "mine"]);
 
 export interface ScheduleBlock {
   /** Hour it starts (0-23), inclusive. */
@@ -98,10 +118,13 @@ export interface Plan {
  * 2. starving → eat (at the inn if their schedule ever eats there, else at home)
  * 3. a storm → no outdoor work: they stay home
  * 4. broke → work through eating and socialising time
- * 5. the midsummer festival → the evening (18-21) is spent in the square
+ * 5. a long working day (8 hours or more) has an hour's break in the middle, to eat
+ *    (where they eat out, else at the inn): not for guards on watch, nor for whoever
+ *    works at the inn already (N16)
+ * 6. the midsummer festival → the evening (18-21) is spent in the square
  */
 export function planHour(
-  persona: Pick<NpcPersona, "schedule" | "reserveMoney">,
+  persona: Pick<NpcPersona, "schedule" | "reserveMoney"> & Partial<Pick<NpcPersona, "guard">>,
   state: Pick<NpcState, "needs" | "money"> & Partial<Pick<NpcState, "companion" | "dormant" | "outcome">>,
   world: Pick<WorldSnapshot, "day" | "hour" | "recentEvents" | "lastRaidDay"> & { player?: { place?: PlaceId } },
 ): Plan {
@@ -128,15 +151,25 @@ export function planHour(
     const work = schedule.find((b) => b.activity === "work");
     if (work) return { activity: "work", place: work.place, why: "broke" };
   }
+  if (block.activity === "work" && world.hour === breakHour(block) && !persona.guard && block.place !== "inn" && state.money >= brokeBelow(persona)) {
+    const eatsOut = schedule.find((b) => b.activity === "eat" && b.place !== "home");
+    return { activity: "eat", place: eatsOut?.place ?? "inn", why: "midday break" };
+  }
   if (block.activity !== "sleep" && world.hour >= 18 && world.hour < 21 && townEventsOn(world).includes("festival")) {
     return { activity: "socialise", place: "square", why: "festival" };
   }
   return { activity: block.activity, place: block.place };
 }
 
+/** The hour of a working block's break (its middle), or -1 for blocks under 8 hours. */
+export function breakHour(block: ScheduleBlock): number {
+  const len = (block.to - block.from + 24) % 24 || 24;
+  return len >= 8 ? (block.from + Math.floor(len / 2)) % 24 : -1;
+}
+
 /** What the NPC is doing now: what this hour's tick decided, or the plan if the tick hasn't run for this hour. */
 export function currentPlan(
-  persona: Pick<NpcPersona, "schedule" | "reserveMoney">,
+  persona: Pick<NpcPersona, "schedule" | "reserveMoney"> & Partial<Pick<NpcPersona, "guard">>,
   state: Pick<NpcState, "needs" | "money" | "activity"> & Partial<Pick<NpcState, "companion" | "dormant" | "outcome">>,
   world: Pick<WorldSnapshot, "day" | "hour" | "recentEvents" | "lastRaidDay"> & { player?: { place?: PlaceId } },
 ): Plan {
@@ -200,6 +233,9 @@ export function parsePlace(text: string): PlaceId | null {
   for (const p of PLACES) if (t === p || PLACE_NAMES[p].toLowerCase().replace(/^the\s+/, "") === t) return p;
   if (/goose|tavern|pub/.test(t)) return "inn";
   if (/smith|anvil/.test(t)) return "forge";
-  if (/mine|bandit/.test(t)) return "camp";
+  if (/bandit|camp/.test(t)) return "camp";
+  if (/road/.test(t)) return "road";
+  if (/mine/.test(t)) return "mine";
+  if (/wood|forest/.test(t)) return "woods";
   return null;
 }

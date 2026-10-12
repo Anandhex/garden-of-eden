@@ -1,5 +1,5 @@
 /** Calls to the game server. */
-import { NdjsonDecoder, type MoveResponse, type Snapshot, type StreamEvent, type VoiceInfo } from "@millbrook/shared";
+import { NdjsonDecoder, type CrowdRoster, type MoveResponse, type Snapshot, type StreamEvent, type TickResponse, type VoiceInfo } from "@millbrook/shared";
 
 const post = (url: string, body: unknown) => fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
 
@@ -11,6 +11,16 @@ export async function fetchState(poll = false): Promise<Snapshot> {
 export async function postMove(dx: number, dy: number): Promise<MoveResponse | { ok: false; reason: string; state?: undefined; events?: undefined; log?: undefined }> {
   const res = await post("/api/move", { dx, dy });
   return (await res.json()) as MoveResponse;
+}
+
+/** Everyone who lives on the map the player is on (N16), or null. */
+export async function fetchCrowd(): Promise<CrowdRoster | null> {
+  return (await (await fetch("/api/crowd")).json()) as CrowdRoster | null;
+}
+
+/** A minute passes while the player stands about (N16). `state` is null when the server was busy. */
+export async function postTick(): Promise<TickResponse | { ok: false; state: null; log: string[]; events: [] }> {
+  return (await (await post("/api/tick", {})).json()) as TickResponse;
 }
 
 export async function postNew(): Promise<{ state?: Snapshot }> {

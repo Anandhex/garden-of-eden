@@ -9,7 +9,8 @@ import { certaintyOf } from "../src/npc/knowledge.js";
 import { NpcAgent } from "../src/npc/NpcAgent.js";
 import { parsePersona } from "../src/npc/personaSchema.js";
 import { createNpcState } from "../src/npc/state.js";
-import { NPC_SPOTS } from "../src/web/map.js";
+import { NPC_LOOKS } from "../src/web/map.js";
+import { MILLBROOK_INFO, siteMap } from "../src/web/sites.js";
 import { createDemoWorld } from "../src/world/world.js";
 
 /** Counts model calls; always says a short line. */
@@ -30,7 +31,10 @@ const max = () => 0.999;
 
 describe("Rook, the bandit leader", () => {
   it("is a full NPC with a spot at his camp, carrying Brena's father's hammer", () => {
-    expect(NPC_SPOTS.rook).toBeDefined();
+    // His spot is at the camp, on the camp's own map off the mine road (N15), not in the village.
+    expect(NPC_LOOKS.rook).toBeDefined();
+    expect(siteMap(MILLBROOK_INFO, "camp").npcSpot("rook", "camp")).not.toBeNull();
+    expect(siteMap(MILLBROOK_INFO).npcSpot("rook", "camp")).toBeNull();
     expect(rook.startingInventory["forge hammer"]).toBe(1);
     expect(rook.dropsOnDeath).toBe(true);
     // He can't wield it: it's above his rank. It's a trophy, or a ransom.

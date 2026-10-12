@@ -26,6 +26,8 @@ export const config = {
   daysPerYear: Math.max(1, Number(process.env.DAYS_PER_YEAR ?? 12)),
   // In a fight, real seconds the player has to act. If they don't, their turn is lost and the opponent strikes. 0 turns it off.
   combatTickSeconds: Math.max(0, Number(process.env.COMBAT_TICK_SECONDS ?? 6)),
+  // N16: while the player stands about (no talk, no fight), a game minute passes every this many real seconds, so the townsfolk keep moving. 0 turns it off (TIME_FLOW_SECONDS=0).
+  timeFlowSeconds: Math.max(0, Number(process.env.TIME_FLOW_SECONDS ?? 2)),
   // In-game minutes each kind of turn takes. /wait and training still move whole hours.
   turnMinutes: { talk: 2, trade: 5, fight: 1 },
   // Safety valve: max model round-trips (speech + tool calls) per player line.
@@ -70,6 +72,10 @@ export const config = {
   director: process.env.DIRECTOR !== "off",
   // Most director proposals accepted per night.
   directorMaxPerNight: 3,
+  // The wider realm (N13): kingdoms, towns and villages living on their own, a day at a time, in code. "off" to keep Millbrook alone.
+  realm: process.env.REALM !== "off",
+  // Seed for a new world's realm (the same seed gives the same realm). Unset: rolled from the new world's dice.
+  realmSeed: process.env.REALM_SEED ? Number(process.env.REALM_SEED) : undefined,
   // Off-screen planning (one short call per NPC per day) and conversation summaries.
   planning: process.env.PLANNING !== "off",
   summaries: process.env.SUMMARIES !== "off",

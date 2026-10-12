@@ -5,9 +5,13 @@ import type { NpcPersona, NpcState, PlayerState, WorldSnapshot } from "../npc/ty
 import { createNpcState } from "../npc/state.js";
 import { createDemoWorld, DEMO_SPAWNS } from "../world/world.js";
 import { type Creature, type CreatureTemplate, spawnGroup, upgradeCreature } from "./creatures.js";
+import type { Haunts } from "./realm/haunts.js";
 import { DeathRegistry } from "./deaths.js";
 import { bestAllowedWeapon, equip, playerGearRank } from "./gear.js";
-import { defaultRng, type Rng } from "./dice.js";
+import { defaultRng, seedFrom, type Rng } from "./dice.js";
+import { config } from "../config.js";
+import { generateRealm, HOME_ID } from "./realm/generate.js";
+import { RealmSchema, type Realm } from "./realm/types.js";
 import { eventIdFor } from "../npc/knowledge.js";
 import type { SpawnLedger } from "./spawning.js";
 import { parseEvents } from "./events.js";
@@ -31,8 +35,16 @@ import { parsePersona } from "../npc/personaSchema.js";
  * 8: N11.3 families: marriages, courtships, children on the way, and the NPC files of
  *    those born in play (checked by the persona schema on load). Older saves start with
  *    the marriages the NPC files name.
+ * 9: N13 the wider realm (`realm`, checked by RealmSchema; older saves get one generated),
+ *    NPC files of people who rose from the crowd (`risen`), and what each death's news
+ *    means to those who hear it later (`deathNotes`).
+ * 10: N15 localities: Millbrook's map is generated like every other place's, and the
+ *    mine road, the bandit camp, the old mine and the woods are maps of their own
+ *    (`player.area`). Older saves at home lose their map position (the old hand-made
+ *    map's tiles mean nothing now): the player is back at the village gate and the
+ *    creatures find their dens again.
  */
-export const SAVE_VERSION = 8;
+export const SAVE_VERSION = 10;
 
 /** Copper per old "gold": the old unit became a silver coin, so every price keeps its place. */
 const COPPER_PER_OLD_GOLD = 10;
@@ -76,6 +88,14 @@ export interface SavedWorld extends WorldSnapshot {
   creatures: Record<string, Creature>;
   /** Which creatures each spawn rule has out (game/spawning.ts). */
   spawns?: SpawnLedger;
+  /** The wider realm (N13, game/realm/). */
+  realm?: Realm;
+  /** NPC files of people who rose from the crowd to talk (N13.7), by id. */
+  risen?: Record<string, NpcPersona>;
+  /** NPC files of the people of other places the player has met (N14), by persona id. */
+  visitors?: Record<string, NpcPersona>;
+  /** The beasts and outlaws of other places' woods and camps (N15), by place, as they were last seen. */
+  haunts?: Haunts;
 }
 
 const SaveSchema = z.object({
@@ -101,6 +121,11 @@ const SaveSchema = z.object({
   directorLog: z.array(z.record(z.string(), z.unknown())).optional(),
   chronicleDay: z.number().int().optional(),
   family: FamilySchema.optional(),
+  realm: z.unknown().optional(),
+  risen: z.record(z.string(), z.unknown()).optional(),
+  visitors: z.record(z.string(), z.unknown()).optional(),
+  haunts: z.record(z.string(), z.record(z.string(), z.record(z.string(), z.unknown()))).optional(),
+  deathNotes: z.record(z.string(), z.unknown()).optional(),
 });
 
 /** Keep the valid entries of a list (a bad one is dropped, not trusted). */
@@ -133,8 +158,11 @@ export function newWorld(
   seedRumours(personas, npcStates, demo.day);
   const family = freshFamily();
   family.marriages = authoredMarriages(personas);
+  const realm = config.realm ? generateRealm(config.realmSeed ?? Math.floor(rng() * 1_000_000_000), demo.day) : undefined;
   return {
     ...demo,
+    ...(realm ? { realm } : {}),
+    risen: {},
     version: SAVE_VERSION,
     npcStates,
     deaths: {},
@@ -153,8 +181,9 @@ export function newWorld(
  * Everyone in the world: the NPC files, plus those born in play, with grown-up children's
  * files over the originals (all kept in the save). A child born last session is back.
  */
-export function castOf(personas: Record<string, NpcPersona>, world: Pick<SavedWorld, "family">): Record<string, NpcPersona> {
-  return { ...personas, ...(world.family?.born ?? {}) };
+export function castOf(personas: Record<string, NpcPersona>, world: Pick<SavedWorld, "family" | "risen">): Record<string, NpcPersona> {
+  // Visitors (N14) aren't the town's cast: the town keeps them apart (game/town.ts).
+  return { ...personas, ...(world.family?.born ?? {}), ...(world.risen ?? {}) };
 }
 
 export function saveWorld(file: string, world: SavedWorld): void {
@@ -192,6 +221,9 @@ function upgradeSave(
     const best = bestAllowedWeapon(player.inventory, playerGearRank(player.level));
     if (best) equip(player, playerGearRank(player.level), best, "player");
   }
+  // Lore grown in play first: NPC files in the save (visitors, N14) may know it, and the schema checks that.
+  const lore = valid(LoreEntrySchema, raw.lore) as LoreEntry[];
+  setDynamicLore(lore);
   // Families (v8): files in the save (born in play, or grown up) are checked like any NPC file; a bad one is dropped.
   const family: FamilyState = raw.family ? (raw.family as FamilyState) : freshFamily();
   family.born = Object.fromEntries(
@@ -204,7 +236,26 @@ function upgradeSave(
     }),
   );
   if (!raw.family) family.marriages = authoredMarriages(personas);
-  const cast = { ...personas, ...family.born };
+  // Risen NPCs (v9) are checked like any file too.
+  const risen: Record<string, NpcPersona> = Object.fromEntries(
+    Object.entries(raw.risen ?? {}).flatMap(([id, p]) => {
+      try {
+        return [[id, parsePersona(p, `NPC ${id} in the save`)]];
+      } catch {
+        return [];
+      }
+    }),
+  );
+  const visitors: Record<string, NpcPersona> = Object.fromEntries(
+    Object.entries(raw.visitors ?? {}).flatMap(([id, p]) => {
+      try {
+        return [[id, parsePersona(p, `NPC ${id} in the save`)]];
+      } catch {
+        return [];
+      }
+    }),
+  );
+  const cast = { ...personas, ...family.born, ...risen, ...visitors };
   const npcStates = Object.fromEntries(
     Object.entries(cast).map(([id, persona]) => {
       const saved = raw.npcStates[id] as Partial<NpcState> | undefined;
@@ -215,8 +266,14 @@ function upgradeSave(
   );
   // Before v7 nobody had heard any rumours: seed what folk already say.
   if (raw.version < 7) seedRumours(personas, npcStates, raw.day);
-  const lore = valid(LoreEntrySchema, raw.lore) as LoreEntry[];
-  setDynamicLore(lore);
+  // Before v10 Millbrook had a hand-made map: positions on it mean nothing on the generated one.
+  const oldMap = raw.version < 10 && (player.site === undefined || player.site === HOME_ID);
+  if (oldMap) {
+    delete raw.position;
+    delete player.area;
+    player.place = "gate";
+    for (const c of Object.values((raw.creatures ?? {}) as Record<string, { pos?: unknown }>)) delete c.pos;
+  }
   return {
     version: SAVE_VERSION,
     day: raw.day,
@@ -248,7 +305,29 @@ function upgradeSave(
     directorLog: (raw.directorLog ?? []) as unknown as DirectorLogEntry[],
     ...(raw.chronicleDay !== undefined ? { chronicleDay: raw.chronicleDay } : {}),
     family,
+    risen,
+    visitors,
+    ...(raw.haunts
+      ? {
+          haunts: Object.fromEntries(
+            Object.entries(raw.haunts as unknown as Haunts).map(([site, cs]) => [
+              site,
+              Object.fromEntries(Object.entries(cs).flatMap(([uid, c]) => (creatureTemplates[c.template] ? [[uid, upgradeCreature(creatureTemplates[c.template]!, c)]] : []))),
+            ]),
+          ),
+        }
+      : {}),
+    ...(raw.deathNotes ? { deathNotes: raw.deathNotes as SavedWorld["deathNotes"] } : {}),
+    ...loadRealm(raw.realm, raw.day),
   };
+}
+
+/** The saved realm if it's sound; otherwise (an older save, or a bad one) a new one. Off: none. */
+function loadRealm(raw: unknown, day: number): { realm?: Realm } {
+  if (!config.realm) return raw ? { realm: raw as Realm } : {};
+  const r = RealmSchema.safeParse(raw);
+  if (r.success) return { realm: r.data };
+  return { realm: generateRealm(config.realmSeed ?? seedFrom(`realm-${day}`), day) };
 }
 
 /** Import the old standalone death file once when migrating older saves. */

@@ -1,0 +1,279 @@
+{
+  "id": "bandit",
+  "describe": "one of Rook's gang on the mine road, who made a name with a cudgel",
+  "roles": [
+    "a bandit of Rook's gang on the mine road",
+    "a road-hardened cutthroat from the camp at the north end of the mine road"
+  ],
+  "species": [
+    "human"
+  ],
+  "age": [
+    18,
+    40
+  ],
+  "tier": [
+    "E"
+  ],
+  "growth": [
+    0,
+    3
+  ],
+  "greed": [
+    0.5,
+    0.9
+  ],
+  "traits": {
+    "temper": [
+      0.4,
+      0.8
+    ],
+    "bravery": [
+      0.4,
+      0.8
+    ],
+    "honesty": [
+      0.1,
+      0.4
+    ],
+    "generosity": [
+      0.1,
+      0.4
+    ],
+    "sociability": [
+      0.3,
+      0.6
+    ],
+    "forgiveness": [
+      0.1,
+      0.4
+    ]
+  },
+  "attributes": {
+    "strength": [
+      12,
+      15
+    ],
+    "agility": [
+      11,
+      14
+    ],
+    "endurance": [
+      11,
+      14
+    ],
+    "charisma": [
+      7,
+      10
+    ]
+  },
+  "hp": [
+    45,
+    65
+  ],
+  "mp": [
+    0,
+    3
+  ],
+  "skills": {
+    "blunt": [
+      1,
+      3
+    ],
+    "one_handed": [
+      0,
+      2
+    ],
+    "evasion": [
+      1,
+      2
+    ],
+    "intimidation": [
+      1,
+      3
+    ],
+    "sneak": [
+      1,
+      3
+    ]
+  },
+  "weapon": [
+    "cudgel",
+    "dagger"
+  ],
+  "armor": [
+    "leather armor"
+  ],
+  "stock": {
+    "bread loaf": [
+      0,
+      2
+    ]
+  },
+  "money": [
+    100,
+    500
+  ],
+  "buys": [
+    "dagger",
+    "cudgel",
+    "leather armor"
+  ],
+  "prices": {
+    "bread loaf": [
+      14,
+      18
+    ]
+  },
+  "schedule": [
+    {
+      "from": 6,
+      "to": 20,
+      "activity": "work",
+      "place": "camp"
+    },
+    {
+      "from": 20,
+      "to": 21,
+      "activity": "eat",
+      "place": "camp"
+    },
+    {
+      "from": 21,
+      "to": 6,
+      "activity": "sleep",
+      "place": "camp"
+    }
+  ],
+  "knows": {
+    "mine_road.*": "certain",
+    "millbrook": "certain",
+    "millbrook.gate": "certain",
+    "news.*": "rumour",
+    "people.rook": "certain",
+    "people.*": "rumour"
+  },
+  "maxQuestTier": "E",
+  "names": {
+    "female": [
+      "Ada",
+      "Bess",
+      "Cora",
+      "Edith",
+      "Greta",
+      "Hilde",
+      "Ida",
+      "Mae",
+      "Nell",
+      "Rosa",
+      "Tilda",
+      "Una"
+    ],
+    "male": [
+      "Abel",
+      "Bram",
+      "Cob",
+      "Dunstan",
+      "Edwin",
+      "Fenn",
+      "Gil",
+      "Hob",
+      "Jory",
+      "Osric",
+      "Ned",
+      "Wat"
+    ],
+    "family": [
+      "Hollis",
+      "Marsh",
+      "Thatcher",
+      "Brook",
+      "Fallow",
+      "Reed",
+      "Cotter",
+      "Ashby",
+      "Linden",
+      "Furrow",
+      "Penny",
+      "Stile"
+    ]
+  },
+  "voice": {
+    "female": {
+      "lang": "en-GB",
+      "pitch": 0.95,
+      "rate": 1,
+      "gender": "female",
+      "browser": [
+        "Kate",
+        "Serena",
+        "Moira",
+        "Google UK English Female",
+        "Microsoft Libby Online (Natural) - English (United Kingdom)"
+      ],
+      "piper": {
+        "model": "en_GB-semaine-medium",
+        "speaker": 0
+      }
+    },
+    "male": {
+      "lang": "en-GB",
+      "pitch": 0.85,
+      "rate": 1,
+      "gender": "male",
+      "browser": [
+        "Daniel",
+        "Arthur",
+        "Oliver",
+        "Google UK English Male",
+        "Microsoft Ryan Online (Natural) - English (United Kingdom)"
+      ],
+      "piper": {
+        "model": "en_GB-semaine-medium",
+        "speaker": 1
+      }
+    }
+  },
+  "fallback": {
+    "personality": [
+      [
+        "surly",
+        "greedy",
+        "quick-tempered"
+      ],
+      [
+        "sly",
+        "cold",
+        "watchful"
+      ],
+      [
+        "swaggering",
+        "cruel",
+        "loud"
+      ]
+    ],
+    "speechStyle": [
+      "Rough road talk. Calls everyone 'friend' in a way that isn't friendly, and always mentions the toll.",
+      "Few words, all of them threats. Spits before answering."
+    ],
+    "backstory": [
+      "{name} was one more nameless face in Rook's gang until a fight on the mine road made them somebody.",
+      "{first} came up to the camp hungry, and came down the road with a name after beating better fighters."
+    ],
+    "appearance": [
+      "Scarred knuckles, a patched leather jerkin and a cudgel worn smooth at the grip.",
+      "Lean and sunburnt, with a nose broken more than once and a grin missing two teeth."
+    ],
+    "goals": [
+      [
+        "Get a bigger share of the tolls",
+        "Make Rook notice them"
+      ],
+      [
+        "Lead a crew of their own one day",
+        "Never go hungry again"
+      ]
+    ],
+    "fallbackLine": "Toll's due, friend."
+  }
+}

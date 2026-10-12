@@ -6,9 +6,17 @@
 import * as Phaser from "phaser";
 import { findPath, type CreatureView, type GameEvent, type NpcView, type Snapshot } from "@millbrook/shared";
 import { shortCoins } from "../dom";
-import { clickTile, creatureAt, nearest, nearestCreature, npcById } from "../game";
+import { clickTile, creatureAt, nearest, nearestCreature, nearestTalker, npcById } from "../game";
 import { store, world } from "../store";
+import { crowd, describeFolk, folkAt, insideOf, loadCrowd, updateCrowd } from "../crowd";
+import { CrowdLayer } from "./CrowdLayer";
 import { GRASS_VARIANTS, hexColor, makeTextures, ORIGINS, PATH_VARIANTS, TILE, tileHash } from "./textures";
+
+/** The view (N16): 26 by 18 tiles of the map, following the player round bigger places. */
+export const VIEW_W = 26;
+export const VIEW_H = 18;
+/** How long a townsperson's step takes on screen. */
+const CROWD_STEP_MS = 450;
 
 const MOOD_EMOTE: Record<string, string> = { happy: "😊", neutral: "😐", annoyed: "😒", angry: "😠", afraid: "😨", sad: "😢" };
 const DPR = Math.min(2, window.devicePixelRatio || 1);
@@ -209,10 +217,10 @@ class Bubble {
   }
 
   follow(x: number, y: number): void {
-    // Keep it on screen at the map's edges.
+    // Keep it on screen at the view's edges.
     const half = (this.text.width + 14) / 2;
-    const W = this.scene.scale.width;
-    this.c.setPosition(Phaser.Math.Clamp(x, half + 2, W - half - 2), Math.max(this.text.height + 18, y - 30));
+    const v = this.scene.cameras.main.worldView;
+    this.c.setPosition(Phaser.Math.Clamp(x, v.x + half + 2, v.right - half - 2), Math.max(v.y + this.text.height + 18, y - 30));
   }
 
   destroy(): void {
@@ -225,6 +233,8 @@ export class WorldScene extends Phaser.Scene {
   private actors = new Map<string, Actor>();
   private player!: Actor;
   private built = false;
+  /** The map drawn (N14: a new place means a new map). */
+  private mapId: string | null = null;
   private night!: Phaser.GameObjects.Rectangle;
   private rain!: Phaser.GameObjects.Particles.ParticleEmitter;
   private snow!: Phaser.GameObjects.Particles.ParticleEmitter;
@@ -232,14 +242,19 @@ export class WorldScene extends Phaser.Scene {
   private prompt!: Phaser.GameObjects.Text;
   private clock!: Phaser.GameObjects.Graphics;
   private clockText!: Phaser.GameObjects.Text;
+  private crowdLayer!: CrowdLayer;
+  private tip!: Phaser.GameObjects.Text;
 
   constructor() {
     super("world");
   }
 
   create(): void {
+    // A restart (a new place) starts from nothing.
+    this.actors = new Map();
+    this.built = false;
     makeTextures(this);
-    this.night = this.add.rectangle(0, 0, this.scale.width, this.scale.height, 0x0a1030, 0).setOrigin(0).setDepth(500);
+    this.night = this.add.rectangle(0, 0, this.scale.width, this.scale.height, 0x0a1030, 0).setOrigin(0).setDepth(500).setScrollFactor(0);
     this.rain = this.add.particles(0, -10, "drop", {
       x: { min: 0, max: this.scale.width + 120 },
       speedY: { min: 380, max: 480 },
@@ -250,7 +265,7 @@ export class WorldScene extends Phaser.Scene {
       alpha: { start: 0.7, end: 0.3 },
       emitting: false,
     });
-    this.rain.setDepth(600);
+    this.rain.setDepth(600).setScrollFactor(0);
     this.snow = this.add.particles(0, -10, "flake", {
       x: { min: 0, max: this.scale.width },
       speedY: { min: 30, max: 60 },
@@ -262,15 +277,21 @@ export class WorldScene extends Phaser.Scene {
       alpha: 0.85,
       emitting: false,
     });
-    this.snow.setDepth(600);
+    this.snow.setDepth(600).setScrollFactor(0);
     this.hover = this.add.graphics().setDepth(5);
     this.prompt = this.add.text(0, 0, "", font(13, "#ffd27a")).setOrigin(0.5, 0).setDepth(700).setResolution(DPR);
     this.clock = this.add.graphics().setDepth(700);
     this.clockText = this.add.text(0, 0, "", font(11)).setOrigin(0.5, 0).setDepth(700).setResolution(DPR);
+    this.crowdLayer = new CrowdLayer(this);
+    this.tip = this.add.text(0, 0, "", { ...font(11, "#f3e9d2", false), backgroundColor: "#000000b0", padding: { x: 5, y: 3 }, wordWrap: { width: 300 } }).setDepth(1200).setResolution(DPR).setVisible(false);
 
     this.input.on("pointerdown", (p: Phaser.Input.Pointer) => clickTile(Math.floor(p.worldX / TILE), Math.floor(p.worldY / TILE)));
-    this.input.on("pointermove", (p: Phaser.Input.Pointer) => this.hoverAt(Math.floor(p.worldX / TILE), Math.floor(p.worldY / TILE)));
-    this.input.on("gameout", () => this.hover.clear());
+    this.input.on("pointermove", (p: Phaser.Input.Pointer) => this.hoverAt(Math.floor(p.worldX / TILE), Math.floor(p.worldY / TILE), p.worldX, p.worldY));
+    this.input.on("gameout", () => {
+      this.hover.clear();
+      this.tip.setVisible(false);
+      this.crowdLayer.hover = null;
+    });
 
     world.state = (s) => this.sync(s);
     world.event = (e) => this.animate(e);
@@ -289,6 +310,8 @@ export class WorldScene extends Phaser.Scene {
         const ground = t === "path" ? `path${Math.floor(n * PATH_VARIANTS)}` : t === "water" ? "water" : `grass${Math.floor(n * GRASS_VARIANTS)}`;
         this.add.image(x * TILE, y * TILE, ground).setOrigin(0).setDepth(0);
         if (t === "tree") this.add.image(x * TILE, y * TILE, "tree").setOrigin(0).setDepth(10 + y + 0.4);
+        // Town walls: wall tiles that aren't part of a building.
+        if (t === "wall" && !s.map.buildings.some((b) => x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h)) this.add.image(x * TILE, y * TILE, "stonewall").setOrigin(0).setDepth(3);
         if (t === "water") {
           // Ripples that drift back and forth.
           for (const [ox, oy, phase] of [[6, 10, 0], [12, 22, 1]] as const) {
@@ -306,11 +329,26 @@ export class WorldScene extends Phaser.Scene {
       g.fillStyle(0x000000, 0.2);
       for (let i = 0; i < bw; i += 8) g.fillRect(bx + i, by, 2, bh - 10);
       g.lineStyle(2, 0x000000, 0.45).strokeRect(bx + 1, by + 1, bw - 2, bh - 2);
-      if (b.name !== "Gate") this.add.text(bx + bw / 2, by + 8, b.name, font(12, "#f3e9d2")).setOrigin(0.5, 0).setDepth(3).setResolution(DPR);
+      if (b.name !== "Gate" && b.name) this.add.text(bx + bw / 2, by + (bh - 10) / 2, b.name, font(12, "#f3e9d2")).setOrigin(0.5, 0.5).setDepth(4).setResolution(DPR);
     }
     tiles.forEach((row, ty) => row.forEach((t, tx) => t === "door" && this.add.image(tx * TILE, ty * TILE, "door").setOrigin(0).setDepth(3)));
+    // The ways off this map (N15): a marked edge tile and a signpost with where it goes.
+    for (const e of s.map.exits) {
+      const left = e.x === 0, right = e.x === w - 1, top = e.y === 0;
+      const arrow = left ? "◀" : right ? "▶" : top ? "▲" : "▼";
+      g.fillStyle(0xffd27a, 0.35).fillRect(e.x * TILE, e.y * TILE, TILE, TILE);
+      const tx = left ? TILE * 1.1 : right ? (w - 1.1) * TILE : (e.x + 0.5) * TILE;
+      const ty = top ? TILE * 1.1 : e.y === h - 1 ? (h - 1.1) * TILE : (e.y + 0.5) * TILE;
+      const ox = left ? 0 : right ? 1 : 0.5;
+      const oy = top ? 0 : e.y === h - 1 ? 1 : 0.5;
+      const text = left || top ? `${arrow} ${e.label}` : `${e.label} ${arrow}`;
+      this.add.text(tx, ty, text, { ...font(11, "#ffd27a"), backgroundColor: "#00000088", padding: { x: 4, y: 2 } }).setOrigin(ox, oy).setDepth(450).setResolution(DPR);
+    }
     this.player = new Actor(this, s.position);
     this.player.setLook("player", "#3f7fd0");
+    // Bigger places are bigger than the view: it follows the player.
+    this.cameras.main.setBounds(0, 0, w * TILE, h * TILE);
+    this.cameras.main.startFollow(this.player.c, true, 0.18, 0.18);
     this.built = true;
   }
 
@@ -323,7 +361,15 @@ export class WorldScene extends Phaser.Scene {
   // ---------- following the server's state ----------
 
   private sync(s: Snapshot): void {
-    if (!this.built) this.buildMap(s);
+    // Arrived somewhere else (N14): draw that place's map.
+    if (this.built && this.mapId !== s.map.id) {
+      this.scene.restart();
+      return;
+    }
+    if (!this.built) {
+      this.buildMap(s);
+      this.mapId = s.map.id;
+    }
     const seen = new Set<string>();
     const near = nearest();
     for (const n of s.npcs) {
@@ -346,6 +392,12 @@ export class WorldScene extends Phaser.Scene {
     }
     const far = Math.abs(this.player.tile.x - s.position.x) + Math.abs(this.player.tile.y - s.position.y) > 1;
     this.player.goTo(s.position, { stepMs: 80, jump: far });
+    // The townsfolk (N16): fetched once per map, then placed by the clock.
+    void loadCrowd(s).then(() => {
+      if (store.state !== s || this.mapId !== s.map.id) return;
+      updateCrowd(s);
+      this.crowdLayer.sync(s, CROWD_STEP_MS);
+    });
     this.player.setLabel(`${s.player.name} (YOU)`, true);
     this.player.setHp(s.player.hp / s.player.maxHp);
     this.setSky(s);
@@ -453,19 +505,44 @@ export class WorldScene extends Phaser.Scene {
 
   // ---------- input feedback ----------
 
-  private hoverAt(x: number, y: number): void {
+  private hoverAt(x: number, y: number, wx = 0, wy = 0): void {
     this.hover.clear();
+    this.tip.setVisible(false);
+    this.crowdLayer.hover = null;
     const s = store.state;
     if (!s || x < 0 || y < 0 || x >= s.map.w || y >= s.map.h) return;
-    const someone = s.npcs.find((n) => n.x === x && n.y === y && !n.away) ?? creatureAt(x, y);
-    this.input.setDefaultCursor(someone ? "pointer" : this.blocked(x, y) ? "default" : "crosshair");
-    if (this.blocked(x, y) && !someone) return;
-    this.hover.lineStyle(2, someone ? 0xffd27a : 0xffffff, someone ? 0.8 : 0.35).strokeRect(x * TILE + 1, y * TILE + 1, TILE - 2, TILE - 2);
+    const npc = s.npcs.find((n) => n.x === x && n.y === y && !n.away);
+    const folk = npc ? null : folkAt(s, x, y);
+    const someone = npc ?? creatureAt(x, y) ?? (folk !== null ? folk : undefined);
+    this.input.setDefaultCursor(someone !== undefined ? "pointer" : this.blocked(x, y) ? "default" : "crosshair");
+    let tip = "";
+    if (npc) tip = `${npc.name} — ${npc.role} · ${npc.doing}`;
+    else if (folk !== null) {
+      this.crowdLayer.hover = folk;
+      tip = describeFolk(folk);
+    } else {
+      // A building: what it is, and who's inside.
+      const i = s.map.buildings.findIndex((b) => x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h);
+      const b = s.map.buildings[i];
+      if (b && crowd.sim) {
+        const inside = insideOf(i);
+        const names = inside.slice(0, 6).map((k) => crowd.sim!.roster.people[k]!.name.split(" ")[0]);
+        tip = `${b.name || (b.kind === "house" ? "A house" : (b.kind ?? "A building"))}: ${inside.length === 0 ? "nobody inside" : `${inside.length} inside (${names.join(", ")}${inside.length > 6 ? ", …" : ""})`}`;
+      }
+    }
+    if (tip) {
+      const v = this.cameras.main.worldView;
+      this.tip.setText(tip);
+      this.tip.setPosition(Math.min(wx + 14, v.right - this.tip.width - 4), Math.min(wy + 14, v.bottom - this.tip.height - 4)).setVisible(true);
+    }
+    if (this.blocked(x, y) && someone === undefined) return;
+    this.hover.lineStyle(2, someone !== undefined ? 0xffd27a : 0xffffff, someone !== undefined ? 0.8 : 0.35).strokeRect(x * TILE + 1, y * TILE + 1, TILE - 2, TILE - 2);
   }
 
   update(time: number, delta: number): void {
     if (!this.built) return;
     this.player.update(delta);
+    this.crowdLayer.update(time, this.player.tile);
     for (const a of this.actors.values()) {
       a.update(delta);
       a.bubble?.tick(time);
@@ -478,7 +555,7 @@ export class WorldScene extends Phaser.Scene {
   private drawPrompts(): void {
     const s = store.state;
     if (!s) return;
-    const n = nearest();
+    const n = nearestTalker();
     const prey = nearestCreature();
     let text = "";
     let at: { x: number; y: number } | null = null;
@@ -515,8 +592,8 @@ export function startWorld(parent: HTMLElement, s: Snapshot): Phaser.Game {
   return new Phaser.Game({
     type: Phaser.AUTO,
     parent,
-    width: s.map.w * TILE,
-    height: s.map.h * TILE,
+    width: VIEW_W * TILE,
+    height: VIEW_H * TILE,
     backgroundColor: "#2d4a2b",
     // Keys are read by the page (so typing in the chat box never moves you); Phaser only gets the mouse.
     input: { keyboard: false },

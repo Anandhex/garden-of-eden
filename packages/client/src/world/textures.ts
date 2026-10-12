@@ -54,6 +54,14 @@ export function makeTextures(scene: Phaser.Scene): void {
     g.fillStyle(0x2f5a2c).fillCircle(16, 14, 12);
     g.fillStyle(0xffffff, 0.06).fillCircle(12, 10, 5);
   });
+  // Town walls (N16): grey stone, with the mortar lines showing.
+  bake("stonewall", TILE, TILE, () => {
+    g.fillStyle(0x7d7a72).fillRect(0, 0, TILE, TILE);
+    g.fillStyle(0x000000, 0.22);
+    for (const y of [0, 10, 21]) g.fillRect(0, y, TILE, 2);
+    for (const [x, y] of [[8, 2], [24, 2], [2, 12], [17, 12], [10, 23], [26, 23]] as const) g.fillRect(x, y, 2, 8);
+    g.fillStyle(0xffffff, 0.08).fillRect(0, 2, TILE, 2);
+  });
   bake("door", TILE, TILE, () => {
     g.fillStyle(0x3a2a1c).fillRect(6, 2, TILE - 12, TILE - 2);
     g.fillStyle(0xc9a24a).fillRect(TILE - 12, 16, 3, 3);

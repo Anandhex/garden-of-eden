@@ -43,7 +43,8 @@ describe("N6 daily life", () => {
       passVillage(members, world, 1, always(0.99));
       seen.push(`${world.hour}:${b.state.activity!.activity}@${b.state.activity!.place}`);
     }
-    expect(seen.slice(0, 13).every((s) => s.endsWith("work@forge"))).toBe(true); // 7:00 .. 19:00
+    // 7:00 .. 19:00 at the forge, but for the midday break (N16): an hour at the inn in the middle of her day.
+    expect(seen.slice(0, 13).filter((s) => !s.endsWith("work@forge"))).toEqual(["13:eat@inn"]);
     expect(seen).toContain("20:eat@inn");
     expect(seen).toContain("21:sleep@home");
     expect(seen).toContain("3:sleep@home");

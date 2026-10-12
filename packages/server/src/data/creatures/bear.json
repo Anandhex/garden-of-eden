@@ -1,0 +1,84 @@
+{
+  "id": "bear",
+  "name": "bear",
+  "species": "bear",
+  "tier": "E",
+  "potential": [
+    "E",
+    "B"
+  ],
+  "ageRange": [
+    4,
+    18
+  ],
+  "stats": {
+    "maxHp": 48,
+    "maxMp": 0,
+    "attributes": {
+      "strength": 17,
+      "agility": 9,
+      "endurance": 16,
+      "intelligence": 4,
+      "willpower": 12,
+      "charisma": 4,
+      "perception": 11,
+      "luck": 10
+    }
+  },
+  "skills": {
+    "unarmed": 3,
+    "evasion": 1,
+    "hunting": 2
+  },
+  "attack": {
+    "name": "claws",
+    "die": 8,
+    "skill": "unarmed"
+  },
+  "fleeAt": 0.2,
+  "loot": [
+    {
+      "item": "bear pelt",
+      "qty": 1,
+      "chance": 0.85
+    }
+  ],
+  "barks": {
+    "idle": [
+      "*a deep huff from the undergrowth*",
+      "*branches crack under something heavy*"
+    ],
+    "attack": [
+      "*rears up and roars*",
+      "*swipes with a massive paw*"
+    ],
+    "hurt": [
+      "*bellows*"
+    ],
+    "flee": [
+      "*crashes off through the trees*"
+    ]
+  },
+  "aggressive": true,
+  "hunts": [
+    {
+      "activity": "raiding a beehive",
+      "rank": "F",
+      "chance": 0.4
+    },
+    {
+      "activity": "hunting a deer",
+      "rank": "E",
+      "chance": 0.3
+    }
+  ],
+  "rivalry": 0.1,
+  "breeding": {
+    "chance": 0.05,
+    "litter": [
+      1,
+      2
+    ],
+    "cap": 4
+  }
+}

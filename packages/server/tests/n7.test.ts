@@ -1,3 +1,4 @@
+import { deathNewsId, heardNews } from "../src/game/deathNews.js";
 import { beforeEach, describe, expect, it } from "vitest";
 import { config } from "../src/config.js";
 import { minPrice, npcPrice, playerAttack } from "../src/npc/actions.js";
@@ -67,13 +68,18 @@ describe("N7 done when: attack Brena, and Pell already knows by evening", () => 
 });
 
 describe("N7 crimes: kill someone, and the guard brings it up", () => {
-  it("a bounty follows, Hale opens with it, and won't trade until it's paid", () => {
+  it("a bounty follows once the guard hears, Hale opens with it, and won't trade until it's paid", () => {
     const town = makeTown();
     const world = town.world;
     const brenaAgent = town.agents.brena!;
     brenaAgent.state.hp = 1;
     playerAttack({ persona: brena, state: brenaAgent.state, world, rng: always(0.99) });
     expect(brenaAgent.isDead).toBe(true);
+    // Hale is at the gate: he doesn't know yet (N13.0), so there's no bounty.
+    town.consequences();
+    expect(world.player.bounty ?? 0).toBe(0);
+    // The news reaches him.
+    heardNews({ id: "hale", persona: hale, state: town.agents.hale!.state }, deathNewsId("brena"), world, "certain");
     const lines = town.consequences();
     expect(world.player.bounty).toBeGreaterThanOrEqual(2000);
     expect(lines.some((l) => /murder of Brena Ashford/.test(l))).toBe(true);

@@ -2,8 +2,11 @@
 // (ui/), and NPC voices (voice/). The server owns every rule; this only shows its
 // state and sends what the player does.
 import "./style.css";
+import { setUpSimulation } from "./simulate";
 import { $ } from "./dom";
-import { act, cancelWalk, closeChat, feed, fightCreature, nearest, nearestCreature, newGame, openChat, refresh, renderAll, runFrom, step } from "./game";
+import { act, cancelWalk, closeChat, feed, fightCreature, handleEvent, nearestCreature, nearestTalker, newGame, openChat, refresh, renderAll, runFrom, setState, step } from "./game";
+import { postTick } from "./api";
+import { heldBy, simulation } from "./simulate";
 import { store } from "./store";
 import { setUpChat } from "./ui/chat";
 import { showCraft, showVoices } from "./ui/modals";
@@ -13,6 +16,7 @@ import { startWorld } from "./world/WorldScene";
 
 setUpChat();
 setUpSheet();
+setUpSimulation();
 
 // ---------- keys (read by the page, not Phaser, so typing never moves you) ----------
 
@@ -32,7 +36,7 @@ addEventListener("keydown", (e) => {
     cancelWalk();
     void step(dir[0], dir[1]);
   } else if (key === "e") {
-    const n = nearest();
+    const n = nearestTalker();
     if (n) void openChat(n.id);
   } else if (key === "f" && !store.talking) {
     const c = nearestCreature();
@@ -65,6 +69,56 @@ setInterval(async () => {
   }
 }, 500);
 
+// Time flows while you stand about (N16): a game minute every few seconds, so the townsfolk keep
+// going about their day. Not while you talk, fight, walk or simulate, nor with the tab hidden.
+const TIME_KEY = "millbrook.timeFlows";
+let timeFlows = (() => {
+  try {
+    return localStorage.getItem(TIME_KEY) !== "off";
+  } catch {
+    return true;
+  }
+})();
+const timeBtn = $<HTMLButtonElement>("time-btn");
+const showTime = () => {
+  const off = !store.state?.timeFlowSeconds;
+  timeBtn.hidden = off;
+  timeBtn.textContent = timeFlows ? "⏸ Time" : "▶ Time";
+  timeBtn.title = timeFlows ? "Time flows while you stand about. Click to make it wait for you." : "Time waits for you. Click to let it flow while you stand about.";
+  timeBtn.classList.toggle("on", timeFlows);
+};
+timeBtn.onclick = () => {
+  timeFlows = !timeFlows;
+  try {
+    localStorage.setItem(TIME_KEY, timeFlows ? "on" : "off");
+  } catch {
+    // remembered for this page only
+  }
+  showTime();
+};
+let lastTick = performance.now();
+setInterval(async () => {
+  const s = store.state;
+  if (!s || !timeFlows || !s.timeFlowSeconds) return;
+  if (performance.now() - lastTick < s.timeFlowSeconds * 1000) return;
+  if (store.talking || store.working || store.moving || simulation.running || heldBy(s) || s.fight || document.visibilityState !== "visible") {
+    lastTick = performance.now();
+    return;
+  }
+  lastTick = performance.now();
+  try {
+    const r = await postTick();
+    // Something else got in first (a step, a word): its own answer has the state.
+    if (!r.state || store.working || store.moving) return;
+    setState(r.state);
+    for (const line of r.log) feed(line);
+    for (const e of r.events) handleEvent({ t: "event", event: e }, null, null);
+    renderAll();
+  } catch {
+    // the next tick will try again
+  }
+}, 250);
+
 // Ollama may start after the page does: keep checking until it's up.
 setInterval(() => {
   if (store.state && !store.state.llm.ready && !store.working) void refresh();
@@ -73,7 +127,8 @@ setInterval(() => {
 // ---------- start ----------
 
 await Promise.all([refresh(), speaker.init()]);
+showTime();
 startWorld($("map"), store.state!);
 renderAll();
-feed("You arrive in Millbrook. Walk up to someone and press E to talk.");
+feed(`You're in ${store.state!.site.name}. Walk up to anyone and press E to talk.`);
 if (speaker.info.backend === "piper") feed(`Voices: ${speaker.info.note}`);

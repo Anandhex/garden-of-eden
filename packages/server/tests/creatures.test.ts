@@ -44,7 +44,8 @@ const d20 = (n: number) => () => (n - 0.5) / 20;
 
 describe("creature files", () => {
   it("all parse, with a species and a rank", () => {
-    expect(Object.keys(templates).sort()).toEqual(["bandit", "horse", "villager", "wolf"]);
+    // Bears, boars and giant spiders are the beasts of other places' woods (N15).
+    expect(Object.keys(templates).sort()).toEqual(["bandit", "bear", "boar", "horse", "spider", "villager", "wolf"]);
     expect(wolf.species).toBe("wolf");
     expect(bandit.species).toBe("human"); // people can be stat blocks too
   });

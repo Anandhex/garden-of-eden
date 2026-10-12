@@ -13,6 +13,7 @@ import { titleNames } from "../game/titles.js";
 import { speciesOf } from "../world/species.js";
 import { statsOf } from "./state.js";
 import { describeAttributes, describeCondition } from "./stats.js";
+import { describeDeathBeliefs, isFromAway, newsHeard } from "../game/deathNews.js";
 import type { NpcPersona, NpcState, WorldSnapshot } from "./types.js";
 import { formatMoney } from "../game/money.js";
 import { describeLookup, eventTexts, isNewsTalk, knownNameWords, lookupLore, rumourMonger, unknownNames, whoKnowsMore } from "./knowledge.js";
@@ -169,8 +170,9 @@ function buildSituation(
       .join(", ") || "nothing";
   const offer = state.pendingOffer;
   const stats = statsOf(persona, state);
-  // Today's events are shown to everyone; lore lines only for what the player asked about.
-  const news = eventTexts(world.recentEvents);
+  // Today's village-wide events are shown to everyone; news made in play (deaths, the realm) only to
+  // those who've heard it (N13.0); lore lines only for what the player asked about.
+  const news = eventTexts(newsHeard(state, world.recentEvents, isFromAway(persona)));
   // What they know: their file's scopes plus what they learned in play (N7).
   const knowing = { ...persona, knows: knowsOf(persona, state) };
   const lore = playerLine ? describeLookup(knowing, lookupLore(knowing, playerLine, undefined, new Set(world.recentEvents))) : [];
@@ -186,6 +188,8 @@ function buildSituation(
     today,
     news.length > 0 ? `Recent news: ${news.join(" ")}` : null,
     ...lore,
+    // Someone dead was named: what this NPC believes (N13.0). Only when the talk is about them.
+    playerLine ? describeDeathBeliefs(state, world, playerLine, persona.id) : null,
     `You: ${describeLife(speciesOf(persona.species).name, state.life, world.day)}.`,
     `Your condition: ${describeCondition(state.hp, stats.maxHp)} (HP ${state.hp}/${stats.maxHp}, MP ${state.mp}/${stats.maxMp}).`,
     `Your mood: ${state.mood}. ${player.name} is ${describeTrust(state.relationship)} (trust ${state.relationship}).`,

@@ -28,10 +28,30 @@ import { creatureStats } from "./creatures.js";
 import { registerNpcGenders, registerNpcNames } from "../world/names.js";
 import { createNpcState } from "../npc/state.js";
 import { familyNight, familyOf } from "./family.js";
-import { loadTemplates, writeChildWords, type NpcTemplate } from "../npc/templates.js";
-import { currentPlan, type PlaceId } from "./schedule.js";
+import { idFor, loadTemplates, writeChildWords, type NpcTemplate } from "../npc/templates.js";
+import { type AreaId, currentPlan, type PlaceId } from "./schedule.js";
 import { DEMO_SPAWNS } from "../world/world.js";
 import type { DirectorLogEntry } from "../director/validator.js";
+import { addLore, learnLore } from "../npc/knowledge.js";
+import { advanceRealm } from "./realm/day.js";
+import { nameFaction } from "./realm/director.js";
+import { applyHomeEvents, postNeedQuests, syncCast } from "./realm/home.js";
+import { tally } from "./realm/log.js";
+import { deliverNews, realmNewsId, realmPlaceLore, RETELL_IMPORTANCE, retellNews } from "./realm/news.js";
+import { atWar } from "./realm/economy.js";
+import { HOME_ID } from "./realm/generate.js";
+import { breedCreatures, castCrowd, nameRisers, personaFor, readyToTalk } from "./realm/rise.js";
+import { arrive, setOut, siteOf, type Trip } from "./realm/travel.js";
+import { ensurePlaceLore, notablesOf, visitorId, visitorPersona } from "./realm/visitors.js";
+import { parseTownsfolkId, townsfolkPersona } from "./realm/townsfolk.js";
+import type { CrowdRoster, Townsperson } from "@millbrook/shared";
+import { settleHaunts, stockHaunts } from "./realm/haunts.js";
+import { killFigure, titled } from "./realm/figures.js";
+import { realmNews } from "./realm/log.js";
+import type { Figure } from "./realm/types.js";
+import { ITEM_TIERS } from "./items.js";
+
+const HEAD = new Set(["ruler", "lord", "mayor", "village head", "elder"]);
 
 /**
  * The town as a whole: everything that happens around conversations, shared by the
@@ -94,8 +114,13 @@ export class Town {
   constructor(o: TownOptions) {
     // Children born in play live in the save, and so do grown-up children's files: they're the cast.
     for (const [id, p] of Object.entries(o.world.family?.born ?? {})) o.personas[id] = p;
+    // So do people who rose from the crowd to talk (N13.7).
+    for (const [id, p] of Object.entries(o.world.risen ?? {})) o.personas[id] = p;
+    // The people of other places (N14) aren't the town's cast: not in `ids`, so Millbrook's day doesn't run them.
+    for (const id of Object.keys(o.world.visitors ?? {})) delete o.personas[id];
     this.personas = o.personas;
     this.ids = Object.keys(o.personas);
+    for (const [id, p] of Object.entries(o.world.visitors ?? {})) this.personas[id] = p;
     this.agentLlm = o.llm;
     try {
       this.childTemplate = o.childTemplate ?? loadTemplates().child;
@@ -114,16 +139,19 @@ export class Town {
     registerNpcNames(Object.fromEntries(this.ids.map((id) => [id, o.personas[id]!.name])));
     registerNpcGenders(Object.fromEntries(this.ids.map((id) => [id, o.personas[id]!.voice?.gender])));
     this.agents = o.agents ?? Object.fromEntries(this.ids.map((id) => [id, new NpcAgent(o.personas[id]!, o.llm, undefined, o.world.npcStates[id])]));
+    for (const id of Object.keys(o.world.visitors ?? {})) this.agents[id] ??= new NpcAgent(this.personas[id]!, o.llm, undefined, o.world.npcStates[id]);
     for (const id of this.ids) this.agents[id] ??= new NpcAgent(o.personas[id]!, o.llm, undefined, o.world.npcStates[id]);
     for (const id of this.ids) {
       if (this.agents[id]!.isDead) this.rippled.add(id);
       if (o.world.deaths[id] && this.agents[id]!.state.outcome !== "dead") this.agents[id]!.state.outcome = "dead";
     }
+    this.setUpRealm();
     if (o.store) {
       const store = o.store;
       this.unsubscribe = onEvent((e) => store.archiveEvent(e));
       for (const e of o.world.events ?? []) store.archiveEvent(e);
-      for (const id of this.ids) this.hookRecall(id);
+      // Everyone recalls by meaning: the cast, and the people of other places met before (N15).
+      for (const id of [...this.ids, ...this.visitorIds()]) this.hookRecall(id);
     }
   }
 
@@ -176,6 +204,296 @@ export class Town {
     return log;
   }
 
+  // ---- Travel (N14) ----
+
+  /** Where the player is: a realm settlement id (Millbrook by default). */
+  site(): string {
+    return siteOf(this.world.player);
+  }
+
+  /** Is the player in Millbrook? */
+  atHome(): boolean {
+    return this.site() === HOME_ID;
+  }
+
+  /** Where around the settlement the player is (N15): its village, or one of its localities. */
+  area(): AreaId {
+    return this.world.player.area ?? "village";
+  }
+
+  /** The creatures where the player is (N15): Millbrook's own at home; elsewhere, the beasts and outlaws the realm says are about. */
+  creaturesHere(): Record<string, Creature> {
+    if (this.atHome() || !this.world.realm) return this.world.creatures;
+    return (this.world.haunts ??= {})[this.site()] ?? {};
+  }
+
+  /** Bring the beasts and outlaws of the place the player is at in line with the realm (game/realm/haunts.ts). */
+  stockHaunts(): void {
+    const realm = this.world.realm;
+    if (!realm || this.atHome()) return;
+    stockHaunts(realm, (this.world.haunts ??= {}), this.site(), this.templates, this.world.day, this.rng, (f) => !!this.personas[visitorId(f.id)]);
+  }
+
+  /** After a fight away from home: the dead go back to the realm (a pack one fewer, a bounty share, a named death). Returns lines. */
+  settleHaunts(): string[] {
+    const realm = this.world.realm;
+    if (!realm || this.atHome()) return [];
+    return settleHaunts(realm, (this.world.haunts ??= {}), this.site(), this.world.player, this.world.day);
+  }
+
+  /** Persona ids of the people of other places (not the town's cast). */
+  visitorIds(): string[] {
+    return Object.keys(this.world.visitors ?? {});
+  }
+
+  /** The figure a visitor NPC stands for. */
+  figureOf(id: string): Figure | undefined {
+    return Object.values(this.world.realm?.figures ?? {}).find((f) => visitorId(f.id) === id);
+  }
+
+  /**
+   * Who's about where the player is: in Millbrook, the cast; elsewhere, whoever travels
+   * with them and that place's people (the living, and the dead where they fell).
+   */
+  localIds(): string[] {
+    const site = this.site();
+    // The townsfolk the player has talked to (N16) are about their village's streets.
+    const townsfolk = this.area() === "village" ? this.visitorIds().filter((id) => parseTownsfolkId(id)?.site === site) : [];
+    if (this.atHome()) return townsfolk.length > 0 ? [...this.ids, ...townsfolk] : this.ids;
+    // A figure who died keeps their home: they lie where they fell.
+    const folk = this.visitorIds().filter((id) => !parseTownsfolkId(id) && this.figureOf(id)?.home === site);
+    return [...this.companions().map((a) => a.persona.id), ...folk, ...townsfolk];
+  }
+
+  /**
+   * One of the townsfolk becomes a talking NPC (N16): the player spoke to them. Their
+   * file (realm/townsfolk.ts) is kept in the save with the people of other places, so
+   * they remember the player next time. Returns their id, or null if no file could be made.
+   */
+  meetTownsperson(roster: CrowdRoster, p: Townsperson): string | null {
+    if (this.personas[p.id] && this.agents[p.id]) return p.id;
+    let templates: Record<string, NpcTemplate>;
+    try {
+      templates = loadTemplates();
+    } catch {
+      return null;
+    }
+    const persona = townsfolkPersona(this.world.realm ?? null, roster, p, templates);
+    if (!persona) return null;
+    (this.world.visitors ??= {})[persona.id] = persona;
+    this.personas[persona.id] = persona;
+    const state = this.world.npcStates[persona.id] ?? createNpcState(persona, {}, this.world.day);
+    this.world.npcStates[persona.id] = state;
+    this.agents[persona.id] = new NpcAgent(persona, this.agentLlm, undefined, state);
+    registerNpcNames({ [persona.id]: persona.name });
+    registerNpcGenders({ [persona.id]: persona.voice?.gender });
+    this.hookRecall(persona.id);
+    return persona.id;
+  }
+
+  /** Make talking NPCs of a place's head and best-known people (once each), and its lore. Returns their ids. */
+  meetPeopleOf(site: string): string[] {
+    const realm = this.world.realm;
+    if (!realm || site === HOME_ID) return [];
+    let templates: Record<string, NpcTemplate>;
+    try {
+      templates = loadTemplates();
+    } catch {
+      return [];
+    }
+    const out: string[] = [];
+    // The place's lore first: their files may know it.
+    ensurePlaceLore(realm, this.world, site, []);
+    for (const f of notablesOf(realm, site)) {
+      const id = visitorId(f.id);
+      if (!this.personas[id]) {
+        const p = visitorPersona(realm, f, templates, this.world.day);
+        if (!p) continue;
+        (this.world.visitors ??= {})[id] = p;
+        this.personas[id] = p;
+        const state = this.world.npcStates[id] ?? createNpcState(p, {}, this.world.day);
+        state.life = structuredClone(f.life) as typeof state.life;
+        this.world.npcStates[id] = state;
+        this.agents[id] = new NpcAgent(p, this.agentLlm, undefined, state);
+        registerNpcNames({ [id]: p.name });
+        registerNpcGenders({ [id]: p.voice?.gender });
+        this.hookRecall(id);
+      }
+      out.push(id);
+    }
+    ensurePlaceLore(realm, this.world, site, out.map((id) => ({ id, persona: this.personas[id]!, state: this.agents[id]!.state })));
+    return out;
+  }
+
+  /** Strength of whoever travels with the player, for fights on the road. */
+  companionPower(): number {
+    return this.companions().reduce((a, c) => a + 6 + 4 * ITEM_TIERS.indexOf(c.state.life.tier), 0);
+  }
+
+  /**
+   * Set out for a place (N14): the route and what happens on the road. The caller then
+   * lets `hours` pass (the whole world lives them) and calls arriveAt().
+   */
+  setOutFor(to: string): Trip {
+    const realm = this.world.realm;
+    if (!realm) return { ok: false, lines: ["There's no wider realm in this world."], hours: 0 };
+    if (this.ids.some((id) => this.agents[id]!.state.inCombat && !this.agents[id]!.isDead)) return { ok: false, lines: ["Not in the middle of a fight."], hours: 0 };
+    return setOut(realm, this.world.player, to, this.world.day, this.rng, this.companionPower());
+  }
+
+  /** The player arrives: they're at the gate of the new place, and its people are about. Returns lines. */
+  arriveAt(to: string): string[] {
+    const realm = this.world.realm;
+    const s = realm?.settlements[to];
+    if (!realm || !s) return [];
+    arrive(this.world.player, s.id);
+    this.world.player.place = "gate";
+    if (s.id === HOME_ID) return [`You're back in Millbrook.`];
+    const folk = this.meetPeopleOf(s.id);
+    this.stockHaunts();
+    const head = s.leader ? realm.figures[s.leader] : undefined;
+    return [`You reach ${s.name}, a ${s.kind}${s.kingdom ? ` of ${realm.kingdoms[s.kingdom]?.name}` : ""} of about ${s.population} people${head ? `, under ${titled(head)}` : ""}.`, ...(folk.length > 0 ? [`About the place: ${folk.map((id) => this.personas[id]!.name).join(", ")}.`] : [])];
+  }
+
+  /** Realm deaths reach the people of other places, and the player's killings reach the realm. Returns lines. */
+  private syncVisitors(): string[] {
+    const realm = this.world.realm;
+    if (!realm) return [];
+    const log: string[] = [];
+    for (const id of this.visitorIds()) {
+      const f = this.figureOf(id);
+      const a = this.agents[id];
+      if (!f || !a) continue;
+      if (!f.alive && !a.isDead) {
+        a.state.outcome = "dead";
+        a.state.deathCause = f.deathCause ?? "unknown";
+      } else if (f.alive && a.isDead) {
+        const cause = a.state.deathCause ?? this.world.player.name;
+        const s = f.home ? realm.settlements[f.home] : undefined;
+        killFigure(realm, f, this.world.day, `killed by ${cause}`);
+        realmNews(realm, this.world.day, f.home, "death", `${titled(f)}${s ? ` of ${s.name}` : ""} was killed by ${cause}.`, HEAD.has(f.role) ? 8 : 5, [f.name, cause]);
+        log.push(`Word will spread that ${f.name} is dead.`);
+      } else if (f.alive) {
+        f.life = structuredClone(a.state.life) as Figure["life"];
+      }
+    }
+    return log;
+  }
+
+  // ---- The wider realm (N13) ----
+
+  /** The realm's figures for the cast, and the lore of the places around Millbrook. Once, at start. */
+  private setUpRealm(): void {
+    const realm = this.world.realm;
+    if (!realm) return;
+    this.meetHomeNotables(this.world.day);
+    syncCast(realm, this.members(), this.world.day);
+    if (!(this.world.lore ?? []).some((e) => e.id.startsWith("realm.place_"))) realmPlaceLore(realm, this.world, this.members());
+    castCrowd(realm, this.world.creatures, this.world.day);
+    // Away from home (N14): the people of where the player is, about (made again if the save lost them).
+    if (!this.atHome()) {
+      this.meetPeopleOf(this.site());
+      this.stockHaunts();
+    }
+  }
+
+  /**
+   * Each midnight passed, for the realm (N13): Millbrook's creatures breed and the
+   * ones that rose get names; the realm lives its day; what it sends Millbrook
+   * happens on the map; news that has travelled far enough arrives; Millbrook's
+   * needs go on the boards; and anyone who rose far enough starts to talk. Returns lines.
+   */
+  realmNights(fromDay: number): string[] {
+    const realm = this.world.realm;
+    if (!realm) return [];
+    const log: string[] = [];
+    for (let d = fromDay + 1; d <= this.world.day; d++) {
+      log.push(...breedCreatures(this.templates, this.world.creatures, d, this.rng));
+      log.push(...nameRisers(realm, this.templates, this.world.creatures, d, this.rng));
+      syncCast(realm, this.members(), d);
+      const before = Object.keys(realm.factions);
+      advanceRealm(realm, d, this.rng);
+      this.world.atWar = atWar(realm, realm.settlements[HOME_ID]!);
+      log.push(...applyHomeEvents(realm, this.world, this.members(), Object.keys(this.templates)));
+      const before2 = new Set(realm.news.filter((n) => n.delivered).map((n) => n.id));
+      log.push(...deliverNews(realm, this.world, this.members()));
+      // Big news from away, retold by the model in the background (code's words stand if it fails).
+      if (config.director) {
+        for (const n of realm.news.filter((x) => x.delivered && !before2.has(x.id) && x.importance >= RETELL_IMPORTANCE && x.at !== HOME_ID)) {
+          this.background.add({ key: `retell:${n.id}`, run: async () => void (await retellNews(this.bgLlm, realm, this.world, realmNewsId(n))) });
+        }
+      }
+      log.push(...postNeedQuests(realm, this.world, this.members()));
+      log.push(...this.promoteRisers(d));
+      log.push(...this.meetHomeNotables(d, true));
+      // New factions get their words from the model, in the background (code's names stand if it fails).
+      if (config.director) for (const id of Object.keys(realm.factions).filter((x) => !before.includes(x))) this.background.add({ key: `faction-name:${id}`, run: async () => void (await nameFaction(this.bgLlm, realm, id)) });
+    }
+    return log;
+  }
+
+  /**
+   * Millbrook's own notables from the realm talk (N15): its head, the guard captain,
+   * and whoever of note the realm puts there later (a new mayor after the old one
+   * dies). Each is made like the people of other places (realm/visitors.ts), from a
+   * template by their role, and joins the cast: they live Millbrook's day, gossip and
+   * remember. Their files are kept in the save with the risen (`world.risen`). Returns lines.
+   */
+  private meetHomeNotables(day: number, announce = false): string[] {
+    const realm = this.world.realm;
+    if (!realm) return [];
+    const folk = notablesOf(realm, HOME_ID);
+    if (folk.length === 0) return [];
+    let templates: Record<string, NpcTemplate>;
+    try {
+      templates = loadTemplates();
+    } catch {
+      return [];
+    }
+    const log: string[] = [];
+    for (const f of folk) {
+      const persona = visitorPersona(realm, f, templates, day, idFor(f.name, [...this.ids, ...this.visitorIds()]));
+      if (!persona) continue;
+      (this.world.risen ??= {})[persona.id] = persona;
+      const agent = this.addNpc(persona, day);
+      agent.state.life = structuredClone(f.life) as typeof agent.state.life;
+      f.talks = persona.id;
+      // A newcomer to the post is news; the ones there from the start are simply about.
+      if (announce) log.push(`${persona.name}, ${persona.role}, is about the village now.`);
+    }
+    return log;
+  }
+
+  /** People of Millbrook who rose far enough become talking NPCs (N13.7), one a night, while there's room. */
+  private promoteRisers(day: number): string[] {
+    const realm = this.world.realm;
+    if (!realm) return [];
+    const alive = this.ids.filter((id) => !this.agents[id]!.isDead && !this.agents[id]!.state.dormant).length;
+    if (alive >= config.family.maxPopulation) return [];
+    const f = readyToTalk(realm, this.world.creatures)[0];
+    if (!f) return [];
+    let templates: Record<string, NpcTemplate>;
+    try {
+      templates = loadTemplates();
+    } catch {
+      return [];
+    }
+    const persona = personaFor(f, templates, day, this.rng, this.ids);
+    if (!persona) return [];
+    // Off the map as a creature; into the cast as a person.
+    for (const [uid, c] of Object.entries(this.world.creatures)) if (c.figure === f.id) delete this.world.creatures[uid];
+    for (const out of Object.values(this.world.spawns ?? {})) out.uids = out.uids.filter((uid) => this.world.creatures[uid]);
+    (this.world.risen ??= {})[persona.id] = persona;
+    const agent = this.addNpc(persona, day);
+    agent.state.life = structuredClone(f.life) as typeof agent.state.life;
+    f.talks = persona.id;
+    f.name = persona.name;
+    addLore(this.world, { id: `people.${persona.id}`, kind: "person", name: persona.name, aliases: [persona.name.split(" ")[0]!], keywords: [], npc: persona.id, text: `${persona.name}, ${persona.role}. Folk know the name now: ${f.deeds.slice(-2).join("; ") || "they made a name for themselves"}.` });
+    for (const m of this.members()) if (m.id !== persona.id) learnLore(m.state, `people.${persona.id}`, "rumour");
+    tally(realm, "promoted");
+    return [`${persona.name} (${persona.role}) has made enough of a name that folk stop to talk with them.`];
+  }
+
   /** In the background: the model writes a child's words when they start talking (template words stand if it fails). */
   private writeChildWords(id: string): void {
     const t = this.childTemplate;
@@ -217,13 +535,15 @@ export class Town {
   placeOf(id: string): PlaceId | null {
     const a = this.agents[id]!;
     if (a.isDead || a.state.dormant || a.state.outcome === "unconscious") return null;
+    // Away from Millbrook (N14), a companion is wherever the player is; the rest of the cast isn't here.
+    if (!this.atHome() && this.ids.includes(id)) return a.state.companion ? (this.world.player.place ?? "square") : null;
     const plan = currentPlan(a.persona, a.state, this.world);
     return plan.activity === "sleep" || plan.place === "home" ? null : plan.place;
   }
 
   /** NPCs at a place, awake and alive. */
   presentAt(place: PlaceId | null | undefined): NpcAgent[] {
-    return place ? this.ids.filter((id) => this.placeOf(id) === place).map((id) => this.agents[id]!) : [];
+    return place ? this.localIds().filter((id) => this.placeOf(id) === place).map((id) => this.agents[id]!) : [];
   }
 
   /** Companions travelling with the player now. */
@@ -241,8 +561,11 @@ export class Town {
     const log = passVillage(this.members(), this.world, hours, this.rng, talkingTo ? { talkingTo } : {});
     log.push(...passCreatureTime(this.templates, this.world.creatures, start, hours, this.rng, DEMO_SPAWNS).filter(isNotable));
     log.push(...passVillageNights(this.templates, this.world.creatures, this.members(), this.world, start, hours, this.rng));
+    if (this.world.realm) log.push(...castCrowd(this.world.realm, this.world.creatures, this.world.day));
     log.push(...this.respawn(keep));
+    if (this.world.realm) castCrowd(this.world.realm, this.world.creatures, this.world.day);
     if (this.world.day > start.day) log.push(...this.familyNights(start.day));
+    if (this.world.day > start.day) log.push(...this.realmNights(start.day));
     log.push(...this.consequences());
     if (this.world.day > start.day) this.newDay(start.day);
     return log;
@@ -253,7 +576,7 @@ export class Town {
    * and ripple out, escorts arrive. Returns lines for the player.
    */
   consequences(): string[] {
-    const log: string[] = [];
+    const log: string[] = this.syncVisitors();
     absorbWitnessed(this.members(), this.world);
     for (const id of this.ids) {
       const a = this.agents[id]!;
@@ -319,7 +642,7 @@ export class Town {
       const st = statsOf(a.persona, a.state);
       foe = { name: a.persona.name, hp: () => a.state.hp, setHp: (h) => (a.state.hp = h), agility: st.attributes.agility, evasion: skillLevel(npcSkills(a.persona, a.state), "evasion"), holder: a.state, spare: true };
     } else if (target.creature) {
-      const c = this.world.creatures[target.creature];
+      const c = this.creaturesHere()[target.creature] ?? this.world.creatures[target.creature];
       const t = c && this.templates[c.template];
       if (c && t) {
         const st = creatureStats(t, c);
@@ -329,11 +652,11 @@ export class Town {
     if (!foe) return [];
     const log = companionsStrike(comps, foe, this.rng);
     if (target.creature) {
-      const c = this.world.creatures[target.creature];
+      const c = this.creaturesHere()[target.creature] ?? this.world.creatures[target.creature];
       if (c && c.hp <= 0 && !c.outcome) {
         c.outcome = "dead";
         c.deathCause = this.world.player.name;
-        log.push(`${c.name} falls.`, ...recordCreatureDefeat(this.world.player, c.template));
+        log.push(`${c.name} falls.`, ...recordCreatureDefeat(this.world.player, c.template), ...this.settleHaunts());
       }
     }
     return log;
@@ -360,8 +683,10 @@ export class Town {
   /** Run the nightly chronicle for `day` (in the background: it never holds up the player). */
   chronicle(day: number): Promise<unknown> {
     const sink = (e: DirectorLogEntry) => this.store?.logDirector(e);
+    // The one before, taken now: read when the job runs, it could be this one (waiting on itself).
+    const before = this.chronicling;
     const run = async () => {
-      await this.chronicling;
+      await before;
       return runChronicle({ llm: this.bgLlm, world: this.world, personas: this.personas, states: Object.fromEntries(this.ids.map((id) => [id, this.agents[id]!.state])), creatures: this.templates, sink }, day);
     };
     const p = new Promise((resolve) =>
@@ -378,11 +703,12 @@ export class Town {
     return p;
   }
 
-  /** Each NPC whose plan is out of date gets one short planning call, in the background. */
+  /** Each NPC whose plan is out of date gets one short planning call, in the background: the cast, and the people about where the player is. */
   queuePlans(): void {
-    for (const id of this.ids) {
+    for (const id of new Set([...this.ids, ...this.localIds()])) {
       const a = this.agents[id]!;
-      if (!needsPlan(a.state, this.world.day)) continue;
+      // The townsfolk (N16) live by the crowd's day, not a planned one: no model call for them.
+      if (parseTownsfolkId(id) || !needsPlan(a.state, this.world.day)) continue;
       this.background.add({ key: `plan:${id}`, run: async () => void (needsPlan(a.state, this.world.day) && (await planDay(this.bgLlm, a.persona, a.state, this.world, Object.values(this.personas).map((p) => p.name)))) });
     }
   }

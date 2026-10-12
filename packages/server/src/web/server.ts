@@ -62,27 +62,13 @@ import { speciesOf } from "../world/species.js";
 import { parsePersona } from "../npc/personaSchema.js";
 import { SKILLS, skillLevel, TIERS } from "../npc/skills.js";
 import type { NpcPersona, TurnResult } from "../npc/types.js";
-import {
-  BUILDINGS,
-  CREATURE_DENS,
-  distance,
-  isSolid,
-  MAP_H,
-  MAP_W,
-  MINUTES_PER_STEP,
-  npcSpot,
-  placeAtTile,
-  PLAYER_START,
-  spotAt,
-  TALK_RANGE,
-  TILES,
-} from "./map.js";
+import { AREA_WALK_MINUTES, CREATURE_COLORS, distance, MINUTES_PER_STEP, NPC_LOOKS, PLAYER_START, TALK_RANGE } from "./map.js";
 import { lintCast } from "../npc/lint.js";
 import { bornAge, describeFamily, familyOf, propose, spouseOf } from "../game/family.js";
 import { romanceStageFor } from "../npc/relationship.js";
 import { formatMoney } from "../game/money.js";
 import { passVillage } from "../game/village.js";
-import { currentPlan, describePlan, PLACE_NAMES, PLACE_NEARBY, type PlaceId, workplaceOf } from "../game/schedule.js";
+import { type AreaId, areaOfPlace, currentPlan, describePlan, PLACE_NAMES, type PlaceId, workplaceOf } from "../game/schedule.js";
 import { Scene, sceneTurn } from "../game/scene.js";
 import { describeNpcAppearance, describePlayerAppearance } from "../npc/appearance.js";
 import { journalByNpc } from "../game/journal.js";
@@ -98,6 +84,11 @@ import { WorldStore } from "../game/db.js";
 import { pickEmbedder } from "../game/embeddings.js";
 import { OllamaEmbedder } from "../llm/ollama.js";
 import { forage, playerCraft } from "../game/gathering.js";
+import { destinations } from "../game/realm/travel.js";
+import { areaWords, DEN_COLORS, DEN_KEYS, exitTo, exitUnder, MILLBROOK, MILLBROOK_INFO, siteMap, type SiteMap } from "./sites.js";
+import { ongoing } from "../game/realm/diplomacy.js";
+import { realmView } from "../game/realm/view.js";
+import { dungeonsInReach, GUILD_FEE, guildRank, inGuild, joinGuild, mouthOf, playerDelve } from "../game/realm/wilds.js";
 import { lootBody } from "../game/loot.js";
 import { sneak } from "../game/stealth.js";
 import { bountyOf, openCrimes, payFine, surrender } from "../game/crime.js";
@@ -109,11 +100,14 @@ import { dismiss } from "../game/party.js";
 import { describeStatuses } from "../game/status.js";
 import { visibleHealth } from "../game/health.js";
 import { describeArcs } from "../npc/arcs.js";
-import { DEFAULT_VOICE, MAX_SPEAK_CHARS, speakable, type GameEvent, type NewsItem, type NpcView, type Pos, type Snapshot, type StreamEvent } from "@millbrook/shared";
+import { CrowdSim, type CrowdDay, WANDER_MINUTES, DEFAULT_VOICE, MAX_SPEAK_CHARS, speakable, type GameEvent, type NewsItem, type NpcView, type Pos, type Snapshot, type StreamEvent } from "@millbrook/shared";
 import type { AppliedAction } from "../npc/types.js";
 import { ActionQueue } from "./queue.js";
 import { captureFrame, turnEvents } from "../game/turnEvents.js";
 import { setUpVoice } from "../voice/tts.js";
+import { parseTownsfolkId, rosterFor } from "../game/realm/townsfolk.js";
+import { weatherOn } from "../game/weather.js";
+import { townEventsOn } from "../game/events-calendar.js";
 
 const PORT = Number(process.env.PORT ?? 3000);
 // The browser game, built by `npm run build` (packages/client). `npm run dev` serves it from Vite instead.
@@ -133,12 +127,56 @@ const lint = lintCast(personas);
 if (Object.keys(lint).length > 0) throw new Error(Object.entries(lint).map(([id, problems]) => `${id}.json:\n${problems.map((p) => `  ${p}`).join("\n")}`).join("\n"));
 /** The NPC files as written, for a fresh world. */
 const filePersonas = { ...personas };
-/** An NPC's own spot on the map: authored in map.ts, or made from their workplace (generated and born NPCs). */
-const ownSpot = (id: string) => npcSpot(id, workplaceOf(personas[id]!));
+/** An NPC's own spot on the map (where they work), or null when their workplace is on another map (N15). */
+const ownSpot = (id: string) => here().npcSpot(id, workplaceOf(personas[id]!));
+/** An NPC's sprite colour, wherever they are. */
+const npcColor = (id: string) => {
+  const sim = parseTownsfolkId(id) ? crowd : null;
+  const i = sim?.index.get(id);
+  if (sim && i !== undefined) return sim.roster.people[i]!.color;
+  return ownSpot(id)?.color ?? NPC_LOOKS[id]?.color ?? MILLBROOK.npcSpot(id, "square")!.color;
+};
+/** The settlement the player is at (N14), or Millbrook's own when there's no realm. */
+const siteInfo = () => (world.realm?.settlements[town.site()] ?? MILLBROOK_INFO);
+/** The map the player is on (N14, N15): the village of the place they're at, or one of its localities. */
+const here = (): SiteMap => siteMap(siteInfo(), town.area(), world.realm);
+/** Who's about where the player is: Millbrook's cast at home; elsewhere, companions and that place's people. */
+const local = (): string[] => town.localIds();
+
+// ---- The townsfolk (N16) ----
+
+/** The simulation of the townsfolk of the village the player is in: one at a time, made again on a new map. */
+let crowd: CrowdSim | null = null;
+/** The townsfolk of the village the player is in, or null (a locality, no realm). */
+function crowdHere(): CrowdSim | null {
+  const realm = world.realm;
+  if (!realm || town.area() !== "village") return null;
+  const map = here();
+  const roster = rosterFor(realm, town.site(), map, world.day);
+  if (!roster) return null;
+  if (!crowd || crowd.map.id !== map.id || crowd.roster.people !== roster.people) crowd = new CrowdSim({ id: map.id, w: map.w, h: map.h, tiles: map.tiles, buildings: map.buildings, zones: map.zones }, roster);
+  else crowd.roster = roster;
+  return crowd;
+}
+/** Today's conditions, for where the townsfolk go. */
+const crowdDay = (): CrowdDay => ({ weather: weatherOn(world.day), festival: townEventsOn(world).includes("festival") });
+const minuteOfDay = () => world.hour * 60 + (world.minute ?? 0);
+/** Where one of the townsfolk is now, or null if they're not of this village. */
+function townsfolkAt(id: string) {
+  const sim = crowdHere();
+  const i = sim?.index.get(id);
+  if (!sim || i === undefined) return null;
+  return sim.at(sim.roster.people[i]!, world.day, minuteOfDay(), crowdDay());
+}
+/** Where the townsfolk who were killed or knocked out lie (not saved: after a restart, outside their door). */
+const fallen: Record<string, Pos> = {};
+/** The NPC the player last spoke to, and when (game minute): they don't wander off mid-conversation. */
+let lastTalk: { id: string; minute: number } | null = null;
+const TALK_HOLD_MINUTES = 15;
 
 const creatureTemplates = loadCreatureTemplates();
 const spawnRules = loadSpawnRules();
-const badRules = badSpawnRules(spawnRules, creatureTemplates, Object.keys(CREATURE_DENS));
+const badRules = badSpawnRules(spawnRules, creatureTemplates, [...DEN_KEYS]);
 if (badRules.length > 0) throw new Error(`src/data/spawns.json: ${badRules.join("; ")}`);
 const llm = new OllamaProvider();
 const deaths = new DeathRegistry(config.deathsFile);
@@ -170,6 +208,9 @@ function startGame(fresh: boolean): void {
     ? newWorld(personas, creatureTemplates)
     : importDeaths(loadWorld(config.saveFile, personas, creatureTemplates), config.deathsFile);
   world.position ??= { ...PLAYER_START };
+  crowd = null;
+  lastTalk = null;
+  for (const key of Object.keys(fallen)) delete fallen[key];
   for (const key of Object.keys(awayUntil)) delete awayUntil[key];
   engaged = null;
   trail.length = 0;
@@ -194,6 +235,9 @@ function startGame(fresh: boolean): void {
   }
   respawn();
   placeCreatures();
+  // Maps grow with their places (N16): a position from an older, smaller map may be in a wall now.
+  const pos = world.position!;
+  if (pos.x < 0 || pos.y < 0 || pos.x >= here().w || pos.y >= here().h || here().isSolid(pos.x, pos.y)) world.position = { ...here().start };
   persist();
 }
 
@@ -204,23 +248,33 @@ function respawn(): string[] {
   return town.respawn(engaged ? [engaged] : []);
 }
 
-/** The den a creature roams: its spawn rule's place, else its kind's. */
+/** The den key a creature roams: its own (another place's beasts and outlaws), its spawn rule's place, else its kind's. */
+const denKeyOf = (c: Creature) => c.den ?? denKey(town.rules(), world.spawns ?? {}, c);
+
+/** The den a creature roams on the map the player is on, or undefined if it's elsewhere (N15). */
 function denOf(c: Creature) {
-  return CREATURE_DENS[denKey(town.rules(), world.spawns ?? {}, c)];
+  return here().dens[denKeyOf(c)];
 }
 
-/** Creatures that are on the map now: alive, not run off, and with a known den. */
+/** A creature by uid: where the player is, or Millbrook's own. */
+const creatureById = (uid: string): Creature | undefined => town.creaturesHere()[uid] ?? world.creatures[uid];
+
+/**
+ * Creatures that are on the map now: alive, not run off, and with their den on this
+ * map. Millbrook's own on Millbrook's maps; elsewhere, the beasts of its woods and
+ * the outlaws of its camp, as the realm has them (N15, game/realm/haunts.ts).
+ */
 function presentCreatures(): Creature[] {
-  return Object.values(world.creatures).filter((c) => !c.outcome && denOf(c) && creatureTemplates[c.template]);
+  return Object.values(town.creaturesHere()).filter((c) => !c.outcome && (following(c) || denOf(c)) && creatureTemplates[c.template]);
 }
 
 /** Creatures following the player (escorts): they don't go back to their den or wander. */
 const following = (c: Creature) => town.escorted().has(c.uid);
 
 function tileTaken(x: number, y: number, except?: Creature): boolean {
-  if (isSolid(x, y)) return true;
+  if (here().isSolid(x, y)) return true;
   if (world.position && world.position.x === x && world.position.y === y) return true;
-  if (ids.some((id) => { const at = npcPos(id); return at !== null && at.x === x && at.y === y; })) return true;
+  if (local().some((id) => { const at = npcPos(id); return at !== null && at.x === x && at.y === y; })) return true;
   return presentCreatures().some((c) => c !== except && c.pos?.x === x && c.pos?.y === y);
 }
 
@@ -228,7 +282,8 @@ function tileTaken(x: number, y: number, except?: Creature): boolean {
 function placeCreatures(): void {
   for (const c of presentCreatures()) {
     if (following(c) && c.pos) continue;
-    const den = denOf(c)!;
+    const den = denOf(c);
+    if (!den) continue;
     const inDen = c.pos && c.pos.x >= den.x0 && c.pos.x <= den.x1 && c.pos.y >= den.y0 && c.pos.y <= den.y1;
     if (inDen && !tileTaken(c.pos!.x, c.pos!.y, c)) continue;
     const free: Array<{ x: number; y: number }> = [];
@@ -241,7 +296,8 @@ function placeCreatures(): void {
 function wander(): void {
   for (const c of presentCreatures()) {
     if (c.uid === engaged || !c.pos || following(c) || Math.random() < 0.4) continue;
-    const den = denOf(c)!;
+    const den = denOf(c);
+    if (!den) continue;
     const [dx, dy] = [[1, 0], [-1, 0], [0, 1], [0, -1]][Math.floor(Math.random() * 4)]!;
     const x = c.pos.x + dx!;
     const y = c.pos.y + dy!;
@@ -251,7 +307,7 @@ function wander(): void {
 }
 
 function persist(): void {
-  for (const id of ids) world.npcStates[id] = agents[id]!.state;
+  for (const id of [...ids, ...town.visitorIds()]) world.npcStates[id] = agents[id]!.state;
   saveWorld(config.saveFile, world);
 }
 
@@ -282,8 +338,10 @@ const members = () => ids.map((id) => ({ id, persona: personas[id]!, state: agen
  */
 function passHours(hours: number): string[] {
   // The village, creatures, the night's dealings and raids, spawns, then the consequences (game/town.ts).
-  for (const id of ids) town.summarise(id);
+  // What was said becomes memories (SQLite, recalled by meaning): the cast's talks, and the talks with people of other places.
+  for (const id of [...ids, ...town.visitorIds()]) town.summarise(id);
   const log = town.passHours(hours, { keep: engaged ? [engaged] : [] });
+  town.stockHaunts();
   placeCreatures();
   wander();
   for (const [id, until] of Object.entries(awayUntil)) {
@@ -312,16 +370,36 @@ function npcPlace(id: string): PlaceId | null {
   return town.placeOf(id);
 }
 
-/** The tile an NPC stands on now: their spot at the place they're at. The dead lie where they fell (their own spot). */
+/**
+ * The tile an NPC stands on now: their spot at the place they're at, if that place is
+ * on the map the player is on (N15). The dead lie where they fell (their own spot).
+ */
 function npcPos(id: string): { x: number; y: number } | null {
-  if (agents[id]!.state.dormant) return null;
+  if (agents[id]!.state.dormant || !local().includes(id)) return null;
+  // The townsfolk (N16) are where the crowd's day has them; the fallen lie where they fell.
+  if (parseTownsfolkId(id)) {
+    const at = townsfolkAt(id);
+    if (agents[id]!.isDead || agents[id]!.state.outcome === "unconscious") {
+      if (!fallen[id] && at) fallen[id] = { x: at.x, y: at.y };
+      return fallen[id] ?? null;
+    }
+    delete fallen[id];
+    return at?.visible ? { x: at.x, y: at.y } : null;
+  }
   if (agents[id]!.isDead || agents[id]!.state.outcome === "unconscious") return ownSpot(id);
   const place = npcPlace(id);
-  if (!place) return null;
+  if (!place || !here().places.includes(place)) return null;
   // A companion out with the player walks a step or two behind them (N8.2), in their footsteps.
   const comp = agents[id]!.state.companion && !agents[id]!.state.inCombat && place === world.player.place ? companionSpot(id) : null;
   if (comp) return comp;
-  return spotAt(place, id) ?? (place === workplaceOf(personas[id]!) ? ownSpot(id) : null);
+  const base = here().spotAt(place, id) ?? (place === workplaceOf(personas[id]!) ? ownSpot(id) : null);
+  if (!base) return null;
+  // Nobody stands frozen to one tile all day (N16): a step or two about their spot, every few minutes;
+  // but not while fighting, or while the player is talking to them.
+  const talking = lastTalk?.id === id && absoluteMinute(world) - lastTalk.minute <= TALK_HOLD_MINUTES;
+  if (talking || agents[id]!.state.inCombat || agents[id]!.state.companion) return base;
+  const k = Math.floor(absoluteMinute(world) / WANDER_MINUTES);
+  return here().wanderSpot(place, id, k, (x, y) => (world.position?.x === x && world.position?.y === y) || presentCreatures().some((c) => c.pos?.x === x && c.pos?.y === y)) ?? base;
 }
 
 /** Where a companion stands: the nth tile of the player's trail, n by their order in the party. */
@@ -332,13 +410,38 @@ function companionSpot(id: string): Pos | null {
   return spot;
 }
 
+/** A place's name where the player is: Millbrook's own words, or those of the place they travelled to. */
+function placeName(place: PlaceId): string {
+  if (town.atHome() || !world.realm) return PLACE_NAMES[place];
+  const area = areaOfPlace(place);
+  return area === "village" ? siteMap(siteInfo(), "village", world.realm).placeWords(place).location : areaWords(world.realm, siteInfo(), area).location;
+}
+
 /** Why an NPC isn't on the map, for the player, or null if they are. */
 function absence(id: string): string | null {
   const a = agents[id]!;
   if (a.isDead || a.state.outcome === "unconscious") return null;
+  const folk = parseTownsfolkId(id);
+  if (folk) {
+    const name = personas[id]!.name;
+    const place = world.realm?.settlements[folk.site]?.name ?? "another place";
+    if (folk.site !== town.site()) return `${name} is in ${place}, not here.`;
+    if (town.area() !== "village") return `${name} is back in ${place}.`;
+    const at = townsfolkAt(id);
+    if (!at) return `${name} isn't about.`;
+    return at.visible ? null : `${name} is indoors (${at.doing}).`;
+  }
   if (a.state.dormant) return `${personas[id]!.name} isn't in Millbrook.`;
+  if (!local().includes(id)) {
+    const f = town.figureOf(id);
+    const where = f?.home ? (world.realm?.settlements[f.home]?.name ?? "far away") : "Millbrook";
+    return `${personas[id]!.name} is in ${where}, not here.`;
+  }
   if (awayUntil[id] !== undefined) return `${personas[id]!.name} has run off.`;
   if (npcPos(id)) return null;
+  // Out at one of the localities, or back in the village (N15).
+  const place = npcPlace(id);
+  if (place && !here().places.includes(place)) return `${personas[id]!.name} is at ${placeName(place)}, not here.`;
   return `${personas[id]!.name} is ${describePlan(currentPlan(a.persona, a.state, world))}.`;
 }
 
@@ -348,7 +451,7 @@ const sceneAt = (place: string) => (scenes[place] ??= new Scene(place));
 
 /** NPCs at a place now, as agents. */
 function presentAt(place: PlaceId | null): NpcAgent[] {
-  return place ? ids.filter((id) => npcPlace(id) === place).map((id) => agents[id]!) : [];
+  return place ? local().filter((id) => npcPlace(id) === place).map((id) => agents[id]!) : [];
 }
 
 // ---- Views for the client ----
@@ -387,7 +490,7 @@ function npcView(id: string): NpcView {
     repairs: isSmith(persona),
     x: spot?.x ?? -1,
     y: spot?.y ?? -1,
-    color: ownSpot(id).color,
+    color: npcColor(id),
     place: dead ? null : plan.place,
     doing: dead ? "dead" : describePlan(plan),
     absent: absence(id),
@@ -463,13 +566,29 @@ function npcView(id: string): NpcView {
   };
 }
 
+/** Where the player is, and where the roads go from here (N14). */
+function siteView(): Snapshot["site"] {
+  const realm = world.realm;
+  const s = realm?.settlements[town.site()];
+  const map = here();
+  const area = { id: map.area, name: map.name, exits: map.exits.map((e) => e.label) };
+  if (!realm || !s) return { id: "millbrook", name: "Millbrook", kind: "village", home: true, kingdom: null, destinations: [], area };
+  return { id: s.id, name: s.name, kind: s.kind, home: !!s.home, kingdom: s.kingdom ? (realm.kingdoms[s.kingdom]?.name ?? null) : null, destinations: destinations(realm, s.id), area };
+}
+
 function snapshot(): Snapshot {
   // The chronicle's news, from background work, joins the feed.
   for (const text of town.takeNews()) pushNews({ t: "system", text });
   const p = world.player;
   return {
     llm: { ready: llmReady, error: llmError },
-    map: { w: MAP_W, h: MAP_H, tiles: TILES, buildings: BUILDINGS, talkRange: TALK_RANGE },
+    map: { id: here().id, name: here().name, w: here().w, h: here().h, tiles: here().tiles, buildings: here().buildings, talkRange: TALK_RANGE, exits: here().exits.map((e) => ({ x: e.x, y: e.y, label: e.label })), zones: here().zones },
+    crowd: (() => {
+      const sim = crowdHere();
+      return sim ? { map: sim.map.id, count: sim.roster.people.length, day: crowdDay() } : null;
+    })(),
+    timeFlowSeconds: config.timeFlowSeconds,
+    site: siteView(),
     time: { text: formatTime(world), day: world.day, hour: world.hour, minute: world.minute ?? 0, timeOfDay: world.timeOfDay, today: describeToday(world), ...todayInfo(world) },
     position: world.position!,
     player: {
@@ -537,7 +656,27 @@ function snapshot(): Snapshot {
     },
     chronicle: { lore: (world.lore ?? []).slice(-8).map((l) => l.text), log: (world.directorLog ?? []).slice(-8) },
     family: familyLines(),
-    npcs: ids.filter((id) => !agents[id]!.state.dormant).map(npcView),
+    realm: world.realm ? { day: world.realm.day, latest: world.realm.news.filter((n) => n.delivered).at(-1)?.text ?? null, wars: ongoing(world.realm).length } : null,
+    adventurer: {
+      member: inGuild(p),
+      fee: GUILD_FEE,
+      renown: p.renown ?? 0,
+      rank: guildRank(p),
+      dungeons: world.realm
+        ? dungeonsInReach(world.realm, town.site()).map((d) => ({
+            id: d.id,
+            name: d.name,
+            tier: d.tier,
+            depth: d.depth,
+            danger: Math.round(d.danger),
+            cleared: d.clearedUntil !== undefined && world.day < d.clearedUntil,
+            bounty: d.bounty,
+            here: d.near === town.site() && town.area() === "mine",
+            mouth: mouthOf(world.realm!, d),
+          }))
+        : [],
+    },
+    npcs: local().filter((id) => !agents[id]!.state.dormant).map(npcView),
     creatures: presentCreatures()
       .filter((c) => c.pos)
       .map((c) => {
@@ -549,7 +688,7 @@ function snapshot(): Snapshot {
           kind: t.id,
           x: c.pos!.x,
           y: c.pos!.y,
-          color: CREATURE_DENS[c.template]?.color ?? denOf(c)!.color,
+          color: CREATURE_COLORS[c.template] ?? DEN_COLORS[denKeyOf(c)] ?? "#8a8f96",
           hp: c.hp,
           maxHp: creatureStats(t, c).maxHp,
           rank: c.life.tier,
@@ -601,8 +740,10 @@ function npcInRange(id: string): string | null {
 function setScene(id: string): void {
   const place = npcPlace(id) ?? "square";
   world.player.place = place;
-  world.location = place === workplaceOf(personas[id]!) ? ownSpot(id).location : PLACE_NAMES[place];
-  world.nearby = place === workplaceOf(personas[id]!) ? ownSpot(id).nearby : PLACE_NEARBY[place];
+  const words = here().placeWords(place);
+  const own = place === workplaceOf(personas[id]!) ? ownSpot(id) : null;
+  world.location = own?.location ?? words.location;
+  world.nearby = own?.nearby ?? words.nearby;
   world.present = presentAt(place).filter((a) => a.persona.id !== id).map((a) => a.persona.id);
   world.sceneLog = sceneAt(place).linesFor(personas[id]!.name);
 }
@@ -661,6 +802,35 @@ async function act(body: Record<string, unknown>, emit: Emit): Promise<void> {
   // ---- Growth, work, factions: no model call (N7-N12) ----
   if (action === "raise") return void emit({ t: "note", kind: "action", text: raiseAttribute(world.player, String(body.attribute ?? "")).message });
   if (action === "join") return void emit({ t: "note", kind: "action", text: joinFaction(world.player, String(body.faction ?? "")).message });
+  // The wider realm (N13.6): the adventurers' guild and the dungeon by the mine.
+  // Travel (N14): the road to another place. The world lives the hours it takes.
+  if (action === "travel") {
+    if (currentFight()) return void emit({ t: "system", text: "Not in the middle of a fight." });
+    const trip = town.setOutFor(String(body.to ?? ""));
+    for (const text of trip.lines) emit({ t: "note", kind: trip.ok ? "action" : "fail", text });
+    if (!trip.ok || !trip.route) return;
+    engaged = null;
+    trail.length = 0;
+    for (const line of passHours(trip.hours)) emit({ t: "system", text: line });
+    for (const text of town.arriveAt(trip.route.path.at(-1)!)) emit({ t: "note", kind: "action", text });
+    world.position = { ...here().start };
+    placeCreatures();
+    emit({ t: "system", text: `It's ${formatTime(world)}.` });
+    return;
+  }
+  if (action === "joinguild") {
+    if (!world.realm) return void emit({ t: "system", text: "There's no wider realm in this world." });
+    const r = joinGuild(world.realm, world.player);
+    return void emit({ t: "note", kind: r.ok ? "action" : "fail", text: r.message });
+  }
+  if (action === "delve") {
+    if (!world.realm) return void emit({ t: "system", text: "There's no wider realm in this world." });
+    if (currentFight()) return void emit({ t: "system", text: "Not in the middle of a fight." });
+    const r = playerDelve(world.realm, world.player, String(body.dungeon ?? ""), world.day, Math.random);
+    for (const text of r.lines) emit({ t: "note", kind: r.ok ? "combat" : "fail", text });
+    if (r.ok) for (const line of passHours(r.hours)) emit({ t: "system", text: line });
+    return;
+  }
   if (action === "dismiss") {
     const a = agents[String(body.npc ?? "")] ?? town.companions()[0];
     return void emit({ t: "note", kind: "action", text: a ? dismiss(a.persona, a.state, world).message : "Nobody's with you." });
@@ -680,7 +850,8 @@ async function act(body: Record<string, unknown>, emit: Emit): Promise<void> {
   if (action === "loot") {
     const a = agents[String(body.npc ?? "")];
     if (!a || (!a.isDead && a.state.outcome !== "unconscious")) return void emit({ t: "system", text: "There's nobody lying still to rob." });
-    if (distance(world.position!, ownSpot(a.persona.id)) > TALK_RANGE) return void emit({ t: "system", text: `You are too far from ${a.persona.name}.` });
+    const lying = npcPos(a.persona.id);
+    if (!lying || distance(world.position!, lying) > TALK_RANGE) return void emit({ t: "system", text: `You are too far from ${a.persona.name}.` });
     const witnesses = town.presentAt(world.player.place).filter((x) => x !== a).map((x) => x.persona.id);
     emit({ t: "note", kind: "action", text: lootBody(a.persona, a.state, world, witnesses, body.item ? String(body.item) : undefined).message });
     for (const text of town.consequences()) emit({ t: "system", text });
@@ -688,7 +859,7 @@ async function act(body: Record<string, unknown>, emit: Emit): Promise<void> {
   }
 
   if (action === "wait") {
-    const fighting = Object.values(agents).some((a) => a.state.inCombat) || (engaged !== null && !world.creatures[engaged]?.outcome);
+    const fighting = Object.values(agents).some((a) => a.state.inCombat) || (engaged !== null && creatureById(engaged) !== undefined && !creatureById(engaged)!.outcome);
     if (fighting) return void emit({ t: "system", text: "You can't wait around in the middle of a fight." });
     const hours = Math.max(1, Math.min(24, Math.floor(Number(body.hours ?? 1))));
     for (const line of passHours(hours)) emit({ t: "system", text: line });
@@ -696,9 +867,16 @@ async function act(body: Record<string, unknown>, emit: Emit): Promise<void> {
     return;
   }
 
+  // One of the townsfolk (N16): they become a talking NPC the first time the player speaks to them.
+  if (!agents[id] && parseTownsfolkId(id)) {
+    const sim = crowdHere();
+    const i = sim?.index.get(id);
+    if (sim && i !== undefined) town.meetTownsperson(sim.roster, sim.roster.people[i]!);
+  }
   const agent = agents[id];
   if (!agent) return void emit({ t: "error", text: "Unknown character." });
   const name = personas[id]!.name;
+  lastTalk = { id, minute: absoluteMinute(world) };
 
   if (action === "open") {
     const problem = npcInRange(id);
@@ -1052,20 +1230,24 @@ function move(dx: number, dy: number): { ok: boolean; log: string[]; reason?: st
   const ny = pos.y + Math.sign(dy);
   if (Math.abs(dx) + Math.abs(dy) !== 1) return { ok: false, log: [], reason: "One step at a time." };
   if (Object.values(agents).some((a) => a.state.inCombat && !a.isDead)) return { ok: false, log: [], reason: "You can't walk away from a fight. Flee or fight on." };
-  if (engaged && world.creatures[engaged] && !world.creatures[engaged]!.outcome) {
-    return { ok: false, log: [], reason: `You're fighting ${world.creatures[engaged]!.name}. Fight (F) or run (R).` };
+  const foe = engaged ? creatureById(engaged) : undefined;
+  if (foe && !foe.outcome) {
+    return { ok: false, log: [], reason: `You're fighting ${foe.name}. Fight (F) or run (R).` };
   }
   engaged = null;
-  if (isSolid(nx, ny)) return { ok: false, log: [] };
+  if (here().isSolid(nx, ny)) return { ok: false, log: [] };
   // Companions step aside (they're walking behind you); anyone else is in the way.
-  if (ids.some((id) => { const at = npcPos(id); return !agents[id]!.state.companion && at !== null && at.x === nx && at.y === ny; })) return { ok: false, log: [] };
+  if (local().some((id) => { const at = npcPos(id); return !agents[id]!.state.companion && at !== null && at.x === nx && at.y === ny; })) return { ok: false, log: [] };
   if (presentCreatures().some((c) => c.pos?.x === nx && c.pos?.y === ny)) return { ok: false, log: [] };
   const from = { x: pos.x, y: pos.y };
   trail.unshift(from);
   trail.length = Math.min(trail.length, TRAIL_KEPT);
   pos.x = nx;
   pos.y = ny;
-  world.player.place = placeAtTile(pos) as PlaceId;
+  // Off the edge of the map: on to the next area (N15).
+  const exit = exitUnder(here(), pos);
+  if (exit) return { ok: true, log: enterArea(exit.to) };
+  world.player.place = here().placeAtTile(pos) as PlaceId;
   // Whoever the player is escorting walks a step behind them (N9 escort quests).
   for (const q of world.player.quests.active) {
     const c = q.objective.type === "escort" && q.escortee ? world.creatures[q.escortee] : undefined;
@@ -1087,6 +1269,29 @@ function move(dx: number, dy: number): { ok: boolean; log: string[]; reason?: st
   return { ok: true, log };
 }
 
+/**
+ * The player walks from one area of the place to the next (N15): from the village up
+ * the road, out to the camp or the mine, into the woods, and back. They come in at
+ * the edge they came from; the walk takes a while, and the world lives it.
+ */
+function enterArea(to: AreaId): string[] {
+  const from = town.area();
+  if (to === "village") delete world.player.area;
+  else world.player.area = to;
+  const map = here();
+  const back = exitTo(map, from);
+  world.position = back ? { ...back.inward } : { ...map.start };
+  world.player.place = map.placeAtTile(world.position);
+  trail.length = 0;
+  // Whoever is being escorted comes along, a step behind.
+  for (const c of Object.values(world.creatures)) if (following(c)) delete c.pos;
+  const log = [to === "village" ? `You walk back into ${map.name}.` : `You walk out to ${map.name.replace(/^The /, "the ")}.`];
+  log.push(...walkMinutes(AREA_WALK_MINUTES));
+  town.stockHaunts();
+  placeCreatures();
+  return log;
+}
+
 /** What a creature fight round means for the game: end the fight, or knock the player out. Returns lines for the player. */
 function afterCreatureRound(c: Creature, round: CreatureRound): string[] {
   const log = [...round.log];
@@ -1094,6 +1299,8 @@ function afterCreatureRound(c: Creature, round: CreatureRound): string[] {
   if (round.over === "creature dead" || round.over === "creature fled") log.push(...recordCreatureDefeat(world.player, c.template));
   if (round.over === "player fled") calmUntil[c.uid] = absoluteMinute(world) + CALM_MINUTES;
   if (round.over && round.over !== "player down") engaged = null;
+  // Away from home, the dead and the fled go back to the realm (N15).
+  if (round.over && !town.atHome()) log.push(...town.settleHaunts());
   if (round.over === "player down") {
     engaged = null;
     const defeat = creatureBeatsPlayer(creatureTemplates[c.template]!, c, world);
@@ -1105,7 +1312,7 @@ function afterCreatureRound(c: Creature, round: CreatureRound): string[] {
 
 /** The player attacks a creature next to them, or tries to get away from one. No model involved. */
 function creatureAction(action: "hunt" | "escape", uid: string, emit: Emit): void {
-  const c = world.creatures[uid];
+  const c = creatureById(uid);
   const t = c && creatureTemplates[c.template];
   if (!c || !t || c.outcome || !c.pos) return void emit({ t: "system", text: "There's nothing there to fight." });
   if (distance(world.position!, c.pos) > TALK_RANGE) return void emit({ t: "system", text: `You are too far from ${c.name}.` });
@@ -1141,9 +1348,10 @@ function pushNews(event: StreamEvent & { npc?: string }): void {
 
 /** Who the player is fighting: an NPC id, a creature uid, or null. */
 function currentFight(): { npc: string } | { creature: string } | null {
-  const npc = ids.find((id) => agents[id]!.state.inCombat && !agents[id]!.isDead);
+  const npc = local().find((id) => agents[id]!.state.inCombat && !agents[id]!.isDead);
   if (npc) return { npc };
-  if (engaged && world.creatures[engaged] && !world.creatures[engaged]!.outcome) return { creature: engaged };
+  const foe = engaged ? creatureById(engaged) : undefined;
+  if (engaged && foe && !foe.outcome) return { creature: engaged };
   return null;
 }
 
@@ -1168,7 +1376,7 @@ function combatTick(): void {
     afterTurn(fight.npc, emit);
     for (const event of turnEvents(before, captureFrame(world, agents), { npc: fight.npc, actions: turnActions })) pushNews({ t: "event", event });
   } else {
-    const c = world.creatures[fight.creature]!;
+    const c = creatureById(fight.creature)!;
     const lines = afterCreatureRound(c, creatureTurn(creatureTemplates[c.template]!, c, world, Math.random));
     lines.push(...walkMinutes(config.turnMinutes.fight));
     for (const text of lines) pushNews({ t: "note", kind: "combat", text });
@@ -1254,6 +1462,9 @@ const server = createServer(async (req, res) => {
     }
 
     if (req.method === "GET" && url === "/api/voice") return json(res, 200, voice.info);
+    // Everyone who lives on the map the player is on (N16): fetched once per map; where they are is worked out from the clock.
+    if (req.method === "GET" && url === "/api/crowd") return json(res, 200, crowdHere()?.roster ?? null);
+    if (req.method === "GET" && url === "/api/realm") return json(res, 200, world.realm ? realmView(world.realm) : null);
 
     if (req.method === "POST" && url === "/api/speak") {
       // Speech runs beside the action queue: Piper is its own process, and a line already said can't change the game.
@@ -1267,6 +1478,7 @@ const server = createServer(async (req, res) => {
       return void res.end(audio);
     }
 
+    if (req.method === "POST" && url === "/api/tick" && (queue.busy || queue.length > 0)) return json(res, 200, { ok: false, log: [], events: [], state: null });
     if (req.method === "POST" && (url === "/api/move" || url === "/api/new" || url === "/api/act") && queue.length >= config.maxQueuedRequests) {
       return json(res, 429, { ok: false, reason: "Too much going on at once. Try again in a moment." });
     }
@@ -1280,6 +1492,21 @@ const server = createServer(async (req, res) => {
         if (r.ok) persist();
         const events: GameEvent[] = turnEvents(before, captureFrame(world, agents));
         return { ...r, events, state: snapshot() };
+      });
+      return json(res, 200, result);
+    }
+
+    // A minute passes while the player stands about (N16), so the townsfolk keep moving.
+    if (req.method === "POST" && url === "/api/tick") {
+      const result = await queue.run(() => {
+        const fighting = Object.values(agents).some((a) => a.state.inCombat && !a.isDead) || (engaged !== null && !!creatureById(engaged) && !creatureById(engaged)!.outcome);
+        if (fighting || config.timeFlowSeconds === 0) return { ok: false, log: [], events: [], state: snapshot() };
+        const before = captureFrame(world, agents);
+        const hour = absoluteHour(world);
+        const log = walkMinutes(1);
+        wander();
+        if (absoluteHour(world) !== hour || (world.minute ?? 0) % 10 === 0) persist();
+        return { ok: true, log, events: turnEvents(before, captureFrame(world, agents)), state: snapshot() };
       });
       return json(res, 200, result);
     }
@@ -1304,7 +1531,7 @@ const server = createServer(async (req, res) => {
           turnActions = [];
           try {
             // Waiting, opening a chat and fighting creatures need no model.
-            const offline = ["wait", "open", "hunt", "escape", "equip", "unequip", "look", "retrieve", "raise", "join", "dismiss", "forage", "craft", "sneak", "loot", "payfine", "surrender"].includes(String(body.action));
+            const offline = ["travel", "wait", "open", "hunt", "escape", "equip", "unequip", "look", "retrieve", "raise", "join", "dismiss", "forage", "craft", "sneak", "loot", "payfine", "surrender", "joinguild", "delve"].includes(String(body.action));
             if (!llmReady && !offline) await checkLlm();
             if (!llmReady && !offline) emit({ t: "error", text: llmError });
             else await act(body, emit);

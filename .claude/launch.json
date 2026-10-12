@@ -1,0 +1,29 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
+      "port": 3000
+    },
+    {
+      "name": "web-test",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "web", "--", "--new"],
+      "port": 3123,
+      "env": {
+        "PORT": "3123",
+        "SAVE_FILE": "/private/tmp/claude-501/-Users-anandpatil-Documents-Projects-web-game-llm-game/9db52bc0-a628-450b-9caa-b65caf5cf787/scratchpad/test-world.json",
+        "DB_FILE": "/private/tmp/claude-501/-Users-anandpatil-Documents-Projects-web-game-llm-game/9db52bc0-a628-450b-9caa-b65caf5cf787/scratchpad/test-world.db",
+        "DEATHS_FILE": "/private/tmp/claude-501/-Users-anandpatil-Documents-Projects-web-game-llm-game/9db52bc0-a628-450b-9caa-b65caf5cf787/scratchpad/test-deaths.json",
+        "PLANNING": "off",
+        "SUMMARIES": "off",
+        "DIRECTOR": "off"
+      }
+    }
+  ]
+}

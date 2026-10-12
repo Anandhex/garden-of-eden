@@ -32,6 +32,7 @@ export function mineRoadClosed(world: Pick<WorldSnapshot, "day" | "recentEvents"
 }
 
 const PELTS = new Set(["rabbit pelt", "wolf pelt"]);
+const FOOD = new Set(["bread loaf", "stew", "eggs", "turnips"]);
 const WEAPONS_AND_ARMOUR = (name: string) => {
   const def = parseItem(name)?.def;
   return def?.weapon !== undefined || def?.armor !== undefined;
@@ -39,11 +40,17 @@ const WEAPONS_AND_ARMOUR = (name: string) => {
 
 /**
  * Price multiplier for an item today: pelts are dear in the cold, weapons and armour
- * after a raid, and iron ore while the mine road is shut. 1 when nothing applies.
+ * after a raid or while the kingdom is at war (food too), and iron ore while the mine
+ * road is shut. 1 when nothing applies.
  */
-export function priceFactor(item: string, world: Pick<WorldSnapshot, "day" | "recentEvents" | "lastRaidDay">): number {
+export function priceFactor(item: string, world: Pick<WorldSnapshot, "day" | "recentEvents" | "lastRaidDay"> & { atWar?: boolean }): number {
   const name = parseItem(item)?.name ?? item;
   let factor = 1;
+  // The kingdom at war (N13.5): armies buy up blades, armour and food.
+  if (world.atWar) {
+    if (WEAPONS_AND_ARMOUR(name)) factor *= 1.25;
+    if (FOOD.has(name)) factor *= 1.15;
+  }
   if (PELTS.has(name) && isCold(world.day)) factor *= 1.5;
   if (townEventsOn(world).includes("raid")) {
     if (WEAPONS_AND_ARMOUR(name)) factor *= 1.25;

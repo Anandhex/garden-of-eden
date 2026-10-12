@@ -17,6 +17,10 @@ button:disabled { opacity: .45; cursor: default; }
 button.ghost { background: transparent; }
 button.danger:hover:not(:disabled) { border-color: var(--bad); color: var(--bad); }
 button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--info); outline-offset: 1px; }
+#sim-controls { display: inline-flex; align-items: center; gap: 6px; }
+#sim-controls select { background: var(--panel2); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; font: inherit; }
+#sim-btn.on { border-color: var(--good); color: var(--good); }
+#sim-status { max-width: 260px; overflow: hidden; text-overflow: ellipsis; color: var(--muted); }
 #banner { background: #4a2a26; color: #ffd9d3; padding: 8px 16px; border-bottom: 1px solid var(--bad); }
 main { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 16px; padding: 16px; max-width: 1400px; margin: 0 auto; }
 @media (max-width: 960px) { main { grid-template-columns: 1fr; } }
@@ -92,3 +96,21 @@ button.small {
 .voice-row small { color: var(--muted); display: block; }
 .voice-row input[type="range"] { width: 120px; }
 #voice-btn.off { opacity: .6; text-decoration: line-through; }
+
+/* The Realm tab (N13.9) */
+.realm-map { width: 100%; height: auto; background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; margin: 6px 0; }
+.realm-map .road { stroke: var(--line); stroke-width: 3; }
+.realm-map .road.liege { stroke: var(--muted); stroke-dasharray: 4 3; }
+.realm-map .place { cursor: pointer; }
+.realm-map .place text { fill: var(--text); font-size: 30px; font-weight: 600; paint-order: stroke; stroke: var(--panel2); stroke-width: 6px; pointer-events: none; }
+.realm-map .place circle { stroke: var(--bg, #111); stroke-width: 1.5; }
+.realm-map .place.home circle:last-of-type { stroke: #fff; stroke-width: 3; }
+.realm-map .place.selected circle:last-of-type { stroke: var(--info); stroke-width: 3; }
+.realm-map .place.abandoned { opacity: .35; }
+.realm-map .war-ring { fill: none; stroke: var(--bad); stroke-width: 5; }
+.realm-map .raid-ring { fill: none; stroke: #d9a441; stroke-width: 4; }
+.realm-map .dungeon rect { fill: #6b4f8f; stroke: #c8b6e2; stroke-width: 1; }
+.realm-map .dungeon.cleared rect { fill: #3d3550; }
+.realm-legend { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.realm-legend .chip { border: 2px solid var(--line); border-radius: 999px; padding: 1px 8px; font-size: 12px; color: var(--muted); }
+.realm-map .place.here circle:last-of-type { stroke: #ffd27a; stroke-width: 5; }
