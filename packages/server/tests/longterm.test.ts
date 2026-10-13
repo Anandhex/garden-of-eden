@@ -75,6 +75,7 @@ describe("background work makes way for the player", () => {
     let release!: () => void;
     bg.add({
       key: "plan:brena",
+      kind: "plan",
       run: () =>
         new Promise<void>((resolve, reject) => {
           runs++;

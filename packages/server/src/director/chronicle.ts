@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { config } from "../config.js";
+import { CallDropped } from "../llm/budgeted.js";
 import type { LLMProvider, ToolDef } from "../llm/provider.js";
 import { addLore, learnLore } from "../npc/knowledge.js";
 import { driftTrait } from "../npc/growth.js";
@@ -158,8 +159,10 @@ export async function runChronicle(ctx: ChronicleContext, day: number): Promise<
     ].join("\n");
     let calls: Array<{ name: string; arguments: Record<string, unknown> }> = [];
     try {
-      calls = (await ctx.llm.chat({ system: SYSTEM, messages: [{ role: "user", content: prompt }], tools, maxTokens: 250 })).toolCalls;
-    } catch {
+      calls = (await ctx.llm.chat({ kind: "chronicle", system: SYSTEM, messages: [{ role: "user", content: prompt }], tools, maxTokens: 250 })).toolCalls;
+    } catch (err) {
+      // Over the day's budget: the rest of the night's events go unchronicled (nothing is lost; code recorded them).
+      if (err instanceof CallDropped) break;
       continue;
     }
     for (const call of calls.slice(0, 3)) {

@@ -23,7 +23,7 @@ Each track has its own folder (see **Where things are** below). Mark items `[x]`
 | Tooling track (T1–T15) | [roadmap/tooling/](roadmap/tooling/README.md) | 🟡 Tests, simulation, checks and evals |
 | Game track (G1–G4) | [roadmap/game/](roadmap/game/README.md) | 🟡 The browser client, game feel, performance, shipping |
 
-**Next up:** the [vertical slice](roadmap/living-world/README.md#milestone-the-vertical-slice), N17 (the admin world view) and N18 (scale and storage) are built; next is [N25 Townsfolk lives](roadmap/living-world/stage-2-everyone-lives.md). Detailed build guides for N17–N28 are in [roadmap/living-world/plans/](roadmap/living-world/plans/README.md).
+**Next up:** the [vertical slice](roadmap/living-world/README.md#milestone-the-vertical-slice), N17 (the admin world view), N18 (scale and storage) and N19 (budgets) are built; next is [N25 Townsfolk lives](roadmap/living-world/stage-2-everyone-lives.md). Detailed build guides for N17–N28 are in [roadmap/living-world/plans/](roadmap/living-world/plans/README.md).
 
 ## Status
 
@@ -50,7 +50,7 @@ Each track has its own folder (see **Where things are** below). Mark items `[x]`
 | Living world · slice | [Milestone: the vertical slice](roadmap/living-world/README.md#milestone-the-vertical-slice) | ⬜ Planned (Millbrook and Highdale; play, then revise) |
 | Living world · S1 | [N17 The admin world view](roadmap/living-world/stage-1-foundations.md#n17-the-admin-world-view) | ✅ A second page, `/admin` (this machine only): the realm map and its numbers, an event stream with the why of every choice, search, pinned people, places and the player (a townsperson's day hour by hour, who believes which rumour), health timings, and pause/step/fast-forward; reads only, the clock aside (`tests/n17.test.ts`). Pinned-NPC full detail waits for N25 |
 | Living world · S1 | [N18 Scale and storage](roadmap/living-world/stage-1-foundations.md#n18-scale-and-storage) | ✅ A seed gives the same world (a dice stream per system, deterministic ids); save v11 is a clean break (older saves set aside); every person lives in SQLite, rolled once and saved by place in batches, under one commit point with the save file; `.mbworld` export and import; 50,000 people save in under a second (`tests/n18.test.ts`, `npm run bench:storage`) |
-| Living world · S1 | [N19 Performance and model-call budgets](roadmap/living-world/stage-1-foundations.md#n19-performance-and-model-call-budgets) | ⬜ Planned |
+| Living world · S1 | [N19 Performance and model-call budgets](roadmap/living-world/stage-1-foundations.md#n19-performance-and-model-call-budgets) | ✅ Every number in `budgets.ts`: every model call has a kind and a daily cap (over it the call doesn't happen and template words stand), the background queue runs summaries then plans then flavour and sheds flavour first, tick and frame times are checked (`sim:realm --check`, a capital frame test, `?fps=1`), `bench:busy` simulates a busy week, and the admin Health tab shows each budget (`tests/n19.test.ts`) |
 | Living world · S1 | [N20 Stories, drama and liveness metrics](roadmap/living-world/stage-1-foundations.md#n20-stories-drama-and-liveness-metrics) | ⬜ Planned |
 | Living world · S1 | [N21 Callbacks to the player's choices](roadmap/living-world/stage-1-foundations.md#n21-callbacks-to-the-players-choices) | ⬜ Planned ("you spared him; he leads the revolt now") |
 | Living world · S1 | [N22 Long-run balance tests](roadmap/living-world/stage-1-foundations.md#n22-long-run-balance-tests) | ⬜ Planned |

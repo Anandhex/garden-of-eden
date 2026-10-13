@@ -2,10 +2,12 @@ import { mkdirSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname } from "node:path";
 import type { DatabaseSync as DatabaseSyncType } from "node:sqlite";
+import type { ModelCall } from "../llm/budgeted.js";
 import type { Embedder } from "../llm/provider.js";
 import type { DirectorLogEntry } from "../director/validator.js";
 import type { GameEvent } from "./events.js";
 import { cosine, hashedEmbedder } from "./embeddings.js";
+import { timed } from "../metrics/timing.js";
 import { PeopleStore } from "../store/peopleStore.js";
 import { applySchema, ORDER_BY, type TableName } from "../store/schema.js";
 
@@ -78,14 +80,14 @@ export class WorldStore {
   /** A new world: forget the old one's history and people. */
   reset(): void {
     this.people.clear();
-    this.db.exec("DELETE FROM events; DELETE FROM memories; DELETE FROM director_log; DELETE FROM relationships; DELETE FROM knowledge; DELETE FROM grievances; DELETE FROM ambitions; DELETE FROM jobs_held; DELETE FROM meta;");
+    this.db.exec("DELETE FROM events; DELETE FROM memories; DELETE FROM director_log; DELETE FROM relationships; DELETE FROM knowledge; DELETE FROM grievances; DELETE FROM ambitions; DELETE FROM jobs_held; DELETE FROM model_calls; DELETE FROM meta;");
   }
 
   // ---- The save's commit point (N18) ----
 
   /** Write the pending people and `meta.save_tick = tick` in one transaction. The save file follows (game/save.ts). */
   commit(tick: number): void {
-    this.people.flush(tick);
+    timed("flush", () => this.people.flush(tick));
   }
 
   /** The tick the last commit stored, or null. */
@@ -189,6 +191,21 @@ export class WorldStore {
   memoryCount(npc?: string): number {
     const row = npc ? this.db.prepare("SELECT COUNT(*) AS n FROM memories WHERE npc = ?").get(npc) : this.db.prepare("SELECT COUNT(*) AS n FROM memories").get();
     return Number((row as { n: number }).n);
+  }
+
+  // ---- Model calls (N19) ----
+
+  /** Keep one model call: what it was for, how long it took, and whether it was dropped. */
+  logModelCall(c: ModelCall): void {
+    this.db.prepare("INSERT INTO model_calls (day, kind, ms, prompt_tokens, reply_tokens, dropped, retry, failed) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").run(c.day, c.kind, Math.round(c.ms * 10) / 10, c.promptTokens, c.replyTokens, c.dropped ? 1 : 0, c.retry ? 1 : 0, c.failed ? 1 : 0);
+  }
+
+  /** Calls by kind for one game day (or every day): completed, dropped, average ms. */
+  modelCallStats(day?: number): Array<{ kind: string; calls: number; dropped: number; avgMs: number }> {
+    const rows = this.db
+      .prepare(`SELECT kind, SUM(CASE WHEN dropped = 0 AND failed = 0 AND retry = 0 THEN 1 ELSE 0 END) AS calls, SUM(dropped) AS dropped, AVG(CASE WHEN dropped = 0 AND failed = 0 THEN ms END) AS avg FROM model_calls ${day === undefined ? "" : "WHERE day = ?"} GROUP BY kind ORDER BY kind`)
+      .all(...(day === undefined ? [] : [day])) as Array<Record<string, unknown>>;
+    return rows.map((r) => ({ kind: String(r.kind), calls: Number(r.calls ?? 0), dropped: Number(r.dropped ?? 0), avgMs: Math.round(Number(r.avg ?? 0)) }));
   }
 
   // ---- The director ----

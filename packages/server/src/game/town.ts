@@ -1,4 +1,6 @@
 import { config } from "../config.js";
+import { record } from "../metrics/timing.js";
+import { BudgetedProvider, ModelLedger } from "../llm/budgeted.js";
 import type { LLMProvider } from "../llm/provider.js";
 import { NpcAgent } from "../npc/NpcAgent.js";
 import type { NpcPersona, WorldSnapshot } from "../npc/types.js";
@@ -89,6 +91,8 @@ export class Town {
   readonly templates: Record<string, CreatureTemplate>;
   readonly world: SavedWorld;
   readonly background: BackgroundWork;
+  /** Every model call made for this town, by kind and game day (N19). */
+  readonly ledger: ModelLedger;
   readonly store?: WorldStore;
   private readonly fileRules: SpawnRule[];
   private readonly llm: LLMProvider;
@@ -141,7 +145,10 @@ export class Town {
     this.personas = o.personas;
     this.ids = Object.keys(o.personas);
     for (const [id, p] of Object.entries(o.world.visitors ?? {})) this.personas[id] = p;
-    this.agentLlm = o.llm;
+    // Every model call goes through the budget (N19): one ledger, counted by kind and game day.
+    this.ledger = new ModelLedger(() => o.world.day, o.store ? (c) => o.store!.logModelCall(c) : undefined);
+    const llm = new BudgetedProvider(o.llm, this.ledger);
+    this.agentLlm = llm;
     try {
       this.childTemplate = o.childTemplate ?? loadTemplates().child;
     } catch {
@@ -150,17 +157,17 @@ export class Town {
     this.templates = o.creatureTemplates;
     this.fileRules = o.spawnRules;
     this.world = o.world;
-    this.llm = o.llm;
-    this.bgLlm = o.backgroundLlm ?? o.llm;
+    this.llm = llm;
+    this.bgLlm = o.backgroundLlm ? new BudgetedProvider(o.backgroundLlm, this.ledger) : llm;
     this.store = o.store;
     this.deaths = o.deaths;
     if (o.rng) this.fixedRng = o.rng;
-    this.background = new BackgroundWork(() => this.bgLlm.abort?.());
+    this.background = new BackgroundWork(() => this.bgLlm.abort?.(), { avgMs: (k) => this.ledger.avgMs(k), onDrop: (j) => this.ledger.recordDropped(j.kind) });
     registerNpcNames(Object.fromEntries(this.ids.map((id) => [id, o.personas[id]!.name])));
     registerNpcGenders(Object.fromEntries(this.ids.map((id) => [id, o.personas[id]!.voice?.gender])));
-    this.agents = o.agents ?? Object.fromEntries(this.ids.map((id) => [id, new NpcAgent(o.personas[id]!, o.llm, undefined, o.world.npcStates[id])]));
-    for (const id of Object.keys(o.world.visitors ?? {})) this.agents[id] ??= new NpcAgent(this.personas[id]!, o.llm, undefined, o.world.npcStates[id]);
-    for (const id of this.ids) this.agents[id] ??= new NpcAgent(o.personas[id]!, o.llm, undefined, o.world.npcStates[id]);
+    this.agents = o.agents ?? Object.fromEntries(this.ids.map((id) => [id, new NpcAgent(o.personas[id]!, llm, undefined, o.world.npcStates[id])]));
+    for (const id of Object.keys(o.world.visitors ?? {})) this.agents[id] ??= new NpcAgent(this.personas[id]!, llm, undefined, o.world.npcStates[id]);
+    for (const id of this.ids) this.agents[id] ??= new NpcAgent(o.personas[id]!, llm, undefined, o.world.npcStates[id]);
     for (const id of this.ids) {
       if (this.agents[id]!.isDead) this.rippled.add(id);
       if (o.world.deaths[id] && this.agents[id]!.state.outcome !== "dead") this.agents[id]!.state.outcome = "dead";
@@ -450,14 +457,14 @@ export class Town {
       // Big news from away, retold by the model in the background (code's words stand if it fails).
       if (config.director) {
         for (const n of realm.news.filter((x) => x.delivered && !before2.has(x.id) && x.importance >= RETELL_IMPORTANCE && x.at !== HOME_ID)) {
-          this.background.add({ key: `retell:${n.id}`, run: async () => void (await retellNews(this.bgLlm, realm, this.world, realmNewsId(n))) });
+          this.background.add({ key: `retell:${n.id}`, kind: "retell", run: async () => void (await retellNews(this.bgLlm, realm, this.world, realmNewsId(n))) });
         }
       }
       log.push(...postNeedQuests(realm, this.world, this.members()));
       log.push(...this.promoteRisers(d));
       log.push(...this.meetHomeNotables(d, true));
       // New factions get their words from the model, in the background (code's names stand if it fails).
-      if (config.director) for (const id of Object.keys(realm.factions).filter((x) => !before.includes(x))) this.background.add({ key: `faction-name:${id}`, run: async () => void (await nameFaction(this.bgLlm, realm, id)) });
+      if (config.director) for (const id of Object.keys(realm.factions).filter((x) => !before.includes(x))) this.background.add({ key: `faction-name:${id}`, kind: "faction-name", run: async () => void (await nameFaction(this.bgLlm, realm, id)) });
     }
     return log;
   }
@@ -531,6 +538,7 @@ export class Town {
     const parents = (this.personas[id]!.parents ?? []).map((p) => (p === "player" ? this.world.player.name : (this.personas[p]?.name ?? p))).join(" and ");
     this.background.add({
       key: `child-words:${id}`,
+      kind: "child-words",
       run: async () => {
         const p = this.personas[id];
         if (!p?.minor) return;
@@ -586,7 +594,17 @@ export class Town {
    * raids, spawns; then the consequences. If midnight passed, the director's chronicle
    * and the day's plans are queued. Returns lines worth telling the player.
    */
-  passHours(hours: number, { talkingTo, keep = [] }: { talkingTo?: string; keep?: string[] } = {}): string[] {
+  passHours(hours: number, opts: { talkingTo?: string; keep?: string[] } = {}): string[] {
+    const t0 = performance.now();
+    try {
+      return this.passHoursNow(hours, opts);
+    } finally {
+      // The budget is for one game hour (N19): a long wait counts as that many.
+      if (hours > 0) record("passHour", (performance.now() - t0) / hours);
+    }
+  }
+
+  private passHoursNow(hours: number, { talkingTo, keep = [] }: { talkingTo?: string; keep?: string[] }): string[] {
     const start = { day: this.world.day, hour: this.world.hour };
     const log = passVillage(this.members(), this.world, hours, this.rngFor("village"), talkingTo ? { talkingTo } : {});
     log.push(...passCreatureTime(this.templates, this.world.creatures, start, hours, this.rngFor("creatures"), DEMO_SPAWNS).filter(isNotable));
@@ -706,7 +724,7 @@ export class Town {
     for (const id of this.ids) {
       const a = this.agents[id]!;
       if (a.isDead || a.state.dormant) continue;
-      this.background.add({ key: `flavor:${id}`, run: async () => void (await flavorBoard(this.bgLlm, a.persona, a.state.questBoard, [this.world.player.name])) });
+      this.background.add({ key: `flavor:${id}`, kind: "quest-flavor", run: async () => void (await flavorBoard(this.bgLlm, a.persona, a.state.questBoard, [this.world.player.name])) });
     }
   }
 
@@ -722,6 +740,9 @@ export class Town {
     const p = new Promise((resolve) =>
       this.background.add({
         key: `chronicle:${day}`,
+        kind: "chronicle",
+        // Shed from a long queue: the night goes unchronicled, and whoever waits on it (or the next night) isn't left waiting.
+        fallback: () => resolve({ log: [], accepted: [], rejected: [] }),
         run: async () => {
           const result = await run();
           this.news.push(...result.log);
@@ -739,7 +760,7 @@ export class Town {
       const a = this.agents[id]!;
       // The townsfolk (N16) live by the crowd's day, not a planned one: no model call for them.
       if (parseTownsfolkId(id) || !needsPlan(a.state, this.world.day)) continue;
-      this.background.add({ key: `plan:${id}`, run: async () => void (needsPlan(a.state, this.world.day) && (await planDay(this.bgLlm, a.persona, a.state, this.world, Object.values(this.personas).map((p) => p.name)))) });
+      this.background.add({ key: `plan:${id}`, kind: "plan", run: async () => void (needsPlan(a.state, this.world.day) && (await planDay(this.bgLlm, a.persona, a.state, this.world, Object.values(this.personas).map((p) => p.name)))) });
     }
   }
 
@@ -755,6 +776,7 @@ export class Town {
     const day = this.world.day;
     this.background.add({
       key: `summary:${id}:${day}:${absoluteHour(this.world)}`,
+      kind: "summary",
       run: async () => {
         const out = await summariseConversation(this.bgLlm, a.persona, a.state, transcript, this.world.player.name, day);
         if (!out || !this.store) return;

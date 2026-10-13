@@ -34,7 +34,7 @@ describe("OllamaProvider.chat", () => {
     const deltas: string[] = [];
 
     const result = await new OllamaProvider().chat(
-      { system: "sys", messages: [{ role: "user", content: "hi" }] },
+      { kind: "talk", system: "sys", messages: [{ role: "user", content: "hi" }] },
       (d) => deltas.push(d),
     );
 
@@ -51,7 +51,7 @@ describe("OllamaProvider.chat", () => {
       ]),
     );
 
-    const result = await new OllamaProvider().chat({ system: "sys", messages: [{ role: "user", content: "x" }] });
+    const result = await new OllamaProvider().chat({ kind: "talk", system: "sys", messages: [{ role: "user", content: "x" }] });
 
     expect(result.text).toBe("");
     expect(result.toolCalls).toEqual([{ name: "change_mood", arguments: { mood: "angry" } }]);
@@ -59,7 +59,7 @@ describe("OllamaProvider.chat", () => {
 
   it("reads stats from the final chunk (durations in ms)", async () => {
     mockChat.mockResolvedValue(fakeStream([{ content: "Hm." }, { done: true }]));
-    const result = await new OllamaProvider().chat({ system: "sys", messages: [{ role: "user", content: "x" }] });
+    const result = await new OllamaProvider().chat({ kind: "talk", system: "sys", messages: [{ role: "user", content: "x" }] });
     expect(result.stats).toEqual({ inputTokens: 120, outputTokens: 30, durationMs: 2500 });
   });
 
@@ -67,6 +67,7 @@ describe("OllamaProvider.chat", () => {
     mockChat.mockResolvedValue(fakeStream([{ done: true }]));
 
     await new OllamaProvider("test-model").chat({
+      kind: "talk",
       system: "You are Brena.",
       messages: [
         { role: "user", content: "insult" },

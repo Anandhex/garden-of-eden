@@ -102,6 +102,38 @@ export interface AdminTiming {
   count: number;
 }
 
+/** One tick budget against what was measured. `status`: ok (under 75%), warn (under 100%), over, idle (not measured yet). */
+export interface AdminBudgetRow {
+  name: string;
+  label: string;
+  budgetMs: number;
+  p95Ms: number | null;
+  ratio: number | null;
+  status: "ok" | "warn" | "over" | "idle";
+}
+
+/** One kind of model call today. `cap` is null when the kind has none (talking). */
+export interface AdminModelKind {
+  kind: string;
+  callsToday: number;
+  cap: number | null;
+  avgMs: number;
+  droppedToday: number;
+  droppedTotal: number;
+  tokensIn: number;
+  tokensOut: number;
+}
+
+export interface AdminBudgets {
+  tick: AdminBudgetRow[];
+  model: AdminModelKind[];
+  queue: { length: number; estimatedWaitMs: number; maxWaitMs: number; running: string | null; dropped: number };
+  /** Median and worst player first-token times, ms (null: no talk yet), against the target. */
+  talk: { firstTokenMs: { last: number; worst: number } | null; targetMs: number };
+  /** The browser's side, which only the browser can measure: `?fps=1`. */
+  frame: { capitalCrowdMs: number; capitalMinuteMs: number; targetFps: number };
+}
+
 export interface AdminHealth {
   clock: AdminClock;
   /** Milliseconds per call, by step name (the last 200 calls). */
@@ -109,8 +141,8 @@ export interface AdminHealth {
   counts: Record<string, number>;
   /** `realm.stats`: what has happened, by kind. */
   stats: Record<string, number>;
-  /** N19 fills this in: each budget and how close it is. */
-  budgets?: unknown;
+  /** N19: each budget and how close it is. */
+  budgets: AdminBudgets;
   /** The numbers `npm run sim:realm` prints. */
   summary: string[];
 }

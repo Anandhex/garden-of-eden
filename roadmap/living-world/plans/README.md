@@ -10,7 +10,7 @@ Read this page first. It holds the rules every phase shares; the phase plans ass
 |---|---|---|---|
 | N17 | [The admin world view](n17-admin-world-view.md) | (nothing new) | ✅ cut down |
 | N18 | [Scale and storage](n18-scale-and-storage.md) | N17's hash check | ✅ cut down |
-| N19 | [Performance and model-call budgets](n19-performance-and-budgets.md) | N17, N18 | |
+| N19 | [Performance and model-call budgets](n19-performance-and-budgets.md) | N17, N18 | ✅ built, all steps |
 | N20 | [Stories, drama and liveness metrics](n20-stories-drama-liveness.md) | N18's event table | |
 | N21 | [Callbacks to the player's choices](n21-callbacks.md) | N20, N24 | |
 | N22 | [Long-run balance tests](n22-long-run-balance.md) | N18, N20, N25 | |

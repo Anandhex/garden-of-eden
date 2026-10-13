@@ -1029,7 +1029,7 @@ export class NpcAgent {
         try {
           const sent = this.history.length;
           result = await this.llm.chat(
-            { system: this.system, messages: this.history, tools, maxTokens: this.maxTokens },
+            { kind: "talk", attempt, system: this.system, messages: this.history, tools, maxTokens: this.maxTokens },
             (delta) => moodFilter.push(delta),
           );
           if (result.stats?.inputTokens) this.measured = { tokens: result.stats.inputTokens, messages: sent };

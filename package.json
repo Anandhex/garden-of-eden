@@ -28,6 +28,7 @@
     "world:export": "tsx packages/server/scripts/world.ts export",
     "world:import": "tsx packages/server/scripts/world.ts import",
     "bench:storage": "tsx packages/server/scripts/bench-storage.ts",
+    "bench:busy": "tsx --env-file-if-exists=.env packages/server/scripts/bench-busy.ts",
     "bench:traits": "tsx packages/server/scripts/bench-traits.ts",
     "bench:director": "tsx packages/server/scripts/bench-director.ts",
     "gen": "tsx --env-file-if-exists=.env packages/server/scripts/generate-npc.ts",

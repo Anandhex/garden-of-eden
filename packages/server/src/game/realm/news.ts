@@ -123,7 +123,7 @@ export async function retellNews(llm: LLMProvider, realm: Realm, world: WorldSna
   const entry = (world.lore ?? []).find((e) => e.id === newsId);
   if (!n || !entry) return false;
   const system = "You are a village crier in a small fantasy realm. Retell one piece of news from far away in one or two plain sentences, as folk at the inn would say it. Use only the names in it. Invent no names, places or numbers.";
-  const out = await structured(llm, RetoldSchema, { system, prompt: `The news: ${n.text}`, maxTokens: 90, temperature: 0.7 });
+  const out = await structured(llm, RetoldSchema, { kind: "retell", system, prompt: `The news: ${n.text}`, maxTokens: 90, temperature: 0.7 });
   if (!out) return false;
   const known = knownNameWords([], [...(n.names ?? []), "Millbrook"]);
   if (unknownNames(out.text, known).length > 0) return false;
