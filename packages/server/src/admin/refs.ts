@@ -53,10 +53,9 @@ export function siteOfRef(ctx: AdminContext, ref: string): string | null {
     case "figure":
       return world.realm?.figures[p.id]?.home ?? null;
     case "townsperson":
-      return parseTownsfolkId(p.id)?.site ?? null;
+      return ctx.town().homeSiteOf(p.id);
     case "cast": {
-      const t = parseTownsfolkId(p.id);
-      if (t) return t.site;
+      if (parseTownsfolkId(p.id)) return ctx.town().homeSiteOf(p.id);
       const f = ctx.town().figureOf(p.id);
       return f ? f.home : HOME_ID;
     }
@@ -84,8 +83,8 @@ export function nameOfRef(ctx: AdminContext, ref: string): string {
     case "townsperson": {
       const persona = ctx.town().personas[p.id];
       if (persona) return persona.name;
-      const t = parseTownsfolkId(p.id);
-      return (t && townsperson(ctx, t.site, p.id)?.person.name) ?? p.id;
+      const site = ctx.town().homeSiteOf(p.id);
+      return (site && townsperson(ctx, site, p.id)?.person.name) ?? ctx.town().store?.people.get(p.id)?.name ?? p.id;
     }
     case "beast":
       return world.creatures[p.id]?.name ?? Object.values(world.haunts ?? {}).map((g) => g[p.id]).find(Boolean)?.name ?? p.id;

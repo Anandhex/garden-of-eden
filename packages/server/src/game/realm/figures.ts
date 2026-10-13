@@ -2,6 +2,7 @@ import type { NpcStats } from "../../npc/stats.js";
 import { speciesOf } from "../../world/species.js";
 import type { Rng } from "../dice.js";
 import { createLife, type Life, type LifeContext, newDay, overcome, type Challenge, gainXp, tierIndex, TIERS, type Tier } from "../life.js";
+import { causeFromWords, type DeathRecord } from "../people/death.js";
 import { personName } from "./names.js";
 import type { Figure, Realm, Role } from "./types.js";
 
@@ -114,11 +115,13 @@ export function addDeed(f: Figure, deed: string): void {
 }
 
 /** Dead: kept in the record, out of every office. Returns true if they were alive. */
-export function killFigure(realm: Realm, f: Figure, day: number, cause: string): boolean {
+export function killFigure(realm: Realm, f: Figure, day: number, cause: string, record: Partial<DeathRecord> = {}): boolean {
   if (!f.alive) return false;
   f.alive = false;
   f.deathDay = day;
+  // The words stay as they were said; the typed record (N25) says how, when and where the same way for everyone.
   f.deathCause = cause;
+  f.death = { cause: causeFromWords(cause), day, site: f.home, note: cause, ...record };
   for (const fac of Object.values(realm.factions)) {
     fac.members = fac.members.filter((m) => m !== f.id);
     if (fac.leader === f.id) fac.leader = null;

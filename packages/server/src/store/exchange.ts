@@ -3,7 +3,7 @@ import { dirname } from "node:path";
 import { gunzipSync, gzipSync } from "node:zlib";
 import { z } from "zod";
 import type { WorldStore } from "../game/db.js";
-import { SAVE_VERSION, SaveSchema, saveWorld, type SavedWorld } from "../game/save.js";
+import { MIN_SAVE_VERSION, SAVE_VERSION, SaveSchema, saveWorld, type SavedWorld } from "../game/save.js";
 import { TABLES, type TableName } from "./schema.js";
 
 /**
@@ -41,18 +41,25 @@ const rowSchema = (table: TableName) => z.object(Object.fromEntries(TABLES[table
 
 export class ImportError extends Error {}
 
+/** Rows of a world exported by an older build, given the columns added since (v12: townsfolk lives). */
+function upgradeRows(table: TableName, from: number, rows: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
+  if (from < 12 && table === "people") return rows.map((r) => ({ expecting: null, last_birth: null, stepped_day: 0, ...r }));
+  return rows;
+}
+
 /** Check a document: its format and versions, the world against the save's schema, every row against its table's columns. */
 export function parseMbWorld(raw: unknown): MbWorld {
   const head = z.object({ format: z.string(), version: z.number().int(), saveVersion: z.number().int() }).safeParse(raw);
   if (!head.success || head.data.format !== FORMAT) throw new ImportError(`Not a ${FORMAT} file.`);
   if (head.data.version > FORMAT_VERSION) throw new ImportError(`This file is from a newer version of the game (container ${head.data.version}; this build reads up to ${FORMAT_VERSION}).`);
-  if (head.data.saveVersion !== SAVE_VERSION) throw new ImportError(`This world is save version ${head.data.saveVersion}; this build plays version ${SAVE_VERSION}.`);
+  if (head.data.saveVersion > SAVE_VERSION || head.data.saveVersion < MIN_SAVE_VERSION) throw new ImportError(`This world is save version ${head.data.saveVersion}; this build plays versions ${MIN_SAVE_VERSION} to ${SAVE_VERSION}.`);
+  const from = head.data.saveVersion;
   const doc = raw as { world: unknown; tables: Record<string, unknown>; exportedDay: unknown };
   const world = SaveSchema.safeParse(doc.world);
   if (!world.success) throw new ImportError(`The world in the file is not sound: ${world.error.issues[0]?.path.join(".")} ${world.error.issues[0]?.message}`);
   const tables = {} as MbWorld["tables"];
   for (const table of Object.keys(TABLES) as TableName[]) {
-    const rows = z.array(rowSchema(table)).safeParse(doc.tables?.[table] ?? []);
+    const rows = z.array(rowSchema(table)).safeParse(upgradeRows(table, from, (doc.tables?.[table] ?? []) as Array<Record<string, unknown>>));
     if (!rows.success) throw new ImportError(`Table ${table} is not sound: ${rows.error.issues[0]?.path.join(".")} ${rows.error.issues[0]?.message}`);
     tables[table] = rows.data;
   }

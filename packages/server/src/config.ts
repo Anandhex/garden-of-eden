@@ -64,6 +64,12 @@ export const config = {
     // Age a child starts talking and running errands (younger ones stay at home).
     talkAge: 5,
   },
+  // Townsfolk lives (N25, game/people/): every stored person ages, marries, has children, moves and dies by code.
+  // PEOPLE_LIVE says where: "all" (every settlement), "slice" (Millbrook and its nearest neighbour; the rest of the realm
+  // keeps its population as a number), "off", or a comma-separated list of settlement ids. Needs the database.
+  peopleLive: process.env.PEOPLE_LIVE ?? "all",
+  // Settlements whose days are only worked out when something needs them (comma-separated ids): the result is the same as daily.
+  peopleLazy: process.env.PEOPLE_LAZY ?? "",
   // Embedding model for recall by meaning (game/db.ts). Optional: without it a hashed bag-of-words stands in.
   embedModel: process.env.EMBED_MODEL ?? "nomic-embed-text",
   // Long-term store (SQLite): the full event log, conversation summaries, director log, embeddings.

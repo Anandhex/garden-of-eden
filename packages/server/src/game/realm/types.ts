@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { ITEM_TIERS } from "../items.js";
+import { DeathRecordSchema } from "../people/death.js";
 
 /**
  * The wider realm (N13): kingdoms, settlements, the people in them who don't
@@ -108,6 +109,10 @@ export const FigureSchema = z.object({
   alive: z.boolean(),
   deathDay: z.number().int().optional(),
   deathCause: z.string().optional(),
+  /** How they died, typed (N25): `deathCause` keeps the words. */
+  death: DeathRecordSchema.optional(),
+  /** The townsperson (a `people` id) they rose from, when they were born or lived as one (N25). */
+  person: z.string().optional(),
   /** Deeds, newest last (short): "beat the raiders of Ashby", "cleared the Sunken Vault". */
   deeds: z.array(z.string()).default([]),
   /** Rose from the crowd: a creature's uid (Millbrook's map) or "crowd". */
@@ -132,7 +137,10 @@ export const SettlementSchema = z.object({
   leader: z.string().nullable(),
   pos,
   terrain: z.enum(TERRAINS),
+  /** People living there. While its people live (N25) this is a count of them, kept up to date after each day's step. */
   population: z.number().int().min(0),
+  /** Houses on its map (game/realm/houses.ts): fixed when the realm is made, more only when the place builds them. */
+  houses: z.number().int().min(1).optional(),
   /** 0..100: how well people live. */
   prosperity: z.number().min(0).max(100),
   /** 0..100: how full the granaries are. */
@@ -303,6 +311,21 @@ export const HomeEventSchema = z.object({
 });
 export type HomeEvent = z.infer<typeof HomeEventSchema>;
 
+/**
+ * Someone's people died (N25): a raid, a battle, a pack's attack. The fight rolls how many; the day's life
+ * step picks who, by cause, so a raid kills the guards and the unlucky and a beast kills the farmers.
+ */
+export const CasualtyOrderSchema = z.object({
+  site: z.string(),
+  cause: z.enum(["battle", "siege", "raid", "beast"]),
+  count: z.number().int().min(1),
+  /** A ref for the event that did it ("raid:34:ashby"), which picks the dead and goes on their records. */
+  event: z.string(),
+  killer: z.string().optional(),
+  day: z.number().int(),
+});
+export type CasualtyOrder = z.infer<typeof CasualtyOrderSchema>;
+
 export const DirectorPushSchema = z.object({ day: z.number().int(), kind: z.string(), target: z.string(), reason: z.string(), ok: z.boolean() });
 export type DirectorPush = z.infer<typeof DirectorPushSchema>;
 
@@ -326,6 +349,8 @@ export const RealmSchema = z.object({
   next: z.number().int(),
   /** Counts of what happened, for the sim and tests. */
   stats: z.record(z.string(), z.number().int()),
+  /** Deaths ordered by fights, waiting for the day's life step (N25). */
+  casualties: z.array(CasualtyOrderSchema).default([]),
   /** The director's cooldowns: "kind:target" → the day it may push that again. */
   cooldowns: z.record(z.string(), z.number().int()).default({}),
 });

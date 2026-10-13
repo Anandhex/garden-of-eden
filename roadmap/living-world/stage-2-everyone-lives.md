@@ -6,7 +6,7 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 
 ## N25: Townsfolk lives
 
-**Status:** ⬜ Planned
+**Status:** ✅ Built (2026-10-13)
 
 **Implementation plan:** [plans/n25-townsfolk-lives.md](plans/n25-townsfolk-lives.md)
 
@@ -17,18 +17,28 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 - **Coarse:** other places: still individuals, updated once a day in batches.
 - **Lazy catch-up:** a place nobody has looked at for a while fast-forwards when the player arrives or something there needs checking (seeded, so the result is the same either way).
 
-- [ ] **Ageing:** every person ages yearly, with species age bands as for the named cast (N3.3)
-- [ ] **Marriage:** partners matched within a place, weighted by class, age and relationship; cross-class matches are rare and become gossip. Reuses N11's courtship and marriage rules at coarse grain
-- [ ] **Births:** children inherit traits and some skills (N11's inheritance)
-- [ ] **Deaths:** old age, famine, raids, wars, beasts, illness, each tied to the realm event that caused it; a death is news (N13.0)
-- [ ] **A typed death record for everyone:** `cause` (battle, siege, raid, execution, illness, famine, old age, beast, murder, accident, …), with the event, place and killer when known, replacing N13's free-text cause and the nameless `bury` count. Missing is a state of its own. N55 adds the war details on top
-- [ ] **The population number becomes a count:** roster changes replace N16's "only the population number changes"; a growing town still adds to the end, so existing people keep their place
-- [ ] **Migration as people:** N13's moves to better places move named townsfolk, with their family
-- [ ] **Rising:** a notable's child, or a child with strong inherited traits, goes through N13's rise rules and can become a named or talking NPC; lineage kept, so the admin view can trace who came from whom
-- [ ] Births, deaths and moves stored in N18's people tables (no migration of older saves: they're set aside, user decision 2026-10-13)
-- [ ] Tests, README, this roadmap
+- [x] **Ageing:** every person ages yearly, with species age bands as for the named cast (N3.3)
+- [x] **Marriage:** partners matched within a place, weighted by class, age and relationship; cross-class matches are rare and become gossip. Reuses N11's courtship and marriage rules at coarse grain
+- [x] **Births:** children inherit traits and some skills (N11's inheritance)
+- [x] **Deaths:** old age, famine, raids, wars, beasts, illness, each tied to the realm event that caused it; a death is news (N13.0)
+- [x] **A typed death record for everyone:** `cause` (battle, siege, raid, execution, illness, famine, old age, beast, murder, accident, …), with the event, place and killer when known, replacing N13's free-text cause and the nameless `bury` count. Missing is a state of its own. N55 adds the war details on top
+- [x] **The population number becomes a count:** roster changes replace N16's "only the population number changes"; a growing town still adds to the end, so existing people keep their place
+- [x] **Migration as people:** N13's moves to better places move named townsfolk, with their family
+- [x] **Rising:** a notable's child, or a child with strong inherited traits, goes through N13's rise rules and can become a named or talking NPC; lineage kept, so the admin view can trace who came from whom
+- [x] Births, deaths and moves stored in N18's people tables (no migration of older saves: they're set aside, user decision 2026-10-13)
+- [x] Tests, README, this roadmap
 
-- **Done when:** over 10 simulated years a village's people age, marry, have children and die, the population figure equals the living roster, a born townsperson rises to a talking NPC with their parents in their file, a famine kills people in the place it struck, and a capital still runs at 60 fps.
+- **Done when** (all proved in `tests/n25.test.ts`, except the 60 fps check, which is N19's frame test plus the by-hand `?fps=1` check): over 10 simulated years a village's people age, marry, have children and die, the population figure equals the living roster, a born townsperson rises to a talking NPC with their parents in their file, a famine kills people in the place it struck, and a capital still runs at 60 fps.
+
+**How it's built:** [`server/src/game/people/`](../../packages/server/src/game/people): `rules.ts` (age, courting age, kin check, trait inheritance, shared with `family.ts`), `death.ts` (typed `DeathRecord`), `conditions.ts` (a place's day, written to `site_days`), `rates.ts` (every number, with the measured results), `step.ts` (one place's day), `casualties.ts`, `migration.ts` (households, settlers), `rising.ts`, `world.ts` (`lifeDay`, `catchUp`, `advanceWorld`), `bounds.ts` (the five balance bounds), `index.ts` (lineage, `killPerson`). Database schema 3 adds `expecting`, `last_birth`, `stepped_day`, `site_days` and `site_seq`; save v12 adds `settlement.houses`, `realm.casualties` and a figure's `death` and `person` (a v11 save loads as it is). `PeopleStore` keeps a read copy of each place's living people (about 400 bytes each), births and arrivals wait for the save's flush like every other change, and `livingCount` follows them. Measured on the M2 (seed 1, 24,000 people in 36 places): about 63 ms a game day for everyone, 7 ms of it moves; `npm run sim:lives`.
+
+**Where it differs from the plan:**
+- Couples may have up to **6** children (`LIVES.maxChildren`), not the cast's 3: with three the realm cannot grow. The cast keeps its own pool and cap.
+- A lazy place is only equal in its people, counters and events; the realm's coin reads its *population number*, which is as of its last catch-up, so lazy is for budgets only (nothing is lazy by default: coarse for everyone fits the budget).
+- Rising: every figure who grew up as a townsperson and makes enough of a name talks, with **no cap** (user decision 2026-10-13). Millbrook's join the cast; another place's are kept with the visitors (`v_` ids) and are about only when the player is in their town.
+- `site_days` is left out of the world hash (it is pruned on its own schedule); `people.rev` is left out too, since it counts saves.
+- Cross-place marriage and illness (N61) are out of scope, as planned. Pinned-NPC full detail uses the place the player is in; pins wait for N34.
+- Balance is measured, not perfect: children are 40-45% of a growing realm and about a third of the small hamlets empty over 40 years (the old model lost about a quarter). Tuning continues with N22's `sim:years`.
 
 ## N26: The open road
 

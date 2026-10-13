@@ -145,7 +145,8 @@ export function readyToTalk(realm: Realm, creatures: Record<string, Creature>): 
   return Object.values(realm.figures).filter((f) => {
     if (!f.alive || f.talks || !speciesOf(f.species).talks) return false;
     const onMap = Object.values(creatures).some((c) => c.figure === f.id && !c.outcome);
-    const local = f.home === HOME_ID || (f.faction === "bandits" && onMap);
+    // A person who grew up as a townsperson (N25) can talk wherever they live; the rest only in Millbrook, or as bandits on its map.
+    const local = f.home === HOME_ID || !!f.person || (f.faction === "bandits" && onMap);
     return local && f.renown >= TALKER_RENOWN && (onMap || COMMONER_ROLES.has(f.role)) && tierIndex(f.life.tier as Tier) >= 1;
   });
 }

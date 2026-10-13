@@ -1,6 +1,7 @@
 import { seededRng, type Rng } from "../dice.js";
 import type { Tier } from "../life.js";
 import { leaderRole, makeFigure, takenNames } from "./figures.js";
+import { freezeHouses } from "./houses.js";
 import { COLORS, dungeonName, factionName, kingdomName, pick, placeName } from "./names.js";
 import type { BuildingId, Figure, Kingdom, Realm, RealmFaction, Role, Settlement, SettlementKind, Terrain } from "./types.js";
 
@@ -31,7 +32,7 @@ const START_BUILDINGS: Record<SettlementKind, Partial<Record<BuildingId, number>
 const TAX: Record<SettlementKind, number> = { capital: 0, city: 0.15, town: 0.15, village: 0.12, hamlet: 0.1 };
 
 export function emptyRealm(seed: number, day: number): Realm {
-  return { seed, day, kingdoms: {}, settlements: {}, figures: {}, factions: {}, treaties: [], wars: [], dungeons: {}, packs: {}, news: [], director: [], home: [], next: 1, stats: {}, cooldowns: {} };
+  return { seed, day, kingdoms: {}, settlements: {}, figures: {}, factions: {}, treaties: [], wars: [], dungeons: {}, packs: {}, news: [], director: [], home: [], next: 1, stats: {}, casualties: [], cooldowns: {} };
 }
 
 const between = (rng: Rng, [lo, hi]: [number, number]) => Math.round(lo + rng() * (hi - lo));
@@ -249,6 +250,8 @@ export function generateRealm(seed: number, day = 1): Realm {
   if (a && b) realm.treaties.push({ id: `t${realm.next++}`, kind: "trade", a: `k:${a.id}`, b: `k:${b.id}`, since: day - 50, until: day + 90, why: "the old trade road", amount: undefined });
   if (b && c) realm.treaties.push({ id: `t${realm.next++}`, kind: "non_aggression", a: `k:${b.id}`, b: `k:${c.id}`, since: day - 20, until: day + 60, why: "a truce after the border quarrels" });
   void takenNames;
+  // The houses each place has, fixed from here on (game/realm/houses.ts).
+  freezeHouses(realm);
   return realm;
 }
 

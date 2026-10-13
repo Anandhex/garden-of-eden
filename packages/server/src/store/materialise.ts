@@ -19,10 +19,32 @@ export function materialisePeople(realm: Realm, people: PeopleStore, day: number
       const roster = rosterFor(realm, s.id, siteMap(s, "village", realm), day);
       if (!roster) continue;
       people.insertMany(roster.people.map((p) => rowOfTownsperson(p, s.id, day)));
+      // Their lives start today: there is no past to live.
+      people.setSeq(s.id, { stepped: day });
       added += roster.people.length;
     }
   });
   // The rolled rosters were the generator's scratch; the table has the people now.
   forgetRosters();
+  return added;
+}
+
+/**
+ * Roll the people of any live place that has none yet (a world made without a database, or a place that came
+ * to exist later), so that a day's life step never sees an empty place that is really full. Cheap when there is
+ * nothing to do. Returns how many people were rolled.
+ */
+export function ensureLivePeople(realm: Realm, people: PeopleStore, live: ReadonlySet<string>, day: number): number {
+  let added = 0;
+  for (const id of [...live].sort()) {
+    const s = realm.settlements[id];
+    if (!s || s.abandoned || s.population <= 0 || people.count(id) > 0) continue;
+    const roster = rosterFor(realm, id, siteMap(s, "village", realm), day);
+    if (!roster) continue;
+    people.insertMany(roster.people.map((p) => rowOfTownsperson(p, id, day)));
+    people.setSeq(id, { stepped: day });
+    added += roster.people.length;
+  }
+  if (added > 0) forgetRosters();
   return added;
 }

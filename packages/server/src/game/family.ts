@@ -18,6 +18,7 @@ import { recordEvent } from "./events.js";
 import { note } from "./journal.js";
 import { ITEM_TIERS } from "./items.js";
 import { ageOn, ageStage, effectiveStats } from "./life.js";
+import { ageGapTooWide, canCourtAt, closeKin } from "./people/rules.js";
 import type { ScheduleBlock } from "./schedule.js";
 
 /**
@@ -130,16 +131,14 @@ export function spouseOf(world: Pick<WorldSnapshot, "family">, id: string, alive
 
 /** Parent and child, or brothers and sisters: never a couple. */
 export function isKin(members: Array<Pick<Kin, "id" | "persona">>, a: string, b: string): boolean {
-  const pa = members.find((m) => m.id === a)?.persona.parents ?? [];
-  const pb = members.find((m) => m.id === b)?.persona.parents ?? [];
-  if (pa.includes(b) || pb.includes(a)) return true;
-  return pa.some((p) => pb.includes(p));
+  // The rule is shared with the townsfolk's (game/people/rules.ts); the cast only counts parents and siblings.
+  return closeKin((id) => members.find((m) => m.id === id)?.persona.parents ?? [], a, b, 1);
 }
 
 const alive = (k: Kin) => k.state.outcome !== "dead" && !k.state.dormant;
 const grown = (k: Kin, day: number) => !k.persona.minor && ageStage(speciesOf(k.persona.species), ageOn(k.state.life, day)) !== "young";
 /** Old enough to court: grown, and a couple of years past it (config.family.courtingAfterAdult). */
-const courtingAge = (k: Kin, day: number) => grown(k, day) && ageOn(k.state.life, day) >= speciesOf(k.persona.species).adultAge + config.family.courtingAfterAdult;
+const courtingAge = (k: Kin, day: number) => grown(k, day) && canCourtAt(k.persona.species, ageOn(k.state.life, day));
 
 /** Can these two court? Code's rules, both ways. */
 export function canCourt(a: Kin, b: Kin, world: WorldSnapshot, members: Kin[]): boolean {
@@ -150,7 +149,7 @@ export function canCourt(a: Kin, b: Kin, world: WorldSnapshot, members: Kin[]): 
   const isAlive = (id: string) => id === PLAYER || members.some((m) => m.id === id && alive(m));
   if (spouseOf(world, a.id, isAlive) || spouseOf(world, b.id, isAlive)) return false;
   if (isKin(members, a.id, b.id)) return false;
-  if (Math.abs(ageOn(a.state.life, world.day) - ageOn(b.state.life, world.day)) > config.family.maxAgeGap) return false;
+  if (ageGapTooWide(ageOn(a.state.life, world.day), ageOn(b.state.life, world.day))) return false;
   return !isEnemy(a.state, b.id) && !isEnemy(b.state, a.id);
 }
 

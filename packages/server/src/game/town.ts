@@ -37,6 +37,12 @@ import { DEMO_SPAWNS } from "../world/world.js";
 import type { DirectorLogEntry } from "../director/validator.js";
 import { addLore, learnLore } from "../npc/knowledge.js";
 import { advanceRealm } from "./realm/day.js";
+import { lazySites, liveSites } from "./people/live.js";
+import { ensureLivePeople } from "../store/materialise.js";
+import { lifeDay } from "./people/world.js";
+import { causeFromWords, deathWords, parseDeath } from "./people/death.js";
+import { killPerson } from "./people/index.js";
+import type { SiteStep } from "./people/step.js";
 import { nameFaction } from "./realm/director.js";
 import { applyHomeEvents, postNeedQuests, syncCast } from "./realm/home.js";
 import { tally } from "./realm/log.js";
@@ -273,6 +279,11 @@ export class Town {
     return Object.keys(this.world.visitors ?? {});
   }
 
+  /** The place a townsperson lives in now: their row says (people move and are born), their id only says where they started. */
+  homeSiteOf(id: string): string | null {
+    return this.store?.people.get(id)?.site ?? parseTownsfolkId(id)?.site ?? null;
+  }
+
   /** The figure a visitor NPC stands for. */
   figureOf(id: string): Figure | undefined {
     return Object.values(this.world.realm?.figures ?? {}).find((f) => visitorId(f.id) === id);
@@ -285,7 +296,7 @@ export class Town {
   localIds(): string[] {
     const site = this.site();
     // The townsfolk the player has talked to (N16) are about their village's streets.
-    const townsfolk = this.area() === "village" ? this.visitorIds().filter((id) => parseTownsfolkId(id)?.site === site) : [];
+    const townsfolk = this.area() === "village" ? this.visitorIds().filter((id) => parseTownsfolkId(id) && this.homeSiteOf(id) === site) : [];
     if (this.atHome()) return townsfolk.length > 0 ? [...this.ids, ...townsfolk] : this.ids;
     // A figure who died keeps their home: they lie where they fell.
     const folk = this.visitorIds().filter((id) => !parseTownsfolkId(id) && this.figureOf(id)?.home === site);
@@ -400,6 +411,20 @@ export class Town {
     for (const id of this.visitorIds()) {
       const f = this.figureOf(id);
       const a = this.agents[id];
+      // A talking townsperson and their row are one person (N25): whichever died first, both are dead.
+      if (a && !f && this.store && parseTownsfolkId(id)) {
+        const row = this.store.people.get(id);
+        if (row && a.isDead && row.death === null) {
+          const cause = a.state.deathCause ?? this.world.player.name;
+          const byPlayer = cause === this.world.player.name;
+          killPerson(realm, this.store, id, { cause: byPlayer ? "murder" : causeFromWords(cause), day: this.world.day, hour: this.world.hour, ...(byPlayer ? { killer: "player" } : {}), note: cause });
+        } else if (row && row.death !== null && !a.isDead) {
+          const rec = parseDeath(row.death);
+          a.state.outcome = "dead";
+          a.state.deathCause = rec ? (rec.cause === "old-age" ? "old age" : (rec.note ?? rec.cause)) : "unknown";
+        }
+        continue;
+      }
       if (!f || !a) continue;
       if (!f.alive && !a.isDead) {
         a.state.outcome = "dead";
@@ -449,7 +474,10 @@ export class Town {
       log.push(...nameRisers(realm, this.templates, this.world.creatures, d, this.rngFor("risers", d)));
       syncCast(realm, this.members(), d);
       const before = Object.keys(realm.factions);
-      advanceRealm(realm, d, this.fixedRng);
+      // Where the people are rows (N25) they live their own days after the realm's; elsewhere the realm counts heads.
+      const live = this.store ? liveSites(realm) : new Set<string>();
+      advanceRealm(realm, d, this.fixedRng, { live });
+      if (this.store && live.size > 0) this.livesDay(d, live);
       this.world.atWar = atWar(realm, realm.settlements[HOME_ID]!);
       log.push(...applyHomeEvents(realm, this.world, this.members(), Object.keys(this.templates)));
       const before2 = new Set(realm.news.filter((n) => n.delivered).map((n) => n.id));
@@ -467,6 +495,52 @@ export class Town {
       if (config.director) for (const id of Object.keys(realm.factions).filter((x) => !before.includes(x))) this.background.add({ key: `faction-name:${id}`, kind: "faction-name", run: async () => void (await nameFaction(this.bgLlm, realm, id)) });
     }
     return log;
+  }
+
+  /** Lives the player would see happen here today, with the hour they happen (full detail: the place the player is in). */
+  private lifeNews: Array<{ day: number; hour: number; site: string; text: string }> = [];
+
+  /**
+   * Everyone's day (N25), after the realm's: births, deaths, weddings and moves among the townsfolk of every live
+   * place. The player's place is worked out first, with its events kept to show at their hour; a talking townsperson
+   * who died is dead as a talking NPC too.
+   */
+  private livesDay(day: number, live: ReadonlySet<string>): void {
+    const realm = this.world.realm!;
+    const here = this.site();
+    ensureLivePeople(realm, this.store!.people, live, day);
+    const result = lifeDay({ realm, store: this.store! }, day, { live, lazy: lazySites(), watched: new Set([here]) });
+    for (const step of result.steps) {
+      if (step.day !== day) continue;
+      this.afterSiteStep(step, step.site === here);
+    }
+  }
+
+  private afterSiteStep(step: SiteStep, watched: boolean): void {
+    for (const p of step.deaths) {
+      if (!p.persona) continue;
+      const a = this.agents[p.persona];
+      if (a && !a.isDead) {
+        a.state.outcome = "dead";
+        a.state.deathCause = p.record.cause === "old-age" ? "old age" : deathWords(p.record).replace(/^(of|in|to|on|by) /, "");
+        this.rippled.add(p.persona);
+        this.recordDeath(p.persona);
+      }
+    }
+    if (!watched) return;
+    for (const e of step.events) {
+      if (e.kind === "birth" || e.kind === "death" || e.kind === "marriage") this.lifeNews.push({ day: e.day, hour: e.hour, site: step.site, text: e.details });
+    }
+    if (this.lifeNews.length > 200) this.lifeNews.splice(0, this.lifeNews.length - 200);
+  }
+
+  /** The lives that have happened where the player is by now (their hour has come), once each. */
+  takeLifeNews(): string[] {
+    const now = this.world.day * 24 + this.world.hour;
+    const here = this.site();
+    const due = this.lifeNews.filter((n) => n.site === here && n.day * 24 + n.hour <= now);
+    this.lifeNews = this.lifeNews.filter((n) => !due.includes(n)).filter((n) => n.day * 24 + n.hour > now - 24 * 3);
+    return due.map((n) => `${n.text}.`);
   }
 
   /**
@@ -505,30 +579,55 @@ export class Town {
   private promoteRisers(day: number): string[] {
     const realm = this.world.realm;
     if (!realm) return [];
-    const alive = this.ids.filter((id) => !this.agents[id]!.isDead && !this.agents[id]!.state.dormant).length;
-    if (alive >= config.family.maxPopulation) return [];
-    const f = readyToTalk(realm, this.world.creatures)[0];
-    if (!f) return [];
+    // Everyone who has made enough of a name talks: there is no cap (the cast's limit of 14 is for births).
+    const ready = readyToTalk(realm, this.world.creatures);
+    if (ready.length === 0) return [];
     let templates: Record<string, NpcTemplate>;
     try {
       templates = loadTemplates();
     } catch {
       return [];
     }
-    const persona = personaFor(f, templates, day, this.rngFor("rise", f.id), this.ids);
-    if (!persona) return [];
-    // Off the map as a creature; into the cast as a person.
-    for (const [uid, c] of Object.entries(this.world.creatures)) if (c.figure === f.id) delete this.world.creatures[uid];
-    for (const out of Object.values(this.world.spawns ?? {})) out.uids = out.uids.filter((uid) => this.world.creatures[uid]);
-    (this.world.risen ??= {})[persona.id] = persona;
-    const agent = this.addNpc(persona, day);
-    agent.state.life = structuredClone(f.life) as typeof agent.state.life;
-    f.talks = persona.id;
-    f.name = persona.name;
-    addLore(this.world, { id: `people.${persona.id}`, kind: "person", name: persona.name, aliases: [persona.name.split(" ")[0]!], keywords: [], npc: persona.id, text: `${persona.name}, ${persona.role}. Folk know the name now: ${f.deeds.slice(-2).join("; ") || "they made a name for themselves"}.` });
-    for (const m of this.members()) if (m.id !== persona.id) learnLore(m.state, `people.${persona.id}`, "rumour");
-    tally(realm, "promoted");
-    return [`${persona.name} (${persona.role}) has made enough of a name that folk stop to talk with them.`];
+    const log: string[] = [];
+    for (const f of ready) {
+      const away = f.home !== HOME_ID && !!f.person;
+      const persona = personaFor(f, templates, day, this.rngFor("rise", f.id), [...this.ids, ...this.visitorIds()]);
+      if (!persona) continue;
+      // Someone of another place is one of its people (like the notables the player meets there), not Millbrook's cast.
+      if (away) persona.id = visitorId(f.id);
+      // One who grew up as a townsperson (N25) keeps both links, and their parents are named in their file.
+      const row = f.person && this.store ? this.store.people.get(f.person) : null;
+      if (row && this.store) {
+        const kin = [row.mother, row.father].filter((x): x is string => !!x).map((x) => this.store!.people.get(x)?.persona ?? x);
+        if (kin.length > 0) persona.parents = kin;
+        this.store.people.update(row.id, { persona: persona.id });
+      }
+      // Off the map as a creature; into the world as a person.
+      for (const [uid, c] of Object.entries(this.world.creatures)) if (c.figure === f.id) delete this.world.creatures[uid];
+      for (const out of Object.values(this.world.spawns ?? {})) out.uids = out.uids.filter((uid) => this.world.creatures[uid]);
+      if (away) {
+        (this.world.visitors ??= {})[persona.id] = persona;
+        this.personas[persona.id] = persona;
+        const state = this.world.npcStates[persona.id] ?? createNpcState(persona, {}, day);
+        state.life = structuredClone(f.life) as typeof state.life;
+        this.world.npcStates[persona.id] = state;
+        this.agents[persona.id] = new NpcAgent(persona, this.agentLlm, undefined, state);
+        registerNpcNames({ [persona.id]: persona.name });
+        registerNpcGenders({ [persona.id]: persona.voice?.gender });
+        this.hookRecall(persona.id);
+      } else {
+        (this.world.risen ??= {})[persona.id] = persona;
+        const agent = this.addNpc(persona, day);
+        agent.state.life = structuredClone(f.life) as typeof agent.state.life;
+      }
+      f.talks = persona.id;
+      f.name = persona.name;
+      addLore(this.world, { id: `people.${persona.id}`, kind: "person", name: persona.name, aliases: [persona.name.split(" ")[0]!], keywords: [], npc: persona.id, text: `${persona.name}, ${persona.role}. Folk know the name now: ${f.deeds.slice(-2).join("; ") || "they made a name for themselves"}.` });
+      if (!away) for (const m of this.members()) if (m.id !== persona.id) learnLore(m.state, `people.${persona.id}`, "rumour");
+      tally(realm, "promoted");
+      log.push(away ? `Word reaches you that ${persona.name}, ${persona.role} of ${realm.settlements[f.home!]?.name ?? "another place"}, has made a name.` : `${persona.name} (${persona.role}) has made enough of a name that folk stop to talk with them.`);
+    }
+    return log;
   }
 
   /** In the background: the model writes a child's words when they start talking (template words stand if it fails). */
@@ -614,6 +713,7 @@ export class Town {
     if (this.world.realm) castCrowd(this.world.realm, this.world.creatures, this.world.day);
     if (this.world.day > start.day) log.push(...this.familyNights(start.day));
     if (this.world.day > start.day) log.push(...this.realmNights(start.day));
+    log.push(...this.takeLifeNews());
     log.push(...this.consequences());
     if (this.world.day > start.day) this.newDay(start.day);
     return log;
@@ -667,7 +767,8 @@ export class Town {
   recordDeath(id: string): void {
     if (this.world.deaths[id]) return;
     const a = this.agents[id]!;
-    const record = { npcId: id, name: a.persona.name, day: this.world.day, hour: this.world.hour, killedBy: a.state.deathCause ?? this.world.player.name };
+    const killedBy = a.state.deathCause ?? this.world.player.name;
+    const record = { npcId: id, name: a.persona.name, day: this.world.day, hour: this.world.hour, killedBy, cause: killedBy === this.world.player.name ? ("murder" as const) : causeFromWords(killedBy), site: this.homeSiteOf(id) ?? this.figureOf(id)?.home ?? HOME_ID };
     this.deaths?.record(record);
     this.world.deaths[id] = this.deaths?.get(id) ?? record;
   }

@@ -83,7 +83,7 @@ beforeAll(() => {
     out.push(pinned(ctx, refs), crowdOf(ctx, town1.id), classCounts(ctx, town1.id));
     return out;
   };
-});
+}, 120_000);
 
 afterAll(() => store.close());
 
@@ -148,9 +148,10 @@ describe("N17.2 the realm overview shows the map and its numbers", () => {
     expect(o.classesPending).toBe(0);
     const total = (id: string) => Object.values(o.classes[id]!).reduce((a, n) => a + (n ?? 0), 0);
     const s = town.world.realm!.settlements[HOME_ID]!;
-    // The townsfolk plus the notables are the population (the roster is capped at 5,000 people).
+    // N25: the population is the count of living townsfolk; the notables (realm figures) are counted on top of them here.
+    const notables = Object.values(town.world.realm!.figures).filter((f) => f.alive && f.home === HOME_ID && f.role !== "beast").length;
     expect(total(HOME_ID)).toBeGreaterThan(0);
-    expect(total(HOME_ID)).toBeLessThanOrEqual(s.population);
+    expect(total(HOME_ID)).toBeLessThanOrEqual(s.population + notables);
   });
 });
 
@@ -372,7 +373,8 @@ describe("N17.8 time controls move the clock, as the player waiting would, and a
     expect(r.advanced).toBe(30);
     expect(town.world.day - day).toBe(30);
     expect((await timeControl({ ...ctx, time: undefined }, { action: "step-hour" })).ok).toBe(false);
-  });
+    // 30 days now include everyone's lives (N25), so allow for a loaded machine.
+  }, 60_000);
 
   it("works over HTTP, and a bad action is refused", async () => {
     const http = await listen();

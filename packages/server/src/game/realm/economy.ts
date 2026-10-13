@@ -2,6 +2,7 @@ import type { Rng } from "../dice.js";
 import { seasonOf } from "../weather.js";
 import { addDeed, addRenown, residents, titled } from "./figures.js";
 import { neighbours } from "./generate.js";
+import { crowding, housesOf } from "./houses.js";
 import { realmNews, tally } from "./log.js";
 import { type BuildingId, KIND_POPULATION, type Realm, type Settlement, type SettlementKind } from "./types.js";
 
@@ -105,9 +106,12 @@ export function buildCost(s: Settlement, b: BuildingId): number {
 const NEXT_KIND: Partial<Record<SettlementKind, Exclude<SettlementKind, "capital" | "hamlet">>> = { hamlet: "village", village: "town", town: "city" };
 
 /** One day of economy for every settlement. Returns lines worth telling. */
-export function economyDay(realm: Realm, day: number, rng: Rng): void {
+export function economyDay(realm: Realm, day: number, rng: Rng, live: ReadonlySet<string> = NONE): void {
   for (const s of Object.values(realm.settlements)) {
     if (s.abandoned) continue;
+    // Where the people are rows of their own (N25), births, deaths and moving are theirs: the economy only sets the
+    // conditions (food, prosperity, crowding) their lives read, and counts the heads afterwards.
+    const own = live.has(s.id);
     // Food.
     const ratio = foodRatio(realm, s, day);
     let delta = (ratio - 1) * 40;
@@ -126,17 +130,37 @@ export function economyDay(realm: Realm, day: number, rng: Rng): void {
     s.prosperity = clamp(s.prosperity + Math.max(-2, Math.min(2, (target - s.prosperity) * 0.2)));
     // People.
     if (s.food < FAMINE) {
-      const lost = roundBy(rng, s.population * 0.015);
+      const lost = own ? 0 : roundBy(rng, s.population * 0.015);
       s.population = Math.max(0, s.population - lost);
-      if (lost > 0 && rng() < 0.15) realmNews(realm, day, s.id, "famine", `Hunger in ${s.name}: people are going without bread.`, 4, [s.name]);
+      if ((own ? rng() < 0.15 : lost > 0 && rng() < 0.15)) realmNews(realm, day, s.id, "famine", `Hunger in ${s.name}: people are going without bread.`, 4, [s.name]);
       tally(realm, "starved", lost);
-    } else if (s.food > 30 && s.prosperity > 35) {
+    } else if (!own && s.food > 30 && s.prosperity > 35) {
       s.population += roundBy(rng, s.population * GROWTH * (s.prosperity / 50));
     }
     build(realm, s, day);
-    growOrEmpty(realm, s, day);
+    housesDay(realm, s, day);
+    growOrEmpty(realm, s, day, own);
   }
-  migrate(realm, day, rng);
+  migrate(realm, day, rng, live);
+}
+
+const NONE: ReadonlySet<string> = new Set();
+
+/** People per house against what it holds, past which a place with coin builds more houses. */
+export const HOUSE_CROWDING = 1.25;
+/** Copper a house costs, by size of place. */
+export const HOUSE_COST = 30;
+
+/** A crowded place with coin builds houses (N25): the map gets them, appended, so nobody's home moves. */
+function housesDay(realm: Realm, s: Settlement, day: number): void {
+  if (crowding(s) < HOUSE_CROWDING) return;
+  const add = Math.max(1, Math.ceil(housesOf(s) * 0.06));
+  const cost = Math.round(add * HOUSE_COST * KIND_SCALE[s.kind]);
+  if (s.treasury < cost * 2) return;
+  s.treasury -= cost;
+  s.houses = housesOf(s) + add;
+  tally(realm, "houses", add);
+  realmNews(realm, day, s.id, "building", `${s.name} has built ${add === 1 ? "a new house" : `${add} new houses`} for its growing people.`, 1, [s.name]);
 }
 
 /** Finish a building that's done, or start the one needed if the coffers allow. */
@@ -166,7 +190,7 @@ function build(realm: Realm, s: Settlement, day: number): void {
 }
 
 /** A place that grew enough is promoted; one that emptied is abandoned (its people and figures go elsewhere). */
-function growOrEmpty(realm: Realm, s: Settlement, day: number): void {
+function growOrEmpty(realm: Realm, s: Settlement, day: number, own = false): void {
   const next = NEXT_KIND[s.kind];
   if (next && s.population >= KIND_POPULATION[next]) {
     const was = s.kind;
@@ -177,8 +201,11 @@ function growOrEmpty(realm: Realm, s: Settlement, day: number): void {
   if (s.population < 8 && s.kind !== "capital" && !s.home) {
     s.abandoned = true;
     const to = neighbours(realm, s.id).sort((a, b) => b.prosperity - a.prosperity)[0];
-    if (to) to.population += s.population;
-    s.population = 0;
+    // Its people (if they are rows) walk to the neighbour in the day's moves (game/people/migration.ts).
+    if (!own) {
+      if (to) to.population += s.population;
+      s.population = 0;
+    }
     for (const f of residents(realm, s.id)) f.home = to?.id ?? null;
     tally(realm, "abandoned");
     realmNews(realm, day, s.id, "abandoned", `${s.name} stands empty: the last of its people have left${to ? ` for ${to.name}` : ""}.`, 6, [s.name, ...(to ? [to.name] : [])]);
@@ -186,18 +213,19 @@ function growOrEmpty(realm: Realm, s: Settlement, day: number): void {
 }
 
 /** People move to better places one road away; ambitious figures too. */
-function migrate(realm: Realm, day: number, rng: Rng): void {
+function migrate(realm: Realm, day: number, rng: Rng, live: ReadonlySet<string>): void {
   for (const s of Object.values(realm.settlements)) {
-    if (s.abandoned || s.population < 10) continue;
+    // People who are rows move as households (game/people/migration.ts), between places that both have them.
+    if (s.abandoned || s.population < 10 || live.has(s.id)) continue;
     const fleeing0 = s.food < FAMINE || (s.lastRaided !== undefined && day - s.lastRaided <= 2);
     // A small place only empties out when it has to.
     if (!fleeing0 && s.population < 30) continue;
     const better = neighbours(realm, s.id)
-      .filter((n) => n.prosperity - s.prosperity > 15 && n.food > 30)
+      .filter((n) => !live.has(n.id) && n.prosperity - s.prosperity > 15 && n.food > 30)
       .sort((a, b) => b.prosperity - a.prosperity)[0];
     const fleeing = s.food < FAMINE || (s.lastRaided !== undefined && day - s.lastRaided <= 2);
     if (!better && !fleeing) continue;
-    const to = better ?? neighbours(realm, s.id).sort((a, b) => b.prosperity - a.prosperity)[0];
+    const to = better ?? neighbours(realm, s.id).filter((n) => !live.has(n.id)).sort((a, b) => b.prosperity - a.prosperity)[0];
     if (!to) continue;
     const share = fleeing ? 0.02 : 0.003 * ((to.prosperity - s.prosperity) / 15);
     const moving = Math.min(s.population - 5, roundBy(rng, s.population * share));

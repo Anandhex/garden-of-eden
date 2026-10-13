@@ -16,7 +16,7 @@ Read this page first. It holds the rules every phase shares; the phase plans ass
 | N22 | [Long-run balance tests](n22-long-run-balance.md) | N18, N20, N25 | |
 | N23 | [Sharing worlds](n23-sharing-worlds.md) | N18, N20 | |
 | N24 | [Global reporting](n24-global-reporting.md) | N17, N18 | |
-| N25 | [Townsfolk lives](n25-townsfolk-lives.md) | N18 | ✅ cut down |
+| N25 | [Townsfolk lives](n25-townsfolk-lives.md) | N18 | ✅ built (steps 1-10; see the stage file for what differs) |
 | N26 | [The open road](n26-the-open-road.md) | N18, N19, N25 | ✅ one road |
 | N27 | [The wilds](n27-the-wilds.md) | N26 | |
 | N28 | [Fauna and flora](n28-fauna-and-flora.md) | N26, N27 | |

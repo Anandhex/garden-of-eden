@@ -13,7 +13,7 @@ import { seasonOf } from "../weather.js";
 import { addDeed, addRenown, figureOvercomes, figurePower, killFigure, makeFigure, takenNames } from "./figures.js";
 import { travelDays, HOME_ID } from "./generate.js";
 import { realmNews, tally } from "./log.js";
-import { bury, fight, settlementSide, type Side } from "./military.js";
+import { casualty, fight, settlementSide, type Side } from "./military.js";
 import { beastName } from "./names.js";
 import type { Dungeon, Figure, Pack, Realm } from "./types.js";
 
@@ -100,7 +100,7 @@ function attackFrom(realm: Realm, p: Pack, day: number, rng: Rng): void {
   const side = packSide(realm, p);
   const r = fight(realm, side, settlementSide(realm, s), day, rng, `the ${p.species} attack on ${s.name}`);
   p.count = Math.max(0, p.count - r.lost.attackers);
-  bury(s, r.lost.defenders);
+  casualty(realm, s, "beast", r.lost.defenders, `beasts:${day}:${s.id}`, day);
   if (r.hero && r.hero.role === "beast" && !p.alpha) crownAlpha(realm, p, day, rng, `leading the attack on ${s.name}`, r.hero);
   if (r.attackerWon) {
     s.food = Math.max(0, s.food - 8);
@@ -144,7 +144,7 @@ function spill(realm: Realm, d: Dungeon, day: number, rng: Rng): void {
   if (!s) return;
   const side: Side = { name: `the things from ${d.name}`, strength: levelPower(d, d.depth) * 2.5, fighters: [], men: Math.round(d.danger / 10), home: null, species: "spider", rank: d.tier as Tier };
   const r = fight(realm, side, settlementSide(realm, s), day, rng, `the horror from ${d.name}`);
-  bury(s, r.lost.defenders);
+  casualty(realm, s, "beast", r.lost.defenders, `spill:${day}:${s.id}`, day);
   d.danger = Math.max(30, d.danger - 25);
   if (r.attackerWon) s.lastRaided = day;
   if (s.home) realm.home.push({ day, kind: "beasts", count: 2, by: "spider" });

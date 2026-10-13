@@ -80,7 +80,7 @@ export class WorldStore {
   /** A new world: forget the old one's history and people. */
   reset(): void {
     this.people.clear();
-    this.db.exec("DELETE FROM events; DELETE FROM memories; DELETE FROM director_log; DELETE FROM relationships; DELETE FROM knowledge; DELETE FROM grievances; DELETE FROM ambitions; DELETE FROM jobs_held; DELETE FROM model_calls; DELETE FROM meta;");
+    this.db.exec("DELETE FROM events; DELETE FROM memories; DELETE FROM director_log; DELETE FROM relationships; DELETE FROM knowledge; DELETE FROM grievances; DELETE FROM ambitions; DELETE FROM jobs_held; DELETE FROM site_days; DELETE FROM site_seq; DELETE FROM model_calls; DELETE FROM meta;");
   }
 
   // ---- The save's commit point (N18) ----
@@ -99,11 +99,23 @@ export class WorldStore {
   /** Every row of a table in primary key order: the world hash, export and tests read this. */
   dumpTable(table: TableName): Array<Record<string, unknown>> {
     const rows = this.db.prepare(`SELECT * FROM ${table} ORDER BY ${ORDER_BY[table]}`).all() as Array<Record<string, unknown>>;
-    if (table !== "people" || this.people.pending === 0) return rows;
-    // People changed since the last flush are part of the world as it is.
-    const now = new Map(rows.map((r) => [String(r.id), r]));
-    for (const r of this.people.pendingRows()) now.set(r.id, { ...r });
-    return [...now.values()].sort((a, b) => (String(a.id) < String(b.id) ? -1 : 1));
+    if (table === "people" && this.people.pending > 0) {
+      // People changed since the last flush are part of the world as it is.
+      const now = new Map(rows.map((r) => [String(r.id), r]));
+      for (const r of this.people.pendingRows()) now.set(r.id, { ...r });
+      return [...now.values()].sort((a, b) => (String(a.id) < String(b.id) ? -1 : 1));
+    }
+    if (table === "site_seq") {
+      const now = new Map(rows.map((r) => [String(r.site), r]));
+      for (const q of this.people.pendingSeqs()) now.set(q.site, { ...q });
+      return [...now.values()].sort((a, b) => (String(a.site) < String(b.site) ? -1 : 1));
+    }
+    if (table === "site_days") {
+      const now = new Map(rows.map((r) => [`${r.site}|${r.day}`, r]));
+      for (const d of this.people.pendingDays()) now.set(`${d.site}|${d.day}`, { ...d });
+      return [...now.values()].filter((r) => Number(r.day) >= this.people.pruning).sort((a, b) => (String(a.site) < String(b.site) ? -1 : String(a.site) > String(b.site) ? 1 : Number(a.day) - Number(b.day)));
+    }
+    return rows;
   }
 
   /** Replace a table's rows (import). Runs in the caller's transaction. */
@@ -129,19 +141,21 @@ export class WorldStore {
   // ---- Events ----
 
   /** Keep an event for good (insert, or update who knows it). */
+  private archive: ReturnType<DatabaseSyncType["prepare"]> | null = null;
+
   archiveEvent(e: GameEvent): void {
-    this.db
-      .prepare(
-        `INSERT INTO events (id, day, hour, kind, actor, target, details, importance, place, witnesses, known_by, why, caused_by, site, kingdom, seq)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-         ON CONFLICT(id) DO UPDATE SET known_by = excluded.known_by`,
-      )
-      .run(e.id, e.day, e.hour, e.kind, e.actor, e.target, e.details, e.importance, e.place ?? null, JSON.stringify(e.witnesses ?? []), JSON.stringify(e.knownBy ?? []), e.why ?? null, e.causedBy ? JSON.stringify(e.causedBy) : null, e.site ?? null, e.kingdom ?? null, seqOf(e.id));
+    this.archive ??= this.db.prepare(
+      `INSERT INTO events (id, day, hour, kind, actor, target, details, importance, place, witnesses, known_by, why, caused_by, site, kingdom, seq)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET known_by = excluded.known_by`,
+    );
+    this.archive.run(e.id, e.day, e.hour, e.kind, e.actor, e.target, e.details, e.importance, e.place ?? null, JSON.stringify(e.witnesses ?? []), JSON.stringify(e.knownBy ?? []), e.why ?? null, e.causedBy ? JSON.stringify(e.causedBy) : null, e.site ?? null, e.kingdom ?? null, seqOf(e.id));
   }
 
   /** Events newest first, optionally only those after a cursor, or involving someone or somewhere (the admin view: reads only). */
-  recentEvents(opts: { limit?: number; person?: string; place?: string; minImportance?: number } = {}): GameEvent[] {
+  recentEvents(opts: { limit?: number; person?: string; place?: string; minImportance?: number; noLives?: boolean } = {}): GameEvent[] {
     const where: string[] = [];
+    if (opts.noLives) where.push("id NOT LIKE 'l%'");
     const args: Array<string | number> = [];
     if (opts.person) {
       where.push("(actor = ? OR target = ?)");
@@ -157,6 +171,11 @@ export class WorldStore {
     }
     const rows = this.db.prepare(`SELECT * FROM events ${where.length > 0 ? `WHERE ${where.join(" AND ")}` : ""} ORDER BY day DESC, hour DESC, seq DESC, rowid DESC LIMIT ?`).all(...args, opts.limit ?? 500) as Array<Record<string, unknown>>;
     return rows.map(rowToEvent);
+  }
+
+  /** The kind, actor, details and place of every event of these kinds after a day (balance reports: the numbers of births, deaths and weddings). */
+  eventsOfKinds(kinds: readonly string[], afterDay: number): Array<{ kind: string; actor: string; details: string; site: string | null; day: number }> {
+    return this.db.prepare(`SELECT kind, actor, details, site, day FROM events WHERE day > ? AND kind IN (${kinds.map(() => "?").join(", ")})`).all(afterDay, ...kinds) as Array<{ kind: string; actor: string; details: string; site: string | null; day: number }>;
   }
 
   /** Every event involving someone (as actor or target), oldest first. */

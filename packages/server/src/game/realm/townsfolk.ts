@@ -198,6 +198,9 @@ export function rowOfTownsperson(p: Townsperson, site: string, day: number): Per
     persona: null,
     traits: null,
     death: null,
+    expecting: null,
+    last_birth: null,
+    stepped_day: 0,
     rev: 0,
   };
 }
@@ -231,6 +234,7 @@ export function ensurePeople(store: PeopleStore, realm: Realm, site: string, map
   const roster = rosterFor(realm, site, map, day);
   if (!roster) return 0;
   store.insertMany(roster.people.map((p) => rowOfTownsperson(p, site, day)));
+  store.setSeq(site, { stepped: day });
   return roster.people.length;
 }
 
