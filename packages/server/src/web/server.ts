@@ -108,6 +108,9 @@ import { setUpVoice } from "../voice/tts.js";
 import { parseTownsfolkId, rosterFor } from "../game/realm/townsfolk.js";
 import { weatherOn } from "../game/weather.js";
 import { townEventsOn } from "../game/events-calendar.js";
+import type { AdminContext } from "../admin/context.js";
+import { timed } from "../metrics/timing.js";
+import { adminAllowed, handleAdmin, refuseAdmin } from "./routes/admin.js";
 
 const PORT = Number(process.env.PORT ?? 3000);
 // The browser game, built by `npm run build` (packages/client). `npm run dev` serves it from Vite instead.
@@ -307,8 +310,10 @@ function wander(): void {
 }
 
 function persist(): void {
-  for (const id of [...ids, ...town.visitorIds()]) world.npcStates[id] = agents[id]!.state;
-  saveWorld(config.saveFile, world);
+  timed("persist", () => {
+    for (const id of [...ids, ...town.visitorIds()]) world.npcStates[id] = agents[id]!.state;
+    saveWorld(config.saveFile, world);
+  });
 }
 
 async function checkLlm(): Promise<void> {
@@ -337,6 +342,10 @@ const members = () => ids.map((id) => ({ id, persona: personas[id]!, state: agen
  * the inn, gossip), creatures age, hunt and roam, and at night bandits deal and raid.
  */
 function passHours(hours: number): string[] {
+  return timed("passHours", () => passHoursNow(hours));
+}
+
+function passHoursNow(hours: number): string[] {
   // The village, creatures, the night's dealings and raids, spawns, then the consequences (game/town.ts).
   // What was said becomes memories (SQLite, recalled by meaning): the cast's talks, and the talks with people of other places.
   for (const id of [...ids, ...town.visitorIds()]) town.summarise(id);
@@ -1391,6 +1400,28 @@ setInterval(combatTick, 250);
 /** One thing at a time: a model reply must finish before the next action starts. Later ones wait in line (G1). */
 const queue = new ActionQueue(config.maxQueuedRequests);
 
+// ---- The admin view (N17): read-only, and the clock ----
+
+/** Paused from the admin view: the game's clock stops running on its own (POST /api/tick does nothing). Not saved. */
+let adminPaused = false;
+const adminCtx: AdminContext = {
+  world: () => world,
+  town: () => town,
+  store,
+  queueLength: () => queue.length,
+  time: {
+    paused: () => adminPaused,
+    setPaused: (paused) => void (adminPaused = paused),
+    // The same code and the same queue as the player waiting (act "wait").
+    advance: (hours) =>
+      queue.run(() => {
+        const log = passHours(hours);
+        persist();
+        return log;
+      }),
+  },
+};
+
 function readBody(req: IncomingMessage): Promise<Record<string, unknown>> {
   return new Promise((resolve, reject) => {
     let raw = "";
@@ -1461,6 +1492,10 @@ const server = createServer(async (req, res) => {
       return json(res, 200, { ...quote, money: world.player.money });
     }
 
+    // The admin page and its data (N17): this machine only; nothing under /api/admin changes the game except the clock.
+    if (req.method === "GET" && (url === "/admin" || url === "/admin/" || url === "/admin.html")) return adminAllowed(req) ? serveStatic("/admin.html", res) : void refuseAdmin(res);
+    if (await handleAdmin(req, res, adminCtx)) return;
+
     if (req.method === "GET" && url === "/api/voice") return json(res, 200, voice.info);
     // Everyone who lives on the map the player is on (N16): fetched once per map; where they are is worked out from the clock.
     if (req.method === "GET" && url === "/api/crowd") return json(res, 200, crowdHere()?.roster ?? null);
@@ -1500,7 +1535,7 @@ const server = createServer(async (req, res) => {
     if (req.method === "POST" && url === "/api/tick") {
       const result = await queue.run(() => {
         const fighting = Object.values(agents).some((a) => a.state.inCombat && !a.isDead) || (engaged !== null && !!creatureById(engaged) && !creatureById(engaged)!.outcome);
-        if (fighting || config.timeFlowSeconds === 0) return { ok: false, log: [], events: [], state: snapshot() };
+        if (fighting || config.timeFlowSeconds === 0 || adminPaused) return { ok: false, log: [], events: [], state: snapshot() };
         const before = captureFrame(world, agents);
         const hour = absoluteHour(world);
         const log = walkMinutes(1);

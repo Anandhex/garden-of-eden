@@ -76,6 +76,8 @@ export const config = {
   realm: process.env.REALM !== "off",
   // Seed for a new world's realm (the same seed gives the same realm). Unset: rolled from the new world's dice.
   realmSeed: process.env.REALM_SEED ? Number(process.env.REALM_SEED) : undefined,
+  // The admin view (N17, /admin) shows the truth and moves the clock, so it answers only to this machine. ADMIN=on lifts that check.
+  admin: process.env.ADMIN === "on",
   // Off-screen planning (one short call per NPC per day) and conversation summaries.
   planning: process.env.PLANNING !== "off",
   summaries: process.env.SUMMARIES !== "off",

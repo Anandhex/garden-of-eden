@@ -128,7 +128,7 @@ export function actOnRevenge(persona: NpcPersona, state: NpcState, world: WorldS
       break;
     }
   }
-  recordEvent(world, { kind: "revenge", actor: persona.id, target: "player", details: `${goal.plan}: ${goal.reason}`, importance: 6, witnesses: [] });
+  recordEvent(world, { kind: "revenge", actor: persona.id, target: "player", details: `${goal.plan}: ${goal.reason}`, importance: 6, witnesses: [], why: goal.reason });
   return { npc: persona.id, plan: goal.plan, log, ...(spawn ? { spawn } : {}) };
 }
 

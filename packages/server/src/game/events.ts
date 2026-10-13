@@ -89,6 +89,8 @@ export interface GameEvent {
   witnesses?: string[];
   /** NPC ids who know of it: the witnesses, then whoever heard through gossip. */
   knownBy?: string[];
+  /** The reason behind it, when a choice made it happen: who was picked and why, what the NPC wanted (N17). */
+  why?: string;
 }
 
 /** For loading saves: a malformed event is dropped, not trusted. */
@@ -105,6 +107,7 @@ export const EventSchema = z.object({
   place: z.string().optional(),
   witnesses: z.array(z.string()).optional(),
   knownBy: z.array(z.string()).optional(),
+  why: z.string().optional(),
 });
 
 /** Keep the valid events from a save. */

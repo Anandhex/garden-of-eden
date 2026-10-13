@@ -371,7 +371,7 @@ export class Town {
         const cause = a.state.deathCause ?? this.world.player.name;
         const s = f.home ? realm.settlements[f.home] : undefined;
         killFigure(realm, f, this.world.day, `killed by ${cause}`);
-        realmNews(realm, this.world.day, f.home, "death", `${titled(f)}${s ? ` of ${s.name}` : ""} was killed by ${cause}.`, HEAD.has(f.role) ? 8 : 5, [f.name, cause]);
+        realmNews(realm, this.world.day, f.home, "death", `${titled(f)}${s ? ` of ${s.name}` : ""} was killed by ${cause}.`, HEAD.has(f.role) ? 8 : 5, [f.name, cause], { why: `killed by ${cause}` });
         log.push(`Word will spread that ${f.name} is dead.`);
       } else if (f.alive) {
         f.life = structuredClone(a.state.life) as Figure["life"];

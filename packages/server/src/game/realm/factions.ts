@@ -104,7 +104,7 @@ export function foundFaction(realm: Realm, rng: Rng, o: Founding, day: number): 
     other.stances[id] = s;
   }
   tally(realm, "founded");
-  realmNews(realm, day, o.seat, "faction", `${titled(o.founder)} has founded ${name} in ${seat?.name ?? "the wilds"}: ${o.why}.`, 6, [o.founder.name, name, ...(seat ? [seat.name] : [])]);
+  realmNews(realm, day, o.seat, "faction", `${titled(o.founder)} has founded ${name} in ${seat?.name ?? "the wilds"}: ${o.why}.`, 6, [o.founder.name, name, ...(seat ? [seat.name] : [])], { why: o.why });
   return fac;
 }
 
@@ -245,7 +245,7 @@ export function split(realm: Realm, fac: RealmFaction, rebel: Figure, day: numbe
   out.stances[fac.id] = -70;
   fac.stances[out.id] = -70;
   tally(realm, "splits");
-  realmNews(realm, day, seat, "split", `${cap(fac.name)} has split: ${rebel.name} broke away with ${followers.length} followers and founded ${out.name}.`, 7, [fac.name, rebel.name, out.name]);
+  realmNews(realm, day, seat, "split", `${cap(fac.name)} has split: ${rebel.name} broke away with ${followers.length} followers and founded ${out.name}.`, 7, [fac.name, rebel.name, out.name], { why });
   return out;
 }
 

@@ -23,7 +23,7 @@ Each track has its own folder (see **Where things are** below). Mark items `[x]`
 | Tooling track (T1–T15) | [roadmap/tooling/](roadmap/tooling/README.md) | 🟡 Tests, simulation, checks and evals |
 | Game track (G1–G4) | [roadmap/game/](roadmap/game/README.md) | 🟡 The browser client, game feel, performance, shipping |
 
-**Next up:** the [vertical slice](roadmap/living-world/README.md#milestone-the-vertical-slice), starting with [N17 The admin world view](roadmap/living-world/stage-1-foundations.md#n17-the-admin-world-view). Detailed build guides for N17–N28 are in [roadmap/living-world/plans/](roadmap/living-world/plans/README.md).
+**Next up:** the [vertical slice](roadmap/living-world/README.md#milestone-the-vertical-slice), N17 (the admin world view) is built; next is [N18 Scale and storage](roadmap/living-world/stage-1-foundations.md#n18-scale-and-storage). Detailed build guides for N17–N28 are in [roadmap/living-world/plans/](roadmap/living-world/plans/README.md).
 
 ## Status
 
@@ -48,7 +48,7 @@ Each track has its own folder (see **Where things are** below). Mark items `[x]`
 | NPC · S6 | [N15 Localities](roadmap/npc-track/stage-6-the-wider-world.md#n15-localities) | ✅ Millbrook's map generated like every place's; the mine road, the bandit camp, the old mine and the woods are maps of their own around it; Millbrook's mayor and guard captain talk; everyone remembers by meaning (`tests/n15.test.ts`, save v10) |
 | NPC · S6 | [N16 Crowds and classes](roadmap/npc-track/stage-6-the-wider-world.md#n16-crowds-and-classes) | ✅ Maps sized to the place; every one of a place's people on its map, living their day minute by minute and talking to each other by rank and faction; anyone can be talked to, only traders sell; slaves, serfs, commoners, craftsmen, merchants, clergy, gentry, nobles and royals; the cast's breaks; time flows while you stand about (`tests/n16.test.ts`) |
 | Living world · slice | [Milestone: the vertical slice](roadmap/living-world/README.md#milestone-the-vertical-slice) | ⬜ Planned (Millbrook and Highdale; play, then revise) |
-| Living world · S1 | [N17 The admin world view](roadmap/living-world/stage-1-foundations.md#n17-the-admin-world-view) | ⬜ Planned (read-only first; pin NPCs, the player or a place) |
+| Living world · S1 | [N17 The admin world view](roadmap/living-world/stage-1-foundations.md#n17-the-admin-world-view) | ✅ A second page, `/admin` (this machine only): the realm map and its numbers, an event stream with the why of every choice, search, pinned people, places and the player (a townsperson's day hour by hour, who believes which rumour), health timings, and pause/step/fast-forward; reads only, the clock aside (`tests/n17.test.ts`). Pinned-NPC full detail waits for N25 |
 | Living world · S1 | [N18 Scale and storage](roadmap/living-world/stage-1-foundations.md#n18-scale-and-storage) | ⬜ Planned |
 | Living world · S1 | [N19 Performance and model-call budgets](roadmap/living-world/stage-1-foundations.md#n19-performance-and-model-call-budgets) | ⬜ Planned |
 | Living world · S1 | [N20 Stories, drama and liveness metrics](roadmap/living-world/stage-1-foundations.md#n20-stories-drama-and-liveness-metrics) | ⬜ Planned |

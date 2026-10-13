@@ -8,22 +8,15 @@ import type { RealmView } from "@millbrook/shared";
 import { coins, el, emptyP } from "../dom";
 import { act } from "../game";
 import { game, store } from "../store";
+import { drawRealmMap, realmLegend } from "../realmMap";
 import { button } from "./modals";
 
 let cached: RealmView | null = null;
 let loading = false;
 let selected: string | null = null;
 
-const SVG = "http://www.w3.org/2000/svg";
-const svg = <K extends keyof SVGElementTagNameMap>(tag: K, attrs: Record<string, string | number>): SVGElementTagNameMap[K] => {
-  const e = document.createElementNS(SVG, tag);
-  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, String(v));
-  return e;
-};
 /** "5 hours", "2 days". */
 const hoursWords = (h: number) => (h < 20 ? `${h}h` : `${Math.round((h / 24) * 2) / 2} days`);
-
-const RADIUS: Record<string, number> = { hamlet: 7, village: 10, town: 14, city: 18, capital: 22 };
 
 /** Get the realm if the day moved on (or we have none), then draw again. */
 async function load(): Promise<void> {
@@ -57,55 +50,17 @@ export function renderRealm(body: HTMLElement): void {
   const at = (id: string | null) => r.settlements.find((x) => x.id === id);
 
   // ---- The map ----
-  const map = svg("svg", { viewBox: `0 0 ${r.size.w} ${r.size.h}`, class: "realm-map", role: "img", "aria-label": "Map of the realm" });
-  const drawn = new Set<string>();
-  for (const a of r.settlements) {
-    for (const id of a.roads) {
-      const b = at(id);
-      const key = [a.id, id].sort().join("|");
-      if (!b || drawn.has(key)) continue;
-      drawn.add(key);
-      map.append(svg("line", { x1: a.x, y1: a.y, x2: b.x, y2: b.y, class: a.liege === b.id || b.liege === a.id ? "road liege" : "road" }));
-    }
-  }
-  for (const d of r.dungeons) {
-    const g = svg("g", { class: `dungeon${d.cleared ? " cleared" : ""}` });
-    g.append(svg("rect", { x: d.x - 8, y: d.y - 8, width: 16, height: 16, transform: `rotate(45 ${d.x} ${d.y})` }));
-    const t = svg("title", {});
-    t.textContent = `${d.name} (rank ${d.tier}, ${d.depth} levels, danger ${d.danger}${d.cleared ? ", cleared" : ""})`;
-    g.append(t);
-    map.append(g);
-  }
-  for (const x of r.settlements) {
-    const k = r.kingdoms.find((k) => k.id === x.kingdom);
-    const g = svg("g", { class: `place${x.id === s.site.id ? " here" : ""}${x.home ? " home" : ""}${x.abandoned ? " abandoned" : ""}${x.id === selected ? " selected" : ""}`, tabindex: 0 });
-    if (x.atWar || x.raided) g.append(svg("circle", { cx: x.x, cy: x.y, r: (RADIUS[x.kind] ?? 6) + 5, class: x.atWar ? "war-ring" : "raid-ring" }));
-    g.append(svg("circle", { cx: x.x, cy: x.y, r: RADIUS[x.kind] ?? 6, fill: k?.color ?? "#888" }));
-    if (x.kind === "capital" || x.kind === "city" || x.kind === "town" || x.home || x.id === selected) {
-      const label = svg("text", { x: x.x, y: x.y - (RADIUS[x.kind] ?? 6) - 4, "text-anchor": "middle" });
-      label.textContent = x.name;
-      g.append(label);
-    }
-    const t = svg("title", {});
-    t.textContent = `${x.name}, ${x.kind} of ${k?.name ?? "no crown"}: ${x.population} people, prosperity ${x.prosperity}`;
-    g.append(t);
-    const pick = () => {
-      selected = x.id;
-      renderRealm(body);
-    };
-    g.addEventListener("click", pick);
-    g.addEventListener("keydown", (e) => (e as KeyboardEvent).key === "Enter" && pick());
-    map.append(g);
-  }
-  body.append(map);
-  const legend = el("div", { className: "realm-legend" });
-  for (const k of r.kingdoms) {
-    const chip = el("span", { className: "chip", textContent: `${k.name}${k.ruler ? ` · ${k.ruler}` : ""}` });
-    chip.style.borderColor = k.color;
-    legend.append(chip);
-  }
-  legend.append(el("span", { className: "chip", textContent: "◆ dungeon · red ring: war · amber: raided" }));
-  body.append(legend);
+  body.append(
+    drawRealmMap(r, {
+      here: s.site.id,
+      selected,
+      onPick: (id) => {
+        selected = id;
+        renderRealm(body);
+      },
+    }),
+  );
+  body.append(realmLegend(r));
 
   // ---- The chosen place ----
   const place = at(selected) ?? at(s.site.id) ?? r.settlements.find((x) => x.home);

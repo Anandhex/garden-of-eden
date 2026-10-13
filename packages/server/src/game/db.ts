@@ -65,7 +65,7 @@ export class WorldStore {
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS events (
         id TEXT PRIMARY KEY, day INTEGER, hour INTEGER, kind TEXT, actor TEXT, target TEXT,
-        details TEXT, importance REAL, place TEXT, witnesses TEXT, known_by TEXT
+        details TEXT, importance REAL, place TEXT, witnesses TEXT, known_by TEXT, why TEXT
       );
       CREATE INDEX IF NOT EXISTS events_day ON events(day);
       CREATE INDEX IF NOT EXISTS events_actor ON events(actor);
@@ -79,6 +79,9 @@ export class WorldStore {
         id INTEGER PRIMARY KEY AUTOINCREMENT, day INTEGER, kind TEXT, ok INTEGER, reason TEXT, proposal TEXT, event TEXT
       );
     `);
+    // `why` came later (N17): add it to a database made before.
+    const cols = this.db.prepare("PRAGMA table_info(events)").all() as Array<{ name: string }>;
+    if (!cols.some((c) => c.name === "why")) this.db.exec("ALTER TABLE events ADD COLUMN why TEXT");
   }
 
   close(): void {
@@ -96,11 +99,31 @@ export class WorldStore {
   archiveEvent(e: GameEvent): void {
     this.db
       .prepare(
-        `INSERT INTO events (id, day, hour, kind, actor, target, details, importance, place, witnesses, known_by)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `INSERT INTO events (id, day, hour, kind, actor, target, details, importance, place, witnesses, known_by, why)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
          ON CONFLICT(id) DO UPDATE SET known_by = excluded.known_by`,
       )
-      .run(e.id, e.day, e.hour, e.kind, e.actor, e.target, e.details, e.importance, e.place ?? null, JSON.stringify(e.witnesses ?? []), JSON.stringify(e.knownBy ?? []));
+      .run(e.id, e.day, e.hour, e.kind, e.actor, e.target, e.details, e.importance, e.place ?? null, JSON.stringify(e.witnesses ?? []), JSON.stringify(e.knownBy ?? []), e.why ?? null);
+  }
+
+  /** Events newest first, optionally only those after a cursor, or involving someone or somewhere (the admin view: reads only). */
+  recentEvents(opts: { limit?: number; person?: string; place?: string; minImportance?: number } = {}): GameEvent[] {
+    const where: string[] = [];
+    const args: Array<string | number> = [];
+    if (opts.person) {
+      where.push("(actor = ? OR target = ?)");
+      args.push(opts.person, opts.person);
+    }
+    if (opts.place) {
+      where.push("place = ?");
+      args.push(opts.place);
+    }
+    if (opts.minImportance !== undefined) {
+      where.push("importance >= ?");
+      args.push(opts.minImportance);
+    }
+    const rows = this.db.prepare(`SELECT * FROM events ${where.length > 0 ? `WHERE ${where.join(" AND ")}` : ""} ORDER BY day DESC, hour DESC, rowid DESC LIMIT ?`).all(...args, opts.limit ?? 500) as Array<Record<string, unknown>>;
+    return rows.map(rowToEvent);
   }
 
   /** Every event involving someone (as actor or target), oldest first. */
@@ -166,6 +189,7 @@ function rowToEvent(r: Record<string, unknown>): GameEvent {
     details: String(r.details),
     importance: Number(r.importance),
     ...(r.place ? { place: String(r.place) } : {}),
+    ...(r.why ? { why: String(r.why) } : {}),
     witnesses: JSON.parse(String(r.witnesses ?? "[]")) as string[],
     knownBy: JSON.parse(String(r.known_by ?? "[]")) as string[],
   };

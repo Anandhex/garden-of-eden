@@ -134,7 +134,7 @@ export function takeOver(dead: Member, heir: Member, world: WorldSnapshot, kille
     s.grudge = { reason: `they killed ${name}`, day: world.day, until: world.day + BLOOD_GRUDGE_DAYS, blood: true };
     addEmotion(s, "resentment", 1, `them killing ${name}`, world.day, true);
   }
-  recordEvent(world, { kind: "succession", actor: heir.id, target: dead.id, details: `${heir.persona.name} took over from ${name}`, importance: 6, witnesses: [] });
+  recordEvent(world, { kind: "succession", actor: heir.id, target: dead.id, details: `${heir.persona.name} took over from ${name}`, importance: 6, witnesses: [], why: dead.persona.successor === heir.id ? `${name} named ${heir.persona.name} to follow them` : `${heir.persona.name} is ${name}'s eldest grown child` });
   return [
     `${heir.persona.name} takes over from ${name}${taken.length > 0 ? `, with ${taken.join(", ")}` : ""}${money > 0 ? ` and ${formatMoney(money)}` : ""}.`,
   ];

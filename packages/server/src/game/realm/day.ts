@@ -1,3 +1,4 @@
+import { timed } from "../../metrics/timing.js";
 import type { Rng } from "../dice.js";
 import { directorDay } from "./director.js";
 import { raidsDay, warsDay } from "./diplomacy.js";
@@ -17,23 +18,27 @@ import { dungeonsDay, packsDay } from "./wilds.js";
  * Everything is code and the given RNG: a seed gives the same realm every time.
  */
 export function realmDay(realm: Realm, day: number, rng: Rng): void {
-  for (const f of ageFigures(realm, day, rng)) {
-    if (f.renown >= 25 || Object.values(realm.settlements).some((s) => s.leader === f.id) || f.role === "ruler") {
-      realmNews(realm, day, f.home, "death", `${titled(f)} has died of old age${f.home ? ` in ${realm.settlements[f.home]?.name ?? "their home"}` : ""}.`, f.role === "ruler" ? 8 : 4, [f.name]);
-    }
-  }
-  successionDay(realm, day, rng);
-  economyDay(realm, day, rng);
-  if (isTaxDay(day)) taxDay(realm, day, rng);
-  factionsDay(realm, day, rng);
-  directorDay(realm, day, rng);
-  raidsDay(realm, day, rng);
-  warsDay(realm, day, rng);
-  packsDay(realm, day, rng);
-  dungeonsDay(realm, day, rng);
-  successionDay(realm, day, rng);
-  refreshHierarchy(realm);
-  realm.day = day;
+  timed("realm.day", () => {
+    timed("realm.ageing", () => {
+      for (const f of ageFigures(realm, day, rng)) {
+        if (f.renown >= 25 || Object.values(realm.settlements).some((s) => s.leader === f.id) || f.role === "ruler") {
+          realmNews(realm, day, f.home, "death", `${titled(f)} has died of old age${f.home ? ` in ${realm.settlements[f.home]?.name ?? "their home"}` : ""}.`, f.role === "ruler" ? 8 : 4, [f.name], { why: "old age" });
+        }
+      }
+    });
+    timed("realm.succession", () => successionDay(realm, day, rng));
+    timed("realm.economy", () => economyDay(realm, day, rng));
+    if (isTaxDay(day)) timed("realm.taxes", () => taxDay(realm, day, rng));
+    timed("realm.factions", () => factionsDay(realm, day, rng));
+    timed("realm.director", () => directorDay(realm, day, rng));
+    timed("realm.raids", () => raidsDay(realm, day, rng));
+    timed("realm.wars", () => warsDay(realm, day, rng));
+    timed("realm.packs", () => packsDay(realm, day, rng));
+    timed("realm.dungeons", () => dungeonsDay(realm, day, rng));
+    timed("realm.succession", () => successionDay(realm, day, rng));
+    refreshHierarchy(realm);
+    realm.day = day;
+  });
 }
 
 /** Run every day from the realm's last up to `toDay`. */

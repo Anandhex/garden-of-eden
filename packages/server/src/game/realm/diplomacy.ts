@@ -71,7 +71,7 @@ export function sign(realm: Realm, kind: TreatyKind, a: Party, b: Party, day: nu
   tally(realm, "treaties");
   const words: Record<TreatyKind, string> = { non_aggression: "a pact of non-aggression", mutual_defense: "a pact of mutual defence", trade: "a trade agreement", tribute: "a tribute", service: "an oath of service" };
   const where = a.startsWith("s:") ? a.slice(2) : b.startsWith("s:") ? b.slice(2) : a.startsWith("k:") ? realm.kingdoms[a.slice(2)]?.capital ?? null : null;
-  realmNews(realm, day, where, "treaty", `${cap(partyName(realm, a))} and ${partyName(realm, b)} have sworn ${words[kind]} (${why}).`, kind === "service" ? 4 : 5, [partyName(realm, a), partyName(realm, b)]);
+  realmNews(realm, day, where, "treaty", `${cap(partyName(realm, a))} and ${partyName(realm, b)} have sworn ${words[kind]} (${why}).`, kind === "service" ? 4 : 5, [partyName(realm, a), partyName(realm, b)], { why });
   // Old, finished treaties go.
   if (realm.treaties.length > 80) realm.treaties = realm.treaties.filter((x) => x.until >= day - 30 || x === t);
   return t;
@@ -89,7 +89,7 @@ export function breakTreaty(realm: Realm, t: Treaty, by: Party, day: number, why
     addDeed(leader, `broke faith with ${partyName(realm, other)}`);
   }
   tally(realm, "broken");
-  realmNews(realm, day, null, "treaty", `${cap(partyName(realm, by))} has broken its ${t.kind.replace("_", "-")} treaty with ${partyName(realm, other)}: ${why}.`, 6, [partyName(realm, by), partyName(realm, other)]);
+  realmNews(realm, day, null, "treaty", `${cap(partyName(realm, by))} has broken its ${t.kind.replace("_", "-")} treaty with ${partyName(realm, other)}: ${why}.`, 6, [partyName(realm, by), partyName(realm, other)], { why });
 }
 
 function leaderOfParty(realm: Realm, p: Party) {
@@ -158,9 +158,9 @@ export function raid(realm: Realm, attacker: Side, attackerParty: Party, target:
     }
     // Something burns.
     if (rng() < 0.35) damageBuilding(target, rng);
-    realmNews(realm, day, target.id, "raid", `${cap(attacker.name)} raided ${target.name} (${why}) and carried off ${Math.round(coin / 100)} gold${r.dead.length > 0 ? `; ${r.dead.map((f) => f.name).join(" and ")} died` : ""}.`, target.home ? 8 : 5, [attacker.name, target.name, ...r.dead.map((f) => f.name)]);
+    realmNews(realm, day, target.id, "raid", `${cap(attacker.name)} raided ${target.name} (${why}) and carried off ${Math.round(coin / 100)} gold${r.dead.length > 0 ? `; ${r.dead.map((f) => f.name).join(" and ")} died` : ""}.`, target.home ? 8 : 5, [attacker.name, target.name, ...r.dead.map((f) => f.name)], { why });
   } else {
-    realmNews(realm, day, target.id, "raid", `${cap(target.name)} drove off a raid by ${attacker.name}${help.names.length > 0 ? `, with help from ${help.names.join(" and ")}` : ""}${r.dead.length > 0 ? `; ${r.dead.map((f) => f.name).join(" and ")} died` : ""}.`, target.home ? 7 : 4, [attacker.name, target.name, ...help.names, ...r.dead.map((f) => f.name)]);
+    realmNews(realm, day, target.id, "raid", `${cap(target.name)} drove off a raid by ${attacker.name}${help.names.length > 0 ? `, with help from ${help.names.join(" and ")}` : ""}${r.dead.length > 0 ? `; ${r.dead.map((f) => f.name).join(" and ")} died` : ""}.`, target.home ? 7 : 4, [attacker.name, target.name, ...help.names, ...r.dead.map((f) => f.name)], { why });
   }
   return r.attackerWon;
 }
@@ -298,7 +298,7 @@ export function declareWar(realm: Realm, attackers: Party[], defenders: Party[],
   realm.wars.push(w);
   tally(realm, "wars");
   const capitalOf = (p: Party) => (p[0] === "k" ? realm.kingdoms[p.slice(2)]?.capital ?? null : p[0] === "s" ? p.slice(2) : (realm.factions[p.slice(2)]?.seat ?? null));
-  realmNews(realm, day, capitalOf(defenders[0]!), "war", `War! ${cap(attackers.map((p) => partyName(realm, p)).join(" and "))} has gone to war with ${defenders.map((p) => partyName(realm, p)).join(" and ")} (${cause})${allies.length > 0 ? `; ${allies.map((p) => partyName(realm, p)).join(" and ")} stand${allies.length === 1 ? "s" : ""} with them` : ""}.`, 9, [...attackers, ...defenders, ...allies].map((p) => partyName(realm, p)));
+  realmNews(realm, day, capitalOf(defenders[0]!), "war", `War! ${cap(attackers.map((p) => partyName(realm, p)).join(" and "))} has gone to war with ${defenders.map((p) => partyName(realm, p)).join(" and ")} (${cause})${allies.length > 0 ? `; ${allies.map((p) => partyName(realm, p)).join(" and ")} stand${allies.length === 1 ? "s" : ""} with them` : ""}.`, 9, [...attackers, ...defenders, ...allies].map((p) => partyName(realm, p)), { why: cause });
   return w;
 }
 
@@ -411,7 +411,7 @@ function capture(realm: Realm, s: Settlement, kingdom: string, day: number): voi
   const lead = s.leader ? realm.figures[s.leader] : undefined;
   if (lead) lead.superior = liege?.leader ?? null;
   tally(realm, "captured");
-  realmNews(realm, day, s.id, "war", `${s.name} has fallen to ${realm.kingdoms[kingdom]!.name}${from ? `, taken from ${realm.kingdoms[from]?.name ?? from}` : ""}.`, 8, [s.name, realm.kingdoms[kingdom]!.name]);
+  realmNews(realm, day, s.id, "war", `${s.name} has fallen to ${realm.kingdoms[kingdom]!.name}${from ? `, taken from ${realm.kingdoms[from]?.name ?? from}` : ""}.`, 8, [s.name, realm.kingdoms[kingdom]!.name], { why: "its defenders lost the war" });
 }
 
 /** Peace: the loser pays tribute, and both swear not to fight for a while. */
@@ -454,7 +454,7 @@ export function endWar(realm: Realm, w: War, day: number, winner: "attackers" | 
     }
   }
   const where = a.startsWith("k:") ? realm.kingdoms[a.slice(2)]?.capital ?? null : null;
-  realmNews(realm, day, where, "peace", `The war between ${partyName(realm, a)} and ${partyName(realm, d)} is over: ${w.outcome}.`, 8, [partyName(realm, a), partyName(realm, d)]);
+  realmNews(realm, day, where, "peace", `The war between ${partyName(realm, a)} and ${partyName(realm, d)} is over: ${w.outcome}.`, 8, [partyName(realm, a), partyName(realm, d)], { why: w.outcome ?? "the fighting ended" });
   void HOME_ID;
 }
 

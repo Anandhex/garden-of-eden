@@ -89,7 +89,7 @@ export function breakAway(realm: Realm, s: Settlement, day: number, rng: Rng): v
     lead.role = leaderRole(s.kind);
   }
   tally(realm, "breakaways");
-  realmNews(realm, day, s.id, "breakaway", `${s.name} has broken away from ${liege?.name ?? "its liege"}${crown ? ` and ${crown.name}` : ""}: ${lead ? titled(lead) : "its people"} will pay no more taxes.`, 8, [s.name, ...(liege ? [liege.name] : []), ...(crown ? [crown.name] : []), ...(lead ? [lead.name] : [])]);
+  realmNews(realm, day, s.id, "breakaway", `${s.name} has broken away from ${liege?.name ?? "its liege"}${crown ? ` and ${crown.name}` : ""}: ${lead ? titled(lead) : "its people"} will pay no more taxes.`, 8, [s.name, ...(liege ? [liege.name] : []), ...(crown ? [crown.name] : []), ...(lead ? [lead.name] : [])], { why: "it would pay no more taxes" });
   if (crown && !warOf(realm, `k:${crown.id}`)) declareWar(realm, [`k:${crown.id}`], [`s:${s.id}`], day, `${s.name} broke away`);
 }
 
@@ -122,7 +122,7 @@ export function successionDay(realm: Realm, day: number, rng: Rng): void {
     }
     install(realm, s, heir, day);
     tally(realm, "successions");
-    realmNews(realm, day, s.id, "succession", `${titled(heir)} is the new head of ${s.name}${old ? `, after ${old.name}` : ""}${appointed ? ", appointed from above" : ""}.`, s.kind === "capital" ? 8 : s.kind === "city" ? 6 : 4, [heir.name, s.name, ...(old ? [old.name] : [])]);
+    realmNews(realm, day, s.id, "succession", `${titled(heir)} is the new head of ${s.name}${old ? `, after ${old.name}` : ""}${appointed ? ", appointed from above" : ""}.`, s.kind === "capital" ? 8 : s.kind === "city" ? 6 : 4, [heir.name, s.name, ...(old ? [old.name] : [])], { why: appointed ? "no one in the place could lead, so the liege appointed a head" : old && heir.parents?.includes(old.id) ? "the old head's child, and the most standing" : "the most standing of those who lived there" });
     // A rival who won't bow: they found rebels (at the capital, a pretender to the crown).
     if (rival && score(heir) - score(rival) < 10 && rival.ambition > 0.65 && rival.loyalty < 0.5 && rng() < 0.5) {
       const fac = foundFaction(realm, rng, { kind: "rebels", founder: rival, seat: s.id, creed: s.kind === "capital" ? `${rival.name} for the crown` : `${rival.name} should rule ${s.name}`, why: `${rival.name} would not bow to ${heir.name}` }, day);
