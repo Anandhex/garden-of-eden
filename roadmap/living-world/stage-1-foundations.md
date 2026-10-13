@@ -32,7 +32,7 @@ See the world, keep it fast and stable, and know what the player knows. Everythi
 
 ## N18: Scale and storage
 
-**Status:** ⬜ Planned
+**Status:** ✅ Built (2026-10-13)
 
 **Implementation plan:** [plans/n18-scale-and-storage.md](plans/n18-scale-and-storage.md)
 
@@ -42,13 +42,24 @@ See the world, keep it fast and stable, and know what the player knows. Everythi
 
 **The rules:** from N25 on, every person is real and changes, so their state moves into SQLite, by place, loaded when that place is simulated in detail and written back in batches. `world.json` keeps the small top-level state (player, clock, realm summary). The seeded roster stays the starting point; the database holds what has changed since.
 
-- [ ] Tables for people (identity, life, family links), relationships, knowledge records, grievances, ambitions, jobs held; indexed by place and id
-- [ ] Load by place and level of detail (N25); write in batches at the end of a tick; no full-save rewrite per hour
-- [ ] Save version 11 for both files, as a clean break: older saves are set aside and a new world starts (user decision 2026-10-13: old saves don't matter). Migrations from v11 onward, each tested
-- [ ] An export and import of a whole world (for bug reports and seeded test fixtures)
-- [ ] Tests, README, this roadmap
+- [x] Tables for people (identity, life, family links), relationships, knowledge records, grievances, ambitions, jobs held; indexed by place and id *(only `people` is filled; the others are made empty with their indexes, so N25, N33, N37 and N40 need no schema change)*
+- [x] Load by place and level of detail (N25); write in batches at the end of a tick; no full-save rewrite per hour
+- [x] Save version 11 for both files, as a clean break: older saves are set aside and a new world starts (user decision 2026-10-13: old saves don't matter). Migrations from v11 onward, each tested
+- [x] An export and import of a whole world (for bug reports and seeded test fixtures)
+- [x] Determinism first: a world seed, a named dice stream per system, event ids from a counter in the save, and `worldHash` over the database too
+- [x] Tests, README, this roadmap
 
 - **Done when:** a realm with 50,000 people saves in under a second and loads the player's place in under two; a pre-v11 save is set aside and a new world starts; an exported world imports and replays identically with the same seed.
+
+**How it's built:**
+- **Determinism** ([`dice.ts`](../../packages/server/src/game/dice.ts) `streamFor`, [`realm/day.ts`](../../packages/server/src/game/realm/day.ts), [`town.ts`](../../packages/server/src/game/town.ts) `rngFor`): the world has a `seed` (REALM_SEED, or rolled once at creation: the only `Math.random` left in setup). Each realm step rolls from `streamFor(realm.seed, "realm", day, step)`; each Town system from `rngFor("village" | "creatures" | "spawn" | …)`, pinned by a day where there is one and otherwise by a per-system counter in the save (`world.rolls`). What the player does (a fight round, a sneak, a craft) rolls from `town.actionRng()`. Event ids are `e<day>-<hour>-<seq>` from `world.nextEventSeq`. Tests may still pass one fixed `rng` to a Town, which then wins over the streams. What is left on `Math.random` or `Date.now()` is real time, marked `// real time, not simulation`: where a beast stands on screen, the combat clock, a temp file name, and the NPC conversation dice (their outcome is what the model hears; N23's input journal will record it).
+- **Storage** ([`store/`](../../packages/server/src/store)): `schema.ts` (tables, `PRAGMA user_version`, WAL), `peopleStore.ts` (`PeopleStore` shares `WorldStore`'s connection: prepared statements, `transaction`, `update` marks a person dirty, `flush(tick)` writes every dirty row and `meta.save_tick` in one transaction, `loadSite(site, "full" | "coarse")`, `search`), `materialise.ts` (rolls every settlement's people once, when a world is made: 24,959 people for seed 1, under a second), `exchange.ts` (`.mbworld`), `lock.ts`, `bench.ts`. [`rosterFromStore`](../../packages/server/src/game/realm/townsfolk.ts) gives the same `CrowdRoster` as the generator from the table, keeping the `people` array's identity until someone in the place changes (so the crowd simulation isn't rebuilt); `Town.rosterAt` is what the server, the CLI and the admin view call. `rosterFor` is only the generator now. A house that is no longer on the map becomes the first house; a talked-to townsperson gets `people.persona`.
+- **The pair of files** ([`save.ts`](../../packages/server/src/game/save.ts), [`openWorld.ts`](../../packages/server/src/game/openWorld.ts)): `saveWorld(file, world, store)` commits the database at tick N, then writes compact JSON to a temp file and renames it over `world.json` (atomic); the JSON carries `saveTick: N`. `loadWorld` throws `SaveMismatchError` when the two ticks differ, and the server and CLI stop with that message rather than guess. A save from before v11 is renamed to `world.v<old>.bak.json`, the database is reset and a new world begins, with a notice. The upgrade chain is gone; from v11 every save change needs a migration and a test. `saves/.lock` keeps a second game from writing the same saves.
+- **Export and import** ([`exchange.ts`](../../packages/server/src/store/exchange.ts), [`scripts/world.ts`](../../packages/server/scripts/world.ts)): `npm run world:export -- out.mbworld`, `npm run world:import -- file.mbworld [--to save.json] [--force]`, and a download button on the admin Health tab (`GET /api/admin/export`). One gzipped JSON `{ format: "mbworld", version, saveVersion, exportedDay, world, tables }`; import checks the world against the save schema and every row against its table's columns, refuses another format, a newer container or another save version, and never writes over an existing save without `--force`. The `people` table, `events` (now with `caused_by`, `site`, `kingdom`, `seq` for N20 and N24) and the rest are read through SQLite, never by copying the file, so the WAL's changes are in.
+- **Hash** ([`hash.ts`](../../packages/server/src/game/hash.ts)): the save (minus `saveTick`) plus every state table in primary key order, people not yet flushed included.
+- **Numbers** (`npm run bench:storage`, M2): 49,944 people rolled and stored in 0.8 s; a normal save (300 people changed) 5 ms; everyone changed 0.7 s; the biggest place (5,000 people) read from a cold database in 20 ms. `tests/n18.test.ts` runs the same at 25,000 people (`LONG=1`: 50,000), with a `PERF_SLACK` multiplier for slow machines.
+
+- **Left for later:** figures and the cast stay in the save (a few hundred and a few tens). The other tables are empty until their phases. A growing town's new people are inserted by N25 (`insertMany`). Snapshots and the input journal are N23.
 
 ## N19: Performance and model-call budgets
 

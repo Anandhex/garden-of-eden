@@ -19,7 +19,6 @@ import { playerView } from "../src/admin/player.js";
 import { resetSearchIndex, search } from "../src/admin/search.js";
 import { timeControl } from "../src/admin/time.js";
 import { config } from "../src/config.js";
-import { seededRng } from "../src/game/dice.js";
 import { WorldStore } from "../src/game/db.js";
 import { recordEvent } from "../src/game/events.js";
 import { worldHash } from "../src/game/hash.js";
@@ -46,11 +45,14 @@ beforeAll(() => {
   config.planning = false;
   config.summaries = false;
   config.realm = true;
-  // Seed 1: in 40 days a war breaks out, a figure dies of old age, and the director pushes (found with `SEED=1 npm run sim:realm`).
+  // Seed 1, every system on its own stream (N18): in 40 days wars break out and the director pushes (`SEED=1 npm run sim:realm`).
+  // A death needs luck in 40 days, so one place's leader is made too old to live (as n13.test does).
   config.realmSeed = 1;
   resetTimings();
   store = new WorldStore(":memory:");
-  town = makeTown({ rng: seededRng(1), store });
+  town = makeTown({ rng: null, store });
+  const elder = Object.values(town.world.realm!.figures).find((f) => f.home && f.home !== HOME_ID && town.world.realm!.settlements[f.home]?.leader === f.id)!;
+  elder.life.bornOnDay = -95 * config.daysPerYear;
   for (let d = 0; d < 40; d++) town.passHours(24);
   ctx = {
     world: () => town.world,
@@ -155,7 +157,8 @@ describe("N17.2 the realm overview shows the map and its numbers", () => {
 describe("N17.3 the event stream shows a war, a death and a director push with their reasons", () => {
   it("holds all three kinds, each with a why", () => {
     const page = events(ctx, { limit: 1000 });
-    const war = byKind(page, "war", "realm")[0];
+    // A war's news says why it began (a conquest's says only that it was lost): find one that does.
+    const war = byKind(page, "war", "realm").find((e) => e.why && e.text.includes(e.why));
     expect(war, "a war in the news").toBeDefined();
     expect(war!.why).toBeTruthy();
     expect(war!.text).toContain(war!.why!);

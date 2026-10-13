@@ -20,6 +20,8 @@ export function health(ctx: AdminContext): AdminHealth {
     eventsInSave: (world.events ?? []).length,
     eventsInDatabase: ctx.store?.eventCount() ?? 0,
     eventsToday: (world.events ?? []).filter((e) => e.day === world.day).length,
+    peopleInDatabase: ctx.store?.people.count() ?? 0,
+    peopleUnsaved: ctx.store?.people.pending ?? 0,
   };
   if (realm) {
     counts.kingdoms = Object.keys(realm.kingdoms).length;

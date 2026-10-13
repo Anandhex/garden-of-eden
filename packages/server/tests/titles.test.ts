@@ -115,16 +115,4 @@ describe("player titles", () => {
     awardPlayerTitle(world.player, "veteran", 1);
     expect(buildTurnMessage(brena, createNpcState(brena), world, "Hi")).toContain("Traveler is known as Veteran.");
   });
-
-  it("old saves get an empty title list", () => {
-    const file = join(mkdtempSync(join(tmpdir(), "llm-game-titles-")), "world.json");
-    const personas = { brena };
-    const world = newWorld(personas);
-    delete world.player.titles;
-    delete world.player.fightsWon;
-    writeFileSync(file, `${JSON.stringify(world)}\n`);
-    const loaded = loadWorld(file, personas);
-    expect(loaded.player.titles).toEqual([]);
-    expect(loaded.player.fightsWon).toBe(0);
-  });
 });

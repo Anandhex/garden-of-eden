@@ -6,11 +6,14 @@ import type { Embedder } from "../llm/provider.js";
 import type { DirectorLogEntry } from "../director/validator.js";
 import type { GameEvent } from "./events.js";
 import { cosine, hashedEmbedder } from "./embeddings.js";
+import { PeopleStore } from "../store/peopleStore.js";
+import { applySchema, ORDER_BY, type TableName } from "../store/schema.js";
 
 /**
  * The long-term store (SQLite, built into Node: node:sqlite). The world save
- * (saves/world.json) stays the source of truth for state; this keeps what grows
- * without bound and is only ever searched:
+ * (saves/world.json) is the source of truth for the cast and the realm; this holds
+ * what grows without bound (N18: every person, in `people`, saved by place in
+ * batches: store/peopleStore.ts) and what is only ever searched:
  * - **events**: every event ever recorded (the save keeps the 300 most important);
  * - **memories**: conversation summaries and other recall-only notes, each with an
  *   embedding, so an NPC can recall an old talk by meaning, not just by keyword;
@@ -56,41 +59,69 @@ const recallBar = (embedder: string) => (embedder === "hashed" ? RECALL_SIMILARI
 export class WorldStore {
   private readonly db: DatabaseSyncType;
   embedder: Embedder;
+  /** Every person of every place (N18). */
+  readonly people: PeopleStore;
 
   constructor(file = ":memory:", embedder: Embedder = hashedEmbedder) {
     if (file !== ":memory:") mkdirSync(dirname(file), { recursive: true });
     const { DatabaseSync } = loadSqlite();
     this.db = new DatabaseSync(file);
     this.embedder = embedder;
-    this.db.exec(`
-      CREATE TABLE IF NOT EXISTS events (
-        id TEXT PRIMARY KEY, day INTEGER, hour INTEGER, kind TEXT, actor TEXT, target TEXT,
-        details TEXT, importance REAL, place TEXT, witnesses TEXT, known_by TEXT, why TEXT
-      );
-      CREATE INDEX IF NOT EXISTS events_day ON events(day);
-      CREATE INDEX IF NOT EXISTS events_actor ON events(actor);
-      CREATE INDEX IF NOT EXISTS events_target ON events(target);
-      CREATE TABLE IF NOT EXISTS memories (
-        id INTEGER PRIMARY KEY AUTOINCREMENT, npc TEXT, day INTEGER, kind TEXT, text TEXT,
-        importance REAL, embedder TEXT, vector TEXT
-      );
-      CREATE INDEX IF NOT EXISTS memories_npc ON memories(npc);
-      CREATE TABLE IF NOT EXISTS director_log (
-        id INTEGER PRIMARY KEY AUTOINCREMENT, day INTEGER, kind TEXT, ok INTEGER, reason TEXT, proposal TEXT, event TEXT
-      );
-    `);
-    // `why` came later (N17): add it to a database made before.
-    const cols = this.db.prepare("PRAGMA table_info(events)").all() as Array<{ name: string }>;
-    if (!cols.some((c) => c.name === "why")) this.db.exec("ALTER TABLE events ADD COLUMN why TEXT");
+    applySchema(this.db, file !== ":memory:");
+    this.people = new PeopleStore(this.db);
   }
 
   close(): void {
     this.db.close();
   }
 
-  /** A new world: forget the old one's history. */
+  /** A new world: forget the old one's history and people. */
   reset(): void {
-    this.db.exec("DELETE FROM events; DELETE FROM memories; DELETE FROM director_log;");
+    this.people.clear();
+    this.db.exec("DELETE FROM events; DELETE FROM memories; DELETE FROM director_log; DELETE FROM relationships; DELETE FROM knowledge; DELETE FROM grievances; DELETE FROM ambitions; DELETE FROM jobs_held; DELETE FROM meta;");
+  }
+
+  // ---- The save's commit point (N18) ----
+
+  /** Write the pending people and `meta.save_tick = tick` in one transaction. The save file follows (game/save.ts). */
+  commit(tick: number): void {
+    this.people.flush(tick);
+  }
+
+  /** The tick the last commit stored, or null. */
+  savedTick(): number | null {
+    const row = this.db.prepare("SELECT value FROM meta WHERE key = 'save_tick'").get() as { value: string } | undefined;
+    return row ? Number(row.value) : null;
+  }
+
+  /** Every row of a table in primary key order: the world hash, export and tests read this. */
+  dumpTable(table: TableName): Array<Record<string, unknown>> {
+    const rows = this.db.prepare(`SELECT * FROM ${table} ORDER BY ${ORDER_BY[table]}`).all() as Array<Record<string, unknown>>;
+    if (table !== "people" || this.people.pending === 0) return rows;
+    // People changed since the last flush are part of the world as it is.
+    const now = new Map(rows.map((r) => [String(r.id), r]));
+    for (const r of this.people.pendingRows()) now.set(r.id, { ...r });
+    return [...now.values()].sort((a, b) => (String(a.id) < String(b.id) ? -1 : 1));
+  }
+
+  /** Replace a table's rows (import). Runs in the caller's transaction. */
+  replaceTable(table: TableName, columns: readonly string[], rows: Array<Record<string, unknown>>): void {
+    this.people.transaction(() => {
+      this.db.exec(`DELETE FROM ${table}`);
+      const st = this.db.prepare(`INSERT INTO ${table} (${columns.join(", ")}) VALUES (${columns.map(() => "?").join(", ")})`);
+      for (const r of rows) st.run(...(columns.map((c) => r[c] ?? null) as Array<string | number | null>));
+    });
+    if (table === "people") this.people.dropCache();
+  }
+
+  /** Set a `meta` value. */
+  setMeta(key: string, value: string): void {
+    this.db.prepare("INSERT INTO meta (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run(key, value);
+  }
+
+  meta(key: string): string | null {
+    const row = this.db.prepare("SELECT value FROM meta WHERE key = ?").get(key) as { value: string } | undefined;
+    return row?.value ?? null;
   }
 
   // ---- Events ----
@@ -99,11 +130,11 @@ export class WorldStore {
   archiveEvent(e: GameEvent): void {
     this.db
       .prepare(
-        `INSERT INTO events (id, day, hour, kind, actor, target, details, importance, place, witnesses, known_by, why)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `INSERT INTO events (id, day, hour, kind, actor, target, details, importance, place, witnesses, known_by, why, caused_by, site, kingdom, seq)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
          ON CONFLICT(id) DO UPDATE SET known_by = excluded.known_by`,
       )
-      .run(e.id, e.day, e.hour, e.kind, e.actor, e.target, e.details, e.importance, e.place ?? null, JSON.stringify(e.witnesses ?? []), JSON.stringify(e.knownBy ?? []), e.why ?? null);
+      .run(e.id, e.day, e.hour, e.kind, e.actor, e.target, e.details, e.importance, e.place ?? null, JSON.stringify(e.witnesses ?? []), JSON.stringify(e.knownBy ?? []), e.why ?? null, e.causedBy ? JSON.stringify(e.causedBy) : null, e.site ?? null, e.kingdom ?? null, seqOf(e.id));
   }
 
   /** Events newest first, optionally only those after a cursor, or involving someone or somewhere (the admin view: reads only). */
@@ -122,13 +153,13 @@ export class WorldStore {
       where.push("importance >= ?");
       args.push(opts.minImportance);
     }
-    const rows = this.db.prepare(`SELECT * FROM events ${where.length > 0 ? `WHERE ${where.join(" AND ")}` : ""} ORDER BY day DESC, hour DESC, rowid DESC LIMIT ?`).all(...args, opts.limit ?? 500) as Array<Record<string, unknown>>;
+    const rows = this.db.prepare(`SELECT * FROM events ${where.length > 0 ? `WHERE ${where.join(" AND ")}` : ""} ORDER BY day DESC, hour DESC, seq DESC, rowid DESC LIMIT ?`).all(...args, opts.limit ?? 500) as Array<Record<string, unknown>>;
     return rows.map(rowToEvent);
   }
 
   /** Every event involving someone (as actor or target), oldest first. */
   eventsAbout(who: string, limit = 100): GameEvent[] {
-    const rows = this.db.prepare(`SELECT * FROM events WHERE actor = ? OR target = ? ORDER BY day, hour LIMIT ?`).all(who, who, limit) as Array<Record<string, unknown>>;
+    const rows = this.db.prepare(`SELECT * FROM events WHERE actor = ? OR target = ? ORDER BY day, hour, seq, rowid LIMIT ?`).all(who, who, limit) as Array<Record<string, unknown>>;
     return rows.map(rowToEvent);
   }
 
@@ -178,6 +209,12 @@ export class WorldStore {
   }
 }
 
+/** The sequence number in an event id (`e<day>-<hour>-<seq>`), for ordering events within an hour. */
+function seqOf(id: string): number | null {
+  const m = /-(\d+)$/.exec(id);
+  return m ? Number(m[1]) : null;
+}
+
 function rowToEvent(r: Record<string, unknown>): GameEvent {
   return {
     id: String(r.id),
@@ -190,6 +227,9 @@ function rowToEvent(r: Record<string, unknown>): GameEvent {
     importance: Number(r.importance),
     ...(r.place ? { place: String(r.place) } : {}),
     ...(r.why ? { why: String(r.why) } : {}),
+    ...(r.caused_by ? { causedBy: JSON.parse(String(r.caused_by)) as string[] } : {}),
+    ...(r.site ? { site: String(r.site) } : {}),
+    ...(r.kingdom ? { kingdom: String(r.kingdom) } : {}),
     witnesses: JSON.parse(String(r.witnesses ?? "[]")) as string[],
     knownBy: JSON.parse(String(r.known_by ?? "[]")) as string[],
   };

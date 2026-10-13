@@ -9,11 +9,10 @@ import { folkOf } from "./folk.js";
  * Search (N17): anyone by name, class, job, role, place or faction: the cast, the realm's
  * figures (alive and dead), the townsfolk of every settlement, and beasts.
  *
- * Until N18 the townsfolk are not stored, so there is no index to ask. A lazy one is built
- * per settlement from `rosterFor` the first time a search needs it (a realm is about
- * 24,500 people and building all of it takes seconds), a few places per request within a
- * time budget; the answer says `complete: false` until all are in, and the page asks again.
- * After N18 this is a SQL LIKE on an indexed name column.
+ * The townsfolk are in the database (N18), so searching them is a SQL LIKE on the indexed
+ * name column and is always complete. Without a database (a test world), a lazy index is
+ * built per settlement from `rosterFor` a few places per request within a time budget; the
+ * answer says `complete: false` until all are in, and the page asks again.
  */
 
 interface Entry {
@@ -111,7 +110,17 @@ export function search(ctx: AdminContext, query: string, filters: { kind?: Admin
   // The townsfolk, place by place, within the time budget.
   let indexed = 0;
   let places = 0;
-  if (realm && (filters.kind === undefined || filters.kind === "townsperson")) {
+  const stored = ctx.store && ctx.store.people.count() > 0 ? ctx.store.people : null;
+  if (realm && stored && (filters.kind === undefined || filters.kind === "townsperson")) {
+    const sites = q === "" ? [] : Object.values(realm.settlements).filter((s) => s.name.toLowerCase().includes(q)).map((s) => s.id);
+    const factions = q === "" ? [] : Object.values(realm.factions).filter((f) => f.name.toLowerCase().includes(q)).map((f) => f.id);
+    for (const p of stored.search(q, { ...(filters.site ? { site: filters.site } : {}), sites, factions, limit: MAX_HITS * 2 })) {
+      const place = siteName(p.site);
+      const faction = p.faction ? (realm.factions[p.faction]?.name ?? "") : "";
+      add({ ref: `town:${p.id}`, kind: "townsperson", name: p.name, detail: `${p.cls} ${p.job} of ${place}${faction ? `, ${faction}` : ""}`, site: p.site }, p.name, `${p.cls} ${p.job} ${place} ${faction}`.toLowerCase());
+    }
+    indexed = places = Object.keys(realm.settlements).length;
+  } else if (realm && (filters.kind === undefined || filters.kind === "townsperson")) {
     const started = performance.now();
     const order = Object.values(realm.settlements)
       .filter((s) => !s.abandoned && (!filters.site || s.id === filters.site))

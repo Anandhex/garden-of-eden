@@ -1,13 +1,13 @@
 import { type ClassCounts, CrowdSim, type CrowdDay, type CrowdRoster, type Townsperson } from "@millbrook/shared";
 import { townEventsOn } from "../game/events-calendar.js";
-import { figureClass, rosterFor } from "../game/realm/townsfolk.js";
+import { figureClass } from "../game/realm/townsfolk.js";
 import { weatherOn } from "../game/weather.js";
 import { siteMap, type SiteMap } from "../web/sites.js";
 import type { AdminContext } from "./context.js";
 
 /**
- * The townsfolk of any settlement, for the admin view (N17). Until N18 stores them, they
- * are worked out from the realm: `rosterFor` rolls them, `CrowdSim` says where they are.
+ * The townsfolk of any settlement, for the admin view (N17). They are read from the database
+ * (N18; a world without one rolls them with `rosterFor`), `CrowdSim` says where they are.
  * The simulations are kept per place, and the class counts per (place, size, day).
  */
 
@@ -27,7 +27,7 @@ export function folkOf(ctx: AdminContext, site: string): Folk | null {
   const s = realm?.settlements[site];
   if (!realm || !s) return null;
   const map = siteMap(s, "village", realm);
-  const roster = rosterFor(realm, site, map, world.day);
+  const roster = ctx.town().rosterAt(site, map, world.day, { readOnly: true });
   if (!roster) return null;
   const hit = sims.get(site);
   if (hit && hit.map === map && hit.roster.people === roster.people) {

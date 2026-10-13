@@ -309,24 +309,3 @@ describe("persona files", () => {
     expect(lifeContext(parsePersona(noSpecies)).species).toBe(human);
   });
 });
-
-describe("old saves", () => {
-  it("give an NPC with no life their authored age on the day the save is loaded", () => {
-    const file = join(mkdtempSync(join(tmpdir(), "llm-game-life-")), "world.json");
-    const personas = { brena, pell };
-    const world = newWorld(personas);
-    world.day = 25;
-    const old = { ...world, version: 2, creatures: undefined, npcStates: {
-        brena: { ...world.npcStates.brena!, life: undefined },
-        pell: { ...world.npcStates.pell!, life: undefined, hp: pell.stats.maxHp },
-      },
-    };
-    writeFileSync(file, `${JSON.stringify(old)}\n`);
-    const loaded = loadWorld(file, personas);
-    expect(ageOn(loaded.npcStates.brena!.life, 25)).toBe(34);
-    expect(loaded.npcStates.brena!.life.tier).toBe("C");
-    expect(loaded.creatures).toEqual({}); // no templates given
-    // Pell is an elder now: his saved full HP is trimmed to what an elder body allows.
-    expect(loaded.npcStates.pell!.hp).toBe(statsOf(pell, loaded.npcStates.pell!).maxHp);
-  });
-});

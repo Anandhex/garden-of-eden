@@ -378,32 +378,21 @@ describe("N15.6 the beasts and outlaws of other places", () => {
   });
 });
 
-describe("N15.5 saves (v10)", () => {
-  it("an older save at home starts back at the gate of the generated village, and its creatures find their dens again", () => {
+describe("N15.5 saves", () => {
+  it("a save keeps where the player stood and which area they were in, and the creatures' tiles", () => {
     const personas = allPersonas();
     const templates = loadCreatureTemplates();
     const world = newWorld(personas, templates, always(0.5));
-    world.position = { x: 16, y: 2 };
-    world.player.place = "camp";
+    world.position = { x: 12, y: 16 };
+    world.player.area = "road";
     for (const c of Object.values(world.creatures)) c.pos = { x: 1, y: 1 };
     const dir = mkdtempSync(join(tmpdir(), "n15-"));
     const file = join(dir, "world.json");
     saveWorld(file, world);
-    const raw = JSON.parse(readFileSync(file, "utf8")) as { version: number };
-    raw.version = 9;
-    writeFileSync(file, JSON.stringify(raw));
-    const back = loadWorld(file, personas, templates);
-    expect(back.version).toBe(SAVE_VERSION);
-    expect(back.position).toBeUndefined();
-    expect(back.player.place).toBe("gate");
-    expect(Object.values(back.creatures).every((c) => c.pos === undefined)).toBe(true);
-    expect(Object.keys(back.creatures).length).toBeGreaterThan(0);
-    // A v10 save keeps where you stood, and which area you were in.
-    back.position = { x: 12, y: 16 };
-    back.player.area = "road";
-    saveWorld(file, back);
     const kept = loadWorld(file, personas, templates);
+    expect(kept.version).toBe(SAVE_VERSION);
     expect(kept.position).toEqual({ x: 12, y: 16 });
     expect(kept.player.area).toBe("road");
+    expect(Object.values(kept.creatures).every((c) => c.pos?.x === 1 && c.pos.y === 1)).toBe(true);
   });
 });

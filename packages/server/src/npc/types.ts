@@ -441,6 +441,12 @@ export interface NpcMemory {
 
 /** What the NPC can perceive right now. Rebuilt every turn by the game. */
 export interface WorldSnapshot {
+  /** The world's seed (N18): every roll comes from a stream of it (game/dice.ts streamFor). Set on saved worlds. */
+  seed?: number;
+  /** Rolls taken so far per system, so repeated rolls from one system stay apart (Town.rngFor). */
+  rolls?: Record<string, number>;
+  /** Events recorded so far: the next event id's sequence number (game/events.ts). */
+  nextEventSeq?: number;
   /** Game clock. Use advanceTime() (game/clock.ts) to move it; it keeps timeOfDay in sync. */
   day: number;
   hour: number;
