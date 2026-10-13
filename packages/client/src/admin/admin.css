@@ -87,3 +87,9 @@ table.day td { padding: 1px 8px 1px 0; }
 .chips .x { align-self: flex-end; margin-top: -30px; margin-right: 4px; padding: 0 6px; background: none; border: none; color: var(--muted); }
 .follow { margin-bottom: 12px; }
 .follow-canvas { max-width: 100%; border: 1px solid var(--line); border-radius: 8px; image-rendering: pixelated; }
+
+.badge { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
+.badge.ok { color: #6fcf8a; }
+.badge.warn { color: #e0b24a; }
+.badge.over { color: #ec7070; }
+.badge.idle { color: var(--muted); }

@@ -69,8 +69,8 @@ export const allPersonas = (): Record<string, NpcPersona> => ({ brena, hale, pel
  * A whole town with a fake model (no Ollama) and a fresh world. The dice are fixed (always 0.5) unless you
  * pass `rng`; pass `rng: null` for the real thing, every system rolling from its own stream of the world's seed (N18).
  */
-export function makeTown({ llm = new FakeProvider(), rng = always(0.5), store, world, seed }: { llm?: LLMProvider; rng?: Rng | null; store?: WorldStore; world?: SavedWorld; seed?: number } = {}): Town {
+export function makeTown({ llm = new FakeProvider(), backgroundLlm, rng = always(0.5), store, world, seed }: { llm?: LLMProvider; backgroundLlm?: LLMProvider; rng?: Rng | null; store?: WorldStore; world?: SavedWorld; seed?: number } = {}): Town {
   const personas = allPersonas();
   const creatureTemplates = loadCreatureTemplates();
-  return new Town({ personas, creatureTemplates, spawnRules: loadSpawnRules(), world: world ?? newWorld(personas, creatureTemplates, rng ?? always(0.5), seed), llm, ...(rng ? { rng } : {}), ...(store ? { store } : {}) });
+  return new Town({ personas, creatureTemplates, spawnRules: loadSpawnRules(), world: world ?? newWorld(personas, creatureTemplates, rng ?? always(0.5), seed), llm, ...(backgroundLlm ? { backgroundLlm } : {}), ...(rng ? { rng } : {}), ...(store ? { store } : {}) });
 }

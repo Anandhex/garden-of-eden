@@ -10,6 +10,7 @@ import { clickTile, creatureAt, nearest, nearestCreature, nearestTalker, npcById
 import { store, world } from "../store";
 import { crowd, describeFolk, folkAt, insideOf, loadCrowd, updateCrowd } from "../crowd";
 import { CrowdLayer } from "./CrowdLayer";
+import { fpsWanted, mountFpsOverlay } from "./frame";
 import { GRASS_VARIANTS, hexColor, makeTextures, ORIGINS, PATH_VARIANTS, TILE, tileHash } from "./textures";
 
 /** The view (N16): 26 by 18 tiles of the map, following the player round bigger places. */
@@ -243,6 +244,8 @@ export class WorldScene extends Phaser.Scene {
   private clock!: Phaser.GameObjects.Graphics;
   private clockText!: Phaser.GameObjects.Text;
   private crowdLayer!: CrowdLayer;
+  /** `?fps=1`: frames per second and the worst frame, for the manual 60 fps check (N19). */
+  private fps: { update(now: number, delta: number, loopFps: number): void } | null = fpsWanted() ? mountFpsOverlay() : null;
   private tip!: Phaser.GameObjects.Text;
 
   constructor() {
@@ -540,6 +543,7 @@ export class WorldScene extends Phaser.Scene {
   }
 
   update(time: number, delta: number): void {
+    this.fps?.update(time, delta, this.game.loop.actualFps);
     if (!this.built) return;
     this.player.update(delta);
     this.crowdLayer.update(time, this.player.tile);

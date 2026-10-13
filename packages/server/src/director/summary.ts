@@ -56,7 +56,7 @@ export async function summariseConversation(
   const lines = transcriptLines(messages, persona.name, playerName);
   if (lines.length < 2) return null;
   const prompt = `${lines.slice(-24).join("\n")}\n\nAs ${persona.name}, note 1-5 short facts worth remembering about ${playerName} from this talk (what they wanted, said or seemed like), and the tone. Only facts from the talk; never invent names.`;
-  const out = await structured(llm, SummarySchema, { system: "You summarise a conversation into a character's memories. Reply as JSON.", prompt, maxTokens: 220, temperature: 0.2 });
+  const out = await structured(llm, SummarySchema, { kind: "summary", system: "You summarise a conversation into a character's memories. Reply as JSON.", prompt, maxTokens: 220, temperature: 0.2 });
   if (!out) return null;
   const known = knownNameWords([persona], [playerName]);
   const facts = out.facts.filter((f) => unknownNames(f.text, known).length === 0);

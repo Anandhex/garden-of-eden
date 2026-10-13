@@ -274,7 +274,7 @@ export async function nameFaction(llm: LLMProvider, realm: Realm, id: string): P
   ]
     .filter(Boolean)
     .join("\n");
-  const out = await structured(llm, FactionWordsSchema, { system, prompt, maxTokens: 80, temperature: 0.8 });
+  const out = await structured(llm, FactionWordsSchema, { kind: "faction-name", system, prompt, maxTokens: 80, temperature: 0.8 });
   if (!out) return false;
   const name = out.name.trim().replace(/^The /, "the ");
   if (inventedWords(`${name} ${out.creed}`, allowedNames(realm, f.seat)).length > 0) return false;

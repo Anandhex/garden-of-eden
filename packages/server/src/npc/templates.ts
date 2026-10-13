@@ -262,7 +262,7 @@ export async function writeIdentity(llm: LLMProvider, t: NpcTemplate, r: Rolled,
     (t.minor ? " This is a child: keep everything gentle and age-appropriate; no romance, drink or violence." : "");
   const prompt = `Write this villager's name (a first name and a family name), personality (3-5 short words), how they speak (one or two sentences, with a habit of speech), backstory (two sentences), appearance (one sentence) and 2-3 goals.\n\n${describeRolled(t, r)}`;
   for (let i = 0; i < 2; i++) {
-    const out = await structured(llm, IdentitySchema, { system, prompt, maxTokens: 400, temperature: 0.9 }, 1);
+    const out = await structured(llm, IdentitySchema, { kind: "identity", system, prompt, maxTokens: 400, temperature: 0.9 }, 1);
     if (!out) continue;
     const taken = takenNames.some((n) => n.toLowerCase() === out.name.toLowerCase() || n.split(" ")[0]!.toLowerCase() === out.name.split(" ")[0]!.toLowerCase());
     const text = [out.speechStyle, out.backstory, out.appearance, ...out.personality, ...out.goals].join(" ");
@@ -362,7 +362,7 @@ export async function writeChildWords(llm: LLMProvider, t: NpcTemplate, p: NpcPe
   const system = "You write characters for a small fantasy village called Millbrook. Reply with JSON only. This is a child: keep everything gentle and age-appropriate; no romance, drink or violence. Never invent other named people or places.";
   const prompt = `Write how this child is: personality (3-5 short words), how they speak (one or two sentences, with a habit of speech), backstory (two sentences), appearance (one sentence) and 2-3 goals.\n\nName: ${p.name}. Parents: ${parents}.\n${describeRolled(t, { ...r, gender: p.voice?.gender === "male" ? "male" : "female" })}${p.talents?.length ? `\nA gift for: ${p.talents.join(", ").replaceAll("_", "-")} (from their parents).` : ""}`;
   for (let i = 0; i < 2; i++) {
-    const out = await structured(llm, ChildWordsSchema, { system, prompt, maxTokens: 350, temperature: 0.9 }, 1);
+    const out = await structured(llm, ChildWordsSchema, { kind: "child-words", system, prompt, maxTokens: 350, temperature: 0.9 }, 1);
     if (!out) continue;
     if (ADULT_WORDS.test([out.speechStyle, out.backstory, out.appearance, ...out.personality, ...out.goals].join(" "))) continue;
     return { ...out, personality: agreeing(out.personality, { traits: resolveTraitsFrom(p), greed: p.greed }, t.fallback.personality.flat()) };

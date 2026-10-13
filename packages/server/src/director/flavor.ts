@@ -19,7 +19,7 @@ export async function generateQuestFlavor(llm: LLMProvider, persona: NpcPersona,
     `You need someone to ${describeObjective(quest)}. Why, in plain terms: ${quest.description}`,
     "Give the job a short title (under 6 words) and one or two sentences, in your own voice, on why you need it. Name no one new.",
   ].join("\n");
-  const out = await structured(llm, FlavorSchema, { system: "You write a job posting for a village character. Reply as JSON: {\"title\": ..., \"reason\": ...}.", prompt, maxTokens: 120, temperature: 0.7 });
+  const out = await structured(llm, FlavorSchema, { kind: "quest-flavor", system: "You write a job posting for a village character. Reply as JSON: {\"title\": ..., \"reason\": ...}.", prompt, maxTokens: 120, temperature: 0.7 });
   if (!out) return null;
   const known = knownNameWords([persona], extraNames);
   if (unknownNames(`${out.title}. ${out.reason}`, known).length > 0) return null;

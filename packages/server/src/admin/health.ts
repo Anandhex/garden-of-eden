@@ -1,6 +1,8 @@
-import type { AdminHealth } from "@millbrook/shared";
+import type { AdminBudgets, AdminHealth } from "@millbrook/shared";
 import { ongoing } from "../game/realm/diplomacy.js";
 import { describeRealm } from "../game/realm/view.js";
+import { budgets } from "../budgets.js";
+import { checkBudgets } from "../metrics/budget.js";
 import { snapshot } from "../metrics/timing.js";
 import type { AdminContext } from "./context.js";
 import { clockOf } from "./overview.js";
@@ -32,5 +34,14 @@ export function health(ctx: AdminContext): AdminHealth {
     counts.wars = ongoing(realm).length;
     counts.newsToday = realm.news.filter((n) => n.day === realm.day).length;
   }
-  return { clock: clockOf(ctx), tickMs: snapshot(), counts, stats: { ...(realm?.stats ?? {}) }, summary: realm ? describeRealm(realm) : [] };
+  const tickMs = snapshot();
+  const queue = town.background.stats;
+  const adminBudgets: AdminBudgets = {
+    tick: checkBudgets(tickMs),
+    model: town.ledger.rows(),
+    queue: { length: queue.queued, estimatedWaitMs: queue.estimatedWaitMs, maxWaitMs: queue.maxWaitMs, running: queue.running, dropped: queue.dropped },
+    talk: { firstTokenMs: town.ledger.talk(), targetMs: budgets.model.talkFirstTokenMs },
+    frame: { ...budgets.frame },
+  };
+  return { clock: clockOf(ctx), tickMs, budgets: adminBudgets, counts, stats: { ...(realm?.stats ?? {}) }, summary: realm ? describeRealm(realm) : [] };
 }

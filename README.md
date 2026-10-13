@@ -36,6 +36,8 @@ npm run web:voices              # Piper and the game together; Ctrl+C stops both
 | `npm run bench:traits [-- <npcs...>]` | Real-model check that each NPC's attack and flee rates follow their traits (slow: ~10 min at `RUNS=3`) |
 | `npm run sim [-- <npcs...>]` | What each NPC's traits do, with seeded dice and a scripted model (no Ollama, instant): combat style, revenge plan, and trait drift over a thousand nights |
 | `npm run bench:director` | The world director against the real model: seeded event days, accepted and rejected proposals, invented names (`DAYS=30 SEED=7`) |
+| `npm run sim:realm -- --check` | The realm run plus each step's timing against its budget (`budgets.ts`); exits 1 if one is over (N19) |
+| `npm run bench:busy [-- --days 30 --slow 3 --extra quest-flavor=40]` | A busy week of model work (plans, summaries, chronicle, retells, flavour, and you talking) against the budgets, in virtual time: queue length, waits, what was dropped, your first-word time. `-- --live` runs one compressed day against Ollama (N19) |
 | `npm run bench:storage` | A realm of about 50,000 people in a real database file: times the save and the load of the player's place, and fails past 1 s and 2 s (`PEOPLE=100000` for more) |
 | `npm run world:export -- <out.mbworld>` / `npm run world:import -- <file> [--to save.json] [--force]` | A whole world (the save and every database table) as one gzipped file, and back into a new save (never over the current one without `--force`). The admin Health tab has a download button for the running game |
 | `npm run bench:voice [-- --lines 8]` | What Piper voices cost next to the language model: latency per sentence, real-time factor, memory. Starts Piper itself if it's installed; results in `saves/bench/` |
@@ -359,6 +361,10 @@ Millbrook is one village in a realm that lives on its own, a day at a time, all 
 - **Recall by meaning:** summaries go into a SQLite store with an embedding; when you talk to someone again, the old talks closest in meaning to what you just said come back to them ("From earlier talks with them you recall: ...").
 - **Off-screen planning** ([`planning.ts`](packages/server/src/director/planning.ts)): once a day each NPC makes one short call to set its plans from its memories and goals. Flavour only: a situation line; code never acts on it.
 - **Never in your way:** plans, summaries, quest write-ups and the chronicle run in the background on their own connection, and are cancelled (and retried later) the moment you act.
+- **Budgets** (N19, [`src/budgets.ts`](packages/server/src/budgets.ts)): one small local model serves everything, so every model call has a *kind* and each kind a daily cap: `talk` (never limited), `summary` 40, `plan` 30, `chronicle` 8, `retell` 4, `faction-name` 3, `child-words` 2, `quest-flavor` 6. Over its cap a call doesn't happen and the caller's template words stand, so nothing depends on the model answering. The background queue runs summaries first, then plans, the chronicle and flavour; if its estimated wait passes two minutes it drops flavour first (never a summary), and your own conversation always pre-empts it. Tick times (a game hour 50 ms, a realm day 250 ms, the database write 50 ms) and the capital's per-frame work (4 ms) are numbers there too. Every number can be overridden for an experiment (`BUDGET_TICK_DAY_MS=0 npm run sim:realm -- --check` fails on purpose); tests multiply the time limits by `PERF_SLACK` (set it to 3 on a slow or busy machine). The admin Health tab shows each budget and how close it is.
+
+#### Checking the frame rate
+CI can't draw, so `client/tests/frame.test.ts` times the work the browser does for a capital's crowd (positions every frame, everyone's place once a game minute). The real 60 fps check is by hand: start `npm run web`, open the game with **`?fps=1`** on the address (`http://localhost:3000/?fps=1`), travel to the realm's capital, and watch the box in the corner for a minute with the crowd out: green is 58 fps or more with no frame past 34 ms, amber is 45 or more, red is below. Record anything that isn't green in the roadmap.
 
 ### Watch the whole world (N17, [`src/admin/`](packages/server/src/admin), [`client/src/admin/`](packages/client/src/admin))
 Run `npm run web` and open **`/admin`** (this machine only: the server listens on `127.0.0.1`, and the admin routes also check the caller's address; `ADMIN=on` skips that check, for use behind your own proxy). It is a second page that shows the world as it really is, spoilers and all, and it **changes nothing except the clock**.
@@ -366,7 +372,7 @@ Run `npm run web` and open **`/admin`** (this machine only: the server listens o
 - **Events:** every event in the world, newest first, in a list that draws only what is on screen: your game's events (all of them, from the database), the realm's news, and what the director pushed, each with the **why** behind it (a war's cause, why a head was picked, the director's reason). Filter by source, importance, place, faction, kind or person; click a row for who and why. It updates every two seconds.
 - **Search:** anyone by name, class, job, role, place or faction: the cast, notables (alive and dead), the townsfolk of every settlement (a query on the database), beasts, the player, and places.
 - **Pinned:** pin people, places or the player (kept in your browser, not in the save). A card shows where they are and what they are doing, needs and feelings, goals and grudges, relationships, what they know or believe and who told them, family and a timeline with reasons. A townsperson in another town shows their **day, hour by hour**, and **Follow on map** draws their town with everyone in it. Pinning the player lists every rumour about them, who holds it and how sure they are, and what each person feels about them.
-- **Health:** how long each step takes (the realm's day and its parts, the village hour, saving), counts, and the numbers `npm run sim:realm` prints.
+- **Health:** how long each step takes (the realm's day and its parts, the village hour, saving), each budget with how close it is (green under 75%, amber under 100%, red over), the model calls today by kind against their caps, the background queue and your first-word time, counts, and the numbers `npm run sim:realm` prints.
 - **Time:** ⏸ Pause stops the game's clock running on its own; +1 hour, +1 day and Fast-forward (up to 30 days) let time pass exactly as if you had waited. Each is logged to the director's log as `admin-time`, so it shows in the event stream.
 
 ## Play in the browser (`npm run web`)
@@ -594,6 +600,10 @@ scripts/check-npcs.ts    npm run check-npcs: the authoring check (T5)
 scripts/bench-style.ts   npm run bench:style: the blind voice test and consistency checks (T15)
 scripts/sim-realm.ts     npm run sim:realm: a seeded run of the realm, for balance (N13)
 scripts/bench-storage.ts npm run bench:storage: 50,000 people saved and loaded against a budget (N18)
+scripts/bench-busy.ts    npm run bench:busy: a busy week of model work against the budgets (N19)
+budgets.ts               every budget: model calls by kind, tick and frame times, queue wait (N19)
+llm/budgeted.ts          BudgetedProvider and ModelLedger: counts, caps and logs every model call (N19)
+metrics/                 timing ring buffers (N17), checkBudgets (N19), the busy-week simulation (N19)
 scripts/world.ts         npm run world:export / world:import: a whole world as one file (N18)
 store/                   people in SQLite: schema, PeopleStore (batches), materialise, export/import, lock (N18)
 ```

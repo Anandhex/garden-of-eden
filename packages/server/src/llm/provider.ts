@@ -4,6 +4,10 @@
  * Claude, etc. later means writing one new class that implements LLMProvider.
  */
 
+import type { CallKind } from "../budgets.js";
+
+export type { CallKind };
+
 export type ChatMessage =
   | { role: "user"; content: string }
   | { role: "assistant"; content: string; toolCalls?: ToolCall[] }
@@ -23,6 +27,10 @@ export interface ToolCall {
 }
 
 export interface ChatRequest {
+  /** What the call is for (N19). Required, so the compiler finds every call and the budget knows whose it is. */
+  kind: CallKind;
+  /** 0 for a first try, 1 for a retry: retries are logged but don't count against the day's cap. */
+  attempt?: number;
   system: string;
   messages: ChatMessage[];
   tools?: ToolDef[];
@@ -39,6 +47,8 @@ export interface ChatResult {
 
 /** A request for structured output: the reply must be JSON matching `schema`. */
 export interface GenerateRequest {
+  kind: CallKind;
+  attempt?: number;
   system: string;
   prompt: string;
   /** JSON Schema the reply must follow (e.g. from z.toJSONSchema). */

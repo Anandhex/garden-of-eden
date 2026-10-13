@@ -8,6 +8,7 @@
 import * as Phaser from "phaser";
 import { CLASS_RANK, type Snapshot } from "@millbrook/shared";
 import { crowd, crowdChats, person, promoted } from "../crowd";
+import { nearestShown, walkAt } from "./frame";
 import { hexColor, ORIGINS, TILE } from "./textures";
 
 const DPR = Math.min(2, window.devicePixelRatio || 1);
@@ -143,11 +144,9 @@ export class CrowdLayer {
   update(time: number, player: { x: number; y: number } | null): void {
     for (const i of this.moving) {
       const sp = this.sprites[i]!;
-      const k = Math.min(1, (time - sp.t0) / Math.max(1, sp.dur));
-      const x = sp.fx + (sp.tx - sp.fx) * k;
-      const y = sp.fy + (sp.ty - sp.fy) * k;
-      this.place(sp, x, y, k < 1 ? Math.abs(Math.sin(time / 70)) * -1.5 : 0);
-      if (k >= 1) this.moving.delete(i);
+      const { x, y, bob, done } = walkAt(sp, time);
+      this.place(sp, x, y, bob);
+      if (done) this.moving.delete(i);
     }
     this.drawLabels(player);
     for (const say of this.says) {
@@ -167,17 +166,7 @@ export class CrowdLayer {
 
   /** Names over the nearest few, and over whoever the pointer is on. */
   private drawLabels(player: { x: number; y: number } | null): void {
-    const near: Array<{ i: number; d: number }> = [];
-    if (player) {
-      for (let i = 0; i < this.sprites.length; i++) {
-        const sp = this.sprites[i]!;
-        if (!sp.shown) continue;
-        const d = Math.hypot(sp.x - player.x, sp.y - player.y);
-        if (d <= LABEL_RANGE) near.push({ i, d });
-      }
-      near.sort((a, b) => a.d - b.d);
-    }
-    const who = near.slice(0, LABELS).map((n) => n.i);
+    const who = player ? nearestShown(this.sprites, player, LABEL_RANGE, LABELS) : [];
     if (this.hover !== null && this.sprites[this.hover]?.shown && !who.includes(this.hover)) who.push(this.hover);
     this.labels.forEach((label, k) => {
       const i = who[k];

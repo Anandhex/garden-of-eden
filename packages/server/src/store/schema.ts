@@ -86,8 +86,22 @@ const EVENT_COLUMNS: Array<[string, string]> = [
   ["seq", "INTEGER"],
 ];
 
-/** Later versions: `MIGRATIONS[0]` takes version 1 to 2, and so on. */
-const MIGRATIONS: Array<(db: DatabaseSync) => void> = [];
+/**
+ * Later versions: `MIGRATIONS[0]` takes version 1 to 2, and so on.
+ * 2 (N19): `model_calls`, the log of every model call (real time and token counts: a measurement,
+ * not world state, so it isn't in TABLES and the world hash, export and import leave it out).
+ */
+const MIGRATIONS: Array<(db: DatabaseSync) => void> = [
+  (db) => {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS model_calls (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, day INTEGER, kind TEXT, ms REAL,
+        prompt_tokens INTEGER, reply_tokens INTEGER, dropped INTEGER, retry INTEGER, failed INTEGER
+      );
+      CREATE INDEX IF NOT EXISTS model_calls_day ON model_calls(day, kind);
+    `);
+  },
+];
 
 /** The version `applySchema` leaves a database at. */
 export const SCHEMA_VERSION = 1 + MIGRATIONS.length;

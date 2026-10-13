@@ -45,7 +45,7 @@ export function planningPrompt(persona: NpcPersona, state: NpcState, world: Worl
 export async function planDay(llm: LLMProvider, persona: NpcPersona, state: NpcState, world: WorldSnapshot, knownNames: string[] = []): Promise<DailyPlan | null> {
   if (state.outcome === "dead" || state.dormant) return null;
   const { system, prompt } = planningPrompt(persona, state, world);
-  const out = await structured(llm, PlanSchema, { system, prompt, maxTokens: 120, temperature: 0.6 });
+  const out = await structured(llm, PlanSchema, { kind: "plan", system, prompt, maxTokens: 120, temperature: 0.6 });
   if (!out) return null;
   const known = knownNameWords([persona], [world.player.name, ...knownNames]);
   const intentions = out.intentions.map((t) => t.trim()).filter((t) => unknownNames(t, known).length === 0);
