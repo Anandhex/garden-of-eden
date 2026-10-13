@@ -217,7 +217,10 @@ export function directorDay(realm: Realm, day: number, rng: Rng): DirectorPush[]
     if (touched.has(c.target) || rng() < 0.35) continue;
     if (c.kind.startsWith("found_") && foundings >= FOUNDINGS_PER_DAY) continue;
     touched.add(c.target);
+    const nextBefore = realm.next;
     const ok = c.run();
+    // News the push caused carries the push's reason (N17: the admin view shows why).
+    for (const n of realm.news) if (!n.why && Number(n.id.slice(2)) >= nextBefore) n.why = c.reason;
     realm.cooldowns[`${c.kind}:${c.target}`] = day + COOLDOWN_DAYS * (c.kind.startsWith("found_") ? 2 : 1);
     if (ok && c.kind.startsWith("found_")) foundings += 1;
     const push = { day, kind: c.kind, target: c.target, reason: c.reason, ok };

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Millbrook · Admin</title>
+<link rel="stylesheet" href="/src/style.css">
+<link rel="stylesheet" href="/src/admin/admin.css">
+</head>
+<body class="admin">
+<header>
+  <h1>Millbrook <small>admin</small></h1>
+  <span id="clock" class="pill" title="The game's clock">…</span>
+  <span id="paused" class="pill err" hidden>paused</span>
+  <span class="spacer"></span>
+  <span id="time-controls" title="These act on the live game, exactly as the player waiting would">
+    <button id="pause-btn" type="button">⏸ Pause</button>
+    <button data-time="step-hour" type="button">+1 hour</button>
+    <button data-time="step-day" type="button">+1 day</button>
+    <select id="fast-days" aria-label="Days to fast-forward">
+      <option value="3">3 days</option>
+      <option value="10">10 days</option>
+      <option value="30">30 days</option>
+    </select>
+    <button id="fast-btn" type="button">⏩ Fast-forward</button>
+  </span>
+  <a class="pill" href="/" title="Back to the game">The game</a>
+</header>
+<div class="note">Admin view: it shows what is really true, spoilers and all. Everything here is read-only except the clock.</div>
+<div id="note" class="note" hidden></div>
+<nav id="tabs">
+  <button data-tab="overview" class="on" type="button">Realm</button>
+  <button data-tab="events" type="button">Events</button>
+  <button data-tab="search" type="button">Search</button>
+  <button data-tab="pinned" type="button">Pinned</button>
+  <button data-tab="health" type="button">Health</button>
+</nav>
+<main id="views"></main>
+<script type="module" src="/src/admin/main.ts"></script>
+</body>
+</html>

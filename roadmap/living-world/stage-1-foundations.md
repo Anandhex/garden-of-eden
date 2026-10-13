@@ -6,7 +6,7 @@ See the world, keep it fast and stable, and know what the player knows. Everythi
 
 ## N17: The admin world view
 
-**Status:** ⬜ Planned
+**Status:** ✅ Built (2026-10-13), apart from "simulated at full detail", which waits for N25
 
 **Implementation plan:** [plans/n17-admin-world-view.md](plans/n17-admin-world-view.md)
 
@@ -14,16 +14,21 @@ See the world, keep it fast and stable, and know what the player knows. Everythi
 
 **The rules:** read-only, with one exception: the time controls (pause, step, fast-forward) act on the live game, because the user wants them in the admin panel (decided 2026-10-13). They run the same code as the player waiting and are logged. It shows the truth (what really happened), not what the player knows. It reads the same state and event log the game uses; it never changes them. A separate page (`/admin`), not a tab in the game.
 
-- [ ] **Realm overview:** a live map with kingdom borders, settlements, roads, armies, packs and caravans; per place population (by class), prosperity, food, coin; current wars, treaties and factions
-- [ ] **Event stream:** every event in the realm, filterable by place, faction, person, type and importance, each with its **why** (the director's reason, an NPC's decision and the options it weighed once N38 exists)
-- [ ] **Search:** anyone by name, class, job, place or faction (cast, notables, townsfolk, beasts)
-- [ ] **Pinning:** pin NPCs, the player or a place. A pinned NPC shows: where they are and what they're doing now; needs, emotions, goals and grudges; relationships; what they know or believe and who told them; family tree; a timeline of what they've done and why. A pinned NPC is simulated at full detail (N25) wherever they are
-- [ ] **Pinning the player:** what each NPC currently believes about the player (rumours, reputation, grudges, debts), and who believes what
-- [ ] **Time controls:** pause, step an hour or a day, fast-forward; the camera can follow a pinned NPC
-- [ ] **Health:** tick timings, counts (fights, factions, kingdoms, population), the numbers `sim:realm` prints, so tuning can be done live
-- [ ] Tests, README, this roadmap
+- [x] **Realm overview:** a live map with kingdom borders, settlements, roads, armies, packs and caravans; per place population (by class), prosperity, food, coin; current wars, treaties and factions
+- [x] **Event stream:** every event in the realm, filterable by place, faction, person, type and importance, each with its **why** (the director's reason, an NPC's decision and the options it weighed once N38 exists)
+- [x] **Search:** anyone by name, class, job, place or faction (cast, notables, townsfolk, beasts)
+- [~] **Pinning:** pin NPCs, the player or a place. A pinned NPC shows: where they are and what they're doing now; needs, emotions, goals and grudges; relationships; what they know or believe and who told them; family tree; a timeline of what they've done and why. A pinned NPC is simulated at full detail (N25) wherever they are *(not yet: until N25 gives the townsfolk lives, a pinned townsperson's day is worked out on demand from the roster, the map and the clock, which needs no simulation, and pinning cannot change what happens)*
+- [x] **Pinning the player:** what each NPC currently believes about the player (rumours, reputation, grudges, debts), and who believes what
+- [x] **Time controls:** pause, step an hour or a day, fast-forward; the camera can follow a pinned NPC *(a townsperson is picked out on their town's map; the talking cast's spots belong to the live game, so for them the town is shown without a marker)*
+- [x] **Health:** tick timings, counts (fights, factions, kingdoms, population), the numbers `sim:realm` prints, so tuning can be done live
+- [x] Tests, README, this roadmap
 
 - **Done when:** the admin page shows the realm map and its numbers; the event stream shows a war, a death and a director push with their reasons; pinning a townsperson in another town shows their day hour by hour; pinning the player shows a rumour about them and who believes it; nothing on the admin page changes the save except the time controls, which move the clock just as the player waiting would, and are logged.
+
+**How it's built:** the data side is [`server/src/admin/`](../../packages/server/src/admin): plain functions of an `AdminContext` (`world()`, `town()`, `store`, `queueLength()`, `time`) that only read: [`overview.ts`](../../packages/server/src/admin/overview.ts) (the map layer, totals, people by class a few places a request), [`events.ts`](../../packages/server/src/admin/events.ts) (game events from the database, realm news and the director's pushes and log, made alike as `AdminEvent`s with a `why`, filters and a `day:hour:rank:n` cursor), [`search.ts`](../../packages/server/src/admin/search.ts) (the cast, figures, beasts, the player, places, and a lazy per-settlement index of townsfolk built within a time budget, so a first search may say `complete: false`), [`person.ts`](../../packages/server/src/admin/person.ts) and [`player.ts`](../../packages/server/src/admin/player.ts) (cards as titled sections; a townsperson's 24 hours from `CrowdSim`; who believes which rumour about the player), [`health.ts`](../../packages/server/src/admin/health.ts) with [`metrics/timing.ts`](../../packages/server/src/metrics/timing.ts) (ring buffers; `realmDay` and its steps, `passHours`, `persist` are timed), and [`time.ts`](../../packages/server/src/admin/time.ts). Routes are in [`web/routes/admin.ts`](../../packages/server/src/web/routes/admin.ts): `GET /api/admin/*` only (anything else is 405, except `POST /api/admin/time`), local machine only unless `ADMIN=on` (403 otherwise), and `/admin` serves the second page. The time controls run `passHours` through the same `ActionQueue` as the player's wait and write an `admin-time` entry to the director's log; pause is a server flag that makes `/api/tick` do nothing. News and events got an optional `why` (and news a `people` list of figure ids, found when it is written), filled where code makes a choice: a war's cause, a treaty's reason, how a head was picked, a raid's grievance, a death's cause, the director's reason (copied onto the news it caused). `worldHash` ([`game/hash.ts`](../../packages/server/src/game/hash.ts)) is the proof nothing is written. The page is [`client/admin.html`](../../packages/client/admin.html) with [`src/admin/`](../../packages/client/src/admin) (a second Vite entry the game never imports; `tests/n17.test.ts` greps the game's scripts for `/api/admin`); the map is drawn by [`realmMap.ts`](../../packages/client/src/realmMap.ts), shared with the game's Realm tab. Pins live in the browser's `localStorage`, never in the save.
+
+- **Left for later:** armies in the field and caravans (N55, N26) have no place on the map yet; budgets (N19) and cause chains (N20) have named empty slots in the health panel and the event detail; the cast's on-map positions, needs and emotions for townsfolk (N25), ambitions and choices (N37, N38) show as "not built yet" sections on the cards.
+- **Run it:** `npm run web`, then open `http://localhost:3000/admin`. (Under `npm run dev` the page is `/admin.html` on the Vite port.)
 
 ## N18: Scale and storage
 
@@ -148,6 +153,7 @@ See the world, keep it fast and stable, and know what the player knows. Everythi
 - [ ] Feed scopes: **here**, **my kingdom**, **everywhere**, filtered by importance so it doesn't flood
 - [ ] Events about pinned NPCs always show (in the admin view at once; in the player's feed once known)
 - [ ] Fix: the feed reports Millbrook's daily trades while the player is in another place (from N16's "left as it is")
+- [ ] **Every place has its own news clock** (added 2026-10-13): news reaches each place after the days travellers take from where it happened, and the talking people of every place know only what has reached their place. Today they all go by Millbrook's clock: a visitor's file knows all realm news that has reached Millbrook, so people in the town where something happened hear of it late, and far-off people know Millbrook's news too early
 - [ ] Tests, README, this roadmap
 
-- **Done when:** a war in a far kingdom appears in the player's "everywhere" feed only after its news reaches them, and in the admin view at once; standing in Highdale shows Highdale's trades, not Millbrook's.
+- **Done when:** a war in a far kingdom appears in the player's "everywhere" feed only after its news reaches them, and in the admin view at once; standing in Highdale shows Highdale's trades, not Millbrook's; someone in the town where something happened knows it that day, and someone in a town farther away learns it only when it reaches them, not when it reaches Millbrook.

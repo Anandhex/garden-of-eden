@@ -11,15 +11,35 @@ export const MAX_PUSHES = 80;
  * so it reaches Millbrook after the days a traveller takes (game/realm/news.ts).
  * `names`: proper names in it, for the lore's invented-name check.
  */
-export function realmNews(realm: Realm, day: number, at: string | null, kind: string, text: string, importance: number, names: string[] = []): void {
+export function realmNews(realm: Realm, day: number, at: string | null, kind: string, text: string, importance: number, names: string[] = [], extra: { why?: string; people?: string[] } = {}): void {
   const reaches = day + (at === HOME_ID ? 0 : travelDays(realm, at, HOME_ID));
-  realm.news.push({ id: `rn${realm.next++}`, day, text, at, kind, importance: Math.max(1, Math.min(10, importance)), reaches, names: [...new Set([...names, ...namesIn(realm, text)])] });
+  const all = [...new Set([...names, ...namesIn(realm, text)])];
+  const people = [...new Set([...(extra.people ?? []), ...peopleNamed(realm, all)])];
+  realm.news.push({
+    id: `rn${realm.next++}`,
+    day,
+    text,
+    at,
+    kind,
+    importance: Math.max(1, Math.min(10, importance)),
+    reaches,
+    names: all,
+    ...(people.length > 0 ? { people } : {}),
+    ...(extra.why ? { why: extra.why } : {}),
+  });
   if (realm.news.length > MAX_NEWS) {
     // Drop the least important delivered (or old) one first.
     let drop = 0;
     for (let i = 1; i < realm.news.length; i++) if (realm.news[i]!.importance < realm.news[drop]!.importance) drop = i;
     realm.news.splice(drop, 1);
   }
+}
+
+/** The figures (ids) whose names are among `names`. Names are unique in a realm (takenNames), so a name is enough. */
+function peopleNamed(realm: Realm, names: string[]): string[] {
+  if (names.length === 0) return [];
+  const want = new Set(names);
+  return Object.values(realm.figures).filter((f) => want.has(f.name)).map((f) => f.id);
 }
 
 /** Every realm name the text mentions (places, kingdoms, people, factions, dungeons). */

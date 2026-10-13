@@ -162,7 +162,7 @@ function build(realm: Realm, s: Settlement, day: number): void {
   s.treasury -= cost;
   s.project = { building: need.building, done: day + 4 + level(s, need.building) * 3, cost };
   tally(realm, "projects");
-  realmNews(realm, day, s.id, "building", `${s.name} has started ${need.building === "farms" ? "clearing new fields" : `building ${BUILDING_WORDS[need.building]}`} ${need.why}.`, 2, [s.name]);
+  realmNews(realm, day, s.id, "building", `${s.name} has started ${need.building === "farms" ? "clearing new fields" : `building ${BUILDING_WORDS[need.building]}`} ${need.why}.`, 2, [s.name], { why: need.why });
 }
 
 /** A place that grew enough is promoted; one that emptied is abandoned (its people and figures go elsewhere). */
@@ -218,7 +218,7 @@ function migrate(realm: Realm, day: number, rng: Rng): void {
     f.home = to.id;
     f.superior = to.leader;
     tally(realm, "movers");
-    realmNews(realm, day, home.id, "moved", `${titled(f)} has left ${home.name} to seek a better life in ${to.name}.`, 2, [f.name, home.name, to.name]);
+    realmNews(realm, day, home.id, "moved", `${titled(f)} has left ${home.name} to seek a better life in ${to.name}.`, 2, [f.name, home.name, to.name], { why: `${home.name} is poor (prosperity ${Math.round(home.prosperity)}) and ${to.name} is better off, and ${f.name} is ambitious` });
   }
 }
 

@@ -16,7 +16,7 @@ import { TIERS, tierIndex } from "../game/life.js";
  */
 export interface DirectorLogEntry {
   day: number;
-  kind: "add_lore" | "add_news" | "propose_quest" | "propose_trait_shift" | "plan" | "flavor" | "summary";
+  kind: "add_lore" | "add_news" | "propose_quest" | "propose_trait_shift" | "plan" | "flavor" | "summary" | "admin-time";
   ok: boolean;
   reason: string;
   /** The proposal as the model sent it (JSON). */

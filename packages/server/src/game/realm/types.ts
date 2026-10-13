@@ -283,6 +283,10 @@ export const RealmNewsSchema = z.object({
   delivered: z.boolean().optional(),
   /** Names in it that the lore should know (for the invented-name check). */
   names: z.array(z.string()).optional(),
+  /** Figures in it (figure ids), filled when it is written, so the admin view needn't match names in text (N17). */
+  people: z.array(z.string()).optional(),
+  /** The reason behind it, when a choice made it happen: a war's cause, a split's grievance, how a head was picked (N17). */
+  why: z.string().optional(),
 });
 export type RealmNews = z.infer<typeof RealmNewsSchema>;
 
