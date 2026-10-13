@@ -85,7 +85,7 @@ export function search(ctx: AdminContext, query: string, filters: { kind?: Admin
   for (const [id, persona] of Object.entries(town.personas)) {
     const folk = parseTownsfolkId(id);
     const figure = folk ? undefined : town.figureOf(id);
-    const site = folk ? folk.site : figure ? figure.home : HOME_ID;
+    const site = folk ? (town.homeSiteOf(id) ?? folk.site) : figure ? figure.home : HOME_ID;
     const dead = world.npcStates[id]?.outcome === "dead";
     add(
       { ref: folk ? `town:${id}` : `cast:${id}`, kind: folk ? "townsperson" : "cast", name: persona.name, detail: `${persona.role}${site ? ` of ${siteName(site)}` : ""}${dead ? " (dead)" : ""}`, site },

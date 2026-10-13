@@ -6,6 +6,11 @@ import { formatMoney } from "../game/money.js";
 import { chainOf, titled } from "../game/realm/figures.js";
 import { rankIn } from "../game/realm/factions.js";
 import { HOME_ID } from "../game/realm/generate.js";
+import { lineageOf } from "../game/people/index.js";
+import { deathWords, parseDeath } from "../game/people/death.js";
+import { ageFrom } from "../game/people/rules.js";
+import { traitsOfRow } from "../game/people/traits.js";
+import type { PersonRow } from "../store/peopleStore.js";
 import { parseTownsfolkId } from "../game/realm/townsfolk.js";
 import type { Figure, Settlement } from "../game/realm/types.js";
 import { realmView } from "../game/realm/view.js";
@@ -211,10 +216,50 @@ function buildingName(map: { buildings: Array<{ name: string; kind?: string }> }
   return b ? (b.name || b.kind || "a building") : null;
 }
 
+/** A townsperson's life as the database has it (N25): when they were born, how they died, who they came from and who came from them. */
+function lifeSections(ctx: AdminContext, row: PersonRow): AdminSection[] {
+  const world = ctx.world();
+  const store = ctx.town().store;
+  if (!store) return [];
+  const realm = world.realm;
+  const rec = parseDeath(row.death);
+  const traits = traitsOfRow(row);
+  const link = (r: PersonRow | null): [string, string, string?] | null => (r ? [r.death === null ? "alive" : "dead", `${r.name}, ${ageFrom(r.born_day, rec?.day ?? world.day)}`, `town:${r.id}`] : null);
+  const kin = lineageOf(store.people, row);
+  const rows: Array<[string, string, string?]> = [];
+  const add = (label: string, r: PersonRow | null) => {
+    const l = link(r);
+    if (l) rows.push([label, l[1] + (r!.death !== null ? " (dead)" : ""), l[2]]);
+  };
+  add("Mother", kin.mother);
+  add("Father", kin.father);
+  add("Spouse", kin.spouse);
+  for (const c of kin.children) add("Child", c);
+  for (const sb of kin.siblings) add("Sibling", sb);
+  const life: Array<[string, string, string?]> = [
+    ["Born", `day ${row.born_day}${row.mother ? " in play" : " (one of the first people)"}, age ${ageFrom(row.born_day, rec?.day ?? world.day)}${rec ? " at death" : ""}`],
+    ["Potential", `${traits.potential} (ambition ${traits.ambition}, bravery ${traits.bravery}, greed ${traits.greed}, loyalty ${traits.loyalty})`],
+  ];
+  if (row.expecting) life.push(["Expecting", `a child, due day ${(JSON.parse(row.expecting) as { due: number }).due}`]);
+  if (rec) life.push(["Died", `${deathWords(rec)} on day ${rec.day}${rec.hour !== undefined ? ` at ${rec.hour}:00` : ""}${rec.site && realm?.settlements[rec.site] ? ` in ${realm.settlements[rec.site]!.name}` : ""}${rec.killer ? `, by ${rec.killer}` : ""}`, rec.site ? `place:${rec.site}` : undefined], ["Cause", rec.cause + (rec.event ? ` (${rec.event})` : "")]);
+  const out: AdminSection[] = [{ title: "Life", rows: life }];
+  out.push(rows.length > 0 ? { title: "Family", rows } : { title: "Family", unavailable: "no kin recorded: one of the first people of their place, unmarried and childless" });
+  const fig = row.figure ? realm?.figures[row.figure] : undefined;
+  if (fig) out.push({ title: "In the realm", rows: [["Realm figure", titled(fig), `figure:${fig.id}`]] });
+  return out;
+}
+
 function townspersonCard(ctx: AdminContext, id: string): AdminCard | null {
   const t = parseTownsfolkId(id);
   if (!t) return null;
-  const found = townsperson(ctx, t.site, id);
+  const row = ctx.town().store?.people.get(id) ?? null;
+  const gone = row && row.death !== null ? row : null;
+  // Someone who has died is no longer on the map: their card is their life.
+  if (gone) {
+    const place = ctx.world().realm?.settlements[gone.site];
+    return { ref: `town:${id}`, kind: "townsperson", name: gone.name, subtitle: `${gone.cls} ${gone.job}${place ? ` of ${place.name}` : ""} (dead)`, alive: false, site: gone.site, siteName: place?.name ?? null, doing: "dead", sections: lifeSections(ctx, gone), follow: { site: gone.site, id: "" } };
+  }
+  const found = townsperson(ctx, ctx.town().homeSiteOf(id) ?? t.site, id);
   const world = ctx.world();
   const persona = ctx.town().personas[id];
   const state = ctx.town().agents[id]?.state ?? world.npcStates[id];
@@ -229,7 +274,8 @@ function townspersonCard(ctx: AdminContext, id: string): AdminCard | null {
     day.push({ hour: h, doing: at.doing, x: at.x, y: at.y, visible: at.visible, inside: at.inside !== undefined ? buildingName(folk.map, at.inside) : null });
   }
   const workIndex = /^front:(\d+)$/.exec(person.work)?.[1];
-  const place = world.realm!.settlements[t.site]!;
+  const siteId = ctx.town().homeSiteOf(id) ?? t.site;
+  const place = world.realm!.settlements[siteId]!;
   const sections: AdminSection[] = [
     {
       title: "Right now",
@@ -251,6 +297,7 @@ function townspersonCard(ctx: AdminContext, id: string): AdminCard | null {
         ...(person.master ? ([["Belongs to / serves", person.master, person.masterId ? `town:${person.masterId}` : undefined]] as Array<[string, string, string?]>) : []),
       ],
     },
+    ...(row ? lifeSections(ctx, row) : []),
     { title: "Needs, emotions, goals", unavailable: "N25: townsfolk get needs, feelings and lives of their own" },
   ];
   if (persona && state) sections.push(...castSections(ctx, id, persona, state));
@@ -260,13 +307,13 @@ function townspersonCard(ctx: AdminContext, id: string): AdminCard | null {
     name: person.name,
     subtitle: `${CLASS_WORDS[person.cls]} ${JOB_INFO[person.job]?.words ?? person.job} of ${place.name}`,
     alive: state?.outcome !== "dead",
-    site: t.site,
+    site: siteId,
     siteName: place.name,
     doing: now.doing,
     sections,
     day,
     rolledOn: world.day,
-    follow: { site: t.site, id },
+    follow: { site: siteId, id },
   };
 }
 

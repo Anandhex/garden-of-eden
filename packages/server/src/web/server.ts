@@ -435,8 +435,9 @@ function absence(id: string): string | null {
   const folk = parseTownsfolkId(id);
   if (folk) {
     const name = personas[id]!.name;
-    const place = world.realm?.settlements[folk.site]?.name ?? "another place";
-    if (folk.site !== town.site()) return `${name} is in ${place}, not here.`;
+    const home = town.homeSiteOf(id) ?? folk.site;
+    const place = world.realm?.settlements[home]?.name ?? "another place";
+    if (home !== town.site()) return `${name} is in ${place}, not here.`;
     if (town.area() !== "village") return `${name} is back in ${place}.`;
     const at = townsfolkAt(id);
     if (!at) return `${name} isn't about.`;

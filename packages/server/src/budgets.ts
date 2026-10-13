@@ -43,7 +43,7 @@ export const budgets = {
   tick: {
     /** One game hour at full detail: the player's site and the people pinned (N25). Measured: ~2 ms for the cast and village. */
     hourFullMs: num("BUDGET_TICK_HOUR_MS", 50),
-    /** One game day of the whole realm at coarse detail. Measured: 4 ms median, 7 ms at the 95th (sim:realm, 120 days). */
+    /** One game day of the whole realm at coarse detail (the realm's day; everyone's day, `people.day`, is timed alongside and must fit the same limit: tests/n25). Measured: 4 ms median, 7 ms at the 95th (sim:realm, 120 days). */
     dayCoarseMs: num("BUDGET_TICK_DAY_MS", 250),
     /** One year (config.daysPerYear days) of lazy catch-up for one place (N25 fills this in). */
     yearCatchupMs: num("BUDGET_TICK_YEAR_MS", 1500),

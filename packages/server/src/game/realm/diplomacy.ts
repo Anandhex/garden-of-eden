@@ -2,7 +2,7 @@ import type { Rng } from "../dice.js";
 import { addDeed, addRenown, titled } from "./figures.js";
 import { distance, HOME_ID, neighbours } from "./generate.js";
 import { realmNews, tally } from "./log.js";
-import { bury, fight, gangSide, settlementSide, type Side } from "./military.js";
+import { casualty, fight, gangSide, settlementSide, type Side } from "./military.js";
 import type { Party, Realm, Settlement, Treaty, TreatyKind, War } from "./types.js";
 
 /**
@@ -136,8 +136,9 @@ export function raid(realm: Realm, attacker: Side, attackerParty: Party, target:
   defence.strength += help.strength;
   const what = `the raid on ${target.name}`;
   const r = fight(realm, attacker, defence, day, rng, what);
-  bury(attacker.home, r.lost.attackers);
-  bury(target, r.lost.defenders);
+  const raidRef = `raid:${day}:${attacker.home?.id ?? attacker.name.toLowerCase().replace(/[^a-z0-9]+/g, "_")}>${target.id}`;
+  casualty(realm, attacker.home, "raid", r.lost.attackers, `${raidRef}:raiders`, day);
+  casualty(realm, target, "raid", r.lost.defenders, raidRef, day);
   target.lastRaided = day;
   tally(realm, "raids");
   if (target.home) realm.home.push({ day, kind: "raid", count: Math.max(2, Math.min(6, Math.round(attacker.men / 4))), by: attacker.name });
@@ -328,8 +329,8 @@ export function warsDay(realm: Realm, day: number, rng: Rng): void {
     const defence = settlementSide(realm, at);
     for (const d of w.defenders) defence.strength += armyOf(realm, d, day).strength * (d === w.defenders[0] ? 0.4 : 0.25);
     const r = fight(realm, attack, defence, day, rng, `the battle of ${at.name}`);
-    bury(attack.home, r.lost.attackers);
-    bury(at, r.lost.defenders);
+    casualty(realm, attack.home, "battle", r.lost.attackers, `battle:${day}:${at.id}:attackers`, day);
+    casualty(realm, at, "battle", r.lost.defenders, `battle:${day}:${at.id}`, day);
     at.lastRaided = day;
     // A battle lost at the walls leaves its mark.
     if (r.attackerWon && rng() < 0.5) damageBuilding(at, rng);

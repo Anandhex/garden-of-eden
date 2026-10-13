@@ -90,13 +90,13 @@ function fromPush(realm: Realm, p: DirectorPush): AdminEvent {
 }
 
 /** Everything in the stream, unfiltered, in no particular order. */
-function all(ctx: AdminContext): AdminEvent[] {
+function all(ctx: AdminContext, lives = false): AdminEvent[] {
   const world = ctx.world();
   const realm = world.realm;
   const out: AdminEvent[] = [];
   // Every game event is in the database; the save holds only the latest few hundred. Take both, once each.
   const seen = new Set<string>();
-  for (const e of [...(ctx.store?.recentEvents({ limit: 5000 }) ?? []), ...(world.events ?? [])]) {
+  for (const e of [...(ctx.store?.recentEvents({ limit: 5000, noLives: !lives }) ?? []), ...(world.events ?? [])]) {
     if (seen.has(e.id)) continue;
     seen.add(e.id);
     out.push(fromGame(ctx, e));
@@ -127,7 +127,8 @@ function all(ctx: AdminContext): AdminEvent[] {
 
 /** The stream, filtered, newest first. `cursor` is the newest row's place in the whole stream. */
 export function events(ctx: AdminContext, q: AdminEventQuery = {}): AdminEventsPage {
-  const every = all(ctx).sort((a, b) => compareAt(b.at, a.at));
+  // The townsfolk's births, deaths, weddings and moves are thousands: they are in the stream when it is about a person or a place.
+  const every = all(ctx, q.person !== undefined || q.site !== undefined).sort((a, b) => compareAt(b.at, a.at));
   const keep = every.filter(
     (e) =>
       (q.site === undefined || e.site === q.site) &&

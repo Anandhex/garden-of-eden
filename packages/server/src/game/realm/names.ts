@@ -67,6 +67,11 @@ export function kingdomName(rng: Rng, taken: Set<string>): string {
   return n;
 }
 
+/** A first name, for a child born into a family that already has its second one. */
+export function givenName(rng: Rng, gender: "female" | "male"): string {
+  return pick(rng, gender === "female" ? FEMALE : MALE);
+}
+
 export function personName(rng: Rng, gender: "female" | "male", taken: Set<string>): string {
   for (let i = 0; i < 100; i++) {
     const n = `${pick(rng, gender === "female" ? FEMALE : MALE)} ${pick(rng, FAMILY)}`;

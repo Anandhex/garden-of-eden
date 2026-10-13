@@ -9,6 +9,7 @@ import type { Haunts } from "./realm/haunts.js";
 import { DeathRegistry } from "./deaths.js";
 import { streamFor, type Rng } from "./dice.js";
 import { config } from "../config.js";
+import { freezeHouses } from "./realm/houses.js";
 import { generateRealm } from "./realm/generate.js";
 import { RealmSchema, type Realm } from "./realm/types.js";
 import { eventIdFor } from "../npc/knowledge.js";
@@ -48,8 +49,15 @@ import { parsePersona } from "../npc/personaSchema.js";
  *    JSON written atomically and carries `seed`, `rolls`, `nextEventSeq` (a seed gives the
  *    same world) and `saveTick` (which database moment it goes with). Migrations start
  *    again from here.
+ * 12: N25 townsfolk lives. Settlements have a fixed number of `houses`, the realm queues
+ *    `casualties` for the day's life step, and figures carry a typed `death` and the
+ *    townsperson they rose from (`person`). The database gains `expecting`, `last_birth` and
+ *    `stepped_day` on people, `site_days` and `site_seq` (schema 3). A v11 save loads as it is:
+ *    each place gets the houses its population gave it.
  */
-export const SAVE_VERSION = 11;
+export const SAVE_VERSION = 12;
+/** The oldest save this build can still read (older ones are set aside: N18's clean break). */
+export const MIN_SAVE_VERSION = 11;
 
 export interface SavedWorld extends WorldSnapshot {
   version: number;
@@ -247,7 +255,7 @@ export function loadWorld(file: string, personas: Record<string, NpcPersona>, cr
 export function loadWorldWithNotice(file: string, personas: Record<string, NpcPersona>, creatureTemplates: Record<string, CreatureTemplate> = {}, store?: SaveStore): LoadedWorld {
   if (!existsSync(file)) return { world: newWorld(personas, creatureTemplates), notice: null };
   const json = JSON.parse(readFileSync(file, "utf8")) as { version?: unknown; saveTick?: unknown };
-  if (typeof json.version !== "number" || json.version < SAVE_VERSION) {
+  if (typeof json.version !== "number" || json.version < MIN_SAVE_VERSION) {
     const aside = asideName(file, json.version);
     renameSync(file, aside);
     store?.reset();
@@ -365,7 +373,11 @@ function upgradeSave(
 function loadRealm(raw: unknown, day: number, seed: number): { realm?: Realm } {
   if (!config.realm) return raw ? { realm: raw as Realm } : {};
   const r = RealmSchema.safeParse(raw);
-  if (r.success) return { realm: r.data };
+  if (r.success) {
+    // A realm from before v12 has no houses on record: each place keeps the number its people gave it.
+    freezeHouses(r.data);
+    return { realm: r.data };
+  }
   return { realm: generateRealm(seed, day) };
 }
 

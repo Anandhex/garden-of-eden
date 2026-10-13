@@ -136,7 +136,30 @@ export function fight(realm: Realm, a: Side, d: Side, day: number, rng: Rng, wha
   return { attackerWon, lost: attackerWon ? { attackers: lostWin, defenders: lostLose } : { attackers: lostLose, defenders: lostWin }, dead, hero, lines };
 }
 
-/** Losses come off a settlement's people. */
+/** Losses come off a settlement's people, as a number. (Where people are rows, a fight orders casualties instead: `casualty`.) */
 export function bury(s: Settlement | null, n: number): void {
   if (s) s.population = Math.max(0, s.population - n);
+}
+
+/** The places whose people are rows, for the realm day being run (set by `realmDay`). */
+let livePlaces: ReadonlySet<string> = new Set();
+export function withLivePlaces<T>(live: ReadonlySet<string>, fn: () => T): T {
+  const was = livePlaces;
+  livePlaces = live;
+  try {
+    return fn();
+  } finally {
+    livePlaces = was;
+  }
+}
+
+/**
+ * A fight killed `n` of a settlement's people (N25). Where the people are rows, an order is left for the
+ * day's life step to pick who dies and write real deaths with this event on them; elsewhere it is a
+ * number, as before. `event`: a ref for the fight ("raid:34:ashby>millbrook"), unique per place and day.
+ */
+export function casualty(realm: Realm, s: Settlement | null, cause: "battle" | "siege" | "raid" | "beast", n: number, event: string, day: number, killer?: string): void {
+  if (!s || n <= 0) return;
+  if (livePlaces.has(s.id)) realm.casualties.push({ site: s.id, cause, count: n, event, day, ...(killer ? { killer } : {}) });
+  else bury(s, n);
 }

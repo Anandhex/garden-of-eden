@@ -23,7 +23,7 @@ Each track has its own folder (see **Where things are** below). Mark items `[x]`
 | Tooling track (T1–T15) | [roadmap/tooling/](roadmap/tooling/README.md) | 🟡 Tests, simulation, checks and evals |
 | Game track (G1–G4) | [roadmap/game/](roadmap/game/README.md) | 🟡 The browser client, game feel, performance, shipping |
 
-**Next up:** the [vertical slice](roadmap/living-world/README.md#milestone-the-vertical-slice), N17 (the admin world view), N18 (scale and storage) and N19 (budgets) are built; next is [N25 Townsfolk lives](roadmap/living-world/stage-2-everyone-lives.md). Detailed build guides for N17–N28 are in [roadmap/living-world/plans/](roadmap/living-world/plans/README.md).
+**Next up:** the [vertical slice](roadmap/living-world/README.md#milestone-the-vertical-slice), N17 (the admin world view), N18 (scale and storage) and N19 (budgets) are built; N25 (townsfolk lives) is built; next is [N26 The open road](roadmap/living-world/stage-2-everyone-lives.md#n26-the-open-road). Detailed build guides for N17–N28 are in [roadmap/living-world/plans/](roadmap/living-world/plans/README.md).
 
 ## Status
 
@@ -56,7 +56,7 @@ Each track has its own folder (see **Where things are** below). Mark items `[x]`
 | Living world · S1 | [N22 Long-run balance tests](roadmap/living-world/stage-1-foundations.md#n22-long-run-balance-tests) | ⬜ Planned |
 | Living world · S1 | [N23 Sharing worlds](roadmap/living-world/stage-1-foundations.md#n23-sharing-worlds) | ⬜ Planned |
 | Living world · S1 | [N24 Global reporting](roadmap/living-world/stage-1-foundations.md#n24-global-reporting) | ⬜ Planned |
-| Living world · S2 | [N25 Townsfolk lives](roadmap/living-world/stage-2-everyone-lives.md#n25-townsfolk-lives) | ⬜ Planned (age, marry, die, rise; levels of detail) |
+| Living world · S2 | [N25 Townsfolk lives](roadmap/living-world/stage-2-everyone-lives.md#n25-townsfolk-lives) | ✅ Every stored person ages, marries (class, age, kin and slave-leave rules), has children who inherit, moves as a household and dies with a typed cause; population is the count of the living; fights order casualties; houses are fixed; rising to figure and talker with parents named; coarse/full/lazy give the same people (`tests/n25.test.ts`, `npm run sim:lives`). Save v12 |
 | Living world · S2 | [N26 The open road](roadmap/living-world/stage-2-everyone-lives.md#n26-the-open-road) | ⬜ Planned (a walkable journey, not a time skip) |
 | Living world · S2 | [N27 The wilds](roadmap/living-world/stage-2-everyone-lives.md#n27-the-wilds) | ⬜ Planned (off-road exploration and discovery) |
 | Living world · S2 | [N28 Fauna and flora](roadmap/living-world/stage-2-everyone-lives.md#n28-fauna-and-flora) | ⬜ Planned (rich wildlife and plants by terrain and season) |

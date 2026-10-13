@@ -11,7 +11,7 @@ import type { DatabaseSync } from "node:sqlite";
 
 /** Columns of each state table, in order: what export and the world hash read, and what import checks. */
 export const TABLES = {
-  people: ["id", "site", "n", "name", "gender", "species", "born_day", "cls", "job", "home", "work", "master", "master_id", "faction", "mother", "father", "spouse", "figure", "persona", "traits", "death", "rev"],
+  people: ["id", "site", "n", "name", "gender", "species", "born_day", "cls", "job", "home", "work", "master", "master_id", "faction", "mother", "father", "spouse", "figure", "persona", "traits", "death", "expecting", "last_birth", "stepped_day", "rev"],
   relationships: ["a", "b", "trust", "affection", "respect", "fear", "since"],
   knowledge: ["who", "ref", "learned_day", "source", "accuracy"],
   grievances: ["id", "who", "against", "cause_ref", "weight", "since", "settled"],
@@ -20,6 +20,8 @@ export const TABLES = {
   events: ["id", "day", "hour", "kind", "actor", "target", "details", "importance", "place", "witnesses", "known_by", "why", "caused_by", "site", "kingdom", "seq"],
   memories: ["id", "npc", "day", "kind", "text", "importance", "embedder", "vector"],
   director_log: ["id", "day", "kind", "ok", "reason", "proposal", "event"],
+  site_days: ["site", "day", "data"],
+  site_seq: ["site", "next_id", "next_n", "stepped"],
 } as const;
 export type TableName = keyof typeof TABLES;
 
@@ -34,6 +36,8 @@ export const ORDER_BY: Record<TableName, string> = {
   events: "id",
   memories: "id",
   director_log: "id",
+  site_days: "site, day",
+  site_seq: "site",
 };
 
 const V1 = `
@@ -90,6 +94,10 @@ const EVENT_COLUMNS: Array<[string, string]> = [
  * Later versions: `MIGRATIONS[0]` takes version 1 to 2, and so on.
  * 2 (N19): `model_calls`, the log of every model call (real time and token counts: a measurement,
  * not world state, so it isn't in TABLES and the world hash, export and import leave it out).
+ * 3 (N25): townsfolk lives. `people` gains `expecting` (JSON {father, due}), `last_birth` and `stepped_day` (the last
+ * day their life step ran, or the day they arrived), `site_days` (each place's conditions on each day, which a day's step
+ * and a lazy catch-up both read) and `site_seq` (the next person id and roster order of each place, never reused, and the
+ * last day its people were stepped).
  */
 const MIGRATIONS: Array<(db: DatabaseSync) => void> = [
   (db) => {
@@ -99,6 +107,19 @@ const MIGRATIONS: Array<(db: DatabaseSync) => void> = [
         prompt_tokens INTEGER, reply_tokens INTEGER, dropped INTEGER, retry INTEGER, failed INTEGER
       );
       CREATE INDEX IF NOT EXISTS model_calls_day ON model_calls(day, kind);
+    `);
+  },
+  (db) => {
+    const have = new Set((db.prepare("PRAGMA table_info(people)").all() as Array<{ name: string }>).map((c) => c.name));
+    if (!have.has("expecting")) db.exec("ALTER TABLE people ADD COLUMN expecting TEXT");
+    if (!have.has("last_birth")) db.exec("ALTER TABLE people ADD COLUMN last_birth INTEGER");
+    if (!have.has("stepped_day")) db.exec("ALTER TABLE people ADD COLUMN stepped_day INTEGER NOT NULL DEFAULT 0");
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS site_days (site TEXT NOT NULL, day INTEGER NOT NULL, data TEXT NOT NULL, PRIMARY KEY (site, day));
+      CREATE TABLE IF NOT EXISTS site_seq (site TEXT PRIMARY KEY, next_id INTEGER NOT NULL, next_n INTEGER NOT NULL, stepped INTEGER NOT NULL DEFAULT 0);
+      CREATE INDEX IF NOT EXISTS people_spouse ON people(spouse) WHERE spouse IS NOT NULL;
+      CREATE INDEX IF NOT EXISTS people_mother ON people(mother) WHERE mother IS NOT NULL;
+      CREATE INDEX IF NOT EXISTS people_father ON people(father) WHERE father IS NOT NULL;
     `);
   },
 ];

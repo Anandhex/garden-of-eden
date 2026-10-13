@@ -24,6 +24,7 @@
     "bench:voice": "tsx --env-file-if-exists=.env packages/server/scripts/bench-voice.ts",
     "sim": "tsx packages/server/scripts/sim.ts",
     "sim:realm": "tsx packages/server/scripts/sim-realm.ts",
+    "sim:lives": "tsx packages/server/scripts/sim-lives.ts",
     "replay": "tsx packages/server/scripts/replay.ts",
     "world:export": "tsx packages/server/scripts/world.ts export",
     "world:import": "tsx packages/server/scripts/world.ts import",

@@ -65,6 +65,8 @@ export const EVENT_KINDS = [
   "expecting",
   "birth",
   "coming-of-age",
+  // Townsfolk lives (N25)
+  "migration",
 ] as const;
 export type EventKind = (typeof EVENT_KINDS)[number];
 

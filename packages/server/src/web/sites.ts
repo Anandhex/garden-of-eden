@@ -1,5 +1,6 @@
 import { seedFrom, seededRng, type Rng } from "../game/dice.js";
 import { HOME_ID } from "../game/realm/generate.js";
+import { housesOf } from "../game/realm/houses.js";
 import type { Realm, Settlement } from "../game/realm/types.js";
 import { AREAS, type AreaId, PLACE_NAMES, PLACE_NEARBY, type PlaceId } from "../game/schedule.js";
 import type { CrowdZone } from "@millbrook/shared";
@@ -70,7 +71,7 @@ export interface SiteMap {
 }
 
 /** What a map is made from: a settlement (a realm one, or Millbrook's own when there's no realm). */
-export type SiteInfo = Pick<Settlement, "id" | "name" | "kind" | "buildings" | "terrain" | "population">;
+export type SiteInfo = Pick<Settlement, "id" | "name" | "kind" | "buildings" | "terrain" | "population" | "houses">;
 
 /** Millbrook as the realm makes it (realm/generate.ts), for worlds without a realm. */
 export const MILLBROOK_INFO: SiteInfo = {
@@ -169,7 +170,7 @@ export function siteMap(s: SiteInfo, area: AreaId = "village", realm?: Realm | n
   const areas = areasOf(realm, s.id);
   const at: AreaId = areas.includes(area) ? area : "village";
   const extra = at === "camp" ? (realm ? gangAt(realm, s.id)?.name : "") : at === "mine" ? (realm ? dungeonAt(realm, s.id)?.name : "") : "";
-  const key = `${s.id}:${at}:${s.kind}:${JSON.stringify(s.buildings)}:${areas.join(",")}:${extra ?? ""}`;
+  const key = `${s.id}:${at}:${s.kind}:${JSON.stringify(s.buildings)}:${areas.join(",")}:${extra ?? ""}:${s.houses ?? ""}`;
   const hit = cache.get(key);
   if (hit) return hit;
   const rng = seededRng(seedFrom(`${s.id}:${at}`));
@@ -279,8 +280,6 @@ export const VILLAGE_SIZE: Record<string, { w: number; h: number }> = {
   city: { w: 72, h: 48 },
   capital: { w: 96, h: 64 },
 };
-/** People to a house, by kind of place (cottages in a hamlet, crowded tenements in a city). */
-const PER_HOUSE: Record<string, number> = { hamlet: 4, village: 5, town: 8, city: 11, capital: 13 };
 /** Manors for the gentry and nobles. */
 const MANORS: Record<string, number> = { hamlet: 0, village: 0, town: 2, city: 7, capital: 12 };
 
@@ -401,7 +400,8 @@ function village(s: SiteInfo, areas: AreaId[], realm: Realm | null | undefined, 
   for (let i = 0; i < (MANORS[s.kind] ?? 0); i++) wanted.push(sized("manor", "Manor", 5, 3));
   const houseW = big ? 4 : 3;
   const houseH = W >= 70 ? 3 : 2;
-  const houses = Math.max(2, Math.ceil(s.population / (PER_HOUSE[s.kind] ?? 5)));
+  // Exactly the houses the place has (N25): it only grows when the place builds one, so people keep their homes.
+  const houses = housesOf(s);
 
   // Lots: along every street, either side, door onto the street.
   const built = new Uint8Array(W * H);
