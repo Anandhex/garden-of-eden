@@ -3,6 +3,8 @@ import { badScopes, type Certainty } from "../../npc/knowledge.js";
 import { parsePersona } from "../../npc/personaSchema.js";
 import { assemblePersona, fallbackIdentity, rollTemplate, type NpcTemplate } from "../../npc/templates.js";
 import type { NpcPersona } from "../../npc/types.js";
+import { config } from "../../config.js";
+import type { PeopleStore, PersonRow } from "../../store/peopleStore.js";
 import type { Rng } from "../dice.js";
 import type { Tier } from "../life.js";
 import type { Building } from "../../web/map.js";
@@ -63,7 +65,7 @@ interface Site {
   zones: Set<string>;
 }
 
-const shade = (hex: string, seed: number) => {
+export const shade = (hex: string, seed: number) => {
   const f = 0.85 + ((seed % 1000) / 1000) * 0.3;
   const n = parseInt(hex.slice(1), 16);
   const ch = (v: number) => Math.max(0, Math.min(255, Math.round(v * f)));
@@ -114,17 +116,28 @@ function scornAt(facs: RealmFaction[], rivals: Array<[string, string]>): Array<[
 
 const cache = new Map<string, CrowdRoster>();
 
-/**
- * Everyone who lives in a settlement, on its village map. `people` leaves out the
- * notables (they're talking NPCs already). Kept per place, its size and its map.
- */
-export function rosterFor(realm: Realm, site: string, map: { id: string; buildings: Building[]; zones: Array<{ id: string }> }, day: number): CrowdRoster | null {
+/** Forget the rolled rosters (the store holds the people now; tests). */
+export function forgetRosters(): void {
+  cache.clear();
+}
+
+/** Everything about a place's crowd but the people themselves. */
+interface Shell {
+  s: Settlement;
+  facs: RealmFaction[];
+  laws: { slavery: boolean; serfdom: boolean };
+  lord: string | null;
+  /** How many townsfolk the place has (its population less its notables). */
+  count: number;
+  roster: Omit<CrowdRoster, "people">;
+}
+
+function shellOf(realm: Realm, site: string, map: { id: string }, day: number): Shell | null {
   const s = realm.settlements[site];
   if (!s || s.abandoned) return null;
   const facs = factionsAt(realm, s);
   const notables = Object.values(realm.figures).filter((f) => f.alive && f.home === site && f.role !== "beast").length;
   const count = Math.max(0, Math.min(MAX_TOWNSFOLK, s.population - notables));
-  const key = `${site}|${map.id}|${count}|${map.buildings.length}|${facs.map((f) => f.id).join(",")}|${s.leader ?? ""}`;
   const lord = s.leader && realm.figures[s.leader]?.alive ? titled(realm.figures[s.leader]!) : null;
   const k = s.kingdom ? realm.kingdoms[s.kingdom] : undefined;
   const ruler = k?.ruler && realm.figures[k.ruler]?.alive ? titled(realm.figures[k.ruler]!) : null;
@@ -132,14 +145,116 @@ export function rosterFor(realm: Realm, site: string, map: { id: string; buildin
     .filter((n) => n.day <= day && n.day >= day - 20 && n.importance >= 4)
     .slice(-5)
     .map((n) => (n.text.length > 110 ? `${n.text.slice(0, 107)}...` : n.text));
-  const hit = cache.get(key);
-  if (hit) return { ...hit, talk, lord, ruler };
   const laws = kingdomLaws(realm, s.kingdom);
-  const people = rollPeople(realm, { s, buildings: map.buildings, zones: new Set(map.zones.map((z) => z.id)) }, facs, laws, count, lord);
   const rivals = rivalsAt(facs);
-  const roster: CrowdRoster = { site, map: map.id, place: s.name, lord, ruler, laws, people, rivals, scorn: scornAt(facs, rivals), talk };
+  return { s, facs, laws, lord, count, roster: { site, map: map.id, place: s.name, lord, ruler, laws, rivals, scorn: scornAt(facs, rivals), talk } };
+}
+
+type MapLike = { id: string; buildings: Building[]; zones: Array<{ id: string }> };
+
+/**
+ * Roll everyone who lives in a settlement, on its village map: the generator (N16). `people`
+ * leaves out the notables (they're talking NPCs already). Kept per place, its size and its map.
+ * From N18 on, a world rolls each place once, when it is made, and keeps the people in the
+ * database (`rosterFromStore`); this stays as the generator.
+ */
+export function rosterFor(realm: Realm, site: string, map: MapLike, day: number): CrowdRoster | null {
+  const shell = shellOf(realm, site, map, day);
+  if (!shell) return null;
+  const { s, facs, laws, lord, count } = shell;
+  const key = `${realm.seed}|${site}|${map.id}|${count}|${map.buildings.length}|${facs.map((f) => f.id).join(",")}|${s.leader ?? ""}`;
+  const hit = cache.get(key);
+  if (hit) return { ...hit, talk: shell.roster.talk, lord, ruler: shell.roster.ruler };
+  const people = rollPeople(realm, { s, buildings: map.buildings, zones: new Set(map.zones.map((z) => z.id)) }, facs, laws, count, lord);
+  const roster: CrowdRoster = { ...shell.roster, people };
   cache.set(key, roster);
   return roster;
+}
+
+// ---- The people in the database (N18) ----
+
+/** A townsperson as a `people` row, for the day the world was made. */
+export function rowOfTownsperson(p: Townsperson, site: string, day: number): PersonRow {
+  const n = parseTownsfolkId(p.id)?.n ?? 0;
+  return {
+    id: p.id,
+    site,
+    n,
+    name: p.name,
+    gender: p.gender,
+    species: "human",
+    born_day: day - p.age * config.daysPerYear,
+    cls: p.cls,
+    job: p.job,
+    home: p.home,
+    work: p.work,
+    master: p.master,
+    master_id: p.masterId,
+    faction: p.faction,
+    mother: null,
+    father: null,
+    spouse: null,
+    figure: null,
+    persona: null,
+    traits: null,
+    death: null,
+    rev: 0,
+  };
+}
+
+/** A `people` row as a townsperson on `day`, for a map with `buildings` buildings (a house that isn't there any more becomes the first one). */
+export function townspersonOfRow(r: PersonRow, realm: Realm, day: number, fallbackHome: number, buildings: number): Townsperson {
+  const home = r.home !== null && r.home < buildings ? r.home : fallbackHome;
+  const front = /^front:(\d+)$/.exec(r.work ?? "");
+  const work = front && Number(front[1]) >= buildings ? "streets" : (r.work ?? "streets");
+  return {
+    id: r.id,
+    name: r.name,
+    gender: r.gender === "female" ? "female" : "male",
+    age: Math.max(0, Math.floor((day - r.born_day) / config.daysPerYear)),
+    cls: r.cls as SocialClass,
+    job: r.job as Job,
+    faction: r.faction,
+    factionName: r.faction ? (realm.factions[r.faction]?.name ?? null) : null,
+    home,
+    work,
+    master: r.master,
+    masterId: r.master_id,
+    color: shade(CLASS_COLORS[r.cls as SocialClass], hashStr(r.id)),
+  };
+}
+
+const fromStore = new WeakMap<PeopleStore, Map<string, { key: string; builtDay: number; people: Townsperson[] }>>();
+/** Roll a place's people into the database if it has none yet (a place made after the world was). Returns how many were added. */
+export function ensurePeople(store: PeopleStore, realm: Realm, site: string, map: MapLike, day: number): number {
+  if (store.count(site) > 0) return 0;
+  const roster = rosterFor(realm, site, map, day);
+  if (!roster) return 0;
+  store.insertMany(roster.people.map((p) => rowOfTownsperson(p, site, day)));
+  return roster.people.length;
+}
+
+/**
+ * Everyone who lives in a settlement, read from the database: the same `CrowdRoster` as the
+ * generator makes, with the people as they are now. `people` keeps its identity until someone in
+ * the place changes (or a year has passed, for their ages), so the crowd simulation built on it
+ * isn't rebuilt every call.
+ */
+export function rosterFromStore(store: PeopleStore, realm: Realm, site: string, map: MapLike, day: number): CrowdRoster | null {
+  const shell = shellOf(realm, site, map, day);
+  if (!shell) return null;
+  ensurePeople(store, realm, site, map, day);
+  const key = `${store.revOf(site)}|${map.id}|${map.buildings.length}`;
+  const per = fromStore.get(store) ?? new Map();
+  fromStore.set(store, per);
+  const hit = per.get(site);
+  if (hit && hit.key === key && day - hit.builtDay < config.daysPerYear) return { ...shell.roster, people: hit.people };
+  const houses = map.buildings.map((b, i) => ({ b, i })).filter((x) => x.b.kind === "house" && x.b.front).map((x) => x.i);
+  const fallbackHome = houses[0] ?? 0;
+  const rows = store.loadSite(site, "full") as PersonRow[];
+  const people = rows.map((r) => townspersonOfRow(r, realm, day, fallbackHome, map.buildings.length));
+  per.set(site, { key, builtDay: day, people });
+  return { ...shell.roster, people };
 }
 
 function rollPeople(realm: Realm, site: Site, facs: RealmFaction[], laws: { slavery: boolean; serfdom: boolean }, count: number, lord: string | null): Townsperson[] {

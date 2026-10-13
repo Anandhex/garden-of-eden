@@ -27,6 +27,15 @@ export function seedFrom(text: string): number {
   return h >>> 0;
 }
 
+/**
+ * A named stream of rolls (N18): the same `(seed, keys)` always gives the same rolls, and a
+ * new system with its own keys can't change another's. Use one per system per day:
+ * `streamFor(world.seed, "realm", day, "packs")`.
+ */
+export function streamFor(seed: number, ...keys: Array<string | number>): Rng {
+  return seededRng(seedFrom([seed, ...keys].join(":")));
+}
+
 export function rollDie(rng: Rng, sides: number): number {
   return Math.floor(rng() * sides) + 1;
 }

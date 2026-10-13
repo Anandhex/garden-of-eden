@@ -2,6 +2,8 @@
 
 # N18 plan: Scale and storage
 
+> **Built 2026-10-13.** How it ended up is in [stage 1](../stage-1-foundations.md#n18-scale-and-storage). Differences from this plan: the `people` table also has `master_id`; `Town.rngFor` keeps a fixed test `rng` as an override; `ensurePeople` rolls a place that has no rows on demand; the 50,000 benchmark is `npm run bench:storage` and a smaller always-on test.
+
 **In one line:** every person moves into SQLite, saved by place in batches; the save becomes small, fast and deterministic; old saves are set aside (v11 clean break); a world can be exported and imported.
 
 **Read first:** [plans README](README.md) sections 1 (old saves), 2 (determinism), 6 (person refs), 9 (performance).

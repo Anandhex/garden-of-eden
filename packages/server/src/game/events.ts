@@ -91,6 +91,11 @@ export interface GameEvent {
   knownBy?: string[];
   /** The reason behind it, when a choice made it happen: who was picked and why, what the NPC wanted (N17). */
   why?: string;
+  /** Earlier events (ids, or realm refs) that led to this one (N20 fills it). */
+  causedBy?: string[];
+  /** The settlement it happened in and its kingdom (N24's scopes). */
+  site?: string;
+  kingdom?: string;
 }
 
 /** For loading saves: a malformed event is dropped, not trusted. */
@@ -108,6 +113,9 @@ export const EventSchema = z.object({
   witnesses: z.array(z.string()).optional(),
   knownBy: z.array(z.string()).optional(),
   why: z.string().optional(),
+  causedBy: z.array(z.string()).optional(),
+  site: z.string().optional(),
+  kingdom: z.string().optional(),
 });
 
 /** Keep the valid events from a save. */
@@ -121,8 +129,6 @@ export function parseEvents(raw: unknown[] | undefined): GameEvent[] {
 /** Most events kept in a save. Past this, the least important (then oldest) go. (The database keeps them all: game/db.ts.) */
 export const MAX_EVENTS = 300;
 
-let counter = 0;
-
 /** Listeners told of every new event (the long-term archive in game/db.ts). */
 const listeners: Array<(e: GameEvent) => void> = [];
 export function onEvent(listener: (e: GameEvent) => void): () => void {
@@ -133,7 +139,7 @@ export function onEvent(listener: (e: GameEvent) => void): () => void {
   };
 }
 
-type EventWorld = Pick<WorldSnapshot, "day" | "hour" | "location"> & { events?: GameEvent[]; present?: string[]; player?: { place?: string } };
+type EventWorld = Pick<WorldSnapshot, "day" | "hour" | "location"> & { events?: GameEvent[]; present?: string[]; player?: { place?: string }; nextEventSeq?: number };
 
 /**
  * Add an event to the world's log and return it. Prunes the log past MAX_EVENTS.
@@ -146,7 +152,8 @@ export function recordEvent(
 ): GameEvent {
   const witnesses = event.witnesses ?? defaultWitnesses(world, event);
   const full: GameEvent = {
-    id: `e${world.day}-${world.hour}-${Date.now().toString(36)}-${++counter}`,
+    // The sequence is in the save, so the same run gives the same ids (N18).
+    id: `e${world.day}-${world.hour}-${(world.nextEventSeq = (world.nextEventSeq ?? 0) + 1)}`,
     day: world.day,
     hour: world.hour,
     where: event.where ?? world.location,

@@ -1,5 +1,5 @@
 import { timed } from "../../metrics/timing.js";
-import type { Rng } from "../dice.js";
+import { type Rng, streamFor } from "../dice.js";
 import { directorDay } from "./director.js";
 import { raidsDay, warsDay } from "./diplomacy.js";
 import { economyDay } from "./economy.js";
@@ -15,33 +15,36 @@ import { dungeonsDay, packsDay } from "./wilds.js";
  * seats are filled; settlements eat, earn, build and move; taxes climb the chain
  * on tax days; factions recruit, expand and split; the director pushes what's most
  * needed; raids; wars; beasts; dungeons; and the chain of command is tidied.
- * Everything is code and the given RNG: a seed gives the same realm every time.
+ * Everything is code and the dice: a seed gives the same realm every time. Each step rolls
+ * from its own stream (`streamFor(realm.seed, "realm", day, step)`), so a new roll in one
+ * step never changes another's results (N18). Tests may pass one `rng` for all of them.
  */
-export function realmDay(realm: Realm, day: number, rng: Rng): void {
+export function realmDay(realm: Realm, day: number, only?: Rng): void {
+  const rng = (step: string): Rng => only ?? streamFor(realm.seed, "realm", day, step);
   timed("realm.day", () => {
     timed("realm.ageing", () => {
-      for (const f of ageFigures(realm, day, rng)) {
+      for (const f of ageFigures(realm, day, rng("ageing"))) {
         if (f.renown >= 25 || Object.values(realm.settlements).some((s) => s.leader === f.id) || f.role === "ruler") {
           realmNews(realm, day, f.home, "death", `${titled(f)} has died of old age${f.home ? ` in ${realm.settlements[f.home]?.name ?? "their home"}` : ""}.`, f.role === "ruler" ? 8 : 4, [f.name], { why: "old age" });
         }
       }
     });
-    timed("realm.succession", () => successionDay(realm, day, rng));
-    timed("realm.economy", () => economyDay(realm, day, rng));
-    if (isTaxDay(day)) timed("realm.taxes", () => taxDay(realm, day, rng));
-    timed("realm.factions", () => factionsDay(realm, day, rng));
-    timed("realm.director", () => directorDay(realm, day, rng));
-    timed("realm.raids", () => raidsDay(realm, day, rng));
-    timed("realm.wars", () => warsDay(realm, day, rng));
-    timed("realm.packs", () => packsDay(realm, day, rng));
-    timed("realm.dungeons", () => dungeonsDay(realm, day, rng));
-    timed("realm.succession", () => successionDay(realm, day, rng));
+    timed("realm.succession", () => successionDay(realm, day, rng("succession")));
+    timed("realm.economy", () => economyDay(realm, day, rng("economy")));
+    if (isTaxDay(day)) timed("realm.taxes", () => taxDay(realm, day, rng("taxes")));
+    timed("realm.factions", () => factionsDay(realm, day, rng("factions")));
+    timed("realm.director", () => directorDay(realm, day, rng("director")));
+    timed("realm.raids", () => raidsDay(realm, day, rng("raids")));
+    timed("realm.wars", () => warsDay(realm, day, rng("wars")));
+    timed("realm.packs", () => packsDay(realm, day, rng("packs")));
+    timed("realm.dungeons", () => dungeonsDay(realm, day, rng("dungeons")));
+    timed("realm.succession", () => successionDay(realm, day, rng("succession-end")));
     refreshHierarchy(realm);
     realm.day = day;
   });
 }
 
 /** Run every day from the realm's last up to `toDay`. */
-export function advanceRealm(realm: Realm, toDay: number, rng: Rng): void {
+export function advanceRealm(realm: Realm, toDay: number, rng?: Rng): void {
   for (let d = realm.day + 1; d <= toDay; d++) realmDay(realm, d, rng);
 }

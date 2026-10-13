@@ -22,7 +22,9 @@ import { DEMO_SPAWNS } from "../world/world.js";
 import { passVillageNights } from "../game/underworld.js";
 import { DeathRegistry } from "../game/deaths.js";
 import { rankForLevel, xpToNextLevel } from "../game/levels.js";
-import { importDeaths, loadWorld, newWorld, saveWorld, type SavedWorld } from "../game/save.js";
+import { SaveMismatchError, saveWorld, type SavedWorld } from "../game/save.js";
+import { openWorld } from "../game/openWorld.js";
+import { acquireSaveLock } from "../store/lock.js";
 import {
   DEFAULT_SESSION_HOURS,
   feePerHour,
@@ -105,7 +107,7 @@ import type { AppliedAction } from "../npc/types.js";
 import { ActionQueue } from "./queue.js";
 import { captureFrame, turnEvents } from "../game/turnEvents.js";
 import { setUpVoice } from "../voice/tts.js";
-import { parseTownsfolkId, rosterFor } from "../game/realm/townsfolk.js";
+import { parseTownsfolkId } from "../game/realm/townsfolk.js";
 import { weatherOn } from "../game/weather.js";
 import { townEventsOn } from "../game/events-calendar.js";
 import type { AdminContext } from "../admin/context.js";
@@ -155,7 +157,7 @@ function crowdHere(): CrowdSim | null {
   const realm = world.realm;
   if (!realm || town.area() !== "village") return null;
   const map = here();
-  const roster = rosterFor(realm, town.site(), map, world.day);
+  const roster = town.rosterAt(town.site(), map, world.day);
   if (!roster) return null;
   if (!crowd || crowd.map.id !== map.id || crowd.roster.people !== roster.people) crowd = new CrowdSim({ id: map.id, w: map.w, h: map.h, tiles: map.tiles, buildings: map.buildings, zones: map.zones }, roster);
   else crowd.roster = roster;
@@ -207,9 +209,10 @@ let turnActions: AppliedAction[] = [];
 const voice = await setUpVoice(config.voice);
 
 function startGame(fresh: boolean): void {
-  world = fresh
-    ? newWorld(personas, creatureTemplates)
-    : importDeaths(loadWorld(config.saveFile, personas, creatureTemplates), config.deathsFile);
+  // The world and its database come as a pair (N18): a new one starts from an empty database and every place's people are rolled into it.
+  const opened = openWorld({ file: config.saveFile, deathsFile: config.deathsFile, personas: filePersonas, templates: creatureTemplates, store, fresh });
+  world = opened.world;
+  if (opened.notice) console.log(opened.notice);
   world.position ??= { ...PLAYER_START };
   crowd = null;
   lastTalk = null;
@@ -219,7 +222,6 @@ function startGame(fresh: boolean): void {
   trail.length = 0;
   for (const key of Object.keys(calmUntil)) delete calmUntil[key];
   news.length = 0;
-  if (fresh) store.reset();
   town?.close();
   // Children born (or grown up) in another world don't belong in this one: start from the files.
   for (const id of Object.keys(personas)) delete personas[id];
@@ -291,11 +293,11 @@ function placeCreatures(): void {
     if (inDen && !tileTaken(c.pos!.x, c.pos!.y, c)) continue;
     const free: Array<{ x: number; y: number }> = [];
     for (let y = den.y0; y <= den.y1; y++) for (let x = den.x0; x <= den.x1; x++) if (!tileTaken(x, y, c)) free.push({ x, y });
-    if (free.length > 0) c.pos = free[Math.floor(Math.random() * free.length)]!;
+    if (free.length > 0) c.pos = free[Math.floor(Math.random() * free.length)]!; // real time, not simulation: where a beast stands on screen
   }
 }
 
-/** Creatures roam a step within their den (not the one fighting the player). */
+/** Creatures roam a step within their den (not the one fighting the player). Real time, not simulation: the rolls are for the screen only. */
 function wander(): void {
   for (const c of presentCreatures()) {
     if (c.uid === engaged || !c.pos || following(c) || Math.random() < 0.4) continue;
@@ -312,7 +314,7 @@ function wander(): void {
 function persist(): void {
   timed("persist", () => {
     for (const id of [...ids, ...town.visitorIds()]) world.npcStates[id] = agents[id]!.state;
-    saveWorld(config.saveFile, world);
+    saveWorld(config.saveFile, world, store);
   });
 }
 
@@ -777,7 +779,7 @@ async function npcSpeaks(id: string, emit: Emit, run: (agent: NpcAgent, onText: 
 const GENERIC_FILLERS = ["Hmm.", "Well...", "Let me think."];
 const fillerLine = (p: NpcPersona) => {
   const lines = p.fillerLines ?? GENERIC_FILLERS;
-  return lines[Math.floor(Math.random() * lines.length)]!;
+  return lines[Math.floor(Math.random() * lines.length)]!; // real time, not simulation: a flavour line
 };
 
 /** What the NPC did in a turn (and any titles the player earned), as events. */
@@ -835,7 +837,7 @@ async function act(body: Record<string, unknown>, emit: Emit): Promise<void> {
   if (action === "delve") {
     if (!world.realm) return void emit({ t: "system", text: "There's no wider realm in this world." });
     if (currentFight()) return void emit({ t: "system", text: "Not in the middle of a fight." });
-    const r = playerDelve(world.realm, world.player, String(body.dungeon ?? ""), world.day, Math.random);
+    const r = playerDelve(world.realm, world.player, String(body.dungeon ?? ""), world.day, town.actionRng());
     for (const text of r.lines) emit({ t: "note", kind: r.ok ? "combat" : "fail", text });
     if (r.ok) for (const line of passHours(r.hours)) emit({ t: "system", text: line });
     return;
@@ -846,7 +848,7 @@ async function act(body: Record<string, unknown>, emit: Emit): Promise<void> {
   }
   if (action === "forage" || action === "craft") {
     if (currentFight()) return void emit({ t: "system", text: "Not in the middle of a fight." });
-    const r = action === "craft" ? playerCraft(world.player, String(body.item ?? ""), Math.random, world.day) : forage(world.player, Math.random, world.day);
+    const r = action === "craft" ? playerCraft(world.player, String(body.item ?? ""), town.actionRng(), world.day) : forage(world.player, town.actionRng(), world.day);
     emit({ t: "note", kind: r.ok ? "action" : "fail", text: r.message });
     for (const text of r.notes) emit({ t: "note", kind: "quest", text });
     if (r.ok && r.hours > 0) for (const line of passHours(r.hours)) emit({ t: "system", text: line });
@@ -854,7 +856,7 @@ async function act(body: Record<string, unknown>, emit: Emit): Promise<void> {
   }
   if (action === "sneak") {
     const here = town.presentAt(world.player.place).filter((a) => !a.busyWith(world) && distance(world.position!, npcPos(a.persona.id) ?? { x: -99, y: -99 }) <= TALK_RANGE * 4);
-    return void emit({ t: "note", kind: "roll", text: sneak(world, here.map((a) => ({ persona: a.persona, state: a.state })), Math.random).message });
+    return void emit({ t: "note", kind: "roll", text: sneak(world, here.map((a) => ({ persona: a.persona, state: a.state })), town.actionRng()).message });
   }
   if (action === "loot") {
     const a = agents[String(body.npc ?? "")];
@@ -935,7 +937,7 @@ async function act(body: Record<string, unknown>, emit: Emit): Promise<void> {
         sceneAt(place ?? "square").record(p.name, text);
         break;
       }
-      const turn = await sceneTurn(sceneAt(place!), here, agent, text, world, Math.random, (who, delta) => emit({ t: "text", npc: who, delta }));
+      const turn = await sceneTurn(sceneAt(place!), here, agent, text, world, town.actionRng(), (who, delta) => emit({ t: "text", npc: who, delta }));
       reportTurn(id, turn.addressed.result, emit);
       if (turn.interjection) reportTurn(turn.interjection.id, turn.interjection.result, emit);
       if (turn.vouched) emit({ t: "note", kind: "action", text: `${turn.vouched} put in a good word for you.` });
@@ -1273,7 +1275,7 @@ function move(dx: number, dy: number): { ok: boolean; log: string[]; reason?: st
   );
   if (lurker) {
     engaged = lurker.uid;
-    log.push(...afterCreatureRound(lurker, creatureAmbush(creatureTemplates[lurker.template]!, lurker, world, Math.random)));
+    log.push(...afterCreatureRound(lurker, creatureAmbush(creatureTemplates[lurker.template]!, lurker, world, town.actionRng())));
   }
   return { ok: true, log };
 }
@@ -1327,7 +1329,7 @@ function creatureAction(action: "hunt" | "escape", uid: string, emit: Emit): voi
   if (distance(world.position!, c.pos) > TALK_RANGE) return void emit({ t: "system", text: `You are too far from ${c.name}.` });
   if (action === "escape" && engaged !== uid) return void emit({ t: "system", text: `You're not fighting ${c.name}.` });
   engaged = uid;
-  const round = action === "hunt" ? fightCreature(t, c, world, Math.random) : fleeCreature(t, c, world, Math.random);
+  const round = action === "hunt" ? fightCreature(t, c, world, town.actionRng()) : fleeCreature(t, c, world, town.actionRng());
   const lines = afterCreatureRound(c, round);
   if (action === "hunt" && !round.over) {
     lines.push(...town.companionsHit({ creature: uid }));
@@ -1345,7 +1347,7 @@ function creatureAction(action: "hunt" | "escape", uid: string, emit: Emit): voi
  * turn is a no-op for them and the opponent strikes (in code, no model). What
  * happens goes into `news`, which the client polls during fights.
  */
-let lastPlayerAction = Date.now();
+let lastPlayerAction = Date.now(); // real time, not simulation: the combat clock
 let newsId = 0;
 const news: NewsItem[] = [];
 const NEWS_KEPT = 50;
@@ -1386,7 +1388,7 @@ function combatTick(): void {
     for (const event of turnEvents(before, captureFrame(world, agents), { npc: fight.npc, actions: turnActions })) pushNews({ t: "event", event });
   } else {
     const c = creatureById(fight.creature)!;
-    const lines = afterCreatureRound(c, creatureTurn(creatureTemplates[c.template]!, c, world, Math.random));
+    const lines = afterCreatureRound(c, creatureTurn(creatureTemplates[c.template]!, c, world, town.actionRng()));
     lines.push(...walkMinutes(config.turnMinutes.fight));
     for (const text of lines) pushNews({ t: "note", kind: "combat", text });
   }
@@ -1596,7 +1598,15 @@ const server = createServer(async (req, res) => {
   }
 });
 
-startGame(process.argv.includes("--new"));
+// One writer at a time: the save file and the database go together (N18).
+acquireSaveLock(config.saveFile);
+try {
+  startGame(process.argv.includes("--new"));
+} catch (err) {
+  if (!(err instanceof SaveMismatchError)) throw err;
+  console.error(err.message);
+  process.exit(1);
+}
 server.listen(PORT, "127.0.0.1", () => {
   console.log(`Millbrook is open at http://localhost:${PORT}`);
 });

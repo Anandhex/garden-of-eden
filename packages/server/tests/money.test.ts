@@ -70,33 +70,3 @@ describe("the economy in coins", () => {
     expect(msg).toContain("Traveler has 5 gold and carries");
   });
 });
-
-describe("old saves", () => {
-  it("convert whole gold to coins: 1 old gold becomes 1 silver", () => {
-    const file = join(mkdtempSync(join(tmpdir(), "llm-game-money-")), "world.json");
-    const personas = { brena, pell };
-    const world = newWorld(personas) as unknown as Record<string, any>;
-    // A v3 save: `gold` fields counting whole gold pieces.
-    world.version = 3;
-    world.player = { ...world.player, gold: 42, quests: { active: [{ id: "q", reward: { gold: 8 } }], completed: [] } };
-    delete world.player.money;
-    for (const s of Object.values(world.npcStates) as Array<Record<string, any>>) {
-      s.gold = 35;
-      delete s.money;
-    }
-    world.npcStates.pell.debts = { mayor: 150 };
-    world.npcStates.brena.pendingOffer = { item: "dagger [E]", price: 15 };
-    world.npcStates.brena.pendingTraining = { skill: "smithing", hours: 2, cost: 10 };
-    writeFileSync(file, `${JSON.stringify(world)}\n`);
-
-    const loaded = loadWorld(file, personas);
-    expect(loaded.version).toBe(SAVE_VERSION);
-    expect(loaded.player.money).toBe(420); // 4 gold 2 silver
-    expect(loaded.player.quests.active[0]!.reward.money).toBe(80);
-    expect(loaded.npcStates.brena!.money).toBe(350);
-    expect(loaded.npcStates.pell!.debts).toEqual({ mayor: 1500 });
-    expect(loaded.npcStates.brena!.pendingOffer).toEqual({ item: "dagger [E]", price: 150 });
-    expect(loaded.npcStates.brena!.pendingTraining?.cost).toBe(100);
-    expect("gold" in loaded.player).toBe(false);
-  });
-});

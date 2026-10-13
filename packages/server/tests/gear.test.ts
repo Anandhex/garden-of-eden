@@ -243,21 +243,3 @@ describe("what NPCs buy goes back on sale", () => {
     expect(npcPrice(pell, "rabbit pelt [F]")).toBe(50);
   });
 });
-
-describe("old saves", () => {
-  it("equip the best weapon the player is allowed, since fights used to pick it", () => {
-    const file = join(mkdtempSync(join(tmpdir(), "llm-game-gear-")), "world.json");
-    const personas = { brena };
-    const world = newWorld(personas) as unknown as Record<string, any>;
-    world.version = 4;
-    delete world.player.equipment;
-    world.player.level = 3;
-    world.player.inventory = { "dagger [E]": 1, "iron sword [D]": 1, "cudgel [F]": 1 };
-    for (const s of Object.values(world.npcStates) as Array<Record<string, any>>) delete s.equipment;
-    writeFileSync(file, `${JSON.stringify(world)}\n`);
-    const loaded = loadWorld(file, personas);
-    expect(loaded.player.equipment).toEqual({ weapon: "dagger [E]" }); // the sword needs level 5
-    expect(loaded.player.inventory).toEqual({ "iron sword [D]": 1, "cudgel [F]": 1 });
-    expect(loaded.npcStates.brena!.equipment).toEqual({ weapon: "forge hammer [C]" });
-  });
-});

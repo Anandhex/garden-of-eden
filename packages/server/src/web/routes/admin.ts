@@ -9,6 +9,7 @@ import { playerView } from "../../admin/player.js";
 import { search } from "../../admin/search.js";
 import { timeControl } from "../../admin/time.js";
 import { config } from "../../config.js";
+import { encodeMbWorld, exportWorld } from "../../store/exchange.js";
 
 /**
  * The admin view's routes (N17). `GET /api/admin/*` only: nothing there writes, and any
@@ -116,6 +117,14 @@ export async function handleAdmin(req: IncomingMessage, res: ServerResponse, ctx
     }
     case "player":
       return send(res, 200, playerView(ctx));
+    case "export": {
+      // The whole world as one file (N18): read-only, like every other GET here.
+      if (!ctx.store) return send(res, 404, { error: "This world has no database to export." });
+      const body = encodeMbWorld(exportWorld(ctx.world(), ctx.store));
+      res.writeHead(200, { "content-type": "application/gzip", "content-length": body.length, "content-disposition": `attachment; filename="millbrook-day${ctx.world().day}.mbworld"`, "cache-control": "no-store" });
+      res.end(body);
+      return true;
+    }
     case "crowd": {
       const c = crowdOf(ctx, q.get("site") ?? "");
       return c ? send(res, 200, { ...c, clock: clockOf(ctx) }) : send(res, 404, { error: "No such place." });

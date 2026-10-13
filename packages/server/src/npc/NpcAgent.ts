@@ -140,6 +140,7 @@ export class NpcAgent {
     readonly persona: NpcPersona,
     private readonly llm: LLMProvider,
     /** Dice for checks and attacks. Pass a fixed one in tests. */
+    // Conversation rolls stay on Math.random for now: their outcome is what the model hears, and N23's input journal will record it.
     private readonly rng: Rng = defaultRng,
     initialState?: NpcState,
   ) {

@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { z } from "zod";
 import type { NpcPersona, NpcState, PlayerState, WorldSnapshot } from "../npc/types.js";
@@ -7,10 +7,9 @@ import { createDemoWorld, DEMO_SPAWNS } from "../world/world.js";
 import { type Creature, type CreatureTemplate, spawnGroup, upgradeCreature } from "./creatures.js";
 import type { Haunts } from "./realm/haunts.js";
 import { DeathRegistry } from "./deaths.js";
-import { bestAllowedWeapon, equip, playerGearRank } from "./gear.js";
-import { defaultRng, seedFrom, type Rng } from "./dice.js";
+import { streamFor, type Rng } from "./dice.js";
 import { config } from "../config.js";
-import { generateRealm, HOME_ID } from "./realm/generate.js";
+import { generateRealm } from "./realm/generate.js";
 import { RealmSchema, type Realm } from "./realm/types.js";
 import { eventIdFor } from "../npc/knowledge.js";
 import type { SpawnLedger } from "./spawning.js";
@@ -43,43 +42,21 @@ import { parsePersona } from "../npc/personaSchema.js";
  *    (`player.area`). Older saves at home lose their map position (the old hand-made
  *    map's tiles mean nothing now): the player is back at the village gate and the
  *    creatures find their dens again.
+ * 11: N18 scale and storage, a clean break: older saves are set aside and a new world
+ *    begins (no migrations from v10 or before). Every settlement's people live in the
+ *    database (`people`, saved by place in batches), not in the save; the save is compact
+ *    JSON written atomically and carries `seed`, `rolls`, `nextEventSeq` (a seed gives the
+ *    same world) and `saveTick` (which database moment it goes with). Migrations start
+ *    again from here.
  */
-export const SAVE_VERSION = 10;
-
-/** Copper per old "gold": the old unit became a silver coin, so every price keeps its place. */
-const COPPER_PER_OLD_GOLD = 10;
-
-type Loose = Record<string, unknown>;
-
-/** Move a v3 money field (`gold`) to `money`, in copper. */
-function moveMoney(o: Loose | undefined | null, from = "gold", to = "money"): void {
-  if (!o || typeof o[from] !== "number") return;
-  o[to] = (o[from] as number) * COPPER_PER_OLD_GOLD;
-  delete o[from];
-}
-
-function scale(o: Loose | undefined | null, key: string): void {
-  if (o && typeof o[key] === "number") o[key] = (o[key] as number) * COPPER_PER_OLD_GOLD;
-}
-
-/** Saves before v4 counted whole gold pieces: convert every amount to copper. */
-function upgradeMoney(raw: { player: Loose; npcStates: Record<string, Loose> }): void {
-  moveMoney(raw.player);
-  const quests = raw.player.quests as { active?: Array<{ reward?: Loose }> } | undefined;
-  for (const q of quests?.active ?? []) moveMoney(q.reward);
-  for (const s of Object.values(raw.npcStates)) {
-    moveMoney(s);
-    const debts = s.debts as Loose | undefined;
-    for (const id of Object.keys(debts ?? {})) scale(debts, id);
-    scale(s.pendingOffer as Loose, "price");
-    scale(s.pendingPurchase as Loose, "price");
-    scale(s.pendingTraining as Loose, "cost");
-    for (const q of (s.questBoard as Array<{ reward?: Loose }> | undefined) ?? []) moveMoney(q.reward);
-  }
-}
+export const SAVE_VERSION = 11;
 
 export interface SavedWorld extends WorldSnapshot {
   version: number;
+  /** The world's seed: the realm, and every system's dice, come from it (N18). */
+  seed: number;
+  /** Which database moment this file goes with (N18): `meta.save_tick` in world.db must match. */
+  saveTick?: number;
   npcStates: Record<string, NpcState>;
   deaths: Record<string, unknown>;
   /** Where the player stands on the web client's map. Absent in CLI-only saves. */
@@ -98,8 +75,12 @@ export interface SavedWorld extends WorldSnapshot {
   haunts?: Haunts;
 }
 
-const SaveSchema = z.object({
+export const SaveSchema = z.object({
   version: z.number().int().nonnegative(),
+  seed: z.number().int(),
+  rolls: z.record(z.string(), z.number().int()).optional(),
+  nextEventSeq: z.number().int().optional(),
+  saveTick: z.number().int().optional(),
   day: z.number().int().positive(),
   hour: z.number().int().min(0).max(23),
   minute: z.number().int().min(0).max(59).optional(),
@@ -137,7 +118,7 @@ function valid<T>(schema: z.ZodType<T>, raw: unknown[] | undefined): T[] {
 }
 
 /** The starting creatures (DEMO_SPAWNS) for the templates given. Unknown template ids are skipped. */
-export function spawnStartingCreatures(templates: Record<string, CreatureTemplate>, day: number, rng: Rng = defaultRng): Record<string, Creature> {
+export function spawnStartingCreatures(templates: Record<string, CreatureTemplate>, day: number, rng: Rng): Record<string, Creature> {
   const creatures: Record<string, Creature> = {};
   for (const [id, count] of Object.entries(DEMO_SPAWNS)) {
     const t = templates[id];
@@ -146,27 +127,37 @@ export function spawnStartingCreatures(templates: Record<string, CreatureTemplat
   return creatures;
 }
 
+/**
+ * A new world. `seed` fixes everything that follows (the realm, every system's dice); without
+ * one it is REALM_SEED, or rolled once from `rng`: the only `Math.random` left in setup.
+ */
 export function newWorld(
   personas: Record<string, NpcPersona>,
   creatureTemplates: Record<string, CreatureTemplate> = {},
-  rng: Rng = defaultRng,
+  rng: Rng = Math.random, // real time, not simulation: it picks the seed, and the seed does the rest
+  seed?: number,
 ): SavedWorld {
   const demo = createDemoWorld();
   setDynamicLore([]);
+  const worldSeed = seed ?? config.realmSeed ?? Math.floor(rng() * 1_000_000_000);
   const npcStates = Object.fromEntries(Object.entries(personas).map(([id, persona]) => [id, createNpcState(persona, {}, demo.day)]));
   // What folk already say about each other (N7.1).
   seedRumours(personas, npcStates, demo.day);
   const family = freshFamily();
   family.marriages = authoredMarriages(personas);
-  const realm = config.realm ? generateRealm(config.realmSeed ?? Math.floor(rng() * 1_000_000_000), demo.day) : undefined;
+  const realm = config.realm ? generateRealm(worldSeed, demo.day) : undefined;
   return {
     ...demo,
     ...(realm ? { realm } : {}),
+    seed: worldSeed,
+    rolls: {},
+    nextEventSeq: 0,
     risen: {},
+    visitors: {},
     version: SAVE_VERSION,
     npcStates,
     deaths: {},
-    creatures: spawnStartingCreatures(creatureTemplates, demo.day, rng),
+    creatures: spawnStartingCreatures(creatureTemplates, demo.day, streamFor(worldSeed, "start", "creatures")),
     spawns: {},
     events: [],
     lore: [],
@@ -186,20 +177,88 @@ export function castOf(personas: Record<string, NpcPersona>, world: Pick<SavedWo
   return { ...personas, ...(world.family?.born ?? {}), ...(world.risen ?? {}) };
 }
 
-export function saveWorld(file: string, world: SavedWorld): void {
-  mkdirSync(dirname(file), { recursive: true });
-  writeFileSync(file, `${JSON.stringify({ ...world, version: SAVE_VERSION }, null, 2)}\n`);
+/** What the database can do for a save: commit its pending changes at a tick, say which tick it holds, start over. */
+export interface SaveStore {
+  /** Write the pending changes and `meta.save_tick = tick` in one transaction. */
+  commit(tick: number): void;
+  /** The tick the last commit stored, or null for a database nothing was committed to. */
+  savedTick(): number | null;
+  /** Forget the old world. */
+  reset(): void;
 }
 
-export function loadWorld(
-  file: string,
-  personas: Record<string, NpcPersona>,
-  creatureTemplates: Record<string, CreatureTemplate> = {},
-): SavedWorld {
-  if (!existsSync(file)) return newWorld(personas, creatureTemplates);
-  const parsed = SaveSchema.parse(JSON.parse(readFileSync(file, "utf8")));
-  const world = upgradeSave(parsed, personas, creatureTemplates);
-  return world;
+/** Test hooks: `afterDbCommit` runs between the database commit and the file rename (throw in it to simulate a crash). */
+export const saveHooks: { afterDbCommit?: () => void } = {};
+
+/** world.json and world.db are from different moments (a crash between the two writes, or one was copied or deleted). */
+export class SaveMismatchError extends Error {
+  constructor(
+    readonly fileTick: number,
+    readonly dbTick: number | null,
+  ) {
+    super(`The save file is from a different moment than the database (file tick ${fileTick}, database tick ${dbTick ?? "none"}). They were saved apart: a crash between the two writes, or one of them was copied or deleted. Start a new world (--new) or put the matching pair back.`);
+    this.name = "SaveMismatchError";
+  }
+}
+
+/**
+ * Save the world. With a store, its pending changes are committed first (one transaction that also
+ * records the tick), then the file is written to a temp name and renamed over the old one, which is
+ * atomic on one disk. The file carries the same tick, and load checks they agree.
+ */
+export function saveWorld(file: string, world: SavedWorld, store?: SaveStore): void {
+  mkdirSync(dirname(file), { recursive: true });
+  const tick = (world.saveTick ?? 0) + 1;
+  const text = `${JSON.stringify({ ...world, version: SAVE_VERSION, saveTick: tick })}\n`;
+  if (store) {
+    store.commit(tick);
+    saveHooks.afterDbCommit?.();
+  }
+  const tmp = `${file}.tmp`;
+  writeFileSync(tmp, text);
+  renameSync(tmp, file);
+  world.saveTick = tick;
+}
+
+/** A name for an old save kept aside: `world.v10.bak.json`, then `.bak2`, ... */
+function asideName(file: string, version: unknown): string {
+  const base = file.replace(/\.json$/, "");
+  const tag = typeof version === "number" ? `v${version}` : "old";
+  let name = `${base}.${tag}.bak.json`;
+  for (let n = 2; existsSync(name); n++) name = `${base}.${tag}.bak${n}.json`;
+  return name;
+}
+
+export interface LoadedWorld {
+  world: SavedWorld;
+  /** One line for the player, when something happened to their save. */
+  notice: string | null;
+}
+
+export function loadWorld(file: string, personas: Record<string, NpcPersona>, creatureTemplates: Record<string, CreatureTemplate> = {}, store?: SaveStore): SavedWorld {
+  return loadWorldWithNotice(file, personas, creatureTemplates, store).world;
+}
+
+/**
+ * Load the world. A save from before v11 is not migrated (the user's call, 2026-10-13): the file is
+ * renamed aside, the database is reset and a new world begins, with a notice. A file whose tick isn't
+ * the database's throws SaveMismatchError; nothing is guessed.
+ */
+export function loadWorldWithNotice(file: string, personas: Record<string, NpcPersona>, creatureTemplates: Record<string, CreatureTemplate> = {}, store?: SaveStore): LoadedWorld {
+  if (!existsSync(file)) return { world: newWorld(personas, creatureTemplates), notice: null };
+  const json = JSON.parse(readFileSync(file, "utf8")) as { version?: unknown; saveTick?: unknown };
+  if (typeof json.version !== "number" || json.version < SAVE_VERSION) {
+    const aside = asideName(file, json.version);
+    renameSync(file, aside);
+    store?.reset();
+    return { world: newWorld(personas, creatureTemplates), notice: `Your old save is from an older version (${String(json.version ?? "unknown")}); a new world has begun. The old file is kept as ${aside}.` };
+  }
+  const parsed = SaveSchema.parse(json);
+  if (store && parsed.saveTick !== undefined) {
+    const dbTick = store.savedTick();
+    if (dbTick !== parsed.saveTick) throw new SaveMismatchError(parsed.saveTick, dbTick);
+  }
+  return { world: upgradeSave(parsed, personas, creatureTemplates), notice: null };
 }
 
 function upgradeSave(
@@ -207,20 +266,7 @@ function upgradeSave(
   personas: Record<string, NpcPersona>,
   creatureTemplates: Record<string, CreatureTemplate>,
 ): SavedWorld {
-  if (raw.version < 4) upgradeMoney(raw);
   const player = raw.player as unknown as PlayerState;
-  if (!player.journal) player.journal = [];
-  player.titles ??= [];
-  player.fightsWon ??= 0;
-  player.maxMp ??= 10;
-  player.mp ??= player.maxMp;
-  player.quests.failed ??= [];
-  if (!player.equipment) {
-    // Fights used to pick the best weapon in the pack: equip it (if they're allowed to), so nothing changes for them.
-    player.equipment = {};
-    const best = bestAllowedWeapon(player.inventory, playerGearRank(player.level));
-    if (best) equip(player, playerGearRank(player.level), best, "player");
-  }
   // Lore grown in play first: NPC files in the save (visitors, N14) may know it, and the schema checks that.
   const lore = valid(LoreEntrySchema, raw.lore) as LoreEntry[];
   setDynamicLore(lore);
@@ -259,23 +305,16 @@ function upgradeSave(
   const npcStates = Object.fromEntries(
     Object.entries(cast).map(([id, persona]) => {
       const saved = raw.npcStates[id] as Partial<NpcState> | undefined;
-      if (raw.version < 2 && saved?.job) saved.job = { ...saved.job, until: saved.job.until * 60 };
-      // Saves before v3 have no life: the NPC is their authored age on the day the save is loaded.
+      // An NPC file added since the save was made starts fresh (createNpcState).
       return [id, createNpcState(persona, saved, raw.day)];
     }),
   );
-  // Before v7 nobody had heard any rumours: seed what folk already say.
-  if (raw.version < 7) seedRumours(personas, npcStates, raw.day);
-  // Before v10 Millbrook had a hand-made map: positions on it mean nothing on the generated one.
-  const oldMap = raw.version < 10 && (player.site === undefined || player.site === HOME_ID);
-  if (oldMap) {
-    delete raw.position;
-    delete player.area;
-    player.place = "gate";
-    for (const c of Object.values((raw.creatures ?? {}) as Record<string, { pos?: unknown }>)) delete c.pos;
-  }
   return {
     version: SAVE_VERSION,
+    seed: raw.seed,
+    ...(raw.rolls ? { rolls: raw.rolls } : {}),
+    nextEventSeq: raw.nextEventSeq ?? 0,
+    ...(raw.saveTick !== undefined ? { saveTick: raw.saveTick } : {}),
     day: raw.day,
     hour: raw.hour,
     minute: raw.minute ?? 0,
@@ -294,7 +333,7 @@ function upgradeSave(
             return [uid, t ? upgradeCreature(t, c) : c];
           }),
         )
-      : spawnStartingCreatures(creatureTemplates, raw.day),
+      : spawnStartingCreatures(creatureTemplates, raw.day, streamFor(raw.seed, "start", "creatures")),
     ...(raw.position ? { position: raw.position } : {}),
     spawns: raw.spawns ?? {},
     events: parseEvents(raw.events),
@@ -318,16 +357,16 @@ function upgradeSave(
         }
       : {}),
     ...(raw.deathNotes ? { deathNotes: raw.deathNotes as SavedWorld["deathNotes"] } : {}),
-    ...loadRealm(raw.realm, raw.day),
+    ...loadRealm(raw.realm, raw.day, raw.seed),
   };
 }
 
 /** The saved realm if it's sound; otherwise (an older save, or a bad one) a new one. Off: none. */
-function loadRealm(raw: unknown, day: number): { realm?: Realm } {
+function loadRealm(raw: unknown, day: number, seed: number): { realm?: Realm } {
   if (!config.realm) return raw ? { realm: raw as Realm } : {};
   const r = RealmSchema.safeParse(raw);
   if (r.success) return { realm: r.data };
-  return { realm: generateRealm(config.realmSeed ?? seedFrom(`realm-${day}`), day) };
+  return { realm: generateRealm(seed, day) };
 }
 
 /** Import the old standalone death file once when migrating older saves. */

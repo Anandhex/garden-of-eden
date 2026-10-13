@@ -563,7 +563,7 @@ describe("N13 done when: a seeded 120-day realm", () => {
     expect(v.news.length).toBeGreaterThan(0);
   });
 
-  it("the town keeps a realm through 10 days, and a save round trip keeps it (save v10)", () => {
+  it("the town keeps a realm through 10 days, and a save round trip keeps it", () => {
     const town = makeTown({ rng: seededRng(9) });
     for (let i = 0; i < 10; i++) town.passHours(24);
     const realm = town.world.realm!;
@@ -575,11 +575,6 @@ describe("N13 done when: a seeded 120-day realm", () => {
     expect(back.version).toBe(SAVE_VERSION);
     expect(back.realm?.day).toBe(realm.day);
     expect(Object.keys(back.realm!.figures).length).toBe(Object.keys(realm.figures).length);
-    // An older save without a realm gets one.
-    const old = { ...town.world, version: 8 } as Record<string, unknown>;
-    delete old.realm;
-    saveWorld(file, old as never);
-    expect(loadWorld(file, town.personas, town.templates).realm).toBeDefined();
     void figurePower;
   });
 });

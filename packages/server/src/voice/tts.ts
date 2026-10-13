@@ -72,6 +72,7 @@ export class PiperCliTts implements TtsProvider {
   synthesize(text: string, voice: NpcVoice): Promise<Buffer> {
     const model = voice.piper?.model ?? listPiperModels(this.voicesDir)[0];
     if (!model) return Promise.reject(new Error(`No Piper voice models in ${this.voicesDir}.`));
+    // real time, not simulation: a temp file name
     const out = join(tmpdir(), `millbrook-${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2)}.wav`);
     const args = ["--model", join(this.voicesDir, `${model}.onnx`), "--output_file", out];
     if (voice.piper?.speaker !== undefined) args.push("--speaker", String(voice.piper.speaker));

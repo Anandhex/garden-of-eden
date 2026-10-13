@@ -11,7 +11,8 @@ import { absoluteHour } from "./clock.js";
 import { type Creature, type CreatureTemplate, isNotable, passCreatureTime } from "./creatures.js";
 import { reportCrimes, isGuard } from "./crime.js";
 import type { DeathRegistry } from "./deaths.js";
-import type { Rng } from "./dice.js";
+import { type Rng, streamFor } from "./dice.js";
+import type { Building } from "../web/map.js";
 import { onEvent } from "./events.js";
 import type { WorldStore } from "./db.js";
 import { absorbWitnessed } from "./gossip.js";
@@ -43,7 +44,7 @@ import { HOME_ID } from "./realm/generate.js";
 import { breedCreatures, castCrowd, nameRisers, personaFor, readyToTalk } from "./realm/rise.js";
 import { arrive, setOut, siteOf, type Trip } from "./realm/travel.js";
 import { ensurePlaceLore, notablesOf, visitorId, visitorPersona } from "./realm/visitors.js";
-import { parseTownsfolkId, townsfolkPersona } from "./realm/townsfolk.js";
+import { parseTownsfolkId, rosterFor, rosterFromStore, townsfolkPersona } from "./realm/townsfolk.js";
 import type { CrowdRoster, Townsperson } from "@millbrook/shared";
 import { settleHaunts, stockHaunts } from "./realm/haunts.js";
 import { killFigure, titled } from "./realm/figures.js";
@@ -93,7 +94,8 @@ export class Town {
   private readonly llm: LLMProvider;
   private readonly bgLlm: LLMProvider;
   private readonly deaths?: DeathRegistry;
-  private readonly rng: Rng;
+  /** A fixed die for tests; without one, every system rolls from its own stream (rngFor). */
+  private readonly fixedRng?: Rng;
   private unsubscribe: (() => void) | null = null;
   /** Deaths whose ripple has run (once each; deaths before this session already did theirs). */
   private rippled = new Set<string>();
@@ -103,6 +105,24 @@ export class Town {
   private news: string[] = [];
   private readonly childTemplate?: NpcTemplate;
   private readonly agentLlm: LLMProvider;
+
+  /**
+   * The dice for one system (N18). A fixed die (tests) wins. Otherwise each system rolls from its
+   * own stream of the world's seed, so a new roll in one never changes another's: `keys` pin the
+   * stream (a day); with none, a counter per system in the save keeps repeated calls apart.
+   */
+  rngFor(system: string, ...keys: Array<string | number>): Rng {
+    if (this.fixedRng) return this.fixedRng;
+    if (keys.length > 0) return streamFor(this.world.seed, system, ...keys);
+    const rolls = (this.world.rolls ??= {});
+    rolls[system] = (rolls[system] ?? 0) + 1;
+    return streamFor(this.world.seed, system, "n", rolls[system]!);
+  }
+
+  /** The dice for something the player did (a fight round, a sneak, a craft): the same inputs on the same world roll the same. */
+  actionRng(): Rng {
+    return this.rngFor("action");
+  }
 
   /** News from background work since last asked. */
   takeNews(): string[] {
@@ -134,7 +154,7 @@ export class Town {
     this.bgLlm = o.backgroundLlm ?? o.llm;
     this.store = o.store;
     this.deaths = o.deaths;
-    this.rng = o.rng ?? Math.random;
+    if (o.rng) this.fixedRng = o.rng;
     this.background = new BackgroundWork(() => this.bgLlm.abort?.());
     registerNpcNames(Object.fromEntries(this.ids.map((id) => [id, o.personas[id]!.name])));
     registerNpcGenders(Object.fromEntries(this.ids.map((id) => [id, o.personas[id]!.voice?.gender])));
@@ -193,7 +213,7 @@ export class Town {
     this.world.lore ??= [];
     this.world.newsDays ??= {};
     for (let d = fromDay + 1; d <= this.world.day; d++) {
-      const night = familyNight(this.members(), { ...this.world, day: d }, this.rng, this.childTemplate);
+      const night = familyNight(this.members(), { ...this.world, day: d }, this.rngFor("family", d), this.childTemplate);
       for (const p of night.born) this.addNpc(p, d);
       for (const p of night.changed) {
         this.replaceNpc(p);
@@ -231,7 +251,7 @@ export class Town {
   stockHaunts(): void {
     const realm = this.world.realm;
     if (!realm || this.atHome()) return;
-    stockHaunts(realm, (this.world.haunts ??= {}), this.site(), this.templates, this.world.day, this.rng, (f) => !!this.personas[visitorId(f.id)]);
+    stockHaunts(realm, (this.world.haunts ??= {}), this.site(), this.templates, this.world.day, this.rngFor("haunts"), (f) => !!this.personas[visitorId(f.id)]);
   }
 
   /** After a fight away from home: the dead go back to the realm (a pack one fewer, a bounty share, a named death). Returns lines. */
@@ -265,6 +285,15 @@ export class Town {
     return [...this.companions().map((a) => a.persona.id), ...folk, ...townsfolk];
   }
 
+  /** Everyone who lives in a place (N18): read from the database when the town has one, else rolled by the generator. */
+  rosterAt(site: string, map: { id: string; buildings: Building[]; zones: Array<{ id: string }> }, day = this.world.day, opts: { readOnly?: boolean } = {}): CrowdRoster | null {
+    const realm = this.world.realm;
+    if (!realm) return null;
+    // The admin view only looks: a place with no rows yet is shown as the generator would roll it, and nothing is written.
+    if (this.store && !(opts.readOnly && this.store.people.count(site) === 0)) return rosterFromStore(this.store.people, realm, site, map, day);
+    return rosterFor(realm, site, map, day);
+  }
+
   /**
    * One of the townsfolk becomes a talking NPC (N16): the player spoke to them. Their
    * file (realm/townsfolk.ts) is kept in the save with the people of other places, so
@@ -282,6 +311,7 @@ export class Town {
     if (!persona) return null;
     (this.world.visitors ??= {})[persona.id] = persona;
     this.personas[persona.id] = persona;
+    this.store?.people.update(p.id, { persona: persona.id });
     const state = this.world.npcStates[persona.id] ?? createNpcState(persona, {}, this.world.day);
     this.world.npcStates[persona.id] = state;
     this.agents[persona.id] = new NpcAgent(persona, this.agentLlm, undefined, state);
@@ -338,7 +368,7 @@ export class Town {
     const realm = this.world.realm;
     if (!realm) return { ok: false, lines: ["There's no wider realm in this world."], hours: 0 };
     if (this.ids.some((id) => this.agents[id]!.state.inCombat && !this.agents[id]!.isDead)) return { ok: false, lines: ["Not in the middle of a fight."], hours: 0 };
-    return setOut(realm, this.world.player, to, this.world.day, this.rng, this.companionPower());
+    return setOut(realm, this.world.player, to, this.world.day, this.rngFor("travel"), this.companionPower());
   }
 
   /** The player arrives: they're at the gate of the new place, and its people are about. Returns lines. */
@@ -408,11 +438,11 @@ export class Town {
     if (!realm) return [];
     const log: string[] = [];
     for (let d = fromDay + 1; d <= this.world.day; d++) {
-      log.push(...breedCreatures(this.templates, this.world.creatures, d, this.rng));
-      log.push(...nameRisers(realm, this.templates, this.world.creatures, d, this.rng));
+      log.push(...breedCreatures(this.templates, this.world.creatures, d, this.rngFor("breed", d)));
+      log.push(...nameRisers(realm, this.templates, this.world.creatures, d, this.rngFor("risers", d)));
       syncCast(realm, this.members(), d);
       const before = Object.keys(realm.factions);
-      advanceRealm(realm, d, this.rng);
+      advanceRealm(realm, d, this.fixedRng);
       this.world.atWar = atWar(realm, realm.settlements[HOME_ID]!);
       log.push(...applyHomeEvents(realm, this.world, this.members(), Object.keys(this.templates)));
       const before2 = new Set(realm.news.filter((n) => n.delivered).map((n) => n.id));
@@ -478,7 +508,7 @@ export class Town {
     } catch {
       return [];
     }
-    const persona = personaFor(f, templates, day, this.rng, this.ids);
+    const persona = personaFor(f, templates, day, this.rngFor("rise", f.id), this.ids);
     if (!persona) return [];
     // Off the map as a creature; into the cast as a person.
     for (const [uid, c] of Object.entries(this.world.creatures)) if (c.figure === f.id) delete this.world.creatures[uid];
@@ -528,7 +558,7 @@ export class Town {
 
   /** Creatures due now turn up, ended groups move on. `keep`: creatures in a fight. */
   respawn(keep: string[] = []): string[] {
-    return applySpawnRules(this.rules(), this.templates, this.world.creatures, (this.world.spawns ??= {}), this.world, this.rng, new Set(keep));
+    return applySpawnRules(this.rules(), this.templates, this.world.creatures, (this.world.spawns ??= {}), this.world, this.rngFor("spawn"), new Set(keep));
   }
 
   /** Where an NPC is now (null when they're not out: asleep, at home, dead, away). */
@@ -558,9 +588,9 @@ export class Town {
    */
   passHours(hours: number, { talkingTo, keep = [] }: { talkingTo?: string; keep?: string[] } = {}): string[] {
     const start = { day: this.world.day, hour: this.world.hour };
-    const log = passVillage(this.members(), this.world, hours, this.rng, talkingTo ? { talkingTo } : {});
-    log.push(...passCreatureTime(this.templates, this.world.creatures, start, hours, this.rng, DEMO_SPAWNS).filter(isNotable));
-    log.push(...passVillageNights(this.templates, this.world.creatures, this.members(), this.world, start, hours, this.rng));
+    const log = passVillage(this.members(), this.world, hours, this.rngFor("village"), talkingTo ? { talkingTo } : {});
+    log.push(...passCreatureTime(this.templates, this.world.creatures, start, hours, this.rngFor("creatures"), DEMO_SPAWNS).filter(isNotable));
+    log.push(...passVillageNights(this.templates, this.world.creatures, this.members(), this.world, start, hours, this.rngFor("nights")));
     if (this.world.realm) log.push(...castCrowd(this.world.realm, this.world.creatures, this.world.day));
     log.push(...this.respawn(keep));
     if (this.world.realm) castCrowd(this.world.realm, this.world.creatures, this.world.day);
@@ -650,7 +680,7 @@ export class Town {
       }
     }
     if (!foe) return [];
-    const log = companionsStrike(comps, foe, this.rng);
+    const log = companionsStrike(comps, foe, this.rngFor("companions"));
     if (target.creature) {
       const c = this.creaturesHere()[target.creature] ?? this.world.creatures[target.creature];
       if (c && c.hp <= 0 && !c.outcome) {

@@ -14,6 +14,9 @@ export class HealthView implements View {
     try {
       const h = await api.health();
       this.el.replaceChildren();
+      const dl = el("p");
+      dl.append(el("a", { href: "/api/admin/export", download: "", textContent: "Download this world (.mbworld)" }), el("span", { className: "muted", textContent: " the save and every table in one file; import it with npm run world:import." }));
+      this.el.append(dl);
       this.el.append(el("h3", { textContent: "Step timings (milliseconds, last 200 calls)" }));
       const names = Object.keys(h.tickMs).sort();
       if (names.length === 0) this.el.append(emptyP("Nothing has run yet: let a game hour pass."));

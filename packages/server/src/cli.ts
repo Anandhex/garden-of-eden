@@ -3,7 +3,6 @@ import { areasOf, areaWords, MILLBROOK_INFO, siteMap } from "./web/sites.js";
 import { AREA_WALK_MINUTES } from "./web/map.js";
 import { describeFactions, describeRealm, describeSettlement } from "./game/realm/view.js";
 import { joinGuild, playerDelve } from "./game/realm/wilds.js";
-import { rosterFor } from "./game/realm/townsfolk.js";
 import { CLASSES, CLASS_WORDS, CrowdSim, JOB_INFO } from "@millbrook/shared";
 import { weatherOn } from "./game/weather.js";
 import { townEventsOn } from "./game/events-calendar.js";
@@ -25,7 +24,9 @@ import {
   loadCreatureTemplates,
 } from "./game/creatures.js";
 import { DeathRegistry, describeDeath } from "./game/deaths.js";
-import { importDeaths, loadWorld, newWorld, saveWorld, type SavedWorld } from "./game/save.js";
+import { SaveMismatchError, saveWorld, type SavedWorld } from "./game/save.js";
+import { openWorld } from "./game/openWorld.js";
+import { acquireSaveLock } from "./store/lock.js";
 import { rankForLevel, xpToNextLevel } from "./game/levels.js";
 import { titleNames } from "./game/titles.js";
 import { restPlayer } from "./game/healing.js";
@@ -115,9 +116,22 @@ const names = () => Object.fromEntries(Object.entries(personas).map(([id, p]) =>
 const creatureTemplates = loadCreatureTemplates();
 const spawnRules = loadSpawnRules();
 const deaths = new DeathRegistry(config.deathsFile);
-const world: SavedWorld = newGame
-  ? newWorld(personas, creatureTemplates)
-  : importDeaths(loadWorld(config.saveFile, personas, creatureTemplates), config.deathsFile);
+// One writer at a time: the save file and the database go together (N18).
+acquireSaveLock(config.saveFile);
+const llm = new OllamaProvider();
+// The long-term store (SQLite): every event, summaries for recall by meaning, the director's log.
+const store = new WorldStore(config.dbFile, await pickEmbedder(new OllamaEmbedder()));
+// The world and its database come as a pair (N18); a new world starts from an empty database.
+let opened: ReturnType<typeof openWorld>;
+try {
+  opened = openWorld({ file: config.saveFile, deathsFile: config.deathsFile, personas, templates: creatureTemplates, store, fresh: newGame });
+} catch (err) {
+  if (!(err instanceof SaveMismatchError)) throw err;
+  console.error(err.message);
+  process.exit(1);
+}
+const world: SavedWorld = opened.world;
+if (opened.notice) console.log(opened.notice);
 // With permadeath, a dead player's save is over (config.playerDefeat).
 if (world.player.death) {
   const d = world.player.death;
@@ -126,11 +140,6 @@ if (world.player.death) {
 }
 // The player's own name: --name=Anand (kept in the save). NPCs only learn it when told (N4.3).
 if (nameArg) world.player.name = nameArg;
-
-const llm = new OllamaProvider();
-// The long-term store (SQLite): every event, summaries for recall by meaning, the director's log.
-const store = new WorldStore(config.dbFile, await pickEmbedder(new OllamaEmbedder()));
-if (newGame) store.reset();
 const town = new Town({ personas, creatureTemplates, spawnRules, world, llm, backgroundLlm: new OllamaProvider(), store, deaths });
 const agents: Record<string, NpcAgent> = town.agents;
 for (const id of town.ids) {
@@ -169,7 +178,7 @@ let crowd: CrowdSim | null = null;
 function crowdHere(): CrowdSim | null {
   if (!world.realm || town.area() !== "village") return null;
   const map = siteMap(siteInfo(), "village", world.realm);
-  const roster = rosterFor(world.realm, town.site(), map, world.day);
+  const roster = town.rosterAt(town.site(), map, world.day);
   if (!roster) return null;
   if (!crowd || crowd.map.id !== map.id || crowd.roster.people !== roster.people) crowd = new CrowdSim({ id: map.id, w: map.w, h: map.h, tiles: map.tiles, buildings: map.buildings, zones: map.zones }, roster);
   return crowd;
@@ -234,7 +243,7 @@ function printConsequences(): void {
 
 function persist(): void {
   for (const id of [...town.ids, ...town.visitorIds()]) world.npcStates[id] = agents[id]!.state;
-  saveWorld(config.saveFile, world);
+  saveWorld(config.saveFile, world, store);
 }
 
 /** What the player wears and carries. */
@@ -366,7 +375,7 @@ async function arrive(): Promise<void> {
     const t = creatureTemplates[ambusher.template]!;
     cliEngaged = ambusher.uid;
     console.log(`  [ambush] ${ambusher.name} was waiting for you!`);
-    const round = creatureAmbush(t, ambusher, world, Math.random);
+    const round = creatureAmbush(t, ambusher, world, town.actionRng());
     for (const entry of round.log) console.log(`  ${entry}`);
     if (round.over === "player down") defeatedByCreature(t, ambusher);
     return;
@@ -623,7 +632,7 @@ while (!world.player.death) {
     const foe = cliEngaged ? creatureHere(cliEngaged) : undefined;
     const t = foe && creatureTemplates[foe.template];
     if (foe && t) {
-      const round = creatureTurn(t, foe, world, Math.random);
+      const round = creatureTurn(t, foe, world, town.actionRng());
       for (const entry of round.log.slice(1)) console.log(`  ${entry}`);
       if (round.over === "player down" && defeatedByCreature(t, foe)) break;
     } else {
@@ -808,7 +817,7 @@ while (!world.player.death) {
       continue;
     }
     cliEngaged = c.uid;
-    const round = hunt[1] === "hunt" ? fightCreature(t, c, world, Math.random) : fleeCreature(t, c, world, Math.random);
+    const round = hunt[1] === "hunt" ? fightCreature(t, c, world, town.actionRng()) : fleeCreature(t, c, world, town.actionRng());
     for (const entry of round.log) console.log(`  ${entry}`);
     if (hunt[1] === "hunt" && !round.over) for (const entry of town.companionsHit({ creature: c.uid })) console.log(`  [party] ${entry}`);
     if (c.outcome && !round.over) {
@@ -994,7 +1003,7 @@ while (!world.player.death) {
       console.log(fighting ? "  Not in the middle of a fight." : "  There's no wider realm in this world.");
       continue;
     }
-    const r = playerDelve(world.realm, world.player, delveCmd[1] ?? "", world.day, Math.random);
+    const r = playerDelve(world.realm, world.player, delveCmd[1] ?? "", world.day, town.actionRng());
     for (const l of r.lines) console.log(`  ${l}`);
     if (r.ok) for (const entry of passAll(r.hours)) console.log(`  ${entry}`);
     persist();
@@ -1014,7 +1023,7 @@ while (!world.player.death) {
       continue;
     }
     const craft = line.match(/^\/craft\s+(.+)$/);
-    const r = craft ? playerCraft(world.player, craft[1]!, Math.random, world.day) : line === "/forage" ? forage(world.player, Math.random, world.day) : null;
+    const r = craft ? playerCraft(world.player, craft[1]!, town.actionRng(), world.day) : line === "/forage" ? forage(world.player, town.actionRng(), world.day) : null;
     if (!r) {
       console.log("  Usage: /craft <item>");
       continue;
@@ -1027,7 +1036,7 @@ while (!world.player.death) {
   }
   if (line === "/sneak") {
     const watchers = present().filter((a) => !a.busyWith(world)).map((a) => ({ persona: a.persona, state: a.state }));
-    console.log(`  ${sneak(world, watchers, Math.random).message}`);
+    console.log(`  ${sneak(world, watchers, town.actionRng()).message}`);
     persist();
     continue;
   }
@@ -1067,7 +1076,7 @@ while (!world.player.death) {
   const repairLine = line.match(/^\/repair\s+(.+)$/);
   if (repairLine) {
     const which = repairLine[1]!.trim();
-    const quote = repairForPlayer(which, { persona: npc.persona, state: npc.state, world, rng: Math.random }, { quote: true });
+    const quote = repairForPlayer(which, { persona: npc.persona, state: npc.state, world, rng: town.actionRng() }, { quote: true });
     if (!quote.ok) {
       console.log(`  ${quote.message}`);
       continue;
@@ -1237,7 +1246,7 @@ while (!world.player.death) {
         await npcSays((onText) => npc.respond(line, sceneFor(npc), onText));
       } else {
         let speaker: string | null = null;
-        const turn = await sceneTurn(scene, here, npc, line, world, Math.random, (id, delta) => {
+        const turn = await sceneTurn(scene, here, npc, line, world, town.actionRng(), (id, delta) => {
           if (speaker !== id) stdout.write(`${speaker ? "\n" : ""}${agents[id]!.persona.name}: `);
           speaker = id;
           stdout.write(delta);

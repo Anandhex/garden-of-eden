@@ -145,11 +145,10 @@ describe("world events", () => {
     expect(buildTurnMessage(p, createNpcState(p), world, "Hello.")).toContain("Recent news: Bandits attacked a merchant cart");
   });
 
-  it("older saves with event text load as ids, and text not in the lore is dropped", () => {
+  it("a save with an id that isn't in the lore loads without it", () => {
     const file = join(mkdtempSync(join(tmpdir(), "llm-game-lore-")), "world.json");
-    saveWorld(file, newWorld(personas));
     const raw = JSON.parse(JSON.stringify(newWorld(personas)));
-    raw.recentEvents = ["Bandits attacked a merchant cart on the mine road this morning.", "A dragon ate the mill."];
+    raw.recentEvents = ["news.cart_attack", "made.up_event"];
     writeFileSync(file, JSON.stringify(raw));
     expect(loadWorld(file, personas).recentEvents).toEqual(["news.cart_attack"]);
   });
