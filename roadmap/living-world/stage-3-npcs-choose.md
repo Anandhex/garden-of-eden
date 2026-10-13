@@ -54,6 +54,7 @@ NPCs act for themselves: interactions with consequences, hourly choices, life go
 
 **The rules:** not a fixed script. At a new game, code picks an opening incident from what the seeded world already has brewing in Millbrook (a death, a theft, a stranger, a grudge near breaking, a raid coming), arranges for the player to be there when it breaks, and offers a choice with consequences that run on the normal systems.
 
+- [ ] **Choosing the start town** (deferred from N25a, user decision 2026-10-13): a new game lets the player pick the town to start in, or take one at random; until then `pickStartSite` picks it from the seed
 - [ ] A set of opening incidents with conditions; one picked per seed from the world's state
 - [ ] The incident involves the player within the first few minutes, with a choice that sets a grudge, a debt or a friendship
 - [ ] Gentle pointers to the systems it touches (gossip spreading, someone remembering), in the world, not as tutorials

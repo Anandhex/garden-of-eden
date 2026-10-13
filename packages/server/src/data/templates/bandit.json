@@ -1,9 +1,9 @@
 {
   "id": "bandit",
-  "describe": "one of Rook's gang on the mine road, who made a name with a cudgel",
+  "describe": "one of a gang of outlaws who work the roads, who made a name with a cudgel",
   "roles": [
-    "a bandit of Rook's gang on the mine road",
-    "a road-hardened cutthroat from the camp at the north end of the mine road"
+    "a bandit of the gang that works the roads near {place}",
+    "a road-hardened cutthroat from the camp outside {place}"
   ],
   "species": [
     "human"
@@ -146,11 +146,7 @@
     }
   ],
   "knows": {
-    "mine_road.*": "certain",
-    "millbrook": "certain",
-    "millbrook.gate": "certain",
     "news.*": "rumour",
-    "people.rook": "certain",
     "people.*": "rumour"
   },
   "maxQuestTier": "E",
@@ -257,7 +253,7 @@
       "Few words, all of them threats. Spits before answering."
     ],
     "backstory": [
-      "{name} was one more nameless face in Rook's gang until a fight on the mine road made them somebody.",
+      "{name} was one more nameless face in the gang until a fight on the road made them somebody.",
       "{first} came up to the camp hungry, and came down the road with a name after beating better fighters."
     ],
     "appearance": [
@@ -267,7 +263,7 @@
     "goals": [
       [
         "Get a bigger share of the tolls",
-        "Make Rook notice them"
+        "Make the chief notice them"
       ],
       [
         "Lead a crew of their own one day",

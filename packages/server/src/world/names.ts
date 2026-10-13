@@ -1,6 +1,6 @@
 /**
  * NPC display names by id, for code that only has an id ("take word to Corporal
- * Hale", "Old Pell is here: a friend"). The game registers every persona at startup;
+ * Reed", "Old Odo is here: a friend"). The game registers every persona at startup;
  * an unknown id is shown as is.
  */
 const names: Record<string, string> = {};

@@ -1,6 +1,5 @@
 import type { AdminClock, AdminMapLayer, AdminOverview, ClassCounts } from "@millbrook/shared";
 import { ongoing } from "../game/realm/diplomacy.js";
-import { HOME_ID } from "../game/realm/generate.js";
 import type { Party, Realm } from "../game/realm/types.js";
 import { describeRealm, realmView } from "../game/realm/view.js";
 import type { AdminContext } from "./context.js";
@@ -46,7 +45,7 @@ export function overview(ctx: AdminContext): AdminOverview {
   let pending = 0;
   let worked = 0;
   // Smaller places first: they are cheap, so the table fills quickly; the capitals come last.
-  const order = Object.values(realm.settlements).filter((s) => !s.abandoned).sort((a, b) => Number(b.id === HOME_ID) - Number(a.id === HOME_ID) || a.population - b.population);
+  const order = Object.values(realm.settlements).filter((s) => !s.abandoned).sort((a, b) => Number(b.id === world.player.site) - Number(a.id === world.player.site) || a.population - b.population);
   for (const s of order) {
     const hit = classCounts(ctx, s.id, true);
     if (hit) classes[s.id] = hit;

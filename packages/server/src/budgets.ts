@@ -24,7 +24,9 @@ export const CALL_KINDS = [
   "talk", // the player's conversation: never dropped, never delayed by anything else
   "summary", // conversation summaries: memory depends on them
   "plan", // daily plans (fallback: the schedule without a model plan)
-  "chronicle", // the nightly world director
+  "chronicle", // the nightly world director (cheap, and every night's matters more than a story: it comes before the stories and reviews)
+  "persona-story", // a new talker's story and depth, written from their facts (fallback: code's pools; a story that was shed is asked for again later)
+  "life-review", // a talker's periodic review of how they feel and what they want (fallback: code's rules)
   "retell", // news retold in a voice (fallback: code's words)
   "faction-name",
   "child-words",
@@ -63,6 +65,8 @@ export const budgets = {
       talk: Infinity,
       summary: num("BUDGET_CALLS_SUMMARY", 40),
       plan: num("BUDGET_CALLS_PLAN", 30),
+      "persona-story": num("BUDGET_CALLS_PERSONA_STORY", 30),
+      "life-review": num("BUDGET_CALLS_LIFE_REVIEW", 10),
       chronicle: num("BUDGET_CALLS_CHRONICLE", 8),
       retell: num("BUDGET_CALLS_RETELL", 4),
       "faction-name": num("BUDGET_CALLS_FACTION_NAME", 3),
@@ -83,6 +87,8 @@ export const budgets = {
       talk: 3500,
       summary: 3000,
       plan: 2500,
+      "persona-story": 60_000, // measured (npm run bench:busy shape, a live town of six): about a minute each with qwen3:4b on the M2
+      "life-review": 25_000, // measured (npm run bench:reviews): about 25 s for a batch of three with qwen3:4b on the M2; a batch of one is about a third of that
       chronicle: 3000,
       retell: 2000,
       "faction-name": 1500,

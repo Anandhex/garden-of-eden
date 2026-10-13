@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import brenaJson from "../src/data/npcs/brena.json" with { type: "json" };
-import haleJson from "../src/data/npcs/hale.json" with { type: "json" };
-import pellJson from "../src/data/npcs/pell.json" with { type: "json" };
+import brenaJson from "./fixtures/npcs/brena.json" with { type: "json" };
+import haleJson from "./fixtures/npcs/hale.json" with { type: "json" };
+import pellJson from "./fixtures/npcs/pell.json" with { type: "json" };
 import {
   type Creature,
   creatureDamageBonus,
@@ -22,7 +22,7 @@ import { buildTurnMessage } from "../src/npc/persona.js";
 import { parsePersona } from "../src/npc/personaSchema.js";
 import { createNpcState } from "../src/npc/state.js";
 import { SPECIES } from "../src/world/species.js";
-import { createDemoWorld } from "../src/world/world.js";
+import { createTestWorld } from "../src/world/world.js";
 
 const templates = loadCreatureTemplates();
 const wolf = templates.wolf!;
@@ -49,7 +49,7 @@ describe("creatures' gear", () => {
   });
 
   it("a bandit's cudgel wears with every blow, until it breaks and he fights bare-handed", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const b = spawnCreature(bandit, "bandit-1", 1, () => 0.5, "bandit 1");
     b.hp = 1000;
     b.equipment!.weapon = "cudgel [F] (1/25)";
@@ -60,7 +60,7 @@ describe("creatures' gear", () => {
   });
 
   it("the player's blows wear a bandit's armour, and it soaks damage", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const b = spawnCreature(bandit, "bandit-1", 1, () => 0.5, "bandit 1");
     b.hp = 1000;
     fightCreature(bandit, b, world, () => 0.999);
@@ -91,7 +91,7 @@ describe("creatures' gear", () => {
   });
 
   it("killing a bandit drops his actual gear, worn as it is, and his purse", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const b = spawnCreature(bandit, "bandit-1", 1, () => 0.5, "bandit 1");
     b.equipment!.weapon = "cudgel [F] (7/25)";
     b.money = 33;
@@ -128,7 +128,7 @@ describe("the black market", () => {
     expect(haleState.inventory["dagger [E]"]).toBeUndefined();
     expect(haleState.money).toBe(hale.startingMoney + 270);
     expect(haleState.memories.at(-1)?.text).toContain("secretly sold a dagger [E] to the bandits");
-    expect(log).toEqual(["Rumour has it someone in Millbrook is selling weapons to the bandits."]);
+    expect(log).toEqual(["Rumour has it someone in town is selling weapons to the bandits."]);
   });
 
   it("no deal if nobody dishonest has a weapon they can use, or they can't pay", () => {
@@ -150,14 +150,14 @@ describe("the black market", () => {
 describe("raids", () => {
   it("need enough armed bandits", () => {
     const creatures = gang(RAID_MIN - 1);
-    const world = createDemoWorld();
+    const world = createTestWorld();
     expect(considerRaid(templates, creatures, villageOf(["brena", brena], ["hale", hale]), world, () => 0).raid).toBeNull();
   });
 
   it("don't happen when the defenders are too strong", () => {
     const creatures = gang(3);
     for (const c of Object.values(creatures)) c.hp = 2; // battered: they don't feel strong
-    const world = createDemoWorld();
+    const world = createTestWorld();
     expect(considerRaid(templates, creatures, villageOf(["brena", brena], ["hale", hale]), world, () => 0).raid).toBeNull();
   });
 
@@ -165,7 +165,7 @@ describe("raids", () => {
     const creatures = gang(6);
     for (const c of Object.values(creatures)) c.hp = 500; // tough lot
     const village = villageOf(["brena", brena], ["hale", hale], ["pell", pell]);
-    const world = createDemoWorld();
+    const world = createTestWorld();
     // They decide to go (0.1), then every blow lands.
     const { raid, log } = considerRaid(templates, creatures, village, world, seq(0.1, 0.999));
     expect(raid).toMatchObject({ target: "brena", winner: "bandits" });
@@ -183,7 +183,7 @@ describe("raids", () => {
     const creatures = gang(6);
     for (const c of Object.values(creatures)) c.hp = 500;
     const village = villageOf(["brena", brena], ["hale", hale], ["pell", pell]);
-    const world = createDemoWorld();
+    const world = createTestWorld();
     considerRaid(templates, creatures, village, world, seq(0.1, 0.999));
     expect(world.recentEvents).toContain(RAID_NEWS.raided);
     // Pell wasn't there, but he hears about it.
@@ -198,7 +198,7 @@ describe("raids", () => {
     const village = villageOf(["brena", brena], ["hale", hale]);
     village[0]!.state.life.tier = "G";
     village[1]!.state.life.tier = "G";
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const { raid } = considerRaid(templates, creatures, village, world, seq(0.1, 0.999));
     expect(raid?.winner).toBe("village");
     for (const c of Object.values(creatures)) expect(c.outcome === "fled" || c.outcome === "dead").toBe(true);

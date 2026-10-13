@@ -2,9 +2,9 @@ import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import brenaJson from "../src/data/npcs/brena.json" with { type: "json" };
-import haleJson from "../src/data/npcs/hale.json" with { type: "json" };
-import pellJson from "../src/data/npcs/pell.json" with { type: "json" };
+import brenaJson from "./fixtures/npcs/brena.json" with { type: "json" };
+import haleJson from "./fixtures/npcs/hale.json" with { type: "json" };
+import pellJson from "./fixtures/npcs/pell.json" with { type: "json" };
 import { fightCreature, loadCreatureTemplates, spawnCreature } from "../src/game/creatures.js";
 import {
   armorValue,
@@ -38,7 +38,7 @@ import {
 import { parsePersona } from "../src/npc/personaSchema.js";
 import { createNpcState, npcSlots } from "../src/npc/state.js";
 import type { NpcPersona, NpcState } from "../src/npc/types.js";
-import { createDemoWorld } from "../src/world/world.js";
+import { createTestWorld } from "../src/world/world.js";
 
 const brena = parsePersona(brenaJson);
 const pell = parsePersona(pellJson);
@@ -47,13 +47,13 @@ const wolf = loadCreatureTemplates().wolf!;
 const ctxFor = (persona: NpcPersona, state: NpcState = createNpcState(persona), rng = () => 0.5): ActionContext => ({
   persona,
   state,
-  world: createDemoWorld(),
+  world: createTestWorld(),
   rng,
 });
 
 describe("gear level", () => {
   it("the player can only equip gear at or below the rank their level gives", () => {
-    const { player } = createDemoWorld(); // level 1: rank G
+    const { player } = createTestWorld(); // level 1: rank G
     player.inventory["dagger [E]"] = 1;
     expect(equip(player, playerGearRank(player.level), "dagger", "player")).toEqual({
       ok: false,
@@ -74,7 +74,7 @@ describe("gear level", () => {
   });
 
   it("equipping swaps what was in the slot back into the pack", () => {
-    const { player } = createDemoWorld();
+    const { player } = createTestWorld();
     player.level = 5;
     player.inventory["dagger [E]"] = 1;
     player.inventory["iron sword [D]"] = 1;
@@ -195,7 +195,7 @@ describe("burden", () => {
   });
 
   it("loot that doesn't fit is left behind", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.player.inventory = { "cudgel [F]": 12 };
     const c = spawnCreature(wolf, "wolf-1", 1, () => 0.5, "wolf 1");
     c.hp = 1;
@@ -208,14 +208,14 @@ describe("burden", () => {
   it("an NPC with no room doesn't start crafting", () => {
     // 28 slots, already full: even after using up the ore, nothing she makes would fit.
     const state = createNpcState(brena, { inventory: { "iron ore [F]": 4, "cudgel [F]": 28 } });
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.hour = 9;
     passTime(brena, state, world, 3, () => 0.01);
     expect(state.job).toBeNull();
   });
 
   it("a quest hand-in waits until the giver has room", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const state = createNpcState(brena, { pendingQuest: "hot_meal", inventory: { "cudgel [F]": 28 } });
     acceptQuest(brena, state, world.player);
     world.player.inventory["stew [G]"] = 1;

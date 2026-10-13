@@ -44,7 +44,7 @@ export const ACT_AT = 0.3;
 /** What they'd do about it, decided by who they are. */
 export function chooseRevenge(persona: NpcPersona, state?: NpcState): RevengePlan {
   const t = traitsOf(persona, state);
-  if (factionOf({ persona })?.id === "bandits" && t.bravery >= 0.5) return "ambush";
+  if (factionOf({ persona })?.id === "gang" && t.bravery >= 0.5) return "ambush";
   if (t.bravery >= 0.5 && t.temper >= 0.5) return "confront";
   if (t.honesty < 0.4) return "rumour";
   return "refuse";

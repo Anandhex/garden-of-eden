@@ -48,7 +48,7 @@ export const ROLES = [
   "bandit",
   "rebel",
   "beast",
-  // Millbrook's own folk (the talking cast and the crowd on the map).
+  // The ordinary folk of any place (the talkers and the crowd on the map).
   "guard",
   "innkeeper",
   "apprentice",
@@ -115,7 +115,7 @@ export const FigureSchema = z.object({
   person: z.string().optional(),
   /** Deeds, newest last (short): "beat the raiders of Ashby", "cleared the Sunken Vault". */
   deeds: z.array(z.string()).default([]),
-  /** Rose from the crowd: a creature's uid (Millbrook's map) or "crowd". */
+  /** Rose from the crowd: a creature's uid (a map the player was on) or "crowd". */
   rose: z.string().optional(),
   /** Became a talking NPC (their persona id). */
   talks: z.string().optional(),
@@ -158,8 +158,6 @@ export const SettlementSchema = z.object({
   /** Day it became free of its liege (broke away), if it did. */
   freeSince: z.number().int().optional(),
   abandoned: z.boolean().optional(),
-  /** The talking NPCs' village (Millbrook): the realm and the town meet here. */
-  home: z.boolean().optional(),
   /** Roads to other settlements (ids). */
   roads: z.array(z.string()),
 });
@@ -177,6 +175,8 @@ export const KingdomSchema = z.object({
   opinion: z.record(z.string(), z.number().min(-100).max(100)),
   /** War weariness, 0..100. */
   weariness: z.number().min(0).max(100),
+  /** What the crown allows (N16): serfs bound to the land, or slaves, or neither. Set when the realm is made. */
+  laws: z.object({ slavery: z.boolean(), serfdom: z.boolean() }).default({ slavery: false, serfdom: false }),
   fallen: z.boolean().optional(),
 });
 export type Kingdom = z.infer<typeof KingdomSchema>;
@@ -205,8 +205,6 @@ export const RealmFactionSchema = z.object({
   /** The model wrote its name and creed (director), over code's fallback. */
   named: z.boolean().optional(),
   dissolved: z.number().int().optional(),
-  /** One of the faction files (game/factions.ts): guard, merchants, bandits. */
-  file: z.string().optional(),
 });
 export type RealmFaction = z.infer<typeof RealmFactionSchema>;
 
@@ -280,15 +278,11 @@ export const RealmNewsSchema = z.object({
   id: z.string(),
   day: z.number().int(),
   text: z.string(),
-  /** Where it happened (settlement id), for how long it takes to reach Millbrook. */
+  /** Where it happened (settlement id): each place hears it after the days a traveller takes from there (`reachesAt`). */
   at: z.string().nullable(),
   kind: z.string(),
   /** 1..10. */
   importance: z.number().min(1).max(10),
-  /** The day it reaches Millbrook (travellers' speed). */
-  reaches: z.number().int(),
-  /** Delivered to Millbrook's NPCs as lore (game/realm/news.ts). */
-  delivered: z.boolean().optional(),
   /** Names in it that the lore should know (for the invented-name check). */
   names: z.array(z.string()).optional(),
   /** Figures in it (figure ids), filled when it is written, so the admin view needn't match names in text (N17). */
@@ -298,18 +292,18 @@ export const RealmNewsSchema = z.object({
 });
 export type RealmNews = z.infer<typeof RealmNewsSchema>;
 
-/** Something in the realm that reaches Millbrook's own map: raiders tonight, beasts, refugees, a tax collector. */
-export const HomeEventSchema = z.object({
+/** Something the realm sends to a place's own map: raiders tonight, beasts, refugees, a tax collector. */
+export const ArrivalSchema = z.object({
   day: z.number().int(),
   kind: z.enum(["raid", "beasts", "refugees", "war_levy", "caravan"]),
   /** Raiders or beasts: how many come; refugees: how many arrive. */
   count: z.number().int().min(0),
   /** Who: a settlement, faction or pack name. */
   by: z.string(),
-  /** The town spawned or applied it (game/realm/home.ts). */
+  /** The place applied it (game/realm/arrivals.ts). */
   done: z.boolean().optional(),
 });
-export type HomeEvent = z.infer<typeof HomeEventSchema>;
+export type Arrival = z.infer<typeof ArrivalSchema>;
 
 /**
  * Someone's people died (N25): a raid, a battle, a pack's attack. The fight rolls how many; the day's life
@@ -343,8 +337,8 @@ export const RealmSchema = z.object({
   packs: z.record(z.string(), PackSchema),
   news: z.array(RealmNewsSchema),
   director: z.array(DirectorPushSchema),
-  /** What reaches Millbrook's own map (game/realm/home.ts). */
-  home: z.array(HomeEventSchema),
+  /** What the realm sends to places' own maps, by place, until the place applies it (game/realm/arrivals.ts). */
+  arrivals: z.record(z.string(), z.array(ArrivalSchema)).default({}),
   /** Running counter for ids. */
   next: z.number().int(),
   /** Counts of what happened, for the sim and tests. */

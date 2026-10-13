@@ -152,7 +152,7 @@ export const PersonaSchema = z
     voice: VoiceSchema.optional(),
     backstory: z.string().min(1),
     goals: z.array(z.string()),
-    /** Which world lore they know (npc/knowledge.ts), and how sure they are: { "millbrook.*": "certain" }. */
+    /** Which world lore they know (npc/knowledge.ts), and how sure they are: { "place.ashby.*": "certain" }. */
     knows: z.record(z.string(), z.enum(CERTAINTY)),
     secrets: z.array(SecretSchema),
     stats: NpcStatsSchema,
@@ -228,7 +228,7 @@ export const PersonaSchema = z
       ctx.addIssue({ code: "custom", path: ["startingInventory"], message: `fills ${slotsUsed(p.startingInventory)} slots; they have room for ${room}` });
     }
     for (const pattern of badScopes(p.knows)) {
-      ctx.addIssue({ code: "custom", path: ["knows", pattern], message: "matches nothing in src/data/world.json" });
+      ctx.addIssue({ code: "custom", path: ["knows", pattern], message: "matches nothing in the world lore" });
     }
     if (QUEST_TIERS.indexOf(p.potential) < QUEST_TIERS.indexOf(p.tier)) {
       ctx.addIssue({ code: "custom", path: ["potential"], message: "below their starting rank" });

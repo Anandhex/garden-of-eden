@@ -43,7 +43,7 @@ export const NEWS_DAYS = 3;
 /** Kinds of events too ordinary for the chronicle. */
 const ORDINARY = new Set(["bought", "sold", "complimented", "gift", "commission", "service", "trade", "message", "rumour", "growth"]);
 
-const SYSTEM = `You are the chronicler of Millbrook, a small fantasy village. You are told one thing that happened today.
+const SYSTEM = `You are the chronicler of a small fantasy realm. You are told one thing that happened today.
 Use the tools to record it, or do nothing if it isn't worth recording:
 - add_news: a one-sentence piece of news everyone in the village will hear.
 - add_lore: a short entry for the village's history, if it will be remembered.

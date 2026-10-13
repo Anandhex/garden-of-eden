@@ -76,7 +76,7 @@ export function villageHour(members: VillageMember[], world: WorldSnapshot, rng:
   for (const m of members) {
     const plan = awakeAt(m, world);
     if (!plan) continue;
-    // Supper out: pay whoever keeps the place (Brena pays Pell at the inn).
+    // Supper out: pay whoever keeps the place (a smith pays the innkeeper at the inn).
     if (plan.activity === "eat" && plan.place !== "home") {
       const host = hostAt(members, plan.place, world, m);
       const bought = host ? buyFrom(m, host, MEALS, world) : null;

@@ -51,6 +51,8 @@ export interface PersonRow {
    * only touches people whose `stepped_day` is before it, which is what makes catching up resumable.
    */
   stepped_day: number;
+  /** JSON, small (N25b): how they feel about their lord and their town, their mood, goal and grudge, as code's reviews leave it. Null until their first review. */
+  outlook: string | null;
   /** Bumped by every flush that writes the row. */
   rev: number;
 }
@@ -71,7 +73,7 @@ const COLUMNS = TABLES.people;
 const INSERT = `INSERT OR REPLACE INTO people (${COLUMNS.join(", ")}) VALUES (${COLUMNS.map(() => "?").join(", ")})`;
 
 /** Columns whose change leaves a place's roster as it was. */
-const QUIET = new Set(["persona", "traits", "expecting", "last_birth", "stepped_day", "spouse", "mother", "father", "figure"]);
+const QUIET = new Set(["persona", "traits", "expecting", "last_birth", "stepped_day", "spouse", "mother", "father", "figure", "outlook"]);
 const values = (r: PersonRow) => COLUMNS.map((c) => r[c]) as Array<string | number | null>;
 const escapeLike = (q: string) => q.replace(/[\\%_]/g, (c) => `\\${c}`);
 

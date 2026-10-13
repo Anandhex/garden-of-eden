@@ -81,7 +81,7 @@ export function parseSkill(name: string): Skill | null {
 
 /**
  * The one skill an NPC teaches: `teaches` if set, otherwise their best skill
- * (ties go to the earlier skill in SKILLS). Brena: smithing. Pell: haggling.
+ * (ties go to the earlier skill in SKILLS). A smith: smithing. An innkeeper: haggling.
  */
 export function trainerSkill(persona: NpcPersona): Skill | undefined {
   if (persona.teaches) return persona.teaches;

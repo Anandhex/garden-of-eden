@@ -1,0 +1,55 @@
+[
+  {
+    "kind": "grief",
+    "requires": { "fact": ["loss:any"] },
+    "id": "carry_on",
+    "name": "Carrying on",
+    "stages": [
+      { "id": "numb", "line": "You are still numb from losing {lost}. You go through the motions and say little.", "journal": "{name} is still grieving." },
+      { "id": "speaks", "after": 14, "line": "You have started to talk about {lost} now, in small bits, when you feel safe.", "journal": "{name} has begun to speak of the loss." },
+      { "id": "mends", "after": 40, "line": "The grief for {lost} has settled into something you can carry. You laugh sometimes again.", "journal": "{name} is mending." }
+    ]
+  },
+  {
+    "kind": "ambition",
+    "requires": { "job": ["smith", "innkeeper", "merchant", "farmer"] },
+    "id": "build_something",
+    "name": "Something of their own",
+    "stages": [
+      { "id": "saving", "line": "You are saving every coin you can toward expanding your {job_place}.", "journal": "{name} is saving to expand." },
+      { "id": "plans", "after": 20, "line": "You have drawn up plans to expand your {job_place} and talk about them to anyone who will listen.", "journal": "{name} has plans to grow the business." },
+      { "id": "builds", "after": 60, "line": "You have started building. It has cost more than you expected, but it is yours.", "journal": "{name} has begun to build." }
+    ]
+  },
+  {
+    "kind": "freedom",
+    "requires": { "law": ["slave", "serf"] },
+    "id": "be_free",
+    "name": "Someday free",
+    "stages": [
+      { "id": "hope", "line": "You never speak of it, but you keep a tally of coins hidden away against the day you can buy your freedom.", "journal": "{name} is saving for freedom." },
+      { "id": "closer", "after": 30, "line": "The hidden tally has grown. You let yourself imagine what you would do with a free day.", "journal": "{name} is closer to freedom." }
+    ]
+  },
+  {
+    "kind": "reconcile",
+    "requires": { "fact": ["family"] },
+    "id": "make_peace",
+    "name": "Making peace at home",
+    "stages": [
+      { "id": "quarrel", "line": "There is a quarrel in your family that no one will mention, and it weighs on you.", "journal": "{name} is at odds with family." },
+      { "id": "reach", "after": 21, "line": "You have decided to reach out first, though you do not know how.", "journal": "{name} wants to make peace." },
+      { "id": "peace", "after": 50, "line": "The quarrel has been mended, awkwardly, and the house is lighter for it.", "journal": "{name} has made peace." }
+    ]
+  },
+  {
+    "kind": "duty",
+    "requires": { "job": ["guard", "bandit", "child"] },
+    "id": "prove_yourself",
+    "name": "Proving themselves",
+    "stages": [
+      { "id": "unproven", "line": "You feel you have something to prove, and few chances to prove it.", "journal": "{name} wants to prove themselves." },
+      { "id": "chance", "after": 25, "line": "You are waiting for a real chance, and are quicker to volunteer than you used to be.", "journal": "{name} is looking for a chance." }
+    ]
+  }
+]

@@ -14,12 +14,13 @@ import { loadCreatureTemplates } from "../src/game/creatures.js";
 import { ITEMS } from "../src/game/items.js";
 import { acceptQuest, recordCreatureDefeat, turnInQuests } from "../src/game/quests.js";
 import { applySpawnRules, allSpawnRules, ambushers } from "../src/game/spawning.js";
-import { createDemoWorld } from "../src/world/world.js";
+import { createTestWorld } from "../src/world/world.js";
 import { WorldStore } from "../src/game/db.js";
 import type { ChatRequest, ChatResult, LLMProvider } from "../src/llm/provider.js";
 import { allPersonas, always, brena, hale, makeTown, pell, rook } from "./helpers.js";
 import type { NpcState, WorldSnapshot } from "../src/npc/types.js";
 import type { GameEvent } from "../src/game/events.js";
+import { creaturesOf, siteState } from "../src/game/site.js";
 
 const templates = loadCreatureTemplates();
 
@@ -41,7 +42,7 @@ class Director implements LLMProvider {
 }
 
 function worldWith(events: Array<Partial<GameEvent> & Pick<GameEvent, "kind" | "actor" | "target">>): WorldSnapshot {
-  const w = createDemoWorld();
+  const w = createTestWorld();
   w.events = [];
   for (const e of events) recordEvent(w, { details: "", importance: 8, witnesses: [], ...e });
   return w;
@@ -57,7 +58,7 @@ describe("N12.1 the event log", () => {
   });
 
   it("witnesses are whoever was there; only they know at first, and gossip spreads it", () => {
-    const w = createDemoWorld();
+    const w = createTestWorld();
     w.present = ["pell"];
     const e = recordEvent(w, { kind: "attacked", actor: "player", target: "brena", details: "", importance: 9 });
     expect(e.witnesses).toEqual(["pell", "brena"]);
@@ -93,8 +94,8 @@ describe("N12.2 revenge, decided by traits", () => {
     expect((world.extraSpawnRules ?? []).some((r) => r.ambush && r.id.startsWith("revenge_rook"))).toBe(true);
     // The hired men turn up and lie in wait.
     world.hour = 9;
-    applySpawnRules(allSpawnRules([], world), templates, world.creatures, (world.spawns ??= {}), world, always(0.5));
-    expect(ambushers(allSpawnRules([], world), world.spawns, world.creatures).length).toBe(2);
+    applySpawnRules(allSpawnRules([], siteState(world), world.day), templates, creaturesOf(world), siteState(world).spawns, world, always(0.5));
+    expect(ambushers(allSpawnRules([], siteState(world), world.day), siteState(world).spawns, creaturesOf(world)).length).toBe(2);
   });
 
   it("revenge fades at forgiveness, and amends clear it", () => {
@@ -110,7 +111,7 @@ describe("N12.2 revenge, decided by traits", () => {
   });
 
   it("acts once per goal", () => {
-    const w = createDemoWorld();
+    const w = createTestWorld();
     const s = createNpcState(hale);
     wantRevenge(hale, s, "attacked", "they attacked you", 1);
     expect(actOnRevenge(hale, s, w)?.plan).toBe("rumour");
@@ -154,7 +155,7 @@ describe("N12.3 the nightly chronicle", () => {
   });
 
   it("news expires after a few days", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     pushNews(world, "news.bandit_raid");
     world.day += NEWS_DAYS;
     expect(expireNews(world)).toEqual([]);
@@ -175,16 +176,16 @@ describe("N12.4 director quests", () => {
 
   it("only checkable goals, a tier from what's asked, the reward from the giver's purse", () => {
     const states = statesFor();
-    const v = validateQuest(ctx(createDemoWorld(), states), { giver: "Brena", title: "Get my blade back", description: "Bandits took my best blade in the raid.", goal: "defeat", creature: "bandits", qty: 2 }, raid);
+    const v = validateQuest(ctx(createTestWorld(), states), { giver: "Brena", title: "Get my blade back", description: "Bandits took my best blade in the raid.", goal: "defeat", creature: "bandits", qty: 2 }, raid);
     expect(v.ok).toBe(true);
     if (!v.ok) return;
     expect(v.value.quest.objective).toEqual({ type: "defeat", creature: "bandit", qty: 2 });
     expect(v.value.quest.director).toBe(true);
     expect(v.value.quest.reward.money).toBeLessThanOrEqual(states.brena!.money / 2);
     // Unknown items and creatures, uninvolved givers and invented names are turned down.
-    expect(validateQuest(ctx(createDemoWorld()), { giver: "Brena", title: "x", description: "y", goal: "deliver", item: "dragon egg", qty: 1 }, raid).ok).toBe(false);
-    expect(validateQuest(ctx(createDemoWorld()), { giver: "Hale", title: "x", description: "y", goal: "deliver", item: "ale", qty: 1 }, raid).ok).toBe(false);
-    expect(validateQuest(ctx(createDemoWorld()), { giver: "Brena", title: "For Lord Varkis", description: "y", goal: "deliver", item: "ale", qty: 1 }, raid).ok).toBe(false);
+    expect(validateQuest(ctx(createTestWorld()), { giver: "Brena", title: "x", description: "y", goal: "deliver", item: "dragon egg", qty: 1 }, raid).ok).toBe(false);
+    expect(validateQuest(ctx(createTestWorld()), { giver: "Hale", title: "x", description: "y", goal: "deliver", item: "ale", qty: 1 }, raid).ok).toBe(false);
+    expect(validateQuest(ctx(createTestWorld()), { giver: "Brena", title: "For Lord Varkis", description: "y", goal: "deliver", item: "ale", qty: 1 }, raid).ok).toBe(false);
   });
 
   it("a director quest goes on the board, its quarry turns up, and it's completable in code", async () => {
@@ -207,7 +208,7 @@ describe("N12.5 character drift", () => {
   const fight: GameEvent = { id: "ev2", day: 1, hour: 2, kind: "raid-repelled", actor: "player", target: "pell", details: "", importance: 8, witnesses: ["pell", "hale"] };
 
   it("no shift without a qualifying event that involves them", () => {
-    const c = { world: createDemoWorld(), personas: allPersonas(), states: statesFor(), creatures: templates, extraNames: [] };
+    const c = { world: createTestWorld(), personas: allPersonas(), states: statesFor(), creatures: templates, extraNames: [] };
     expect(validateTraitShift(c, { npc: "Hale", trait: "bravery", direction: "up", reason: "held the line" }, fight).ok).toBe(true);
     expect(validateTraitShift(c, { npc: "Brena", trait: "bravery", direction: "up", reason: "?" }, fight).ok).toBe(false);
     expect(validateTraitShift(c, { npc: "Hale", trait: "bravery", direction: "up", reason: "?" }, { ...fight, importance: 3 }).ok).toBe(false);

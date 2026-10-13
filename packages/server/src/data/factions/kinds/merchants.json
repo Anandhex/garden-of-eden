@@ -1,14 +1,9 @@
 {
   "id": "merchants",
-  "name": "the merchants of Millbrook",
-  "description": "The village's traders and craftsfolk: the smith, the innkeeper, and the carters who bring ore down the mine road.",
-  "members": [
-    "pell",
-    "brena",
-    "wren"
-  ],
+  "name": "the merchants",
+  "description": "The traders and craftsfolk of any place: the smith, the innkeeper, and the carters who bring goods down the roads.",
   "attitudes": {
-    "bandits": -1,
+    "gang": -1,
     "guard": -0.5
   },
   "attitudeReasons": {

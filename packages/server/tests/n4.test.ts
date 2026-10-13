@@ -7,7 +7,7 @@ import { detectIntroduction, learnName, maskPlayerName } from "../src/npc/names.
 import { buildTurnMessage } from "../src/npc/persona.js";
 import { activeQuirks } from "../src/npc/quirks.js";
 import { createNpcState, startEncounter } from "../src/npc/state.js";
-import { createDemoWorld } from "../src/world/world.js";
+import { createTestWorld } from "../src/world/world.js";
 import { always, brena, call, ctxFor, FakeProvider, hale, pell, say, worldAt } from "./helpers.js";
 
 const reveal = (c: ReturnType<typeof ctxFor>, secret: string) => {
@@ -28,7 +28,7 @@ describe("N4.1 layered secrets", () => {
   });
 
   it("Hale tells his cover story even when he trusts you, and the truth stays hidden", () => {
-    const c = ctxFor(hale, { relationship: 80 }, createDemoWorld(), always(0.99));
+    const c = ctxFor(hale, { relationship: 80 }, createTestWorld(), always(0.99));
     const r = reveal(c, "left_post");
     expect(r).toMatchObject({ ok: true, lie: true });
     expect(r.message).toContain("patrol");
@@ -59,14 +59,14 @@ describe("N4.1 layered secrets", () => {
   });
 
   it("Pell telling his secret gives you the fact that breaks Hale", () => {
-    const p = ctxFor(pell, { relationship: 80 }, createDemoWorld(), always(0.99)); // 0.99: no random lie
+    const p = ctxFor(pell, { relationship: 80 }, createTestWorld(), always(0.99)); // 0.99: no random lie
     expect(reveal(p, "hale_cellar").message).toContain("Hale");
     const h = ctxFor(hale, { relationship: 0 }, p.world);
     expect(reveal(h, "left_post").message).toContain("cellar");
   });
 
   it("a won intimidation today breaks him; tomorrow he's back to his story", () => {
-    const c = ctxFor(hale, { relationship: 60 }, createDemoWorld(), always(0.99)); // rolls 20
+    const c = ctxFor(hale, { relationship: 60 }, createTestWorld(), always(0.99)); // rolls 20
     expect(socialCheck("intimidate", "Tell me the truth or else.", c).success).toBe(true);
     const r = reveal(c, "left_post");
     expect(r.message).toContain("cellar");
@@ -119,7 +119,7 @@ describe("N4.3 learning the player's name", () => {
   it("the model never sees the real name until it's told", async () => {
     const llm = new FakeProvider([say("Hm."), say("Anand, is it.")]);
     const npc = new NpcAgent(brena, llm);
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.player.name = "Anand";
     await npc.respond("Good day.", world);
     expect(llm.lastUser()).not.toContain("Anand");

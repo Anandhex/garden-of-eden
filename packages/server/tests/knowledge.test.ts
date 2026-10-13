@@ -2,9 +2,9 @@ import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import brena from "../src/data/npcs/brena.json" with { type: "json" };
-import hale from "../src/data/npcs/hale.json" with { type: "json" };
-import pell from "../src/data/npcs/pell.json" with { type: "json" };
+import brena from "./fixtures/npcs/brena.json" with { type: "json" };
+import hale from "./fixtures/npcs/hale.json" with { type: "json" };
+import pell from "./fixtures/npcs/pell.json" with { type: "json" };
 import { loadWorld, newWorld, saveWorld } from "../src/game/save.js";
 import {
   certaintyOf,
@@ -21,7 +21,7 @@ import { buildEventMessage, buildSystemPrompt, buildTurnMessage } from "../src/n
 import { parsePersona } from "../src/npc/personaSchema.js";
 import { createNpcState } from "../src/npc/state.js";
 import type { NpcPersona } from "../src/npc/types.js";
-import { createDemoWorld } from "../src/world/world.js";
+import { createTestWorld } from "../src/world/world.js";
 
 const personas: Record<string, NpcPersona> = {
   brena: parsePersona(brena, "brena.json"),
@@ -32,7 +32,7 @@ const lore = worldLore();
 
 function situation(id: string, line: string): string {
   const p = personas[id]!;
-  return buildTurnMessage(p, createNpcState(p), createDemoWorld(), line);
+  return buildTurnMessage(p, createNpcState(p), createTestWorld(), line);
 }
 
 describe("world lore file", () => {
@@ -84,7 +84,7 @@ describe("lore in the situation block", () => {
         for (const word of [...entry.keywords, ...entry.aliases]) {
           const text = situation(id, `Tell me about the ${word}.`);
           for (const other of lore.entries) {
-            if (certaintyOf(p, other.id) || createDemoWorld().recentEvents.includes(other.id)) continue;
+            if (certaintyOf(p, other.id) || createTestWorld().recentEvents.includes(other.id)) continue;
             expect(text, `${id} asked about "${word}" saw ${other.id}`).not.toContain(other.text);
           }
         }
@@ -128,7 +128,7 @@ describe("lore in the situation block", () => {
 
   it("game events add no lore lookup, and the system prompt has the rule and the referrals, but no secrets", () => {
     const p = personas.brena!;
-    expect(buildEventMessage(p, createNpcState(p), createDemoWorld(), "Traveler asked about the mayor's wife.")).not.toMatch(/know nothing/);
+    expect(buildEventMessage(p, createNpcState(p), createTestWorld(), "Traveler asked about the mayor's wife.")).not.toMatch(/know nothing/);
     const system = buildSystemPrompt(p);
     expect(system).toMatch(/Never make up names, places or events/);
     expect(system).toMatch(/Who might know more: Old Pell \(every rumour in the village\)/);
@@ -138,7 +138,7 @@ describe("lore in the situation block", () => {
 
 describe("world events", () => {
   it("are lore ids; unknown ids never reach an NPC", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.recentEvents = ["news.cart_attack", "made.up_event"];
     expect(eventTexts(world.recentEvents)).toEqual(["Bandits attacked a merchant cart on the mine road this morning."]);
     const p = personas.brena!;
@@ -148,7 +148,7 @@ describe("world events", () => {
   it("a save with an id that isn't in the lore loads without it", () => {
     const file = join(mkdtempSync(join(tmpdir(), "llm-game-lore-")), "world.json");
     const raw = JSON.parse(JSON.stringify(newWorld(personas)));
-    raw.recentEvents = ["news.cart_attack", "made.up_event"];
+    raw.sites[raw.startSite].recentEvents = ["news.cart_attack", "made.up_event"];
     writeFileSync(file, JSON.stringify(raw));
     expect(loadWorld(file, personas).recentEvents).toEqual(["news.cart_attack"]);
   });
@@ -177,7 +177,7 @@ describe("event lore", () => {
   it("never comes up from a lookup: an NPC only hears of a raid once it's in recentEvents", () => {
     const p = personas.pell!;
     expect(situation("pell", "Any news of a raid? Was anything stolen?")).not.toContain("raided a shop");
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.recentEvents = ["news.bandit_raid"];
     expect(buildTurnMessage(p, createNpcState(p), world, "Hello.")).toContain("Bandits raided a shop in Millbrook");
   });

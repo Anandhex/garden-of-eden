@@ -1,0 +1,19 @@
+[
+  { "when": { "job": ["smith"] }, "name": "good iron", "words": ["iron", "steel", "anvil"], "item": "iron ore" },
+  { "when": { "job": ["innkeeper"] }, "name": "a full common room", "words": ["full house", "busy night", "crowd"] },
+  { "when": { "job": ["merchant"] }, "name": "a fair bargain", "words": ["bargain", "deal", "profit"] },
+  { "when": { "job": ["farmer"] }, "name": "rain at the right time", "words": ["rain", "harvest", "good crop"] },
+  { "when": { "job": ["guard"] }, "name": "a quiet watch", "words": ["quiet night", "peace", "watch"] },
+  { "when": { "job": ["child"] }, "name": "sweet things", "words": ["sweets", "honey", "treat"], "item": "bread loaf" },
+  { "when": { "job": ["bandit"] }, "name": "easy coin", "words": ["coin", "loot", "purse"] },
+  { "when": {}, "name": "a hot stew", "words": ["stew", "supper", "hot meal"], "item": "stew" },
+  { "when": {}, "name": "good ale", "words": ["ale", "a pint", "drink"], "item": "ale" },
+  { "when": {}, "name": "fresh bread", "words": ["bread", "baking"], "item": "bread loaf" },
+  { "when": {}, "name": "a quiet evening", "words": ["quiet evening", "fireside", "rest"] },
+  { "when": { "fact": ["child"] }, "name": "their children", "words": ["children", "child", "little ones"] },
+  { "when": { "fact": ["spouse"] }, "name": "their spouse", "words": ["husband", "wife", "spouse"] },
+  { "when": { "elder": true }, "name": "old stories", "words": ["old days", "stories", "when I was young"] },
+  { "when": { "traits": { "sociability": [0.6, 1] } }, "name": "news and gossip", "words": ["news", "gossip", "rumour"] },
+  { "when": { "traits": { "generosity": [0.6, 1] } }, "name": "giving someone a hand", "words": ["help", "kindness", "charity"] },
+  { "when": { "law": ["slave"] }, "name": "the thought of being free", "words": ["free", "freedom", "manumission"] }
+]

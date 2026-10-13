@@ -1,0 +1,14 @@
+[
+  { "when": { "job": ["smith"] }, "text": "{name} makes honest iron, and charges what it is worth.", "truth": "true", "keywords": ["smith", "iron", "honest", "forge"] },
+  { "when": { "job": ["innkeeper"] }, "text": "{name} keeps a clean house and a quiet room, and knows everyone's business.", "truth": "true", "keywords": ["inn", "room", "gossip", "clean"] },
+  { "when": { "job": ["merchant"] }, "text": "{name} drives a hard bargain but has never been caught cheating.", "truth": "exaggerated", "keywords": ["bargain", "merchant", "cheat", "trade"] },
+  { "when": { "job": ["guard"] }, "text": "{name} is firm at the gate and takes no sides.", "truth": "true", "keywords": ["guard", "gate", "watch"] },
+  { "when": { "job": ["farmer"] }, "text": "{name} works the land from dawn to dusk and has never missed a harvest.", "truth": "exaggerated", "keywords": ["farm", "harvest", "land"] },
+  { "when": { "job": ["bandit"] }, "text": "{name} is trouble. Folk cross the road when they see them.", "truth": "true", "keywords": ["bandit", "trouble", "road"] },
+  { "when": { "traits": { "honesty": [0, 0.35] } }, "text": "{name} can't be trusted with money, some say.", "truth": "exaggerated", "keywords": ["trust", "money", "honest"] },
+  { "when": { "traits": { "generosity": [0.65, 1] } }, "text": "{name} never turned a hungry person from the door.", "truth": "true", "keywords": ["generous", "hungry", "kind"] },
+  { "when": { "traits": { "temper": [0.65, 1] } }, "text": "{name} has a temper, and people step carefully around it.", "truth": "true", "keywords": ["temper", "angry", "fight"] },
+  { "when": { "law": ["slave"] }, "text": "{name} is a quiet one who gives no trouble.", "truth": "true", "keywords": ["quiet", "slave", "trouble"] },
+  { "when": { "fact": ["debt"] }, "text": "They say {name} is not as well off as they look.", "truth": "true", "keywords": ["money", "debt", "poor"] },
+  { "when": { "fact": ["loss:any"] }, "text": "{name} lost someone, and has not been quite the same since.", "truth": "true", "keywords": ["lost", "grief", "family"] }
+]

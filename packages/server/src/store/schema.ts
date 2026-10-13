@@ -11,7 +11,7 @@ import type { DatabaseSync } from "node:sqlite";
 
 /** Columns of each state table, in order: what export and the world hash read, and what import checks. */
 export const TABLES = {
-  people: ["id", "site", "n", "name", "gender", "species", "born_day", "cls", "job", "home", "work", "master", "master_id", "faction", "mother", "father", "spouse", "figure", "persona", "traits", "death", "expecting", "last_birth", "stepped_day", "rev"],
+  people: ["id", "site", "n", "name", "gender", "species", "born_day", "cls", "job", "home", "work", "master", "master_id", "faction", "mother", "father", "spouse", "figure", "persona", "traits", "death", "expecting", "last_birth", "stepped_day", "outlook", "rev"],
   relationships: ["a", "b", "trust", "affection", "respect", "fear", "since"],
   knowledge: ["who", "ref", "learned_day", "source", "accuracy"],
   grievances: ["id", "who", "against", "cause_ref", "weight", "since", "settled"],
@@ -22,6 +22,7 @@ export const TABLES = {
   director_log: ["id", "day", "kind", "ok", "reason", "proposal", "event"],
   site_days: ["site", "day", "data"],
   site_seq: ["site", "next_id", "next_n", "stepped"],
+  life_reviews: ["id", "who", "day", "by", "shock", "input_hash", "proposal", "applied", "clipped", "rejected"],
 } as const;
 export type TableName = keyof typeof TABLES;
 
@@ -38,6 +39,7 @@ export const ORDER_BY: Record<TableName, string> = {
   director_log: "id",
   site_days: "site, day",
   site_seq: "site",
+  life_reviews: "id",
 };
 
 const V1 = `
@@ -120,6 +122,20 @@ const MIGRATIONS: Array<(db: DatabaseSync) => void> = [
       CREATE INDEX IF NOT EXISTS people_spouse ON people(spouse) WHERE spouse IS NOT NULL;
       CREATE INDEX IF NOT EXISTS people_mother ON people(mother) WHERE mother IS NOT NULL;
       CREATE INDEX IF NOT EXISTS people_father ON people(father) WHERE father IS NOT NULL;
+    `);
+  },
+  // 4 (N25b): lives that change. `people.outlook` (JSON, small: a townsperson's view of the lord, mood, goal and grudge, set by code
+  // reviews: people/outlook.ts) and `life_reviews` (each talker's review: what it was given, what was proposed, and what was applied,
+  // clipped or rejected, with the reasons).
+  (db) => {
+    const have = new Set((db.prepare("PRAGMA table_info(people)").all() as Array<{ name: string }>).map((c) => c.name));
+    if (!have.has("outlook")) db.exec("ALTER TABLE people ADD COLUMN outlook TEXT");
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS life_reviews (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, who TEXT NOT NULL, day INTEGER NOT NULL, by TEXT NOT NULL, shock TEXT, input_hash TEXT,
+        proposal TEXT, applied TEXT, clipped TEXT, rejected TEXT
+      );
+      CREATE INDEX IF NOT EXISTS life_reviews_who ON life_reviews(who, day);
     `);
   },
 ];

@@ -44,7 +44,7 @@ const DEFAULT_QUEST_TRUST = 5;
 /** Trust and respect a failed quest costs with the giver. */
 export const FAILED_QUEST = { trust: -10, respect: -5 } as const;
 
-/** NPC names for objective text ("take word to Corporal Hale"): world/names.ts, set at startup. */
+/** NPC names for objective text ("take word to Corporal Reed"): world/names.ts, set at startup. */
 const nameOf = (id: string) => npcName(id);
 
 /** Does the player's line sound like asking for work? */
@@ -169,7 +169,7 @@ function creaturePlural(kind: string, qty: number): string {
 
 const placeName = (p: string) => PLACE_NAMES[p as PlaceId] ?? p.replace(/_/g, " ");
 
-/** "bring 3 wild herbs", "kill or drive off 3 bandits", "take word to Corporal Hale". */
+/** "bring 3 wild herbs", "kill or drive off 3 bandits", "take word to Corporal Reed". */
 export function describeObjective(q: Pick<QuestDef, "objective">): string {
   const o = q.objective;
   switch (o.type) {
@@ -263,7 +263,7 @@ function bump(player: PlayerState, match: (q: ActiveQuest) => boolean): string[]
 
 /**
  * The player is talking to an NPC: any message they're carrying for them is
- * delivered (talk_to). Returns event lines for that NPC ("Brena sends word: ...").
+ * delivered (talk_to). Returns event lines for that NPC ("Mara sends word: ...").
  */
 export function deliverMessages(player: PlayerState, npc: NpcPersona, world: Pick<WorldSnapshot, "day" | "hour" | "location" | "events">): string[] {
   const lines: string[] = [];

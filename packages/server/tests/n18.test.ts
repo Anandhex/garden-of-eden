@@ -14,10 +14,8 @@ import { WorldStore } from "../src/game/db.js";
 import { worldHash } from "../src/game/hash.js";
 import { openWorld } from "../src/game/openWorld.js";
 import { loadCreatureTemplates } from "../src/game/creatures.js";
-import { HOME_ID } from "../src/game/realm/generate.js";
 import { parseTownsfolkId, rosterFor, rosterFromStore } from "../src/game/realm/townsfolk.js";
 import { loadWorld, loadWorldWithNotice, newWorld, SAVE_VERSION, SaveMismatchError, saveHooks, saveWorld, type SavedWorld } from "../src/game/save.js";
-import { loadSpawnRules } from "../src/game/spawning.js";
 import { Town } from "../src/game/town.js";
 import { biggestSite, bigRealm } from "../src/store/bench.js";
 import { decodeMbWorld, encodeMbWorld, exportWorld, ImportError, importWorld, parseMbWorld } from "../src/store/exchange.js";
@@ -52,13 +50,18 @@ afterAll(() => {
   for (const d of dirs) rmSync(d, { recursive: true, force: true });
 });
 
+/** The town the world being tested began in. */
+let current: Town;
+const HOME = () => current.world.startSite!;
+
 /** A fresh world with its people in a database, played by a Town on its own streams. */
 function startTown(seed: number, store = new WorldStore(":memory:")): Town {
   config.realmSeed = seed;
   const personas = allPersonas();
   const templates = loadCreatureTemplates();
   const opened = openWorld({ file: "/nonexistent/world.json", deathsFile: "/nonexistent/deaths.json", personas, templates, store, fresh: true });
-  return new Town({ personas, creatureTemplates: templates, spawnRules: loadSpawnRules(), world: opened.world, llm: new FakeProvider(), store });
+  current = new Town({ personas, creatureTemplates: templates, world: opened.world, llm: new FakeProvider(), store });
+  return current;
 }
 const play = (town: Town, days: number) => {
   for (let d = 0; d < days; d++) town.passHours(24);
@@ -104,7 +107,7 @@ describe("N18.1 a seed gives the same world", () => {
     // (One world at a time: the lore the realm teaches the cast is shared by every Town in a process.)
     const a = startTown(3);
     play(a, 6);
-    const snapshot = (t: Town) => worldHash({ realm: t.world.realm, creatures: t.world.creatures, npcStates: t.world.npcStates, family: t.world.family });
+    const snapshot = (t: Town) => worldHash({ realm: t.world.realm, creatures: t.creaturesHere(), npcStates: t.world.npcStates, family: t.world.family });
     const expected = snapshot(a);
     const b = startTown(3);
     for (let d = 0; d < 6; d++) {
@@ -188,12 +191,12 @@ describe("N18.3 everyone is in the database, rolled once", () => {
   it("ids keep N16's form, and ages follow the days", () => {
     const store = new WorldStore(":memory:");
     const town = startTown(1, store);
-    const row = store.people.loadSite(HOME_ID)[10]!;
-    expect(parseTownsfolkId(row.id)).toEqual({ site: HOME_ID, n: 10 });
+    const row = store.people.loadSite(HOME())[10]!;
+    expect(parseTownsfolkId(row.id)).toEqual({ site: HOME(), n: 10 });
     const realm = town.world.realm!;
-    const map = siteMap(realm.settlements[HOME_ID]!, "village", realm);
-    const young = rosterFromStore(store.people, realm, HOME_ID, map, 1)!.people[10]!;
-    const later = rosterFromStore(store.people, realm, HOME_ID, map, 1 + 5 * config.daysPerYear)!.people[10]!;
+    const map = siteMap(realm.settlements[HOME()]!, "village", realm);
+    const young = rosterFromStore(store.people, realm, HOME(), map, 1)!.people[10]!;
+    const later = rosterFromStore(store.people, realm, HOME(), map, 1 + 5 * config.daysPerYear)!.people[10]!;
     expect(later.age).toBe(young.age + 5);
   });
 
@@ -201,13 +204,13 @@ describe("N18.3 everyone is in the database, rolled once", () => {
     const store = new WorldStore(":memory:");
     const town = startTown(1, store);
     const realm = town.world.realm!;
-    const map = siteMap(realm.settlements[HOME_ID]!, "village", realm);
-    const a = rosterFromStore(store.people, realm, HOME_ID, map, 1)!;
-    expect(rosterFromStore(store.people, realm, HOME_ID, map, 2)!.people).toBe(a.people);
+    const map = siteMap(realm.settlements[HOME()]!, "village", realm);
+    const a = rosterFromStore(store.people, realm, HOME(), map, 1)!;
+    expect(rosterFromStore(store.people, realm, HOME(), map, 2)!.people).toBe(a.people);
     store.people.update(a.people[3]!.id, { persona: "someone" }); // talked to: the roster does not show it
-    expect(rosterFromStore(store.people, realm, HOME_ID, map, 2)!.people).toBe(a.people);
+    expect(rosterFromStore(store.people, realm, HOME(), map, 2)!.people).toBe(a.people);
     store.people.update(a.people[3]!.id, { job: "beggar" });
-    const b = rosterFromStore(store.people, realm, HOME_ID, map, 2)!;
+    const b = rosterFromStore(store.people, realm, HOME(), map, 2)!;
     expect(b.people).not.toBe(a.people);
     expect(b.people[3]!.job).toBe("beggar");
   });
@@ -216,11 +219,11 @@ describe("N18.3 everyone is in the database, rolled once", () => {
     const store = new WorldStore(":memory:");
     const town = startTown(1, store);
     const realm = town.world.realm!;
-    const map = siteMap(realm.settlements[HOME_ID]!, "village", realm);
+    const map = siteMap(realm.settlements[HOME()]!, "village", realm);
     const gone = map.buildings.length + 7;
-    const who = store.people.loadSite(HOME_ID)[4]!.id;
+    const who = store.people.loadSite(HOME())[4]!.id;
     store.people.update(who, { home: gone, work: `front:${gone}` });
-    const p = rosterFromStore(store.people, realm, HOME_ID, map, 1)!.people[4]!;
+    const p = rosterFromStore(store.people, realm, HOME(), map, 1)!.people[4]!;
     expect(p.home).toBeLessThan(map.buildings.length);
     expect(map.buildings[p.home]!.kind).toBe("house");
     expect(p.work).toBe("streets");
@@ -230,8 +233,8 @@ describe("N18.3 everyone is in the database, rolled once", () => {
     const store = new WorldStore(":memory:");
     const town = startTown(1, store);
     const realm = town.world.realm!;
-    const map = siteMap(realm.settlements[HOME_ID]!, "village", realm);
-    const roster = town.rosterAt(HOME_ID, map)!;
+    const map = siteMap(realm.settlements[HOME()]!, "village", realm);
+    const roster = town.rosterAt(HOME(), map)!;
     const p = roster.people.find((x) => x.cls === "commoner" && x.job === "labourer")!;
     const id = town.meetTownsperson(roster, p)!;
     expect(id).toBe(p.id);
@@ -245,7 +248,7 @@ describe("N18.4 batch writes", () => {
   it("changing three people and flushing writes exactly three rows, in one transaction, and nothing before", () => {
     const store = new WorldStore(":memory:");
     store.people.insertMany(
-      Array.from({ length: 10 }, (_, n) => ({ id: `t_x_${n}`, site: "x", n, name: `P${n}`, gender: "female", species: "human", born_day: -100, cls: "commoner", job: "labourer", home: 0, work: "streets", master: null, master_id: null, faction: null, mother: null, father: null, spouse: null, figure: null, persona: null, traits: null, death: null, expecting: null, last_birth: null, stepped_day: 0, rev: 0 })),
+      Array.from({ length: 10 }, (_, n) => ({ id: `t_x_${n}`, site: "x", n, name: `P${n}`, gender: "female", species: "human", born_day: -100, cls: "commoner", job: "labourer", home: 0, work: "streets", master: null, master_id: null, faction: null, mother: null, father: null, spouse: null, figure: null, persona: null, traits: null, death: null, expecting: null, last_birth: null, stepped_day: 0, outlook: null, rev: 0 })),
     );
     const before = store.people.commits;
     store.people.update("t_x_1", { job: "farmer" });
@@ -276,7 +279,7 @@ describe("N18.4 batch writes", () => {
     const store = new WorldStore(":memory:");
     expect(() =>
       store.people.transaction(() => {
-        store.people.insertMany([{ id: "t_y_0", site: "y", n: 0, name: "A", gender: "male", species: "human", born_day: 0, cls: "serf", job: "farmer", home: 0, work: null, master: null, master_id: null, faction: null, mother: null, father: null, spouse: null, figure: null, persona: null, traits: null, death: null, expecting: null, last_birth: null, stepped_day: 0, rev: 0 }]);
+        store.people.insertMany([{ id: "t_y_0", site: "y", n: 0, name: "A", gender: "male", species: "human", born_day: 0, cls: "serf", job: "farmer", home: 0, work: null, master: null, master_id: null, faction: null, mother: null, father: null, spouse: null, figure: null, persona: null, traits: null, death: null, expecting: null, last_birth: null, stepped_day: 0, outlook: null, rev: 0 }]);
         throw new Error("boom");
       }),
     ).toThrow("boom");
@@ -311,7 +314,7 @@ describe("N18.5 one commit point", () => {
     const town = startTown(1, store);
     saveWorld(file, town.world, store);
     expect(store.savedTick()).toBe(1);
-    store.people.update(store.people.loadSite(HOME_ID)[0]!.id, { job: "beggar" });
+    store.people.update(store.people.loadSite(HOME())[0]!.id, { job: "beggar" });
     saveHooks.afterDbCommit = () => {
       throw new Error("power cut");
     };
@@ -367,7 +370,7 @@ describe("N18.6 export and import", () => {
     // cast is shared by every Town in a process, and loading a save sets it.)
     play(a, 10);
     const loaded = loadWorld(saveFile, allPersonas(), loadCreatureTemplates(), storeB);
-    const b = new Town({ personas: allPersonas(), creatureTemplates: loadCreatureTemplates(), spawnRules: loadSpawnRules(), world: loaded, llm: new FakeProvider(), store: storeB });
+    const b = new Town({ personas: allPersonas(), creatureTemplates: loadCreatureTemplates(), world: loaded, llm: new FakeProvider(), store: storeB });
     play(b, 10);
     expect(b.world.day).toBe(a.world.day);
     expect(hashOf(b)).toBe(hashOf(a));
@@ -375,7 +378,7 @@ describe("N18.6 export and import", () => {
 
   it("people not yet flushed are exported too", () => {
     const a = startTown(3);
-    const id = a.store!.people.loadSite(HOME_ID)[2]!.id;
+    const id = a.store!.people.loadSite(HOME())[2]!.id;
     a.store!.people.update(id, { job: "beggar" });
     const doc = exportWorld(a.world, a.store!);
     expect(doc.tables.people.find((r) => r.id === id)!.job).toBe("beggar");

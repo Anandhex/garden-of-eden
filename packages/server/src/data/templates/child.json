@@ -3,8 +3,8 @@
   "describe": "a village child who runs errands and hears every rumour",
   "minor": true,
   "roles": [
-    "a child of Millbrook who runs errands round the square for a copper coin",
-    "a village child who carries messages round Millbrook for a copper coin"
+    "a child of {place} who runs errands round the square for a copper coin",
+    "a village child who carries messages round {place} for a copper coin"
   ],
   "species": [
     "human"
@@ -149,15 +149,13 @@
     }
   ],
   "knows": {
-    "millbrook.*": "certain",
     "news.*": "certain",
-    "mine_road.*": "rumour",
     "people.*": "rumour"
   },
   "maxQuestTier": "G",
   "names": {
     "female": [
-      "Pip",
+      "Pim",
       "Wynn",
       "Lark",
       "Dot",
@@ -252,7 +250,7 @@
       "Breathless and eager, full of 'and then' and 'did you know', and always wants a copper for news."
     ],
     "backstory": [
-      "{first} has lived in Millbrook all of {age} years and knows every shortcut, every dog and every bit of gossip at the square.",
+      "{first} has lived in {place} all of {age} years and knows every shortcut, every dog and every bit of gossip at the square.",
       "{first} runs errands round the square for coppers and keeps an ear out for news to trade for sweets."
     ],
     "appearance": [

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import brena from "../src/data/npcs/brena.json" with { type: "json" };
+import brena from "./fixtures/npcs/brena.json" with { type: "json" };
 import type { Rng } from "../src/game/dice.js";
 import {
   type ActionContext,
@@ -22,7 +22,7 @@ import {
 import { provokeLimit, traitsOf } from "../src/npc/traits.js";
 import { createNpcState } from "../src/npc/state.js";
 import type { NpcPersona, NpcState } from "../src/npc/types.js";
-import { createDemoWorld } from "../src/world/world.js";
+import { createTestWorld } from "../src/world/world.js";
 import { face, rolls } from "./dice.test.js";
 import { parsePersona } from "../src/npc/personaSchema.js";
 
@@ -31,7 +31,7 @@ const PROVOKE_LIMIT = provokeLimit(traitsOf(persona)); // Brena: 3
 const ctx = (overrides: Partial<NpcState> = {}, rng: Rng = rolls(0.5)): ActionContext => ({
   persona,
   state: createNpcState(persona, overrides),
-  world: createDemoWorld(),
+  world: createTestWorld(),
   rng,
 });
 const tools = (c: ActionContext) => toolsFor(c).map((t) => t.name);

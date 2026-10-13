@@ -9,16 +9,14 @@ import type { BuildingId, Figure, Kingdom, Realm, RealmFaction, Role, Settlement
  * A new realm (N13.1), rolled from a seed: three kingdoms, each a capital with a
  * city, towns, villages and hamlets under it, joined by roads; their heads and
  * notable folk; the crowns, a guild or two and a bandit gang each; dungeons and
- * beast packs in the wild. Millbrook is a village under a town under the first
- * kingdom's capital, three days' walk away, as the lore says ("the city").
+ * beast packs in the wild. A village sits under a town under a city under a
+ * kingdom's capital. Every settlement is made the same way: nothing here knows which one the
+ * player will start in (game/realm/start.ts picks it afterwards, from the seed).
  */
 export const REALM_W = 1000;
 export const REALM_H = 700;
 /** Map units a traveller covers in a day (news, migrants, armies). */
 export const TRAVEL_PER_DAY = 45;
-/** The talking NPCs' village. */
-export const HOME_ID = "millbrook";
-
 /** Rank of a settlement's head, by kind. */
 const LEADER_TIER: Record<SettlementKind, Tier[]> = { capital: ["C", "B"], city: ["D", "C"], town: ["E", "D"], village: ["F", "E"], hamlet: ["G", "F"] };
 const POPULATION: Record<SettlementKind, [number, number]> = { capital: [2600, 4200], city: [1600, 2400], town: [450, 1100], village: [70, 380], hamlet: [15, 55] };
@@ -32,7 +30,7 @@ const START_BUILDINGS: Record<SettlementKind, Partial<Record<BuildingId, number>
 const TAX: Record<SettlementKind, number> = { capital: 0, city: 0.15, town: 0.15, village: 0.12, hamlet: 0.1 };
 
 export function emptyRealm(seed: number, day: number): Realm {
-  return { seed, day, kingdoms: {}, settlements: {}, figures: {}, factions: {}, treaties: [], wars: [], dungeons: {}, packs: {}, news: [], director: [], home: [], next: 1, stats: {}, casualties: [], cooldowns: {} };
+  return { seed, day, kingdoms: {}, settlements: {}, figures: {}, factions: {}, treaties: [], wars: [], dungeons: {}, packs: {}, news: [], director: [], arrivals: {}, next: 1, stats: {}, casualties: [], cooldowns: {} };
 }
 
 const between = (rng: Rng, [lo, hi]: [number, number]) => Math.round(lo + rng() * (hi - lo));
@@ -43,7 +41,7 @@ const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(
 export function generateRealm(seed: number, day = 1): Realm {
   const rng = seededRng(seed);
   const realm = emptyRealm(seed, day);
-  const placeNames = new Set<string>(["Millbrook"]);
+  const placeNames = new Set<string>();
   const kingdomNames = new Set<string>();
   const factionNames = new Set<string>();
 
@@ -76,7 +74,7 @@ export function generateRealm(seed: number, day = 1): Realm {
     y: Math.max(30, Math.min(REALM_H - 30, from.y + Math.sin(angle) * r)),
   });
 
-  // Three kingdoms across the map; the first is Millbrook's, in the west.
+  // Three kingdoms across the map.
   const centres = [
     { x: 250, y: 380 },
     { x: 620, y: 200 },
@@ -88,7 +86,8 @@ export function generateRealm(seed: number, day = 1): Realm {
     const capitalName = placeName(rng, placeNames);
     const capital = add(capitalName, "capital", id, null, c, pick(rng, ["valley", "plains", "coast"] as const));
     capital.taxRate = 0;
-    const k: Kingdom = { id, name, capital: capital.id, crown: `crown_${id}`, ruler: null, color: COLORS[i % COLORS.length]!, opinion: {}, weariness: 0 };
+    // One kingdom keeps serfs, the next slaves, the third neither.
+    const k: Kingdom = { id, name, capital: capital.id, crown: `crown_${id}`, ruler: null, color: COLORS[i % COLORS.length]!, opinion: {}, weariness: 0, laws: { serfdom: i % 3 === 0, slavery: i % 3 === 1 } };
     realm.kingdoms[id] = k;
     return k;
   });
@@ -98,24 +97,15 @@ export function generateRealm(seed: number, day = 1): Realm {
     const cap = realm.settlements[k.capital]!;
     const base = rng() * Math.PI * 2;
     const city = add(placeName(rng, placeNames), "city", k.id, cap.id, near(cap.pos, 150 + rng() * 40, base), pick(rng, terrains));
-    // Towns: one under the capital, one under the city. In Millbrook's kingdom the first town is Millbrook's liege, a day's walk from it.
-    const townA = add(placeName(rng, placeNames), "town", k.id, cap.id, near(cap.pos, 80 + rng() * 20, i === 0 ? Math.PI * 0.85 : base + 2.2), i === 0 ? "valley" : pick(rng, terrains));
+    // Towns: one under the capital, one under the city.
+    const townA = add(placeName(rng, placeNames), "town", k.id, cap.id, near(cap.pos, 80 + rng() * 20, base + 2.2), pick(rng, terrains));
     const townB = add(placeName(rng, placeNames), "town", k.id, city.id, near(city.pos, 90 + rng() * 30, base + 0.9), pick(rng, terrains));
     for (const town of [townA, townB, city]) {
       const villages = town === city ? 1 : 2;
       for (let v = 0; v < villages; v++) {
-        if (i === 0 && town === townA && v === 0) {
-          // Millbrook: in the valley, with the mine road north and the city three days down the valley.
-          const at = { x: cap.pos.x - 130, y: cap.pos.y - 15 };
-          const mb = add("Millbrook", "village", k.id, town.id, at, "valley", HOME_ID);
-          mb.home = true;
-          mb.population = 180;
-          mb.buildings = { farms: 1, inn: 1, smithy: 1, walls: 0, mine: 1 };
-          mb.prosperity = 46;
-          mb.treasury = 1500;
-          continue;
-        }
-        add(placeName(rng, placeNames), "village", k.id, town.id, near(town.pos, 60 + rng() * 40, rng() * Math.PI * 2), pick(rng, terrains));
+        const village = add(placeName(rng, placeNames), "village", k.id, town.id, near(town.pos, 60 + rng() * 40, rng() * Math.PI * 2), pick(rng, terrains));
+        // Half the villages have a smith of their own.
+        if (rng() < 0.5) village.buildings.smithy = 1;
       }
       add(placeName(rng, placeNames), "hamlet", k.id, town.id, near(town.pos, 50 + rng() * 40, rng() * Math.PI * 2), pick(rng, ["forest", "hills", "marsh", "plains"] as const));
     }
@@ -128,6 +118,15 @@ export function generateRealm(seed: number, day = 1): Realm {
     if (n && dist(n.pos, s.pos) < 140) {
       s.roads.push(n.id);
       n.roads.push(s.id);
+    }
+  }
+  // Every village and town has at least two roads (a place nobody can leave isn't a place to start).
+  for (const s of all.filter((x) => x.kind === "village" || x.kind === "town")) {
+    if (s.roads.length >= 2) continue;
+    const other = all.filter((o) => o !== s && !s.roads.includes(o.id) && o.kind !== "hamlet").sort((a, b) => dist(a.pos, s.pos) - dist(b.pos, s.pos))[0];
+    if (other) {
+      s.roads.push(other.id);
+      other.roads.push(s.id);
     }
   }
   for (let i = 0; i < kingdoms.length; i++) {
@@ -145,9 +144,7 @@ export function generateRealm(seed: number, day = 1): Realm {
   const order: SettlementKind[] = ["capital", "city", "town", "village", "hamlet"];
   for (const kind of order) {
     for (const s of Object.values(realm.settlements).filter((x) => x.kind === kind)) {
-      const lead = s.home
-        ? makeFigure(realm, rng, { role: "mayor", home: s.id, tier: "E", age: 52, gender: "male", name: "Aldric Voss", renown: 25, wealth: 4000 }, day)
-        : makeFigure(realm, rng, { role: leaderRole(kind), home: s.id, tier: pick(rng, LEADER_TIER[kind]), age: 30 + Math.floor(rng() * 30), renown: 20 + order.length * 10 - order.indexOf(kind) * 10 }, day);
+      const lead = makeFigure(realm, rng, { role: leaderRole(kind), home: s.id, tier: pick(rng, LEADER_TIER[kind]), age: 30 + Math.floor(rng() * 30), renown: 20 + order.length * 10 - order.indexOf(kind) * 10 }, day);
       s.leader = lead.id;
       lead.superior = s.liege ? (realm.settlements[s.liege]!.leader ?? null) : null;
       if (kind === "capital") realm.kingdoms[s.kingdom!]!.ruler = lead.id;
@@ -160,16 +157,12 @@ export function generateRealm(seed: number, day = 1): Realm {
             : kind === "village"
               ? [["farmer", ["G", "F"]], ["hunter", ["G", "F"]], ["farmer", ["G"]]]
               : [["farmer", ["G"]], ["hunter", ["G", "F"]]];
-      if (s.home) continue; // Millbrook's notable folk are the talking NPCs (and Captain Holt), added by the town.
+      // Whoever keeps the inn and the forge, where there are ones (towns and cities have their smith above).
+      if (kind !== "hamlet" && (s.buildings.inn ?? 0) > 0) folk.push(["innkeeper", ["G", "F"]]);
+      if (kind === "village" && (s.buildings.smithy ?? 0) > 0) folk.push(["smith", ["G", "F"]]);
       for (const [role, tiers] of folk) makeFigure(realm, rng, { role, home: s.id, tier: pick(rng, tiers), age: 18 + Math.floor(rng() * 40), superior: lead.id }, day);
     }
   }
-  // Millbrook's crowd: the commoners who walk its square (game/realm/rise.ts gives them to the villagers on the map).
-  for (const role of ["farmer", "farmer", "farmer", "miner", "miner", "miner", "carter", "carter", "hunter", "commoner", "commoner", "commoner", "commoner", "farmer"] as Role[]) {
-    makeFigure(realm, rng, { role, home: HOME_ID, tier: rng() < 0.75 ? "G" : "F", age: 17 + Math.floor(rng() * 40), superior: realm.settlements[HOME_ID]!.leader, renown: Math.round(rng() * 6) }, day);
-  }
-  // Millbrook's own: the guard captain from the lore.
-  const holt = makeFigure(realm, rng, { role: "captain", home: HOME_ID, tier: "D", age: 41, gender: "female", name: "Reyna Holt", renown: 20, superior: realm.settlements[HOME_ID]!.leader }, day);
 
   // Crowns: each ruler with their lords, mayors, nobles and captains.
   for (const k of kingdoms) {
@@ -177,7 +170,7 @@ export function generateRealm(seed: number, day = 1): Realm {
     addFaction(realm, { id: k.crown, name: factionName(rng, "crown", { place: realm.settlements[k.capital]!.name, kingdom: k.name }, factionNames), kind: "crown", creed: `the rule of ${k.name}`, leader: k.ruler, members: members.map((f) => f.id), seat: k.capital, branches: [k.capital], wealth: 20000, founded: day - 400, kingdom: k.id, stances: {} });
     for (const f of members) f.faction = k.crown;
   }
-  // An adventurers' guild with halls in Millbrook's kingdom; a merchants' league in the second.
+  // An adventurers' guild with halls in the first kingdom; a merchants' league in the second.
   const k0 = kingdoms[0]!;
   const adv = Object.values(realm.figures).filter((f) => f.role === "adventurer" && realm.settlements[f.home ?? ""]?.kingdom === k0.id);
   const guildSeat = realm.settlements[k0.capital]!;
@@ -199,16 +192,11 @@ export function generateRealm(seed: number, day = 1): Realm {
     for (const f of merchants) f.faction = league.id;
     merchants[0]!.role = "guildmaster";
   }
-  // Millbrook's own groups (the faction files): the guard, the merchants, Rook's gang. Members are added by the town.
-  addFaction(realm, { id: "guard", name: "the village guard", kind: "order", creed: "keep the gate and the peace", leader: holt.id, members: [holt.id], seat: HOME_ID, branches: [HOME_ID], wealth: 300, founded: day - 200, stances: {}, file: "guard" });
-  holt.faction = "guard";
-  addFaction(realm, { id: "merchants", name: "the merchants of Millbrook", kind: "association", trade: "merchants", creed: "a fair price and a safe road", leader: null, members: [], seat: HOME_ID, branches: [HOME_ID], wealth: 500, founded: day - 300, stances: {}, file: "merchants" });
-  addFaction(realm, { id: "bandits", name: "Rook's gang", kind: "gang", creed: "a toll on every cart", leader: null, members: [], seat: HOME_ID, branches: [], wealth: 400, founded: day - 30, stances: { guard: -80, merchants: -70 }, file: "bandits" });
-  // A bandit gang in the other two kingdoms' wild places.
-  for (const k of kingdoms.slice(1)) {
+  // A bandit gang in every kingdom's wild places.
+  for (const k of kingdoms) {
     const lair = Object.values(realm.settlements).find((s) => s.kingdom === k.id && s.kind === "hamlet") ?? realm.settlements[k.capital]!;
     const chief = makeFigure(realm, rng, { role: "bandit chief", home: null, tier: "D", age: 35, renown: 25 }, day);
-    const gang = addFaction(realm, { id: `gang_${k.id}`, name: factionName(rng, "gang", { place: lair.name, kingdom: k.name }, factionNames), kind: "gang", creed: "take what the roads carry", leader: chief.id, members: [chief.id], seat: lair.id, branches: [], wealth: 600, founded: day - 60, stances: { [k.crown]: -70 }, file: undefined });
+    const gang = addFaction(realm, { id: `gang_${k.id}`, name: factionName(rng, "gang", { place: lair.name, kingdom: k.name }, factionNames), kind: "gang", creed: "take what the roads carry", leader: chief.id, members: [chief.id], seat: lair.id, branches: [], wealth: 600, founded: day - 60, stances: { [k.crown]: -70 } });
     chief.faction = gang.id;
     for (let i = 0; i < 3; i++) {
       const b = makeFigure(realm, rng, { role: "bandit", home: null, tier: pick(rng, ["G", "F", "E"] as Tier[]), age: 18 + Math.floor(rng() * 20), faction: gang.id, superior: chief.id }, day);
@@ -223,24 +211,22 @@ export function generateRealm(seed: number, day = 1): Realm {
     }
   }
 
-  // Dungeons: one near Millbrook (the old workings past the mine), and more out in the wild.
+  // Dungeons out in the wild.
   const dnames = new Set<string>();
   const addDungeon = (near: Settlement, tier: Tier, depth: number, name = dungeonName(rng, dnames)) => {
     const id = slug(name);
     realm.dungeons[id] = { id, name, near: near.id, pos: { x: near.pos.x + Math.round(rng() * 60 - 30), y: near.pos.y - 25 - Math.round(rng() * 20) }, tier, depth, danger: Math.round(40 + rng() * 30), treasure: Math.round(300 * depth * (1 + ["G", "F", "E", "D", "C", "B", "A"].indexOf(tier))), bounty: 0, delves: 0 };
   };
-  dnames.add("the Old Mine Deeps");
-  addDungeon(realm.settlements[HOME_ID]!, "F", 2, "the Old Mine Deeps");
-  const wild = Object.values(realm.settlements).filter((s) => !s.home && (s.kind === "hamlet" || s.kind === "village"));
-  for (let i = 0; i < 6 && wild.length > 0; i++) {
+  const wild = Object.values(realm.settlements).filter((s) => s.kind === "hamlet" || s.kind === "village");
+  for (let i = 0; i < 9 && wild.length > 0; i++) {
     const s = wild.splice(Math.floor(rng() * wild.length), 1)[0]!;
     addDungeon(s, pick(rng, ["F", "E", "D", "C"] as Tier[]), 1 + Math.floor(rng() * 4));
   }
   // Beast packs: wolves in the forests and hills, bears in the hills, boars on the plains, spiders in the marshes.
   const packFor: Partial<Record<Terrain, [string, Tier, number]>> = { forest: ["wolf", "F", 10], hills: ["bear", "E", 4], plains: ["boar", "G", 8], marsh: ["spider", "E", 6], valley: ["wolf", "F", 8] };
   for (const s of Object.values(realm.settlements)) {
-    const kind = s.home ? (["wolf", "F", 8] as [string, Tier, number]) : packFor[s.terrain];
-    if (!kind || (!s.home && (s.kind === "capital" || s.kind === "city" || rng() < 0.45))) continue;
+    const kind = packFor[s.terrain];
+    if (!kind || s.kind === "capital" || s.kind === "city" || rng() < 0.45) continue;
     const [species, tier, cap] = kind;
     const id = `pack_${s.id}`;
     realm.packs[id] = { id, species, near: s.id, count: Math.max(2, Math.round(cap * (0.3 + rng() * 0.4))), cap, tier, alpha: null, bounty: 0 };
@@ -255,11 +241,9 @@ export function generateRealm(seed: number, day = 1): Realm {
   return realm;
 }
 
-export function addFaction(realm: Realm, f: Omit<RealmFaction, "file"> & { file?: string }): RealmFaction {
-  const out: RealmFaction = { ...f, ...(f.file ? { file: f.file } : {}) } as RealmFaction;
-  if (out.file === undefined) delete out.file;
-  realm.factions[out.id] = out;
-  return out;
+export function addFaction(realm: Realm, f: RealmFaction): RealmFaction {
+  realm.factions[f.id] = f;
+  return f;
 }
 
 /** Map distance between two settlements. */

@@ -1,3 +1,4 @@
+import { findCreature } from "../game/site.js";
 import type { AdminCard, AdminHour, AdminPinned, AdminSection } from "@millbrook/shared";
 import { CLASS_WORDS, JOB_INFO } from "@millbrook/shared";
 import { knowsEvent } from "../game/events.js";
@@ -5,9 +6,9 @@ import { ageOn } from "../game/life.js";
 import { formatMoney } from "../game/money.js";
 import { chainOf, titled } from "../game/realm/figures.js";
 import { rankIn } from "../game/realm/factions.js";
-import { HOME_ID } from "../game/realm/generate.js";
 import { lineageOf } from "../game/people/index.js";
 import { deathWords, parseDeath } from "../game/people/death.js";
+import { outlookOf } from "../game/people/outlook.js";
 import { ageFrom } from "../game/people/rules.js";
 import { traitsOfRow } from "../game/people/traits.js";
 import type { PersonRow } from "../store/peopleStore.js";
@@ -70,10 +71,34 @@ function castSections(ctx: AdminContext, id: string, persona: NpcPersona, state:
 
   const goalRows: Array<[string, string]> = [
     ...persona.goals.map((g): [string, string] => ["Wants", g]),
+    ...(state.lifeGoals ?? []).map((g): [string, string] => [cap(g.kind.replace("_", " ")), `${g.words} (${pct(g.strength)}, since day ${g.since})`]),
     ...state.goals.map((g): [string, string] => [cap(g.kind), `${g.plan} against the player: ${g.reason} (${pct(g.strength)}, since day ${g.day}${g.acted ? `, acted day ${g.acted}` : ""})`]),
   ];
   if (state.grudge) goalRows.push(["Grudge", `${state.grudge.reason} (since day ${state.grudge.day}${state.grudge.blood ? ", blood" : `, until day ${state.grudge.until}`})`]);
   out.push({ title: "Goals and grudges", rows: goalRows });
+
+  // N25b: how they have changed. What they think of their lord and others that isn't a person they talk to, and each review: what it was
+  // for, who made it (the model or code's rules), and what was applied, clipped or rejected, with the reasons.
+  const views = Object.entries(state.views ?? {});
+  const reviews = ctx.store?.reviewsOf(id, 12) ?? [];
+  out.push({
+    title: "Life reviews",
+    rows: [
+      ...(state.review ? ([["Last review", `day ${state.review.day}${state.review.shock !== undefined ? `; last shock day ${state.review.shock}` : ""}`]] as Array<[string, string]>) : []),
+      ...views.map(([about, r]): [string, string] => [`Sees ${about.replace(/^(lord|faction|site):/, "")}`, axes(r)]),
+      ...reviews.flatMap((r): Array<[string, string]> => {
+        const applied = (r.applied as Array<{ text: string; why: string }> | null) ?? [];
+        const clipped = (r.clipped as Array<{ note: string }> | null) ?? [];
+        const rejected = (r.rejected as Array<{ reason: string }> | null) ?? [];
+        const head = `Day ${r.day} · ${r.by === "model" ? "the model's review" : "code's rules"}${r.shock ? ` · shock ${r.shock}` : ""}`;
+        return [
+          [head, applied.length > 0 ? applied.map((a) => `${a.text} (why: ${a.why})`).join("; ") : "nothing changed"],
+          ...(clipped.length + rejected.length > 0 ? ([["  not applied", [...clipped.map((c) => c.note), ...rejected.map((x) => `rejected: ${x.reason}`)].join("; ")]] as Array<[string, string]>) : []),
+        ];
+      }),
+    ],
+    ...(reviews.length === 0 && views.length === 0 && !state.review ? { rows: [["Reviews", "none yet: everyone who talks is reviewed every few days, and the same day something big hits their life"] as [string, string]] } : {}),
+  });
 
   const others = Object.entries(state.npcRelations)
     .map(([other, r]) => ({ other, r, w: Math.abs(r.trust) + Math.abs(r.fear) + Math.abs(r.respect) + Math.abs(r.affection) }))
@@ -104,7 +129,7 @@ function castSections(ctx: AdminContext, id: string, persona: NpcPersona, state:
 
   const family = world.family;
   const spouse = (family?.marriages ?? []).map((m) => (m.a === id ? m.b : m.b === id ? m.a : null)).find((x) => x);
-  const children = Object.values({ ...(family?.born ?? {}), ...ctx.town().personas }).filter((p) => p.parents?.includes(id));
+  const children = Object.values(ctx.town().personas).filter((p) => p.parents?.includes(id));
   const kin: Array<[string, string, string?]> = [];
   if (spouse) kin.push(["Spouse", spouse === "player" ? world.player.name : nameOfRefId(ctx, spouse), spouse === "player" ? "player" : (refOfId(ctx, spouse) ?? undefined)]);
   for (const p of persona.parents ?? []) kin.push(["Parent", p === "player" ? world.player.name : nameOfRefId(ctx, p), p === "player" ? "player" : (refOfId(ctx, p) ?? undefined)]);
@@ -135,7 +160,7 @@ function castCard(ctx: AdminContext, id: string): AdminCard | null {
   const dead = state.outcome === "dead";
   const figure = ctx.town().figureOf(id);
   const t = parseTownsfolkId(id);
-  const site = t ? t.site : figure ? figure.home : HOME_ID;
+  const site = t ? t.site : (ctx.town().homeSiteOf(id) ?? figure?.home ?? null);
   const sections = castSections(ctx, id, persona, state);
   if (figure) sections.push({ title: "In the realm", rows: [["Realm figure", titled(figure), `figure:${figure.id}`]] });
   return {
@@ -249,6 +274,20 @@ function lifeSections(ctx: AdminContext, row: PersonRow): AdminSection[] {
   return out;
 }
 
+/** A townsperson's outlook (N25b): how they see whoever rules, their mood, what they want and who they hold a grudge against, as code's reviews left it. */
+function outlookSection(row: PersonRow, head: { name: string } | undefined): AdminSection {
+  const o = outlookOf(row);
+  if (!row.outlook) return { title: "Outlook", rows: [["Reviews", "none yet: everyone is reviewed every few days, and the same day something big hits their life"]] };
+  const rows: Array<[string, string]> = [
+    ["Last review", `day ${o.r}`],
+    ["Mood", `${o.mood > 0 ? "+" : ""}${o.mood} (of -3 to 3)`],
+    [`Sees ${head?.name ?? "whoever rules"}`, `trust ${o.lord.t}, fear ${o.lord.f}, respect ${o.lord.e}, affection ${o.lord.a}`],
+  ];
+  if (o.goal) rows.push(["Wants", o.goal.kind === "move" ? `to leave (since day ${o.goal.since})` : `to see ${o.goal.target ?? "someone"} answer for a death (since day ${o.goal.since})`]);
+  if (o.grudge) rows.push(["Grudge", `${o.grudge.against}: ${o.grudge.why} (since day ${o.grudge.since})`]);
+  return { title: "Outlook", rows };
+}
+
 function townspersonCard(ctx: AdminContext, id: string): AdminCard | null {
   const t = parseTownsfolkId(id);
   if (!t) return null;
@@ -298,7 +337,8 @@ function townspersonCard(ctx: AdminContext, id: string): AdminCard | null {
       ],
     },
     ...(row ? lifeSections(ctx, row) : []),
-    { title: "Needs, emotions, goals", unavailable: "N25: townsfolk get needs, feelings and lives of their own" },
+    ...(row && !row.persona ? [outlookSection(row, world.realm!.settlements[row.site]?.leader ? world.realm!.figures[world.realm!.settlements[row.site]!.leader!] : undefined)] : []),
+    ...(row && row.persona ? [] : [{ title: "Needs, emotions, goals", unavailable: "N25: townsfolk's needs and feelings are worked out by code (their outlook is above); they get a full set of their own once they talk to the player" } as AdminSection]),
   ];
   if (persona && state) sections.push(...castSections(ctx, id, persona, state));
   return {
@@ -321,9 +361,10 @@ function townspersonCard(ctx: AdminContext, id: string): AdminCard | null {
 
 function beastCard(ctx: AdminContext, uid: string): AdminCard | null {
   const world = ctx.world();
-  const c = world.creatures[uid] ?? Object.values(world.haunts ?? {}).map((g) => g[uid]).find(Boolean);
+  const found = findCreature(world, uid);
+  const c = found?.creature;
   if (!c) return figureCard(ctx, uid);
-  const near = Object.entries(world.haunts ?? {}).find(([, g]) => g[uid])?.[0] ?? HOME_ID;
+  const near = found!.site;
   return {
     ref: `beast:${uid}`,
     kind: "beast",

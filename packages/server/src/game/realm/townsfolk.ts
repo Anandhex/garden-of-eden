@@ -1,15 +1,15 @@
 import { CLASS_COLORS, CLASS_RANK, CLASS_WORDS, type CrowdRoster, hashStr, honorific, JOB_INFO, type Job, seeded, type SocialClass, type Townsperson } from "@millbrook/shared";
-import { badScopes, type Certainty } from "../../npc/knowledge.js";
 import { parsePersona } from "../../npc/personaSchema.js";
-import { assemblePersona, fallbackIdentity, rollTemplate, type NpcTemplate } from "../../npc/templates.js";
+import { assemblePersona, fallbackIdentity, rollTemplate, type NpcTemplate, type Where } from "../../npc/templates.js";
 import type { NpcPersona } from "../../npc/types.js";
 import { config } from "../../config.js";
 import type { PeopleStore, PersonRow } from "../../store/peopleStore.js";
 import type { Rng } from "../dice.js";
 import type { Tier } from "../life.js";
 import type { Building } from "../../web/map.js";
+import { FACTION_OF_TEMPLATE } from "../factions.js";
 import { titled } from "./figures.js";
-import { HOME_ID, neighbours } from "./generate.js";
+import { knowsFor } from "./lore.js";
 import { personName } from "./names.js";
 import type { Realm, RealmFaction, Settlement, SettlementKind } from "./types.js";
 
@@ -37,17 +37,13 @@ export function parseTownsfolkId(id: string): { site: string; n: number } | null
 export const MAX_TOWNSFOLK = 5000;
 
 /**
- * The kingdom's laws on bondage. Millbrook's kingdom keeps serfs (bound to the
- * land, owing their lord labour) but no slaves; the next kingdom keeps slaves; the
- * last keeps neither. Free settlements keep neither.
+ * The kingdom's laws on bondage, set when the realm is made (`Kingdom.laws`): one kingdom keeps serfs (bound to the
+ * land, owing their lord labour) but no slaves, another keeps slaves, the third keeps neither. Free settlements keep
+ * neither.
  */
 export function kingdomLaws(realm: Realm, kingdom: string | null): { slavery: boolean; serfdom: boolean } {
-  if (!kingdom) return { slavery: false, serfdom: false };
-  const home = realm.settlements[HOME_ID]?.kingdom ?? null;
-  if (kingdom === home) return { slavery: false, serfdom: true };
-  const others = Object.keys(realm.kingdoms).filter((k) => k !== home).sort();
-  const i = others.indexOf(kingdom);
-  return i % 2 === 0 ? { slavery: true, serfdom: false } : { slavery: false, serfdom: false };
+  const laws = kingdom ? realm.kingdoms[kingdom]?.laws : undefined;
+  return { slavery: laws?.slavery ?? false, serfdom: laws?.serfdom ?? false };
 }
 
 /** Shares of each class by kind of place, before the laws (slaves and serfs only where allowed). */
@@ -201,6 +197,7 @@ export function rowOfTownsperson(p: Townsperson, site: string, day: number): Per
     expecting: null,
     last_birth: null,
     stepped_day: 0,
+    outlook: null,
     rev: 0,
   };
 }
@@ -289,10 +286,12 @@ function rollPeople(realm: Realm, site: Site, facs: RealmFaction[], laws: { slav
   // The posts every place has filled first: innkeepers, smiths, priests and the royal family.
   type Post = { cls: SocialClass; job: Job; work: string; home?: number };
   const posts: Post[] = [];
-  // In Millbrook the cast keeps the inn (Pell) and the forge (Brena and her apprentice): no second innkeeper or smith.
-  const atHome = s.id === HOME_ID;
-  for (const i of inns) posts.push(...(atHome ? [] : [{ cls: "merchant" as const, job: "innkeeper" as const, work: `front:${i}`, home: i }]), { cls: "commoner", job: "server", work: `front:${i}`, home: i });
-  if (!atHome) for (const i of smithies) posts.push({ cls: "artisan", job: "smith", work: `front:${i}` }, { cls: "artisan", job: "apprentice", work: `front:${i}` });
+  // The first inn and the first forge are kept by the place's notables where it has them (they talk already): no second innkeeper or smith.
+  const kept = (role: string) => Object.values(realm.figures).some((f) => f.alive && f.home === s.id && f.role === role);
+  const innHeld = kept("innkeeper");
+  const smithHeld = kept("smith");
+  inns.forEach((i, k) => posts.push(...(k === 0 && innHeld ? [] : [{ cls: "merchant" as const, job: "innkeeper" as const, work: `front:${i}`, home: i }]), { cls: "commoner", job: "server", work: `front:${i}`, home: i }));
+  smithies.forEach((i, k) => posts.push(...(k === 0 && smithHeld ? [] : [{ cls: "artisan" as const, job: "smith" as const, work: `front:${i}` }]), { cls: "artisan", job: "apprentice", work: `front:${i}` }));
   for (const i of temples) posts.push({ cls: "clergy", job: "priest", work: `front:${i}`, home: i });
   if (s.kind === "capital") for (let r = 0; r < 4; r++) posts.push({ cls: "royal", job: "royal", work: "home", home: halls[0] });
 
@@ -345,7 +344,7 @@ function rollPeople(realm: Realm, site: Site, facs: RealmFaction[], laws: { slav
             job = zone("market") ? (jr < 0.6 ? "stallholder" : "merchant") : jr < 0.5 ? "stallholder" : "merchant";
             break;
           case "artisan":
-            job = smithies.length > 0 && !atHome && jr < 0.15 ? (jr < 0.07 ? "smith" : "apprentice") : (["baker", "baker", "weaver", "carpenter", "cobbler", "tailor", "potter"] as const)[Math.floor(rng() * 7)]!;
+            job = smithies.length > 0 && jr < 0.15 ? (jr < 0.07 ? "smith" : "apprentice") : (["baker", "baker", "weaver", "carpenter", "cobbler", "tailor", "potter"] as const)[Math.floor(rng() * 7)]!;
             break;
           case "serf":
             job = zone("fields") && jr < 0.75 ? "farmer" : "labourer";
@@ -385,7 +384,7 @@ function rollPeople(realm: Realm, site: Site, facs: RealmFaction[], laws: { slav
       if ((job === "smith" || job === "apprentice") && full(job, 3, smithies)) job = "carpenter";
       if (job === "server" && full(job, 4, inns)) job = "labourer";
       if ((job === "priest" && full(job, 3, temples)) || (job === "acolyte" && full(job, 5, temples))) work = "streets";
-      if (job === "innkeeper" && (atHome || full(job, 1, inns))) job = "merchant";
+      if (job === "innkeeper" && full(job, 1, inns)) job = "merchant";
       if (work !== "streets" || cls !== "clergy") work = workOf(job, { inns, smithies, temples, halls, barracks, guildhalls, markets, zone }, rng);
     }
     jobs[job] = (jobs[job] ?? 0) + 1;
@@ -579,13 +578,13 @@ const JOB_SPEECH: Partial<Record<Job, string>> = {
 const TEMPLATE_FOR: Partial<Record<Job, string>> = {
   stallholder: "merchant",
   merchant: "merchant",
-  innkeeper: "merchant",
+  innkeeper: "innkeeper",
   baker: "merchant",
   weaver: "merchant",
   cobbler: "merchant",
   tailor: "merchant",
   potter: "merchant",
-  smith: "merchant",
+  smith: "smith",
   guard: "guard",
   knight: "guard",
   child: "child",
@@ -612,8 +611,10 @@ export function townsfolkPersona(realm: Realm | null, roster: CrowdRoster, p: To
   // Rank by station: the high-born and the trained a step up.
   r.tier = (CLASS_RANK[p.cls] >= 5 || p.job === "guard" || p.job === "knight" ? "F" : "G") as Tier;
   r.potential = r.tier === "F" ? ("E" as Tier) : ("F" as Tier);
-  const words = fallbackIdentity(t, r, rng, p.name);
-  const here = (text: string) => text.replaceAll("Millbrook", roster.place).replaceAll("the mine road", "the roads");
+  const settlement = realm?.settlements[roster.site];
+  const kingdom = settlement?.kingdom ? realm?.kingdoms[settlement.kingdom]?.name : undefined;
+  const where: Where = { place: roster.place, kind: settlement?.kind ?? "village", ...(kingdom ? { kingdom } : {}) };
+  const words = fallbackIdentity(t, r, rng, p.name, where);
   const job = JOB_INFO[p.job];
   const clsWord = CLASS_WORDS[p.cls];
   const role = p.job === "child" ? `a child of ${roster.place}` : p.cls === "royal" ? `a prince${p.gender === "female" ? "ss" : ""} of the blood, at the palace of ${roster.place}` : `a ${job.words} of ${roster.place}${clsWord !== job.words ? ` (${clsWord})` : ""}`;
@@ -638,14 +639,13 @@ export function townsfolkPersona(realm: Realm | null, roster: CrowdRoster, p: To
     .filter(Boolean)
     .join(" ")
     .slice(0, 500);
-  words.speechStyle = here(job.sells || TEMPLATE_FOR[p.job] ? words.speechStyle : (JOB_SPEECH[p.job] ?? words.speechStyle));
+  words.speechStyle = job.sells || TEMPLATE_FOR[p.job] ? words.speechStyle : (JOB_SPEECH[p.job] ?? words.speechStyle);
   if (!job.sells && !TEMPLATE_FOR[p.job] && JOB_GOALS[p.job]) words.goals = [...JOB_GOALS[p.job]!];
   if (p.cls === "noble" || p.cls === "royal") words.speechStyle = `Haughty and precise; speaks to commoners as to servants. ${words.speechStyle}`.slice(0, 300);
   else if (p.cls === "slave") words.speechStyle = `Quiet, careful and deferential; says little and never contradicts free folk. ${words.speechStyle}`.slice(0, 300);
   else if (p.cls === "serf") words.speechStyle = `Plain and wary; touches their forelock to anyone above them. ${words.speechStyle}`.slice(0, 300);
-  words.goals = words.goals.map(here);
   if (p.cls === "slave" && p.job !== "slave") words.goals = ["Keep out of trouble with their master", "Someday be free", ...words.goals].slice(0, 3);
-  const persona = assemblePersona(t, r, words, p.id);
+  const persona = assemblePersona(t, r, words, p.id, where);
   persona.role = role;
   // Only traders sell.
   if (!job.sells) {
@@ -663,11 +663,10 @@ export function townsfolkPersona(realm: Realm | null, roster: CrowdRoster, p: To
     { from: 21, to: 6, activity: "sleep", place: "home" },
   ];
   persona.quests = [];
-  delete persona.faction;
-  const knows: Record<string, Certainty> = roster.site === HOME_ID ? { "millbrook.*": "certain", "news.*": "rumour", "people.*": "rumour", "realm.*": "rumour" } : { "realm.*": "rumour", [`realm.place_${roster.site}`]: "certain" };
-  if (realm) for (const n of neighbours(realm, roster.site)) knows[`realm.place_${n.id}`] = "certain";
-  for (const bad of badScopes(knows)) delete knows[bad];
-  persona.knows = knows;
+  const kind = FACTION_OF_TEMPLATE[TEMPLATE_FOR[p.job] ?? "farmer"];
+  if (kind) persona.faction = kind;
+  else delete persona.faction;
+  persona.knows = realm && settlement ? knowsFor(realm, settlement) : {};
   try {
     return parsePersona(persona, `townsfolk ${persona.id}`);
   } catch {

@@ -1,6 +1,6 @@
 /**
  * The Realm tab (N13.9): a map of the kingdoms, towns and villages around
- * Millbrook, and what's going on out there: wars, treaties, factions and their
+ * the realm, and what's going on out there: wars, treaties, factions and their
  * hierarchy, dungeons, beasts, notable people and the news. The server keeps the
  * realm; this fetches GET /api/realm when the realm's day changes, and draws it.
  */
@@ -63,7 +63,7 @@ export function renderRealm(body: HTMLElement): void {
   body.append(realmLegend(r));
 
   // ---- The chosen place ----
-  const place = at(selected) ?? at(s.site.id) ?? r.settlements.find((x) => x.home);
+  const place = at(selected) ?? at(s.site.id) ?? r.settlements.find((x) => x.here);
   if (place) {
     h(`${place.name} (${place.abandoned ? "abandoned " : ""}${place.kind})`);
     const liege = at(place.liege);
@@ -144,7 +144,7 @@ export function renderRealm(body: HTMLElement): void {
 
   // ---- News and the director ----
   h("News from the realm");
-  for (const n of r.news.slice(0, 20)) body.append(emptyP(`Day ${n.day}: ${n.text}${n.heard ? "" : " (not heard in Millbrook yet)"}`));
+  for (const n of r.news.slice(0, 20)) body.append(emptyP(`Day ${n.day}: ${n.text}${n.heard ? "" : " (not heard here yet)"}`));
   h("What the director pushed");
   for (const d of r.director) body.append(emptyP(`Day ${d.day}: ${d.kind.replace(/_/g, " ")} (${d.reason})${d.ok ? "" : ", but it came to nothing"}.`));
 }

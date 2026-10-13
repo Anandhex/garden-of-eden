@@ -21,7 +21,7 @@ import { addSkillXp, driftTrait, growthEvent, playerUsesSkill, raiseAttribute, s
 import { advanceArcs, arcStage, describeArcs } from "../src/npc/arcs.js";
 import { playerGainXp } from "../src/game/levels.js";
 import { advanceMinutes } from "../src/game/clock.js";
-import { createDemoWorld } from "../src/world/world.js";
+import { createTestWorld } from "../src/world/world.js";
 import { registerNpcNames } from "../src/world/names.js";
 import { always, brena, FakeProvider, hale, pell, rook, say } from "./helpers.js";
 import type { QuestDef } from "../src/npc/types.js";
@@ -31,7 +31,7 @@ beforeEach(() => {
   registerNpcNames({ brena: "Brena Ashford", pell: "Old Pell", hale: "Corporal Hale", rook: "Rook" });
 });
 
-const take = (persona: typeof brena, id: string, world = createDemoWorld(), trust = 60) => {
+const take = (persona: typeof brena, id: string, world = createTestWorld(), trust = 60) => {
   const s = createNpcState(persona, { relationship: trust, respect: 40 });
   s.pendingQuest = id;
   const q = acceptQuest(persona, s, world.player, world, (who) => (who === "horse" ? "horse-1" : null));
@@ -40,7 +40,7 @@ const take = (persona: typeof brena, id: string, world = createDemoWorld(), trus
 
 describe("N9 quest goals, one checker each", () => {
   it("talk_to: carrying Brena's word to Hale counts when you talk to him", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.player.level = 2;
     const { s, q } = take(brena, "hammer_whereabouts", world);
     expect(describeObjective(q)).toBe('take word to Old Pell: "Brena wants to know who has her father\'s forge hammer."');
@@ -51,7 +51,7 @@ describe("N9 quest goals, one checker each", () => {
   });
 
   it("defeat_npc: beating Rook counts", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.player.level = 7;
     world.player.quests.completed.push("hammer_whereabouts");
     const { q } = take(brena, "hammer_rook", world);
@@ -60,7 +60,7 @@ describe("N9 quest goals, one checker each", () => {
   });
 
   it("gather: herbs you pick yourself at the gate count; bought ones don't", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const { s, q } = take(pell, "meadow_herbs", world, 10);
     world.player.inventory["wild herbs [F]"] = 2; // bought, not gathered
     expect(questProgress(world.player, q).done).toBe(false);
@@ -73,7 +73,7 @@ describe("N9 quest goals, one checker each", () => {
   });
 
   it("craft: a dagger of tier E or better made by your own hand, at the forge", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.player.level = 2;
     world.player.skills.smithing = 2;
     world.player.inventory["iron ore [F]"] = 4;
@@ -89,7 +89,7 @@ describe("N9 quest goals, one checker each", () => {
   });
 
   it("escort: bring the horse to the gate, alive, in time", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.player.level = 2;
     const { q } = take(pell, "horse_to_gate", world, 10);
     expect(q.escortee).toBe("horse-1");
@@ -104,7 +104,7 @@ describe("N9 quest goals, one checker each", () => {
 
 describe("N9 chains, deadlines and failure", () => {
   it("done when: the hammer is a 3-step chain, and a level 1 player can't skip ahead", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const s = createNpcState(brena, { relationship: 60, respect: 40 });
     const ids = () => questsFor(brena, s, world.player).tooHard.map((q) => q.id).concat(questsFor(brena, s, world.player).available.map((q) => q.id));
     expect(ids()).toContain("hammer_whereabouts");
@@ -118,7 +118,7 @@ describe("N9 chains, deadlines and failure", () => {
   });
 
   it("a missed deadline fails the quest once, costing trust and respect", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.player.level = 2;
     const { s, q } = take(pell, "horse_to_gate", world, 10);
     const before = { trust: s.relationship, respect: s.respect };
@@ -137,10 +137,10 @@ describe("N9 chains, deadlines and failure", () => {
 
   it("higher-rank NPCs post higher-tier work: the cap is a rank above their own", () => {
     const s = createNpcState(hale);
-    expect(questsFor(hale, s, { ...createDemoWorld().player, level: 5 }).tooHard.concat(questsFor(hale, { ...s, relationship: 10 }, { ...createDemoWorld().player, level: 5 }).available).length).toBeGreaterThan(0);
+    expect(questsFor(hale, s, { ...createTestWorld().player, level: 5 }).tooHard.concat(questsFor(hale, { ...s, relationship: 10 }, { ...createTestWorld().player, level: 5 }).available).length).toBeGreaterThan(0);
     const low = createNpcState(brena, { relationship: 60, respect: 40 });
     low.life.tier = "D";
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.player.level = 10;
     world.player.quests.completed.push("hammer_whereabouts", "hammer_rook");
     // Fathers_hammer is B; a D-rank Brena only gives up to C.
@@ -214,7 +214,7 @@ describe("N9 growth: skills, attributes, traits", () => {
   });
 
   it("player: levels give attribute points to spend; skills rise by hard use", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const p = world.player;
     expect(playerGainXp(p, 50)).toBe(1);
     expect(p.attributePoints).toBe(1);
@@ -230,7 +230,7 @@ describe("N9 growth: skills, attributes, traits", () => {
 
 describe("N9.1 personal goal arcs", () => {
   it("done when: passing on Pell's clue moves Brena from no news to heard a rumour, once", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const s = createNpcState(brena);
     const tomas = brena.arcs![0]!;
     expect(describeArcs(brena, s)[0]).toMatch(/no word of your brother/);
@@ -248,7 +248,7 @@ describe("N9.1 personal goal arcs", () => {
   });
 
   it("the next stage needs that quest done; the last needs what Rook hides", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const s = createNpcState(brena, { arcs: { tomas: { stage: 1, day: 1 } } });
     expect(advanceArcs(brena, s, world)).toEqual([]);
     world.player.quests.completed.push("ask_at_the_gate");

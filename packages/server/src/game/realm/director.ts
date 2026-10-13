@@ -8,10 +8,11 @@ import { atWar } from "./economy.js";
 import { addRenown, figurePower, makeFigure, residents, titled } from "./figures.js";
 import { foundFaction } from "./factions.js";
 import { atPeace, partiesOf, sign, treatiesBetween, warOf } from "./diplomacy.js";
-import { HOME_ID, neighbours, travelDays } from "./generate.js";
+import { neighbours, travelDays } from "./generate.js";
 import { logPush, realmNews, tally } from "./log.js";
 import { gangSide, settlementSide } from "./military.js";
 import type { DirectorPush, Figure, Realm, Settlement } from "./types.js";
+import { sendArrival } from "./arrivals.js";
 
 /**
  * An active director (N13.8). The nightly chronicle (N12) only reacts; this one
@@ -138,7 +139,7 @@ export function candidates(realm: Realm, day: number, rng: Rng): Candidate[] {
         s.food = Math.min(100, s.food + 20);
         giver.food -= 10;
         tally(realm, "caravans");
-        if (s.home) realm.home.push({ day, kind: "caravan", count: 1, by: giver.name });
+        sendArrival(realm, s.id, { day, kind: "caravan", count: 1, by: giver.name });
         realmNews(realm, day, s.id, "caravan", `A grain caravan from ${giver.name} reached hungry ${s.name}.`, 4, [giver.name, s.name]);
         return true;
       } });
@@ -150,7 +151,7 @@ export function candidates(realm: Realm, day: number, rng: Rng): Candidate[] {
         if (amount < 40) return false;
         s.treasury -= amount;
         p.bounty += amount;
-        realmNews(realm, day, s.id, "bounty", `${s.name} has put a bounty of ${Math.round(amount / 100)} gold on the ${plural(p.species)} in its woods.`, s.home ? 5 : 3, [s.name]);
+        realmNews(realm, day, s.id, "bounty", `${s.name} has put a bounty of ${Math.round(amount / 100)} gold on the ${plural(p.species)} in its woods.`, 4, [s.name]);
         return true;
       } });
     }
@@ -160,12 +161,12 @@ export function candidates(realm: Realm, day: number, rng: Rng): Candidate[] {
         if (amount < 40) return false;
         s.treasury -= amount;
         d.bounty += amount;
-        realmNews(realm, day, s.id, "bounty", `${s.name} will pay ${Math.round(amount / 100)} gold to whoever clears ${d.name}.`, s.home ? 5 : 3, [s.name, d.name]);
+        realmNews(realm, day, s.id, "bounty", `${s.name} will pay ${Math.round(amount / 100)} gold to whoever clears ${d.name}.`, 4, [s.name, d.name]);
         return true;
       } });
     }
     // A gang leans on a weak village: pay us and we'll leave you be.
-    const gangs = Object.values(realm.factions).filter((f) => !f.dissolved && f.kind === "gang" && !f.file && f.seat && (f.seat === s.id || neighbours(realm, f.seat).some((n) => n.id === s.id)));
+    const gangs = Object.values(realm.factions).filter((f) => !f.dissolved && f.kind === "gang" && f.seat && (f.seat === s.id || neighbours(realm, f.seat).some((n) => n.id === s.id)));
     for (const g of gangs) {
       if (atPeace(realm, [`f:${g.id}`], partiesOf(realm, s), day) || s.kind === "capital" || s.kind === "city") continue;
       const gs = gangSide(realm, g.id).strength;
@@ -231,22 +232,25 @@ export function directorDay(realm: Realm, day: number, rng: Rng): DirectorPush[]
   return done;
 }
 
-// ---- Millbrook's needs, for the talking NPCs' quest boards (game/realm/home.ts) ----
+// ---- A place's needs, for the quest boards of its talkers (game/realm/needs.ts) ----
 
-export type HomeNeed = "beasts" | "walls" | "food" | "dungeon" | "raiders";
+export type Need = "beasts" | "walls" | "food" | "dungeon" | "raiders";
 
-/** What Millbrook needs now, most pressing first. */
-export function homeNeeds(realm: Realm, day: number): Array<{ need: HomeNeed; why: string }> {
-  const s = realm.settlements[HOME_ID];
+/**
+ * What a place needs now, most pressing first. `opening`: a new game's first day, when the head wants something
+ * done even if nothing is pressing yet (the pack near it, the dungeon past it).
+ */
+export function needsOf(realm: Realm, site: string, day: number, opts: { opening?: boolean } = {}): Array<{ need: Need; why: string }> {
+  const s = realm.settlements[site];
   if (!s) return [];
-  const out: Array<{ need: HomeNeed; why: string }> = [];
-  const pack = Object.values(realm.packs).find((p) => p.near === HOME_ID);
-  if (pack && pack.count >= pack.cap * 0.6) out.push({ need: "beasts", why: `the ${plural(pack.species)} in the woods are breeding (${pack.count} of them)` });
-  if (s.lastRaided !== undefined && day - s.lastRaided <= 6) out.push({ need: "raiders", why: "raiders hit Millbrook" });
-  if (s.project?.building === "walls" || (s.lastRaided !== undefined && day - s.lastRaided <= 12 && (s.buildings.walls ?? 0) < 2)) out.push({ need: "walls", why: "Millbrook is putting up walls" });
-  if (s.food < 35) out.push({ need: "food", why: "Millbrook's stores are running low" });
-  const d = Object.values(realm.dungeons).find((x) => x.near === HOME_ID);
-  if (d && d.danger >= 70) out.push({ need: "dungeon", why: `${d.name} is filling up with things` });
+  const out: Array<{ need: Need; why: string }> = [];
+  const pack = Object.values(realm.packs).find((p) => p.near === site);
+  if (pack && (pack.count >= pack.cap * 0.6 || (opts.opening && pack.count >= 2))) out.push({ need: "beasts", why: `the ${plural(pack.species)} in the woods are ${pack.count >= pack.cap * 0.6 ? "breeding" : "troubling the flocks"} (${pack.count} of them)` });
+  if (s.lastRaided !== undefined && day - s.lastRaided <= 6) out.push({ need: "raiders", why: `raiders hit ${s.name}` });
+  if (s.project?.building === "walls" || (s.lastRaided !== undefined && day - s.lastRaided <= 12 && (s.buildings.walls ?? 0) < 2)) out.push({ need: "walls", why: `${s.name} is putting up walls` });
+  if (s.food < 35) out.push({ need: "food", why: `${s.name}'s stores are running low` });
+  const d = Object.values(realm.dungeons).find((x) => x.near === site);
+  if (d && (d.danger >= 70 || opts.opening)) out.push({ need: "dungeon", why: `${d.name} is ${d.danger >= 70 ? "filling up with things" : "close by, and nobody has cleared it"}` });
   return out;
 }
 
@@ -261,7 +265,7 @@ export const FactionWordsSchema = z.object({ name: z.string().min(4).max(50), cr
  */
 export async function nameFaction(llm: LLMProvider, realm: Realm, id: string): Promise<boolean> {
   const f = realm.factions[id];
-  if (!f || f.named || f.file) return false;
+  if (!f || f.named) return false;
   const founder = f.leader ? realm.figures[f.leader] : undefined;
   const seat = f.seat ? realm.settlements[f.seat] : undefined;
   const parent = f.parent ? realm.factions[f.parent] : undefined;

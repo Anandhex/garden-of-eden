@@ -1,8 +1,8 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import brena from "../src/data/npcs/brena.json" with { type: "json" };
-import hale from "../src/data/npcs/hale.json" with { type: "json" };
-import pell from "../src/data/npcs/pell.json" with { type: "json" };
+import brena from "./fixtures/npcs/brena.json" with { type: "json" };
+import hale from "./fixtures/npcs/hale.json" with { type: "json" };
+import pell from "./fixtures/npcs/pell.json" with { type: "json" };
 import { acceptQuest, questRewardMoney, turnInQuests } from "../src/game/quests.js";
 import { passTime } from "../src/game/simulation.js";
 import type { ChatRequest, ChatResult, LLMProvider } from "../src/llm/provider.js";
@@ -25,7 +25,7 @@ import {
   traitsOf,
 } from "../src/npc/traits.js";
 import type { NpcPersona, NpcState } from "../src/npc/types.js";
-import { createDemoWorld } from "../src/world/world.js";
+import { createTestWorld } from "../src/world/world.js";
 import type { Rng } from "../src/game/dice.js";
 import { face, rolls } from "./dice.test.js";
 
@@ -33,7 +33,7 @@ const withTraits = (traits: NpcPersona["traits"]): NpcPersona => ({ ...parsePers
 const ctxFor = (persona: NpcPersona, overrides: Partial<NpcState> = {}, rng: Rng = rolls(0.5)): ActionContext => ({
   persona,
   state: createNpcState(persona, overrides),
-  world: createDemoWorld(),
+  world: createTestWorld(),
   rng,
 });
 
@@ -111,9 +111,9 @@ describe("words in the prompt", () => {
 });
 
 describe("PersonaSchema", () => {
-  const files = readdirSync(new URL("../src/data/npcs/", import.meta.url)).filter((f) => f.endsWith(".json"));
+  const files = readdirSync(new URL("./fixtures/npcs/", import.meta.url)).filter((f) => f.endsWith(".json"));
   it.each(files)("accepts %s", (file) => {
-    const raw = JSON.parse(readFileSync(new URL(`../src/data/npcs/${file}`, import.meta.url), "utf8"));
+    const raw = JSON.parse(readFileSync(new URL(`../tests/fixtures/npcs/${file}`, import.meta.url), "utf8"));
     expect(() => parsePersona(raw, file)).not.toThrow();
   });
 
@@ -263,7 +263,7 @@ describe("sociability: how much they talk", () => {
   }
   const replyBudget = async (persona: NpcPersona) => {
     const llm = new Recorder();
-    await new NpcAgent(persona, llm).respond("Hello", createDemoWorld());
+    await new NpcAgent(persona, llm).respond("Hello", createTestWorld());
     return llm.maxTokens;
   };
 
@@ -279,7 +279,7 @@ describe("forgiveness: grudges fade", () => {
   const afterOneNight = (forgiveness: number, relationship: number) => {
     const persona = withTraits({ forgiveness });
     const state = createNpcState(persona, { relationship });
-    passTime(persona, state, createDemoWorld(), 12, () => 0.99); // 14:00 → 02:00, past midnight once
+    passTime(persona, state, createTestWorld(), 12, () => 0.99); // 14:00 → 02:00, past midnight once
     return state.relationship;
   };
 

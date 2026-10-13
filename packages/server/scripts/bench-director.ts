@@ -8,7 +8,6 @@
  *   npm run bench:director              # 20 days, seed 1
  *   DAYS=30 SEED=7 npm run bench:director
  */
-import { readdirSync, readFileSync } from "node:fs";
 import { config } from "../src/config.js";
 import { runChronicle } from "../src/director/chronicle.js";
 import { similarity } from "../src/director/validator.js";
@@ -16,11 +15,10 @@ import { loadCreatureTemplates } from "../src/game/creatures.js";
 import type { Rng } from "../src/game/dice.js";
 import { recordEvent } from "../src/game/events.js";
 import { newWorld } from "../src/game/save.js";
-import { loadSpawnRules } from "../src/game/spawning.js";
 import { Town } from "../src/game/town.js";
 import { OllamaProvider } from "../src/llm/ollama.js";
 import { knownNameWords, unknownNames, worldLore } from "../src/npc/knowledge.js";
-import { parsePersona } from "../src/npc/personaSchema.js";
+import { generatedCast } from "./generated.js";
 
 function seeded(seed: number): Rng {
   let a = seed >>> 0;
@@ -35,15 +33,14 @@ function seeded(seed: number): Rng {
 
 const days = Number(process.env.DAYS ?? 20);
 const rng = seeded(Number(process.env.SEED ?? 1));
-const dir = new URL("../src/data/npcs/", import.meta.url);
-const personas = Object.fromEntries(readdirSync(dir).filter((f) => f.endsWith(".json")).map((f) => [f.replace(/\.json$/, ""), parsePersona(JSON.parse(readFileSync(new URL(f, dir), "utf8")), f)]));
+const personas = generatedCast(Number(process.env.CAST ?? 8));
 const templates = loadCreatureTemplates();
 const llm = new OllamaProvider();
 config.director = false; // the bench runs the chronicle itself, and waits for it
 config.planning = false;
 config.summaries = false;
 const world = newWorld(personas, templates, rng);
-const town = new Town({ personas, creatureTemplates: templates, spawnRules: loadSpawnRules(), world, llm, rng });
+const town = new Town({ personas, creatureTemplates: templates, world, llm, rng });
 const fileLore = worldLore().entries.map((e) => e.text);
 
 console.log(`Loading ${config.model}...`);

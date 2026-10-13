@@ -2,8 +2,8 @@
   "id": "merchant",
   "describe": "a market trader with a cart of odds and ends",
   "roles": [
-    "a market trader at the Millbrook square",
-    "a pedlar who keeps a stall at the Millbrook square"
+    "a market trader at the {place} square",
+    "a pedlar who keeps a stall at the {place} square"
   ],
   "species": [
     "human",
@@ -175,11 +175,8 @@
     }
   ],
   "knows": {
-    "millbrook.*": "certain",
     "news.*": "rumour",
-    "mine_road.*": "rumour",
-    "people.*": "rumour",
-    "the_city": "rumour"
+    "people.*": "rumour"
   },
   "maxQuestTier": "E",
   "names": {
@@ -285,7 +282,7 @@
       "Talks fast, with a trader's patter, and never says no without offering something else."
     ],
     "backstory": [
-      "{name} travelled the roads with a cart for years before settling at the Millbrook square.",
+      "{name} travelled the roads with a cart for years before settling at the square in {place}.",
       "{first} buys what the hunters and farmers bring in and sells it on with a smile and a margin."
     ],
     "appearance": [

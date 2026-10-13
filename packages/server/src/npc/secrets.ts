@@ -17,7 +17,7 @@ import type { BreakCondition, NpcPersona, NpcSecret, NpcState, PlayerState } fro
 /** Trust needed before reveal_secret is offered (and accepted) without pressure. */
 export const SECRET_TRUST = 50;
 
-/** The fact a revealed secret gives the player: "pell.hale_cellar". */
+/** The fact a revealed secret gives the player: "odo.tomas_cellar". */
 export const factId = (npcId: string, secretId: string) => `${npcId}.${secretId}`;
 
 function meets(cond: BreakCondition, state: NpcState, player: PlayerState, day: number): boolean {

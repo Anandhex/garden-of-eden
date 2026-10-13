@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import brena from "../src/data/npcs/brena.json" with { type: "json" };
+import brena from "./fixtures/npcs/brena.json" with { type: "json" };
 import { advanceTime, formatTime, timeOfDayAt } from "../src/game/clock.js";
-import pellJson from "../src/data/npcs/pell.json" with { type: "json" };
+import pellJson from "./fixtures/npcs/pell.json" with { type: "json" };
 import {
   describeTeaching,
   feePerHour,
@@ -17,12 +17,12 @@ import {
 } from "../src/game/training.js";
 import { createNpcState } from "../src/npc/state.js";
 import type { NpcPersona, NpcState } from "../src/npc/types.js";
-import { createDemoWorld } from "../src/world/world.js";
+import { createTestWorld } from "../src/world/world.js";
 import { parsePersona } from "../src/npc/personaSchema.js";
 
 const persona = parsePersona(brena); // smithing 5, foraging 1, blunt 4, ... greed 0
 const pell = parsePersona(pellJson); // haggling 5, speechcraft 4, ... greed 0.9
-const setup = (state: Partial<NpcState> = {}) => ({ state: createNpcState(persona, state), world: createDemoWorld() });
+const setup = (state: Partial<NpcState> = {}) => ({ state: createNpcState(persona, state), world: createTestWorld() });
 
 describe("clock", () => {
   it("maps hours to times of day", () => {
@@ -32,7 +32,7 @@ describe("clock", () => {
   });
 
   it("advances the clock across days and keeps timeOfDay in sync", () => {
-    const world = createDemoWorld(); // Day 1, 14:00
+    const world = createTestWorld(); // Day 1, 14:00
     advanceTime(world, 12);
     expect(formatTime(world)).toBe("Day 2, 02:00 (night)");
     advanceTime(world, 7);
@@ -176,7 +176,7 @@ describe("greedy NPCs", () => {
   });
 
   it("the same session costs more from Pell than from Brena at trust 0", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.player.skills = {};
     world.player.money = 10000;
     // Both set to teach foraging, so only greed differs.

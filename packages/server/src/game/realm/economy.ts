@@ -5,6 +5,7 @@ import { neighbours } from "./generate.js";
 import { crowding, housesOf } from "./houses.js";
 import { realmNews, tally } from "./log.js";
 import { type BuildingId, KIND_POPULATION, type Realm, type Settlement, type SettlementKind } from "./types.js";
+import { sendArrival } from "./arrivals.js";
 
 /**
  * Prosperity, building and moving (N13.2), a day at a time, in code.
@@ -198,7 +199,7 @@ function growOrEmpty(realm: Realm, s: Settlement, day: number, own = false): voi
     tally(realm, "promotions");
     realmNews(realm, day, s.id, "growth", `${s.name} has grown from a ${was} into a ${next}.`, 5, [s.name]);
   }
-  if (s.population < 8 && s.kind !== "capital" && !s.home) {
+  if (s.population < 8 && s.kind !== "capital") {
     s.abandoned = true;
     const to = neighbours(realm, s.id).sort((a, b) => b.prosperity - a.prosperity)[0];
     // Its people (if they are rows) walk to the neighbour in the day's moves (game/people/migration.ts).
@@ -233,7 +234,7 @@ function migrate(realm: Realm, day: number, rng: Rng, live: ReadonlySet<string>)
     s.population -= moving;
     to.population += moving;
     tally(realm, "migrants", moving);
-    if (to.home && moving >= 3) realm.home.push({ day, kind: "refugees", count: Math.min(4, Math.ceil(moving / 3)), by: s.name });
+    if (moving >= 3) sendArrival(realm, to.id, { day, kind: "refugees", count: Math.min(4, Math.ceil(moving / 3)), by: s.name });
     if (fleeing && moving >= 5 && rng() < 0.3) realmNews(realm, day, s.id, "refugees", `Folk are leaving ${s.name} for ${to.name}: ${moving} gone this week.`, 3, [s.name, to.name]);
   }
   // An ambitious figure in a poor place looks for better.

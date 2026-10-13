@@ -14,10 +14,10 @@ export const ACTIVITIES = ["work", "eat", "socialise", "sleep", "travel"] as con
 export type Activity = (typeof ACTIVITIES)[number];
 
 /**
- * Places in and around Millbrook. "home" is each NPC's own home: nobody else is there.
+ * Places in and around any settlement. "home" is each NPC's own home: nobody else is there.
  * The first five are in the village; the rest are out in its localities (N15): the
- * mine road north of the village, the bandit camp off it, the old mine at its end and
- * the woods to the east. Each locality is its own map (web/sites.ts).
+ * road out, the camp of a gang off it, the mouth of a dungeon at its end and the woods
+ * to the east. Each locality is its own map (web/sites.ts).
  */
 export const PLACES = ["forge", "inn", "square", "gate", "camp", "home", "road", "woods", "mine"] as const;
 export type PlaceId = (typeof PLACES)[number];
@@ -32,27 +32,27 @@ export function areaOfPlace(place: PlaceId): AreaId {
 }
 
 export const PLACE_NAMES: Record<PlaceId, string> = {
-  forge: "Millbrook forge",
-  inn: "the Gilded Goose",
-  square: "the village square",
-  gate: "the village gate",
-  camp: "the bandit camp on the mine road",
+  forge: "the forge",
+  inn: "the inn",
+  square: "the square",
+  gate: "the gate",
+  camp: "the camp in the woods",
   home: "home",
-  road: "the mine road",
-  woods: "the woods east of Millbrook",
-  mine: "the mouth of the old mine",
+  road: "the road out",
+  woods: "the woods",
+  mine: "the mouth of the old workings",
 };
 
-/** What's around at each place, for the NPC's situation ("Nearby: ..."). */
+/** What's around at each place, for the NPC's situation ("Nearby: ..."), when the place's own map says nothing. */
 export const PLACE_NEARBY: Record<PlaceId, string[]> = {
   forge: ["anvil", "glowing forge", "rack of tools", "a stray dog"],
   inn: ["the bar", "a crackling hearth", "regulars at their ale"],
   square: ["the well", "market stalls", "villagers passing"],
-  gate: ["the village gate", "a worn dirt road", "a bored-looking mule"],
-  camp: ["a smouldering campfire", "a stolen ore cart", "his men watching from the trees"],
+  gate: ["the gate", "a worn dirt road", "a bored-looking mule"],
+  camp: ["a smouldering campfire", "lean-tos of hide and branches"],
   home: [],
-  road: ["cart ruts", "a broken ore cart", "pines on both sides"],
-  woods: ["tall pines", "a game trail", "wolf tracks in the mud"],
+  road: ["cart ruts", "pines on both sides"],
+  woods: ["tall pines", "a game trail", "tracks in the mud"],
   mine: ["the dark mine mouth", "rusted rails", "spoil heaps"],
 };
 
@@ -199,7 +199,7 @@ export function activityWords(plan: Plan): string {
   return `${DOING[plan.activity]}${plan.why ? ` (${plan.why})` : ""}`;
 }
 
-/** "working at Millbrook forge", "asleep at home (exhausted)". */
+/** "working at the forge", "asleep at home (exhausted)". */
 export function describePlan(plan: Plan): string {
   return `${DOING[plan.activity]} ${plan.place === "home" ? "at home" : `at ${PLACE_NAMES[plan.place]}`}${plan.why ? ` (${plan.why})` : ""}`;
 }
@@ -227,7 +227,7 @@ export function placeOf(
   return currentPlan(persona, state, world).place;
 }
 
-/** Parse "/go inn", "the forge", "Gilded Goose" to a place id. */
+/** Parse "/go inn", "the forge", "the inn" to a place id. */
 export function parsePlace(text: string): PlaceId | null {
   const t = text.trim().toLowerCase().replace(/^the\s+/, "");
   for (const p of PLACES) if (t === p || PLACE_NAMES[p].toLowerCase().replace(/^the\s+/, "") === t) return p;

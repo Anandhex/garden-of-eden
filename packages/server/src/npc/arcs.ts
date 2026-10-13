@@ -6,7 +6,7 @@ import { traitsOf } from "./traits.js";
 import type { NpcPersona, NpcState, PlayerState, WorldSnapshot } from "./types.js";
 
 /**
- * Personal goal arcs (N9.1): an NPC goal as a tracked arc with stages, e.g. Brena's
+ * Personal goal arcs (N9.1): an NPC goal as a tracked arc with stages, e.g. a smith's
  * "find out what happened to Tomas": no news → heard a rumour → found a clue →
  * learned the truth. A stage advances only when code sees its requirement: the
  * player passes on a fact they learned (from another NPC or a secret), a quest is

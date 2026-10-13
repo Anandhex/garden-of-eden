@@ -3,8 +3,9 @@ import { z } from "zod";
 import type { NpcPersona, PlayerState } from "../npc/types.js";
 
 /**
- * Factions (N7.3): groups with their own standing towards the player, from data
- * files (src/data/factions/*.json): the village guard, the merchants, Rook's gang.
+ * Factions (N7.3): groups with their own standing towards the player, by kind, from data files
+ * (src/data/factions/kinds/*.json): the guard, the merchants, the gangs of the road. A kind is
+ * not a place or a person: every guard in the realm belongs to the guard, whichever town they serve.
  * Standing (-100..100) comes from what the player does to members, and to their
  * rivals: hurting a guard costs standing with the guard and wins some with the
  * bandits (each faction's `attitudes` say how it feels about the others). Standing
@@ -15,8 +16,6 @@ export const FactionSchema = z
     id: z.string().regex(/^[a-z_]+$/),
     name: z.string().min(1),
     description: z.string().min(1),
-    /** Talking NPC ids. */
-    members: z.array(z.string()),
     /** Creature template ids that belong too (bandits). */
     creatures: z.array(z.string()).optional(),
     /** How this faction feels about the others, -1..1. */
@@ -35,35 +34,36 @@ export type Faction = z.infer<typeof FactionSchema>;
 let cache: Record<string, Faction> | null = null;
 
 /** Every faction, by id (cached). */
-export function loadFactions(dir: URL = new URL("../data/factions/", import.meta.url)): Record<string, Faction> {
+export function loadFactions(dir: URL = new URL("../data/factions/kinds/", import.meta.url)): Record<string, Faction> {
   if (cache) return cache;
   const files = readdirSync(dir).filter((f) => f.endsWith(".json"));
   cache = Object.fromEntries(
     files.map((f) => {
       const r = FactionSchema.safeParse(JSON.parse(readFileSync(new URL(f, dir), "utf8")));
-      if (!r.success) throw new Error(`src/data/factions/${f} is invalid: ${r.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")}`);
+      if (!r.success) throw new Error(`src/data/factions/kinds/${f} is invalid: ${r.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")}`);
       return [r.data.id, r.data];
     }),
   );
   return cache;
 }
 
-/** Problems with faction data: unknown members or attitude targets (a typo). */
-export function badFactions(factions: Record<string, Faction>, npcIds: string[], creatureIds: string[]): string[] {
+/** Problems with faction data: unknown creature kinds or attitude targets (a typo). */
+export function badFactions(factions: Record<string, Faction>, creatureIds: string[]): string[] {
   const problems: string[] = [];
   for (const f of Object.values(factions)) {
-    for (const m of f.members) if (!npcIds.includes(m)) problems.push(`${f.id}: no NPC "${m}"`);
     for (const c of f.creatures ?? []) if (!creatureIds.includes(c)) problems.push(`${f.id}: no creature "${c}"`);
     for (const other of Object.keys(f.attitudes)) if (!factions[other]) problems.push(`${f.id}: no faction "${other}"`);
   }
   return problems;
 }
 
-/** The faction an NPC (by persona.faction, else membership lists) or a creature kind belongs to. */
+/** The faction kind a person made from a template belongs to, if any. */
+export const FACTION_OF_TEMPLATE: Record<string, string> = { guard: "guard", merchant: "merchants", smith: "merchants", innkeeper: "merchants", bandit: "gang" };
+
+/** The faction an NPC (by persona.faction) or a creature kind belongs to. */
 export function factionOf(who: { persona?: Pick<NpcPersona, "id" | "faction">; creature?: string }, factions = loadFactions()): Faction | null {
   if (who.persona?.faction) return factions[who.persona.faction] ?? null;
-  const id = who.persona?.id;
-  return Object.values(factions).find((f) => (id && f.members.includes(id)) || (who.creature && f.creatures?.includes(who.creature))) ?? null;
+  return Object.values(factions).find((f) => who.creature && f.creatures?.includes(who.creature)) ?? null;
 }
 
 const clamp = (n: number) => Math.max(-100, Math.min(100, Math.round(n)));

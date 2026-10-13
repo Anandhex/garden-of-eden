@@ -57,9 +57,9 @@ describe("N6 daily life", () => {
     const world = worldAt(19);
     const before = { brena: b.state.money, pell: p.state.money, stew: p.state.inventory["stew [G]"]! };
     const log = passVillage(members, world, 1, always(0.99));
-    expect(log).toContain("Brena Ashford had stew at the Gilded Goose and paid Old Pell 4 silver.");
+    expect(log).toContain("Brena Ashford had stew at the inn and paid Old Pell 4 silver.");
     expect(b.state.money).toBe(before.brena - 40);
-    expect(log).toContain("Corporal Hale had stew at the Gilded Goose and paid Old Pell 4 silver.");
+    expect(log).toContain("Corporal Hale had stew at the inn and paid Old Pell 4 silver.");
     expect(p.state.inventory["stew [G]"]).toBe(before.stew - 2);
     expect(b.state.needs.hunger).toBeLessThan(20);
   });
@@ -247,7 +247,7 @@ describe("N6.4 weather, seasons and town events", () => {
     for (const p of [brena, pell, hale]) {
       const msg = buildTurnMessage(p, createNpcState(p), world, "Hello");
       expect(msg).toContain("Bandits raided");
-      expect(msg).toContain("the mine road is shut");
+      expect(msg).toContain("the roads are shut");
     }
     world.day = 4;
     expect(mineRoadClosed(world)).toBe(false);

@@ -191,7 +191,8 @@ export interface RealmView {
     buildings: Record<string, number>;
     project: string | null;
     roads: string[];
-    home: boolean;
+    /** The player is here. */
+    here: boolean;
     abandoned: boolean;
     atWar: boolean;
     raided: boolean;
@@ -232,7 +233,6 @@ export interface Snapshot {
     id: string;
     name: string;
     kind: string;
-    home: boolean;
     kingdom: string | null;
     destinations: Array<{ id: string; name: string; kind: string; hours: number; dangers: string[] }>;
     area: { id: string; name: string; exits: string[] };

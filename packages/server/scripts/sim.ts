@@ -2,22 +2,21 @@
  * Deterministic trait simulation: how each NPC's traits turn into behaviour, with
  * seeded dice and a scripted model (no Ollama needed). Same seed, same numbers.
  *
- *   npm run sim                 # every NPC
- *   npm run sim -- hale pell    # some NPCs
+ *   npm run sim                 # a generated cast (the notables of seeds 1, 2, 3...)
+ *   npm run sim -- smith guard  # some of them, by persona id or template
  *   RUNS=5000 SEED=7 npm run sim
  */
 import { formatMoney } from "../src/game/money.js";
-import { readdirSync, readFileSync } from "node:fs";
 import type { Rng } from "../src/game/dice.js";
 import { passTime } from "../src/game/simulation.js";
 import type { ChatRequest, ChatResult, LLMProvider } from "../src/llm/provider.js";
 import { applyAction, giftableItems, parseAction } from "../src/npc/actions.js";
 import { NpcAgent } from "../src/npc/NpcAgent.js";
-import { parsePersona } from "../src/npc/personaSchema.js";
 import { createNpcState } from "../src/npc/state.js";
 import { fleeAt, giftTrust, grudgeFadePerDay, maxGiftValue, provokeLimit, traitsOf } from "../src/npc/traits.js";
 import type { NpcPersona } from "../src/npc/types.js";
-import { createDemoWorld } from "../src/world/world.js";
+import { createTestWorld } from "../src/world/world.js";
+import { generatedCast, pickIds } from "./generated.js";
 import { combatStyle } from "../src/game/abilities.js";
 import { chooseRevenge } from "../src/director/revenge.js";
 import { driftTrait, TRAIT_LIFETIME_CAP } from "../src/npc/growth.js";
@@ -57,23 +56,21 @@ class QuietModel implements LLMProvider {
   }
 }
 
-const NPC_DIR = new URL("../src/data/npcs/", import.meta.url);
-const all = readdirSync(NPC_DIR).filter((f) => f.endsWith(".json")).map((f) => f.replace(/\.json$/, ""));
-const wanted = process.argv.slice(2).length > 0 ? process.argv.slice(2) : all;
+const cast = generatedCast(Number(process.env.CAST ?? 8));
+const wanted = pickIds(cast, process.argv.slice(2));
 const runs = Number(process.env.RUNS ?? 1000);
 const seed = Number(process.env.SEED ?? 1);
 
 const pct = (n: number) => `${((100 * n) / runs).toFixed(0)}%`.padStart(4);
 
 for (const id of wanted) {
-  if (!all.includes(id)) throw new Error(`No NPC "${id}". Available: ${all.join(", ")}`);
-  const persona: NpcPersona = parsePersona(JSON.parse(readFileSync(new URL(`${id}.json`, NPC_DIR), "utf8")), `${id}.json`);
+  const persona: NpcPersona = cast[id]!;
   const t = traitsOf(persona);
   const rng = seeded(seed);
 
   // Temper: insults until the NPC attacks, and the trust they cost.
   const insulted = new NpcAgent(persona, new HotheadModel(), rng);
-  const world = createDemoWorld();
+  const world = createTestWorld();
   let insults = 0;
   while (!insulted.state.inCombat && insults < 10) {
     insults++;
@@ -81,14 +78,14 @@ for (const id of wanted) {
   }
   const trustPerInsult = createNpcState(persona);
   const mood = parseAction("change_mood", { mood: "angry" });
-  if (mood.ok) applyAction(mood, { persona, state: trustPerInsult, world: createDemoWorld(), rng });
+  if (mood.ok) applyAction(mood, { persona, state: trustPerInsult, world: createTestWorld(), rng });
 
   // Bravery: fights against a player with an iron sword, from full HP, until the fight ends.
   const ends = { fled: 0, begged: 0, died: 0, knockedOut: 0, other: 0 };
   let corneredFights = 0;
   for (let i = 0; i < runs; i++) {
     const npc = new NpcAgent(persona, new QuietModel(), rng);
-    const w = createDemoWorld();
+    const w = createTestWorld();
     w.player.inventory["iron sword [D]"] = 1;
     let begged = false;
     for (let round = 0; round < 50 && !npc.state.outcome && !begged; round++) {
@@ -109,16 +106,16 @@ for (const id of wanted) {
     for (let i = 0; i < runs; i++) {
       const state = createNpcState(persona, { relationship: 80 });
       const reveal = parseAction("reveal_secret", { secret: persona.secrets[0].id });
-      if (reveal.ok && applyAction(reveal, { persona, state, world: createDemoWorld(), rng }).lie) lies++;
+      if (reveal.ok && applyAction(reveal, { persona, state, world: createTestWorld(), rng }).lie) lies++;
     }
   }
 
   // Generosity: what they'd give at full trust.
-  const gifts = giftableItems({ persona, state: createNpcState(persona, { relationship: 100 }), world: createDemoWorld() });
+  const gifts = giftableItems({ persona, state: createNpcState(persona, { relationship: 100 }), world: createTestWorld() });
 
   // Forgiveness: trust after a bad fight (-60) and three nights.
   const grudge = createNpcState(persona, { relationship: -60 });
-  passTime(persona, grudge, createDemoWorld(), 72, () => 0.99);
+  passTime(persona, grudge, createTestWorld(), 72, () => 0.99);
 
   console.log(`\n${persona.name} (${id})  traits ${JSON.stringify(t)}`);
   console.log(`  temper       attacks after ${insults} insults (limit ${provokeLimit(t)}); one insult costs ${-trustPerInsult.relationship} trust`);

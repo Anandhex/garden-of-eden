@@ -2,7 +2,8 @@ import { config } from "../../config.js";
 import { timed } from "../../metrics/timing.js";
 import { realmDay } from "../realm/day.js";
 import type { CasualtyOrder, Realm } from "../realm/types.js";
-import { conditionsOf } from "./conditions.js";
+import { conditionsOf, KEEP_DAYS } from "./conditions.js";
+import { reviewDay } from "./outlook.js";
 import { lazySites, liveSites } from "./live.js";
 import { riseDay, syncRisen } from "./rising.js";
 import { migrationDay } from "./migration.js";
@@ -24,8 +25,7 @@ import { stepSite, type LifeCtx, type SiteStep } from "./step.js";
  * whether it runs on the day or years later.
  */
 
-/** Days of conditions kept behind the day (the admin chart, and a margin for catching up), more for lazy places that are behind. */
-export const KEEP_DAYS = 60;
+export { KEEP_DAYS };
 
 export interface LifeOptions {
   /** Places with living people (default: `liveSites(realm)`). */
@@ -56,6 +56,7 @@ export function catchUp(ctx: LifeCtx, site: string, toDay: number): SiteStep[] {
       for (let d = from + 1; d <= to; d++) {
         const step = stepSite(ctx, site, d);
         riseDay(ctx, step, d);
+        reviewDay(ctx, step, d);
         out.push(step);
       }
     });
@@ -102,6 +103,7 @@ export function lifeDay(ctx: LifeCtx, day: number, opts: LifeOptions = {}): DayL
       const step = stepSite(ctx, id, day);
       result.steps.push(...behind, step);
       riseDay(ctx, step, day);
+      reviewDay(ctx, step, day);
       // A place whose people were never rolled keeps its number (ensureLivePeople makes them first).
       if (store.people.count(id) > 0) realm.settlements[id]!.population = store.people.livingCount(id);
     }

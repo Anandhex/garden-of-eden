@@ -2,8 +2,8 @@
   "id": "guard",
   "describe": "a village watchman who keeps the gate",
   "roles": [
-    "a watchman of the Millbrook gate",
-    "a young guard of the Millbrook watch"
+    "a watchman of the {place} gate",
+    "a young guard of the {place} watch"
   ],
   "species": [
     "human"
@@ -154,9 +154,7 @@
     }
   ],
   "knows": {
-    "millbrook.*": "certain",
     "news.*": "certain",
-    "mine_road.*": "certain",
     "people.*": "rumour"
   },
   "maxQuestTier": "E",
@@ -263,8 +261,8 @@
       "Plain soldier's talk, with a weary sigh before bad news."
     ],
     "backstory": [
-      "{name} joined the Millbrook watch to earn a wage, and has stood at the gate through more quiet nights than loud ones.",
-      "{first} grew up on the mine road and took the watch's coin after the bandits came."
+      "{name} joined the {place} watch to earn a wage, and has stood at the gate through more quiet nights than loud ones.",
+      "{first} grew up on the roads near {place} and took the watch's coin after the bandits came."
     ],
     "appearance": [
       "A dented helmet under one arm and a leather jerkin worn pale at the shoulders.",

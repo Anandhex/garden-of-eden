@@ -1,17 +1,17 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { MoneySchema } from "../src/game/money.js";
 import { describe, expect, it } from "vitest";
-import brena from "../src/data/npcs/brena.json" with { type: "json" };
+import brena from "./fixtures/npcs/brena.json" with { type: "json" };
 import { buildSystemPrompt, buildTurnMessage } from "../src/npc/persona.js";
 import { ITEM_TIERS, ITEMS, weaponFor } from "../src/game/items.js";
 import { describeSkills, SKILLS, SkillsSchema, skillLevel, WEAPON_SKILLS } from "../src/npc/skills.js";
 import { describeAttribute, describeCondition, NpcStatsSchema } from "../src/npc/stats.js";
 import { createNpcState } from "../src/npc/state.js";
 import type { NpcPersona, NpcState } from "../src/npc/types.js";
-import { createDemoWorld } from "../src/world/world.js";
+import { createTestWorld } from "../src/world/world.js";
 import { parsePersona } from "../src/npc/personaSchema.js";
 
-const NPC_DIR = new URL("../src/data/npcs/", import.meta.url);
+const NPC_DIR = new URL("./fixtures/npcs/", import.meta.url);
 
 describe("every NPC file", () => {
   const files = readdirSync(NPC_DIR).filter((f) => f.endsWith(".json"));
@@ -84,7 +84,7 @@ describe("stats in the prompts", () => {
   });
 
   it("puts current HP/MP (changing) in the situation, not the system prompt", () => {
-    expect(buildTurnMessage(persona, state, createDemoWorld(), "x")).toContain(
+    expect(buildTurnMessage(persona, state, createTestWorld(), "x")).toContain(
       "Your condition: badly wounded (HP 30/90, MP 4/10).",
     );
     expect(buildSystemPrompt(persona)).not.toContain("HP");

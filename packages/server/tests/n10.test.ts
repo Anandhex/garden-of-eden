@@ -4,7 +4,7 @@ import { createNpcState } from "../src/npc/state.js";
 import { inputBonus, RECIPES, startCraft } from "../src/game/crafting.js";
 import { demandOf, pickDemanded, restock, stockFactor } from "../src/game/economy.js";
 import { NpcAgent } from "../src/npc/NpcAgent.js";
-import { createDemoWorld } from "../src/world/world.js";
+import { createTestWorld } from "../src/world/world.js";
 import { always, brena, call, FakeProvider, hale, pell, say } from "./helpers.js";
 
 const sword = RECIPES.find((r) => r.id === "iron_sword")!;
@@ -59,7 +59,7 @@ describe("N10 supply and demand", () => {
 
 describe("N10 restocking and trade between NPCs", () => {
   it("an NPC short of materials buys them from someone at the same place who has them", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.hour = 12;
     const herbSeller = { ...hale, buys: [...hale.buys, "wild herbs"] };
     const p = createNpcState(pell, { inventory: { "ale [G]": 2 } });
@@ -72,7 +72,7 @@ describe("N10 restocking and trade between NPCs", () => {
   });
 
   it("on market day a travelling trader sells ore, unless the mine road is shut", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.day = 7; // market day
     world.hour = 10;
     world.recentEvents = [];
@@ -81,7 +81,7 @@ describe("N10 restocking and trade between NPCs", () => {
     expect(log[0]).toMatch(/travelling trader/);
     expect(b.inventory["iron ore [F]"]).toBeGreaterThan(0);
 
-    const raided = createDemoWorld();
+    const raided = createTestWorld();
     raided.day = 7;
     raided.hour = 10;
     raided.lastRaidDay = 7;
@@ -92,7 +92,7 @@ describe("N10 restocking and trade between NPCs", () => {
 
 describe("N10 offer_commission", () => {
   it("is offered on trade talk; the game sets the terms; the player's yes pays the deposit", async () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const npc = new NpcAgent(brena, new FakeProvider([call("offer_commission", { item: "iron sword" }), say("Four gold. Half now."), say("Done.")]), always(0.5));
     const tools = toolsFor({ persona: brena, state: npc.state, world, rng: always(0.5), tradeTalk: true });
     expect(tools.map((t) => t.name)).toContain("offer_commission");
@@ -105,7 +105,7 @@ describe("N10 offer_commission", () => {
   });
 
   it("refused when she already has an order of yours on the go", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const s = createNpcState(brena, { commission: { item: "dagger", recipeId: "dagger", price: 150, deposit: 75, due: 99999, status: "waiting", commitment: "c1" } });
     const parsed = parseAction("offer_commission", { item: "iron sword" });
     if (!parsed.ok) throw new Error(parsed.error);

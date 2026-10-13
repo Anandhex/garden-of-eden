@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import brena from "../src/data/npcs/brena.json" with { type: "json" };
-import pellJson from "../src/data/npcs/pell.json" with { type: "json" };
+import brena from "./fixtures/npcs/brena.json" with { type: "json" };
+import pellJson from "./fixtures/npcs/pell.json" with { type: "json" };
 import {
   type ActionContext,
   acceptOffer,
@@ -19,7 +19,7 @@ import {
 import { buildTurnMessage } from "../src/npc/persona.js";
 import { createNpcState } from "../src/npc/state.js";
 import type { NpcPersona, NpcState } from "../src/npc/types.js";
-import { createDemoWorld } from "../src/world/world.js";
+import { createTestWorld } from "../src/world/world.js";
 import { parsePersona } from "../src/npc/personaSchema.js";
 
 /** Dice that roll these d20/die faces in order (as fractions of the die). */
@@ -33,7 +33,7 @@ const freshCtx = (overrides: Partial<NpcState> = {}, rng = fixedRng(0.5)): Actio
   persona: parsePersona(brena),
   // With ore to make more, a last copy isn't dearer (N10, game/economy.ts, has its own tests).
   state: createNpcState(parsePersona(brena), { inventory: { dagger: 1, "iron sword": 1, "iron ore": 4 }, ...overrides }),
-  world: createDemoWorld(),
+  world: createTestWorld(),
   rng,
 });
 
@@ -310,7 +310,7 @@ describe("tiered copies in trade", () => {
   });
 
   it("Brena stocks both an ordinary and a masterwork sword, offered separately", () => {
-    const ctx: ActionContext = { persona, state: createNpcState(persona), world: createDemoWorld(), rng: () => 0.5 };
+    const ctx: ActionContext = { persona, state: createNpcState(persona), world: createTestWorld(), rng: () => 0.5 };
     const tool = toolsFor(ctx).find((t) => t.name === "offer_item")!;
     expect((tool.parameters as any).properties.item.enum).toEqual(expect.arrayContaining(["iron sword [D]", "iron sword [B]"]));
     expect(tool.description).toContain("iron sword [B] (9 gold)");
@@ -318,10 +318,10 @@ describe("tiered copies in trade", () => {
 
   it("lists stock cheapest first, in the tool and the situation", () => {
     const state = createNpcState(persona); // iron sword [D] 40, [B] 90, dagger [E] 15, horseshoe [G] 2
-    const ctx: ActionContext = { persona, state, world: createDemoWorld(), rng: () => 0.5 };
+    const ctx: ActionContext = { persona, state, world: createTestWorld(), rng: () => 0.5 };
     const tool = toolsFor(ctx).find((t) => t.name === "offer_item")!;
     expect((tool.parameters as any).properties.item.enum).toEqual(["horseshoe [G]", "dagger [E]", "iron sword [D]", "iron sword [B]"]);
-    const msg = buildTurnMessage(persona, state, createDemoWorld(), "What do you sell?");
+    const msg = buildTurnMessage(persona, state, createTestWorld(), "What do you sell?");
     expect(msg.indexOf("iron sword [D]")).toBeLessThan(msg.indexOf("iron sword [B]"));
   });
 
@@ -357,7 +357,7 @@ describe("offer_training", () => {
   const ctx = (overrides: Partial<NpcState> = {}, trainingTalk = true): ActionContext => ({
     persona,
     state: createNpcState(persona, overrides),
-    world: createDemoWorld(),
+    world: createTestWorld(),
     rng: () => 0.5,
     trainingTalk,
   });

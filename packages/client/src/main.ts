@@ -1,4 +1,4 @@
-// Millbrook in the browser: a Phaser world view (world/WorldScene.ts), DOM side panels
+// The realm in the browser: a Phaser world view (world/WorldScene.ts), DOM side panels
 // (ui/), and NPC voices (voice/). The server owns every rule; this only shows its
 // state and sends what the player does.
 import "./style.css";

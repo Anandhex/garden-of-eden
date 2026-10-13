@@ -22,7 +22,6 @@ import { config } from "../src/config.js";
 import { WorldStore } from "../src/game/db.js";
 import { recordEvent } from "../src/game/events.js";
 import { worldHash } from "../src/game/hash.js";
-import { HOME_ID } from "../src/game/realm/generate.js";
 import { realmNews } from "../src/game/realm/log.js";
 import { describeRealm } from "../src/game/realm/view.js";
 import { townEventsOn } from "../src/game/events-calendar.js";
@@ -40,7 +39,7 @@ let ctx: AdminContext;
 /** Everything the admin side can be asked, with typical parameters. */
 let everything: () => Promise<unknown[]>;
 
-beforeAll(() => {
+beforeAll(async () => {
   config.director = false;
   config.planning = false;
   config.summaries = false;
@@ -51,9 +50,11 @@ beforeAll(() => {
   resetTimings();
   store = new WorldStore(":memory:");
   town = makeTown({ rng: null, store });
-  const elder = Object.values(town.world.realm!.figures).find((f) => f.home && f.home !== HOME_ID && town.world.realm!.settlements[f.home]?.leader === f.id)!;
+  const elder = Object.values(town.world.realm!.figures).find((f) => f.home && f.home !== START() && town.world.realm!.settlements[f.home]?.leader === f.id)!;
   elder.life.bornOnDay = -95 * config.daysPerYear;
   for (let d = 0; d < 40; d++) town.passHours(24);
+  // The reviews of those days leave their reflections in the store a moment later (embeddings): let them land before anything is measured.
+  await town.reviews.idle();
   ctx = {
     world: () => town.world,
     town: () => town,
@@ -70,12 +71,12 @@ beforeAll(() => {
   recordEvent(town.world, { kind: "insulted", actor: "player", target: "brena", details: "called the forge a ruin", importance: 4, witnesses: ["brena"], why: "the player was in a temper" });
   everything = async () => {
     const realm = town.world.realm!;
-    const town1 = Object.values(realm.settlements).find((s) => s.kind === "town" && !s.home)!;
+    const town1 = Object.values(realm.settlements).find((s) => s.kind === "town" && s.id !== START())!;
     const folk = folkOf(ctx, town1.id)!;
     const person = folk.roster.people[3]!;
     const figure = Object.values(realm.figures).find((f) => f.alive && f.role !== "beast")!;
     const dead = Object.values(realm.figures).find((f) => !f.alive);
-    const refs = ["player", "cast:brena", "cast:hale", `figure:${figure.id}`, ...(dead ? [`figure:${dead.id}`] : []), `town:${person.id}`, `place:${town1.id}`, `place:${HOME_ID}`, ...Object.keys(town.world.creatures).slice(0, 2).map((u) => `beast:${u}`)];
+    const refs = ["player", "cast:brena", "cast:hale", `figure:${figure.id}`, ...(dead ? [`figure:${dead.id}`] : []), `town:${person.id}`, `place:${town1.id}`, `place:${START()}`, ...Object.keys(town.creaturesHere()).slice(0, 2).map((u) => `beast:${u}`)];
     const out: unknown[] = [];
     out.push(overview(ctx), overview(ctx), health(ctx), events(ctx), events(ctx, { source: "realm", minImportance: 5 }), events(ctx, { person: "player" }), playerView(ctx));
     out.push(search(ctx, "brena"), search(ctx, person.name), search(ctx, "farmer"), search(ctx, "wolf"), search(ctx, ""));
@@ -87,6 +88,8 @@ beforeAll(() => {
 
 afterAll(() => store.close());
 
+/** The town the world began in. */
+const START = () => town.world.startSite!;
 const warNews = () => town.world.realm!.news.filter((n) => n.kind === "war");
 const byKind = (page: AdminEventsPage, kind: string, source?: string): AdminEvent[] => page.events.filter((e) => e.kind === kind && (!source || e.source === source));
 
@@ -104,7 +107,7 @@ describe("N17.1 nothing on the admin page changes the save", () => {
     const http = await listen();
     try {
       const before = worldHash(town.world, store);
-      const paths = ["overview", "clock", "health", "events?limit=20", "events?kind=war&source=realm", "search?q=brena", "card?ref=cast:brena", "card?ref=player", "pinned?refs=player,cast:hale", "player", `crowd?site=${HOME_ID}`];
+      const paths = ["overview", "clock", "health", "events?limit=20", "events?kind=war&source=realm", "search?q=brena", "card?ref=cast:brena", "card?ref=player", "pinned?refs=player,cast:hale", "player", `crowd?site=${START()}`];
       for (const p of paths) {
         const res = await fetch(`${http.base}/api/admin/${p}`);
         expect(res.status, p).toBe(200);
@@ -147,11 +150,11 @@ describe("N17.2 the realm overview shows the map and its numbers", () => {
     for (let i = 0; i < 60 && o.classesPending > 0; i++) o = overview(ctx);
     expect(o.classesPending).toBe(0);
     const total = (id: string) => Object.values(o.classes[id]!).reduce((a, n) => a + (n ?? 0), 0);
-    const s = town.world.realm!.settlements[HOME_ID]!;
+    const s = town.world.realm!.settlements[START()]!;
     // N25: the population is the count of living townsfolk; the notables (realm figures) are counted on top of them here.
-    const notables = Object.values(town.world.realm!.figures).filter((f) => f.alive && f.home === HOME_ID && f.role !== "beast").length;
-    expect(total(HOME_ID)).toBeGreaterThan(0);
-    expect(total(HOME_ID)).toBeLessThanOrEqual(s.population + notables);
+    const notables = Object.values(town.world.realm!.figures).filter((f) => f.alive && f.home === START() && f.role !== "beast").length;
+    expect(total(START())).toBeGreaterThan(0);
+    expect(total(START())).toBeLessThanOrEqual(s.population + notables);
   });
 });
 
@@ -179,7 +182,7 @@ describe("N17.3 the event stream shows a war, a death and a director push with t
   it("news carries the figures in it, found when it was written", () => {
     const realm = town.world.realm!;
     const f = Object.values(realm.figures).find((x) => x.alive)!;
-    realmNews(realm, realm.day, HOME_ID, "test", `${f.name} did something.`, 5);
+    realmNews(realm, realm.day, START(), "test", `${f.name} did something.`, 5);
     const n = realm.news.at(-1)!;
     expect(n.people).toContain(f.id);
     const row = events(ctx, { kind: "test" }).events[0]!;
@@ -227,16 +230,16 @@ describe("N17.4 search finds anyone", () => {
     expect(search(ctx, "Brena").hits.some((h) => h.ref === "cast:brena")).toBe(true);
     // The player and places can be found too, to pin them.
     expect(search(ctx, town.world.player.name).hits.map((h) => h.ref)).toContain("player");
-    const millbrook = town.world.realm!.settlements[HOME_ID]!;
-    expect(search(ctx, millbrook.name, { kind: "place" }).hits[0]).toMatchObject({ ref: `place:${HOME_ID}`, kind: "place" });
+    const millbrook = town.world.realm!.settlements[START()]!;
+    expect(search(ctx, millbrook.name, { kind: "place" }).hits[0]).toMatchObject({ ref: `place:${START()}`, kind: "place" });
     const fig = Object.values(realm.figures).find((f) => f.role !== "beast" && f.alive)!;
     expect(search(ctx, fig.name).hits.map((h) => h.ref)).toContain(`figure:${fig.id}`);
     const dead = Object.values(realm.figures).find((f) => !f.alive);
     if (dead) expect(search(ctx, dead.name).hits.find((h) => h.ref === `figure:${dead.id}`)?.detail).toMatch(/dead/);
-    const beast = Object.values(town.world.creatures)[0]!;
+    const beast = Object.values(town.creaturesHere())[0]!;
     expect(search(ctx, beast.name).hits.some((h) => h.kind === "beast")).toBe(true);
     // A townsperson of a place that isn't Millbrook, by name; the index fills in over a few requests.
-    const away = Object.values(realm.settlements).find((s) => !s.home && !s.abandoned && s.kind !== "hamlet")!;
+    const away = Object.values(realm.settlements).find((s) => s.id !== START() && !s.abandoned && s.kind !== "hamlet")!;
     const person = folkOf(ctx, away.id)!.roster.people[7]!;
     let r = search(ctx, person.name, { site: away.id });
     for (let i = 0; i < 100 && !r.complete; i++) r = search(ctx, person.name, { site: away.id });
@@ -264,7 +267,7 @@ describe("N17.4 search finds anyone", () => {
 describe("N17.5 pinning a townsperson in another town shows their day hour by hour", () => {
   it("has 24 hours, asleep in their house at 03:00 and at work at 10:00, as the crowd simulation says", () => {
     const realm = town.world.realm!;
-    const away = Object.values(realm.settlements).find((s) => !s.home && !s.abandoned && s.kind === "town")!;
+    const away = Object.values(realm.settlements).find((s) => s.id !== START() && !s.abandoned && s.kind === "town")!;
     const folk = folkOf(ctx, away.id)!;
     const farmer = folk.roster.people.find((p) => p.job === "farmer" && p.age >= 18 && p.work === "zone:fields")!;
     // A fine working day: bad weather and festivals keep people home, which the crowd simulation also knows.
@@ -294,7 +297,7 @@ describe("N17.5 pinning a townsperson in another town shows their day hour by ho
   });
 
   it("can draw their town: the map, the roster and the clock", () => {
-    const away = Object.values(town.world.realm!.settlements).find((s) => !s.home && !s.abandoned && s.kind === "village")!;
+    const away = Object.values(town.world.realm!.settlements).find((s) => s.id !== START() && !s.abandoned && s.kind === "village")!;
     const crowd = crowdOf(ctx, away.id)!;
     expect(crowd.map.w).toBeGreaterThan(10);
     expect(crowd.roster.people.length).toBeGreaterThan(0);
@@ -337,7 +340,7 @@ describe("N17.7 a person's card", () => {
 
   it("shows a figure's rank, faction, chain of command and deeds; a place's numbers and people", () => {
     const realm = town.world.realm!;
-    const lead = realm.figures[Object.values(realm.settlements).find((s) => s.leader && !s.home)!.leader!]!;
+    const lead = realm.figures[Object.values(realm.settlements).find((s) => s.leader && s.id !== START())!.leader!]!;
     const c = card(ctx, `figure:${lead.id}`)!;
     expect(c.name).toBe(lead.name);
     expect(c.sections.map((s) => s.title)).toEqual(expect.arrayContaining(["Right now", "Standing", "Nature", "Deeds", "Timeline"]));

@@ -1,0 +1,23 @@
+[
+  { "when": { "fact": ["loss:beast"] }, "name": "wolves and what comes out of the woods", "words": ["wolf", "wolves", "woods", "beast"], "because": "a beast took someone from them" },
+  { "when": { "fact": ["loss:raid"] }, "name": "riders on the road", "words": ["raiders", "raid", "riders", "bandits"], "because": "a raid took someone from them" },
+  { "when": { "fact": ["loss:illness"] }, "name": "the fever", "words": ["fever", "sickness", "plague", "ill"], "because": "an illness took someone from them" },
+  { "when": { "fact": ["loss:famine"] }, "name": "a hungry winter", "words": ["hunger", "starving", "famine", "winter"], "because": "hunger took someone from them" },
+  { "when": { "fact": ["loss:battle", "loss:siege"] }, "name": "the tax collector's press-gang and the draft", "words": ["draft", "conscript", "levy", "soldiers"], "because": "war took someone from them" },
+  { "when": { "fact": ["raided"] }, "name": "another raid", "words": ["raid", "raiders", "burning", "bandits"], "because": "the town was raided not long ago" },
+  { "when": { "fact": ["famine"] }, "name": "an empty granary", "words": ["hunger", "granary", "famine", "harvest"], "because": "the stores are low" },
+  { "when": { "fact": ["war"] }, "name": "the war coming to the gates", "words": ["war", "army", "soldiers", "siege"], "because": "the kingdom is at war" },
+  { "when": { "fact": ["debt"] }, "name": "the debt collector", "words": ["debt", "owe", "collector", "payment"], "because": "they owe more than they can pay" },
+  { "when": { "law": ["slave"] }, "name": "the master's anger", "words": ["master", "beating", "punish", "whip"], "because": "a slave answers for every mistake" },
+  { "when": { "law": ["serf"] }, "name": "losing the land", "words": ["evict", "eviction", "land", "lord's reeve"], "because": "a serf has the land only while the lord allows it" },
+  { "when": { "job": ["smith"] }, "name": "fire in the forge at night", "words": ["fire", "burn", "forge fire"], "because": "a smith has seen what a spark can do" },
+  { "when": { "job": ["innkeeper"] }, "name": "a brawl that breaks the house", "words": ["brawl", "fight", "drunk", "broken"], "because": "a broken house means a broken living" },
+  { "when": { "job": ["merchant"] }, "name": "thieves on the road", "words": ["thieves", "highwaymen", "robbed", "caravan"], "because": "goods lost on the road are not paid for" },
+  { "when": { "job": ["farmer"] }, "name": "blight in the fields", "words": ["blight", "rot", "locusts", "frost"], "because": "a failed crop is a failed year" },
+  { "when": { "job": ["guard"] }, "name": "dying a pointless death at a gate", "words": ["gate", "die", "ambush", "dying"], "because": "they have buried guards before" },
+  { "when": { "job": ["child"] }, "name": "the dark", "words": ["dark", "night", "ghost", "monster"], "because": "children are afraid of the dark" },
+  { "when": { "job": ["bandit"] }, "name": "the gallows", "words": ["hanged", "gallows", "noose", "guards"], "because": "the road ends there for men like them" },
+  { "when": { "traits": { "bravery": [0, 0.4] } }, "name": "strangers with weapons", "words": ["sword", "knife", "armed", "weapon"], "because": "they were never brave" },
+  { "when": { "elder": true }, "name": "dying alone", "words": ["alone", "dying", "death", "grave"], "because": "they have outlived many" },
+  { "when": { "fact": ["poor"] }, "name": "the poorhouse", "words": ["poorhouse", "begging", "beggar", "ruin"], "because": "they have little and know how little it is" }
+]

@@ -27,6 +27,9 @@ export interface SiteDay {
   casualties: Array<Pick<CasualtyOrder, "cause" | "count" | "event" | "killer">>;
 }
 
+/** Days of conditions kept behind the day (the admin chart, a margin for catching up, and a review's look back), more for lazy places that are behind. */
+export const KEEP_DAYS = 60;
+
 /** A place with nothing on record for a day (a place newly alive, or a day pruned): ordinary times. */
 export const NEUTRAL_DAY: SiteDay = { food: 50, prosperity: 50, famine: 0, crowding: 1, houses: 1, raided: false, atWar: false, besieged: false, beasts: false, plague: 0, casualties: [] };
 

@@ -207,6 +207,41 @@ export class WorldStore {
       .slice(0, k);
   }
 
+  /**
+   * Keep an NPC's memories to `keep`: the least important and oldest of their reflections go first (N25b: each life review adds one),
+   * then the oldest of the rest. Recall stays quick however long a talker lives.
+   */
+  pruneMemories(npc: string, keep = 400): number {
+    const n = this.memoryCount(npc);
+    if (n <= keep) return 0;
+    const drop = this.db.prepare("SELECT id FROM memories WHERE npc = ? ORDER BY (kind = 'reflection') DESC, importance ASC, day ASC LIMIT ?").all(npc, n - keep) as Array<{ id: number }>;
+    const del = this.db.prepare("DELETE FROM memories WHERE id = ?");
+    for (const { id } of drop) del.run(id);
+    return drop.length;
+  }
+
+  // ---- Life reviews (N25b) ----
+
+  /** One life review's record: what it was given (by hash), what was proposed, and what was applied, clipped and rejected, with reasons. */
+  logReview(r: { who: string; day: number; by: "model" | "code"; shock?: string; inputHash: string; proposal: unknown; applied: unknown; clipped: unknown; rejected: unknown }): void {
+    this.db
+      .prepare("INSERT INTO life_reviews (who, day, by, shock, input_hash, proposal, applied, clipped, rejected) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
+      .run(r.who, r.day, r.by, r.shock ?? null, r.inputHash, JSON.stringify(r.proposal), JSON.stringify(r.applied), JSON.stringify(r.clipped), JSON.stringify(r.rejected));
+  }
+
+  /** A person's reviews, newest first. */
+  reviewsOf(who: string, limit = 20): Array<{ id: number; day: number; by: string; shock: string | null; proposal: unknown; applied: unknown; clipped: unknown; rejected: unknown }> {
+    const rows = this.db.prepare("SELECT id, day, by, shock, proposal, applied, clipped, rejected FROM life_reviews WHERE who = ? ORDER BY id DESC LIMIT ?").all(who, limit) as unknown as Array<Record<string, string | number | null>>;
+    const parse = (s: string | number | null) => (typeof s === "string" ? JSON.parse(s) : null);
+    return rows.map((r) => ({ id: Number(r.id), day: Number(r.day), by: String(r.by), shock: r.shock === null ? null : String(r.shock), proposal: parse(r.proposal as string), applied: parse(r.applied as string), clipped: parse(r.clipped as string), rejected: parse(r.rejected as string) }));
+  }
+
+  /** How many reviews have been made (all, or by one kind of reviewer). */
+  reviewCount(by?: "model" | "code"): number {
+    const row = by ? this.db.prepare("SELECT COUNT(*) AS n FROM life_reviews WHERE by = ?").get(by) : this.db.prepare("SELECT COUNT(*) AS n FROM life_reviews").get();
+    return Number((row as { n: number }).n);
+  }
+
   memoryCount(npc?: string): number {
     const row = npc ? this.db.prepare("SELECT COUNT(*) AS n FROM memories WHERE npc = ?").get(npc) : this.db.prepare("SELECT COUNT(*) AS n FROM memories").get();
     return Number((row as { n: number }).n);

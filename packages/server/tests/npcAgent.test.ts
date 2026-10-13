@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import brena from "../src/data/npcs/brena.json" with { type: "json" };
+import brena from "./fixtures/npcs/brena.json" with { type: "json" };
 import type { ChatRequest, ChatResult, LLMProvider } from "../src/llm/provider.js";
 import { NpcAgent } from "../src/npc/NpcAgent.js";
 import type { NpcPersona } from "../src/npc/types.js";
-import { createDemoWorld } from "../src/world/world.js";
+import { createTestWorld } from "../src/world/world.js";
 import { parsePersona } from "../src/npc/personaSchema.js";
 
 /** Returns scripted replies in order and records every request it receives. */
@@ -25,7 +25,7 @@ describe("NpcAgent.respond", () => {
   it("returns plain speech in one round", async () => {
     const llm = new FakeProvider([say("Hm. Welcome.")]);
     const npc = new NpcAgent(parsePersona(brena), llm);
-    const r = await npc.respond("Hello", createDemoWorld());
+    const r = await npc.respond("Hello", createTestWorld());
     expect(r).toEqual({ text: "Hm. Welcome.", actions: [] });
     expect(llm.requests).toHaveLength(1);
   });
@@ -33,7 +33,7 @@ describe("NpcAgent.respond", () => {
   it("applies a tool call, sends the result back, then speaks", async () => {
     const llm = new FakeProvider([call("change_mood", { mood: "angry" }), say("Watch your tongue.")]);
     const npc = new NpcAgent(parsePersona(brena), llm);
-    const r = await npc.respond("Your forge is junk", createDemoWorld());
+    const r = await npc.respond("Your forge is junk", createTestWorld());
 
     expect(r.text).toBe("Watch your tongue.");
     expect(r.actions).toEqual([{ name: "change_mood", args: { mood: "angry" }, ok: true, message: "Mood updated. Now reply in character; let the feeling show in your words, never name it." }]);
@@ -45,7 +45,7 @@ describe("NpcAgent.respond", () => {
   it("reports invalid tool calls back to the model without changing state", async () => {
     const llm = new FakeProvider([call("change_mood", { mood: "ecstatic" }), say("Bah.")]);
     const npc = new NpcAgent(parsePersona(brena), llm);
-    const r = await npc.respond("Hi", createDemoWorld());
+    const r = await npc.respond("Hi", createTestWorld());
 
     expect(r.actions[0]!.ok).toBe(false);
     expect(npc.state.mood).toBe("neutral");
@@ -55,14 +55,14 @@ describe("NpcAgent.respond", () => {
   it("stops after maxStepsPerTurn if the model keeps calling tools", async () => {
     const llm = new FakeProvider(Array.from({ length: 10 }, () => call("change_mood", { mood: "sad" })));
     const npc = new NpcAgent(parsePersona(brena), llm);
-    await npc.respond("Hi", createDemoWorld());
+    await npc.respond("Hi", createTestWorld());
     expect(llm.requests).toHaveLength(4);
   });
 
   it("an offer waits for the player; accepting completes the sale and the NPC reacts", async () => {
     const llm = new FakeProvider([call("offer_item", { item: "dagger [E]", price: "1 gold 5 silver" }), say("A gold and five silver."), say("Pleasure.")]);
     const npc = new NpcAgent(parsePersona(brena), llm);
-    const world = createDemoWorld();
+    const world = createTestWorld();
 
     await npc.respond("I want a dagger", world);
     expect(npc.state.pendingOffer).toEqual({ item: "dagger [E]", price: 150 });
@@ -84,7 +84,7 @@ describe("NpcAgent.respond", () => {
   it("declining clears the offer and moves nothing", async () => {
     const llm = new FakeProvider([call("offer_item", { item: "dagger [E]", price: "1 gold 5 silver" }), say("Fifteen."), say("Suit yourself.")]);
     const npc = new NpcAgent(parsePersona(brena), llm);
-    const world = createDemoWorld();
+    const world = createTestWorld();
     await npc.respond("A dagger?", world);
     const r = await npc.declineOffer(world);
     expect(r.text).toBe("Suit yourself.");
@@ -95,9 +95,9 @@ describe("NpcAgent.respond", () => {
   it("only offers reveal_secret to the model above the trust threshold", async () => {
     const llm = new FakeProvider([say("Hm."), say("Hm.")]);
     const npc = new NpcAgent(parsePersona(brena), llm);
-    await npc.respond("Any secrets?", createDemoWorld());
+    await npc.respond("Any secrets?", createTestWorld());
     npc.state.relationship = 80;
-    await npc.respond("Any secrets?", createDemoWorld());
+    await npc.respond("Any secrets?", createTestWorld());
     const toolNames = (i: number) => llm.requests[i]!.tools!.map((t) => t.name);
     expect(toolNames(0)).not.toContain("reveal_secret");
     expect(toolNames(1)).toContain("reveal_secret");
@@ -110,7 +110,7 @@ describe("NpcAgent mood written as text", () => {
     const llm = new FakeProvider([say("Annoyed. That's low, stranger.")]);
     const npc = new NpcAgent(parsePersona(brena), llm);
     const shown: string[] = [];
-    const r = await npc.respond("Your forge is junk", createDemoWorld(), (d) => shown.push(d));
+    const r = await npc.respond("Your forge is junk", createTestWorld(), (d) => shown.push(d));
 
     expect(r.text).toBe("That's low, stranger.");
     expect(shown.join("")).toBe("That's low, stranger.");
@@ -132,7 +132,7 @@ describe("NpcAgent combat and checks", () => {
       call("change_mood", { mood: "angry" }), say("Last warning."),
       call("change_mood", { mood: "angry" }), call("attack_player", {}), say("Get out!"),
     ]);
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const npc = new NpcAgent(parsePersona(brena), llm, rolls(face(15, 20), face(5, 8)));
     await npc.respond("You're useless.", world);
     await npc.respond("Your swords are junk.", world);
@@ -150,7 +150,7 @@ describe("NpcAgent combat and checks", () => {
   it("player attack: the NPC is told the result and reacts", async () => {
     const llm = new FakeProvider([say("You'll regret that!")]);
     const npc = new NpcAgent(parsePersona(brena), llm, rolls(face(15, 20), face(4, 4)));
-    const r = await npc.attackedByPlayer(createDemoWorld());
+    const r = await npc.attackedByPlayer(createTestWorld());
     expect(r.hit.damage).toBe(5);
     expect(r.text).toBe("You'll regret that!");
     expect(llm.requests[0]!.messages.at(-1)!.content).toContain("attacked you with their fists and hit for 5 damage");
@@ -160,7 +160,7 @@ describe("NpcAgent combat and checks", () => {
     const llm = new FakeProvider([say("should not be used")]);
     const npc = new NpcAgent(parsePersona(brena), llm, rolls(face(20, 20), face(4, 4)));
     npc.state.hp = 1;
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const r = await npc.attackedByPlayer(world);
     expect(npc.isDead).toBe(true);
     expect(r.text).toBe("");
@@ -174,7 +174,7 @@ describe("NpcAgent combat and checks", () => {
     const llm = new FakeProvider([say("Fine, fine.")]);
     const npc = new NpcAgent(parsePersona(brena), llm, rolls(face(18, 20)));
     const order: string[] = [];
-    const r = await npc.attempt("persuade", "Come on.", createDemoWorld(), () => order.push("text"), () => order.push("roll"));
+    const r = await npc.attempt("persuade", "Come on.", createTestWorld(), () => order.push("text"), () => order.push("roll"));
     expect(r.check.success).toBe(true);
     expect(order).toEqual(["roll", "text"]);
     expect(npc.state.discountPct).toBe(14); // 20%, shrunk by Brena's haggling
@@ -185,7 +185,7 @@ describe("NpcAgent combat and checks", () => {
       { text: "", toolCalls: [{ name: "attack_player", arguments: {} }, { name: "attack_player", arguments: {} }] },
       say("Take that!"),
     ]);
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const npc = new NpcAgent(parsePersona(brena), llm, rolls(face(15, 20), face(5, 8)));
     npc.state.inCombat = true;
     const r = await npc.respond("Come on then!", world);
@@ -196,7 +196,7 @@ describe("NpcAgent combat and checks", () => {
 
   it("haggling over a pending offer lowers its price, and the NPC is told", async () => {
     const llm = new FakeProvider([call("offer_item", { item: "iron sword [D]", price: "4 gold" }), say("Forty."), say("Fine. Three gold, three silver, two copper.")]);
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const npc = new NpcAgent(parsePersona(brena), llm, rolls(face(19, 20)));
     await npc.respond("A sword, please.", world);
     const r = await npc.haggle("That's steep.", world);
@@ -207,7 +207,7 @@ describe("NpcAgent combat and checks", () => {
 
   it("training: progress happens in code and the NPC reacts as a teacher", async () => {
     const llm = new FakeProvider([say("Again. Harder this time.")]);
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const npc = new NpcAgent(parsePersona(brena), llm);
     const r = await npc.train("smithing", 4, world);
     expect(r.training.levelsGained).toBe(1);
@@ -219,14 +219,14 @@ describe("NpcAgent combat and checks", () => {
   it("training refused: the NPC isn't asked to speak", async () => {
     const llm = new FakeProvider([]);
     const npc = new NpcAgent(parsePersona(brena), llm);
-    const r = await npc.train("archery", 2, createDemoWorld());
+    const r = await npc.train("archery", 2, createTestWorld());
     expect(r.training.ok).toBe(false);
     expect(llm.requests).toHaveLength(0);
   });
 
   it("selling: the NPC offers, the player accepts, the trade happens in code, the NPC reacts", async () => {
     const llm = new FakeProvider([call("offer_to_buy", { item: "iron ore [F]", price: "3 silver" }), say("Three silver."), say("Good ore.")]);
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const npc = new NpcAgent(parsePersona(brena), llm);
     await npc.respond("Want to buy some iron ore?", world);
     expect(npc.state.pendingPurchase).toEqual({ item: "iron ore [F]", price: 30 });
@@ -243,8 +243,8 @@ describe("NpcAgent combat and checks", () => {
   it("trade talk stays on for every round of a turn, then switches off", async () => {
     const llm = new FakeProvider([call("change_mood", { mood: "happy" }), say("Ore? Let's see."), say("Hm.")]);
     const npc = new NpcAgent(parsePersona(brena), llm);
-    await npc.respond("Want to buy some iron ore?", createDemoWorld());
-    await npc.respond("Nice day.", createDemoWorld());
+    await npc.respond("Want to buy some iron ore?", createTestWorld());
+    await npc.respond("Nice day.", createTestWorld());
     const names = (i: number) => llm.requests[i]!.tools!.map((t) => t.name);
     expect(names(0)).toContain("offer_to_buy");
     expect(names(1)).toContain("offer_to_buy"); // second round of the same turn
@@ -253,7 +253,7 @@ describe("NpcAgent combat and checks", () => {
 
   it("training offer: the NPC offers, the player accepts, the lesson is paid and run in code", async () => {
     const llm = new FakeProvider([call("offer_training", { skill: "smithing", hours: 2 }), say("Ten gold, two hours."), say("Again.")]);
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const npc = new NpcAgent(parsePersona(brena), llm);
     await npc.respond("Can you train me in smithing?", world);
     expect(npc.state.pendingTraining).toEqual({ skill: "smithing", hours: 2, cost: 100 });
@@ -268,7 +268,7 @@ describe("NpcAgent combat and checks", () => {
 
   it("declining a training offer clears it and charges nothing", async () => {
     const llm = new FakeProvider([call("offer_training", { skill: "smithing", hours: 2 }), say("Ten gold."), say("Suit yourself.")]);
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const npc = new NpcAgent(parsePersona(brena), llm);
     await npc.respond("Teach me?", world);
     const r = await npc.declineTraining(world);
@@ -280,7 +280,7 @@ describe("NpcAgent combat and checks", () => {
   it("a persuasion right after a training request is about training", async () => {
     const llm = new FakeProvider([say("No apprentices."), say("Fine. I'll teach you.")]);
     const npc = new NpcAgent(parsePersona(brena), llm, rolls(face(18, 20)));
-    const world = createDemoWorld();
+    const world = createTestWorld();
     await npc.respond("Can you train me?", world);
     await npc.attempt("persuade", "Please, I'll do anything.", world);
     const event = llm.requests[1]!;
@@ -293,7 +293,7 @@ describe("NpcAgent combat and checks", () => {
   it("a training request stays open for one more turn, so a plain 'yes' can get an offer", async () => {
     const llm = new FakeProvider([say("Smithing, if you've the coin."), say("Good."), say("Hm.")]);
     const npc = new NpcAgent(parsePersona(brena), llm);
-    const world = createDemoWorld();
+    const world = createTestWorld();
     await npc.respond("Could you teach me something?", world);
     await npc.respond("Yes, please.", world);
     await npc.respond("Nice weather.", world);
@@ -305,7 +305,7 @@ describe("NpcAgent combat and checks", () => {
 
   it("once attacked, the NPC strikes back automatically, and keeps attacking on later turns", async () => {
     const llm = new FakeProvider([say("You'll pay for that!"), say("Stop talking and fight!")]);
-    const world = createDemoWorld();
+    const world = createTestWorld();
     // Every roll: d20 15 (hits), damage dice in the middle.
     const npc = new NpcAgent(parsePersona(brena), llm, () => 14.5 / 20);
     const first = await npc.attackedByPlayer(world);
@@ -321,7 +321,7 @@ describe("NpcAgent combat and checks", () => {
 
   it("the NPC stops attacking once it ends the fight", async () => {
     const llm = new FakeProvider([call("end_fight", {}), say("Fine. Get out of my forge.")]);
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const npc = new NpcAgent(parsePersona(brena), llm, () => 14.5 / 20);
     npc.state.inCombat = true;
     const r = await npc.respond("I'm sorry! I give up!", world);
@@ -334,7 +334,7 @@ describe("NpcAgent combat and checks", () => {
     const llm = new FakeProvider([say("Run, coward!")]);
     const npc = new NpcAgent(parsePersona(brena), llm, () => 19.5 / 20);
     npc.state.inCombat = true;
-    const r = await npc.playerFlees(createDemoWorld());
+    const r = await npc.playerFlees(createTestWorld());
     expect(r.flee.escaped).toBe(true);
     expect(r.text).toBe("Run, coward!");
     expect(npc.state.conversationOver).toBe(true);
@@ -349,7 +349,7 @@ describe("NpcAgent says the real offer terms", () => {
     ]);
     const npc = new NpcAgent(parsePersona(brena), llm);
     const shown: string[] = [];
-    const r = await npc.respond("Can you train me?", createDemoWorld(), (d) => shown.push(d));
+    const r = await npc.respond("Can you train me?", createTestWorld(), (d) => shown.push(d));
     // 4h toward novice at 5/h + 3h toward apprentice at 10/h = 50, all the player has.
     expect(npc.state.pendingTraining).toEqual({ skill: "smithing", hours: 7, cost: 500 });
     expect(r.text).toBe("Seven hours for fifty gold. That's all your purse covers.");
@@ -364,7 +364,7 @@ describe("NpcAgent says the real offer terms", () => {
     const llm = new FakeProvider([say("Stranger.")]);
     const npc = new NpcAgent(parsePersona(brena), llm);
     const shown: string[] = [];
-    await npc.respond("Hello.", createDemoWorld(), (d) => shown.push(d));
+    await npc.respond("Hello.", createTestWorld(), (d) => shown.push(d));
     expect(shown).toEqual(["Stranger."]);
   });
 });
@@ -373,7 +373,7 @@ describe("NpcAgent says the real offer terms", () => {
 describe("NpcAgent quests and busy NPCs", () => {
   it("asked for work, the NPC offers a quest; accepting puts it in the player's log", async () => {
     const llm = new FakeProvider([call("offer_job", { quest: "hot_meal" }), say("Bring me a stew. Eight gold."), say("Good.")]);
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const npc = new NpcAgent(parsePersona(brena), llm);
     await npc.respond("Got any work for me?", world);
     expect(npc.state.pendingQuest).toBe("hot_meal");
@@ -387,7 +387,7 @@ describe("NpcAgent quests and busy NPCs", () => {
     const llm = new FakeProvider([say("Hm.")]);
     const npc = new NpcAgent(parsePersona(brena), llm);
     npc.state.relationship = 60;
-    await npc.respond("Give me your hardest quest, the SSS one!", createDemoWorld());
+    await npc.respond("Give me your hardest quest, the SSS one!", createTestWorld());
     const tool = llm.requests[0]!.tools!.find((t) => t.name === "offer_job")!;
     const ids = (tool.parameters as any).properties.quest.enum;
     expect(ids).not.toContain("fathers_hammer");
@@ -396,7 +396,7 @@ describe("NpcAgent quests and busy NPCs", () => {
 
   it("turning in pays out in code, and the NPC reacts", async () => {
     const llm = new FakeProvider([say("Bring it hot."), say("Hot. Good.")]);
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.player.money = 0;
     const npc = new NpcAgent(parsePersona(brena), llm);
     npc.state.pendingQuest = "hot_meal";
@@ -411,14 +411,14 @@ describe("NpcAgent quests and busy NPCs", () => {
 
   it("turning in with nothing ready doesn't bother the NPC", async () => {
     const llm = new FakeProvider([]);
-    const r = await new NpcAgent(parsePersona(brena), llm).turnIn(createDemoWorld());
+    const r = await new NpcAgent(parsePersona(brena), llm).turnIn(createTestWorld());
     expect(r.turnIn.completed).toEqual([]);
     expect(llm.requests).toHaveLength(0);
   });
 
   it("a busy NPC can't be talked to", async () => {
     const llm = new FakeProvider([say("should not be used")]);
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const npc = new NpcAgent(parsePersona(brena), llm);
     npc.state.job = { recipeId: "dagger", output: "dagger [E]", qty: 1, until: 16 * 60, doing: "forging a dagger" };
     const r = await npc.respond("Hello?", world);
@@ -434,7 +434,7 @@ describe("NpcAgent.playerHesitates (combat clock)", () => {
     const llm = new FakeProvider([]);
     const npc = new NpcAgent(parsePersona(brena), llm, () => 0.999);
     npc.state.inCombat = true;
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const r = npc.playerHesitates(world);
     expect(r.actions.map((a) => a.name)).toEqual(["attack_player"]);
     expect(world.player.hp).toBeLessThan(40);
@@ -443,7 +443,7 @@ describe("NpcAgent.playerHesitates (combat clock)", () => {
 
   it("out of a fight it does nothing", () => {
     const npc = new NpcAgent(parsePersona(brena), new FakeProvider([]), () => 0.999);
-    const world = createDemoWorld();
+    const world = createTestWorld();
     expect(npc.playerHesitates(world)).toEqual({ text: "", actions: [] });
     expect(world.player.hp).toBe(40);
   });

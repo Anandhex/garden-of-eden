@@ -2,8 +2,8 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import brenaJson from "../src/data/npcs/brena.json" with { type: "json" };
-import pellJson from "../src/data/npcs/pell.json" with { type: "json" };
+import brenaJson from "./fixtures/npcs/brena.json" with { type: "json" };
+import pellJson from "./fixtures/npcs/pell.json" with { type: "json" };
 import { config } from "../src/config.js";
 import {
   creatureAmbush,
@@ -30,7 +30,8 @@ import { creatureXp } from "../src/game/levels.js";
 import { loadWorld, newWorld, saveWorld } from "../src/game/save.js";
 import { parsePersona } from "../src/npc/personaSchema.js";
 import { SPECIES } from "../src/world/species.js";
-import { createDemoWorld, DEMO_SPAWNS } from "../src/world/world.js";
+import { createTestWorld } from "../src/world/world.js";
+import { creaturesOf } from "../src/game/site.js";
 
 const templates = loadCreatureTemplates();
 const wolf = templates.wolf!;
@@ -78,7 +79,7 @@ describe("spawning", () => {
 
 describe("fighting a creature", () => {
   it("runs entirely in code and drops loot on a kill", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.player.inventory["iron sword [D]"] = 1;
     const c = spawnCreature(wolf, "wolf-1", 1, () => 0.5, "wolf 1");
     c.hp = 1;
@@ -91,7 +92,7 @@ describe("fighting a creature", () => {
   });
 
   it("bandits carry gold", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const gold = world.player.money;
     const c = spawnCreature(bandit, "bandit-1", 1, () => 0.5);
     c.hp = 1;
@@ -101,7 +102,7 @@ describe("fighting a creature", () => {
   });
 
   it("strikes back with barks instead of a model", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const c = spawnCreature(wolf, "wolf-1", 1, () => 0.5, "wolf 1");
     const round = fightCreature(wolf, c, world, d20(1)); // player misses; wolf rolls a 1 too
     expect(round.over).toBeNull();
@@ -109,7 +110,7 @@ describe("fighting a creature", () => {
   });
 
   it("a ready creature that downs a player of its rank breaks through", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.player.hp = 1;
     world.player.level = 2; // rank F, same as the wolf
     const c = spawnCreature(wolf, "wolf-1", 1, () => 0.999, "wolf 1"); // potential C
@@ -122,7 +123,7 @@ describe("fighting a creature", () => {
   });
 
   it("but a weaker player is no challenge", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.player.hp = 1; // level 1: rank G, below the wolf
     const c = spawnCreature(wolf, "wolf-1", 1, () => 0.999, "wolf 1");
     c.life.xp = xpToNextTier("F");
@@ -139,7 +140,7 @@ describe("fighting a creature", () => {
   });
 
   it("badly hurt creatures may run", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const c = spawnCreature(horse, "horse-1", 1, () => 0.5);
     c.hp = 30; // below 90%: skittish
     const round = fightCreature(horse, c, world, d20(2)); // player misses, morale fails
@@ -148,7 +149,7 @@ describe("fighting a creature", () => {
   });
 
   it("the player can run", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const c = spawnCreature(wolf, "wolf-1", 1, () => 0.5, "wolf 1");
     expect(fleeCreature(wolf, c, world, d20(20)).over).toBe("player fled");
   });
@@ -171,16 +172,17 @@ describe("creature lives", () => {
 });
 
 describe("saving creatures", () => {
-  it("a new world spawns the starting creatures, and they survive a save", () => {
+  it("a place's creatures survive a save", () => {
     const file = join(mkdtempSync(join(tmpdir(), "llm-game-creatures-")), "world.json");
     const world = newWorld(personas, templates, () => 0.5);
-    const total = Object.values(DEMO_SPAWNS).reduce((a, b) => a + b, 0);
-    expect(Object.keys(world.creatures)).toHaveLength(total);
-    world.creatures["wolf-1"]!.hp = 3;
+    expect(Object.keys(creaturesOf(world))).toHaveLength(0);
+    spawnGroup(templates.wolf!, 3, creaturesOf(world), 1, () => 0.5);
+    expect(Object.keys(creaturesOf(world))).toHaveLength(3);
+    creaturesOf(world)["wolf-1"]!.hp = 3;
     world.npcStates.brena!.life.xp = 42;
     saveWorld(file, world);
     const loaded = loadWorld(file, personas, templates);
-    expect(loaded.creatures["wolf-1"]!.hp).toBe(3);
+    expect(creaturesOf(loaded)["wolf-1"]!.hp).toBe(3);
     expect(loaded.npcStates.brena!.life.xp).toBe(42);
     expect(loaded.npcStates.pell!.life.tier).toBe("E");
   });
@@ -271,7 +273,7 @@ describe("meeting creatures", () => {
     expect(wolf.aggressive).toBe(true);
     expect(bandit.aggressive).toBe(true);
     expect(horse.aggressive).toBe(false);
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const c = spawnCreature(wolf, "wolf-1", 1, () => 0.5, "wolf 1");
     const round = creatureAmbush(wolf, c, world, d20(20));
     expect(round.log).toContain("wolf 1 attacks you!");
@@ -279,7 +281,7 @@ describe("meeting creatures", () => {
   });
 
   it("losing to one knocks you out; bandits rob you, wolves don't", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.player.hp = 0;
     const w = spawnCreature(wolf, "wolf-1", 1, () => 0.5, "wolf 1");
     const byWolf = creatureBeatsPlayer(wolf, w, world);
@@ -306,7 +308,7 @@ describe("player XP from creatures", () => {
   });
 
   it("a kill pays XP and can level the player up", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.player.xp = 45;
     const c = spawnCreature(wolf, "wolf-1", 1, () => 0.5, "wolf 1");
     c.hp = 1;
@@ -317,7 +319,7 @@ describe("player XP from creatures", () => {
   });
 
   it("running it off pays half", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const c = spawnCreature(horse, "horse-1", 1, () => 0.5, "horse 1");
     c.hp = 30;
     const round = fightCreature(horse, c, world, d20(2));
@@ -328,7 +330,7 @@ describe("player XP from creatures", () => {
 
 describe("the combat clock", () => {
   it("a lost turn gives the creature a free strike", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const c = spawnCreature(wolf, "wolf-1", 1, () => 0.5, "wolf 1");
     const round = creatureTurn(wolf, c, world, d20(20));
     expect(round.log[0]).toBe("You hesitate.");

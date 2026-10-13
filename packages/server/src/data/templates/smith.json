@@ -1,0 +1,308 @@
+{
+  "id": "smith",
+  "describe": "a smith with a forge, who repairs gear and takes commissions",
+  "roles": [
+    "the smith of {place}",
+    "the blacksmith of {place}, who keeps the forge"
+  ],
+  "species": [
+    "human",
+    "dwarf"
+  ],
+  "age": [
+    24,
+    62
+  ],
+  "tier": [
+    "E",
+    "D"
+  ],
+  "growth": [
+    0,
+    1
+  ],
+  "greed": [
+    0.3,
+    0.65
+  ],
+  "traits": {
+    "temper": [
+      0.4,
+      0.8
+    ],
+    "bravery": [
+      0.4,
+      0.8
+    ],
+    "honesty": [
+      0.5,
+      0.9
+    ],
+    "generosity": [
+      0.2,
+      0.5
+    ],
+    "sociability": [
+      0.2,
+      0.5
+    ],
+    "forgiveness": [
+      0.3,
+      0.6
+    ]
+  },
+  "attributes": {
+    "strength": [
+      12,
+      16
+    ],
+    "endurance": [
+      12,
+      16
+    ],
+    "intelligence": [
+      9,
+      12
+    ]
+  },
+  "hp": [
+    45,
+    65
+  ],
+  "mp": [
+    0,
+    5
+  ],
+  "skills": {
+    "smithing": [
+      3,
+      5
+    ],
+    "blunt": [
+      2,
+      4
+    ],
+    "haggling": [
+      1,
+      3
+    ],
+    "two_handed": [
+      0,
+      2
+    ],
+    "one_handed": [
+      0,
+      2
+    ],
+    "intimidation": [
+      0,
+      2
+    ],
+    "evasion": [
+      0,
+      1
+    ]
+  },
+  "teaches": "smithing",
+  "weapon": [
+    "forge hammer",
+    "cudgel"
+  ],
+  "stock": {
+    "iron sword [D]": [
+      0,
+      2
+    ],
+    "dagger [E]": [
+      1,
+      3
+    ],
+    "horseshoe [G]": [
+      4,
+      10
+    ]
+  },
+  "money": [
+    300,
+    900
+  ],
+  "buys": [
+    "iron ore",
+    "iron sword",
+    "dagger",
+    "horseshoe"
+  ],
+  "prices": {
+    "iron sword": [
+      300,
+      420
+    ],
+    "dagger": [
+      100,
+      170
+    ],
+    "horseshoe": [
+      10,
+      25
+    ]
+  },
+  "storage": {
+    "name": "the forge chest",
+    "slots": 12
+  },
+  "schedule": [
+    {
+      "from": 6,
+      "to": 20,
+      "activity": "work",
+      "place": "forge"
+    },
+    {
+      "from": 20,
+      "to": 21,
+      "activity": "eat",
+      "place": "inn"
+    },
+    {
+      "from": 21,
+      "to": 6,
+      "activity": "sleep",
+      "place": "home"
+    }
+  ],
+  "knows": {
+    "news.*": "rumour",
+    "people.*": "rumour"
+  },
+  "maxQuestTier": "D",
+  "names": {
+    "female": [
+      "Ada",
+      "Bess",
+      "Cora",
+      "Edith",
+      "Greta",
+      "Hilde",
+      "Ida",
+      "Mae",
+      "Nell",
+      "Rosa",
+      "Tilda",
+      "Una"
+    ],
+    "male": [
+      "Abel",
+      "Bram",
+      "Cob",
+      "Dunstan",
+      "Edwin",
+      "Fenn",
+      "Gil",
+      "Hob",
+      "Jory",
+      "Osric",
+      "Ned",
+      "Wat"
+    ],
+    "family": [
+      "Hollis",
+      "Marsh",
+      "Thatcher",
+      "Brook",
+      "Fallow",
+      "Reed",
+      "Cotter",
+      "Ashby",
+      "Linden",
+      "Furrow",
+      "Penny",
+      "Stile"
+    ]
+  },
+  "voice": {
+    "female": {
+      "lang": "en-GB",
+      "pitch": 1.05,
+      "rate": 1.1,
+      "gender": "female",
+      "browser": [
+        "Kate",
+        "Serena",
+        "Moira",
+        "Google UK English Female",
+        "Microsoft Libby Online (Natural) - English (United Kingdom)"
+      ],
+      "piper": {
+        "model": "en_GB-semaine-medium",
+        "speaker": 0
+      }
+    },
+    "male": {
+      "lang": "en-GB",
+      "pitch": 0.95,
+      "rate": 1.1,
+      "gender": "male",
+      "browser": [
+        "Daniel",
+        "Arthur",
+        "Oliver",
+        "Google UK English Male",
+        "Microsoft Ryan Online (Natural) - English (United Kingdom)"
+      ],
+      "piper": {
+        "model": "en_GB-semaine-medium",
+        "speaker": 1
+      }
+    }
+  },
+  "fallback": {
+    "personality": [
+      [
+        "gruff",
+        "hardworking",
+        "honest"
+      ],
+      [
+        "blunt",
+        "patient",
+        "proud"
+      ],
+      [
+        "quiet",
+        "steady",
+        "exacting"
+      ]
+    ],
+    "speechStyle": [
+      "Short, plain sentences between hammer blows. Judges everything by whether it will hold.",
+      "Gruff and dry; talks in the language of iron and fire, and never wastes a word."
+    ],
+    "backstory": [
+      "{name} learned the forge from a parent and has kept {place}'s ploughs, hinges and blades in repair ever since.",
+      "{first} came to {place} with a hammer and a good name, and has kept the fire lit through every winter."
+    ],
+    "appearance": [
+      "Burn-scarred forearms and a leather apron black with soot.",
+      "Broad-shouldered, with a singed beard and hands like shovels."
+    ],
+    "goals": [
+      [
+        "Make one blade worth passing down",
+        "Keep the forge in iron"
+      ],
+      [
+        "Train someone to take over the forge",
+        "Have a quiet winter"
+      ]
+    ],
+    "fallbackLine": "Hmph. Mind the anvil."
+  },
+  "services": [
+    {
+      "kind": "repair"
+    },
+    {
+      "kind": "training"
+    }
+  ]
+}

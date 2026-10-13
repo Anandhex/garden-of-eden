@@ -14,7 +14,7 @@ import { initiativeFor } from "../src/npc/initiative.js";
 import { holdsGrudge } from "../src/npc/relationship.js";
 import { stealTarget, steal, recognisesStolen } from "../src/game/stealth.js";
 import { reportCrimes } from "../src/game/crime.js";
-import { createDemoWorld } from "../src/world/world.js";
+import { createTestWorld } from "../src/world/world.js";
 import { always, brena, ctxFor, hale, makeTown, pell, rook, wren } from "./helpers.js";
 import type { NpcState } from "../src/npc/types.js";
 
@@ -44,7 +44,7 @@ describe("N7 NPC-to-NPC relationships", () => {
 
 describe("N7 done when: attack Brena, and Pell already knows by evening", () => {
   it("he's heard, he's wary, and he charges more", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const members = [
       { id: "brena", persona: brena, state: createNpcState(brena) },
       { id: "pell", persona: pell, state: createNpcState(pell) },
@@ -101,7 +101,7 @@ describe("N7 crimes: kill someone, and the guard brings it up", () => {
 
 describe("N7 reputation", () => {
   it("strangers start from what the town says: half of it, plus respect for deed titles", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.player.reputation = { trust: -20, fear: 30, respect: 10, affection: 0 };
     world.player.titles = [{ id: "giant_slayer", day: 1 }];
     const s = createNpcState(hale);
@@ -128,7 +128,7 @@ describe("N7.1 rumours about NPCs", () => {
   });
 
   it("a false rumour gets denied, angrily; a true one confirmed; the journal says which", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const lie = confrontRumour(brena, "They say you're a thief.", world.player, 1)!;
     expect(lie.mood).toBe("angry");
     expect(lie.line).toMatch(/It's a lie/);
@@ -149,7 +149,7 @@ describe("N7.1 rumours about NPCs", () => {
 
 describe("N7.2 moral dilemmas", () => {
   it("Hale's bribe comes up at the gate talk, and each option applies exactly its effects", () => {
-    const take = createDemoWorld();
+    const take = createTestWorld();
     const s = createNpcState(hale);
     expect(dilemmasFor(hale, s, "What's the toll at the gate?").map((d) => d.id)).toEqual(["smugglers_cart"]);
     presentDilemma(hale, s, "smugglers_cart");
@@ -162,7 +162,7 @@ describe("N7.2 moral dilemmas", () => {
     // Settled: it doesn't come up again.
     expect(dilemmasFor(hale, s, "the gate")).toEqual([]);
 
-    const refuse = createDemoWorld();
+    const refuse = createTestWorld();
     const s2 = createNpcState(hale);
     presentDilemma(hale, s2, "smugglers_cart");
     chooseDilemma(hale, s2, refuse, "refuse");
@@ -181,14 +181,14 @@ describe("N7.2 moral dilemmas", () => {
 
 describe("N7.3 factions", () => {
   it("hurting a guard lowers guard standing and raises bandit standing", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     standingForDeed(world.player, { persona: hale }, STANDING.attacked);
     expect(standingWith(world.player, "guard")).toBeLessThan(0);
-    expect(standingWith(world.player, "bandits")).toBeGreaterThan(0);
+    expect(standingWith(world.player, "gang")).toBeGreaterThan(0);
   });
 
   it("done when: after helping the merchants, Pell gives a member's discount and Hale is warier", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     for (let i = 0; i < 6; i++) shiftStanding(world.player, "merchants", STANDING.questDone);
     expect(joinFaction(world.player, "merchants").ok).toBe(true);
     expect(memberDiscount(pell, world.player)).toBe(10);
@@ -202,9 +202,9 @@ describe("N7.3 factions", () => {
   });
 
   it("joining one faction closes the door on its rivals", () => {
-    const world = createDemoWorld();
-    world.player.standing = { bandits: 70 };
-    expect(joinFaction(world.player, "bandits").ok).toBe(true);
+    const world = createTestWorld();
+    world.player.standing = { gang: 70 };
+    expect(joinFaction(world.player, "gang").ok).toBe(true);
     world.player.standing.guard = 80;
     expect(joinFaction(world.player, "guard").ok).toBe(false);
   });
@@ -252,14 +252,14 @@ describe("N7.4 successors", () => {
 
 describe("N7.5 theft and stealth", () => {
   it("a busy NPC is easier to rob than one face to face", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const s = createNpcState(brena);
     expect(stealTarget({ persona: brena, state: s, world, victim: "busy", witnesses: [] })).toBeLessThan(stealTarget({ persona: brena, state: s, world, victim: "face to face", witnesses: [] }));
     expect(stealTarget({ persona: brena, state: s, world, victim: "asleep", witnesses: [] })).toBeLessThan(stealTarget({ persona: brena, state: s, world, victim: "busy", witnesses: [] }));
   });
 
   it("done when: you lift a dagger mid-forge, but face to face you're caught", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const busy = createNpcState(brena);
     const lifted = steal("dagger", { persona: brena, state: busy, world, rng: always(0.6), victim: "busy", witnesses: [] });
     expect(lifted.success).toBe(true);
@@ -281,7 +281,7 @@ describe("N7.5 theft and stealth", () => {
   });
 
   it("selling a stolen piece back to its owner gets you caught", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const s = createNpcState(brena);
     steal("dagger", { persona: brena, state: s, world, rng: always(0.6), victim: "busy", witnesses: [] });
     const e = recognisesStolen(brena, s, world, "dagger [E]", always(0.9));

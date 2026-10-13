@@ -4,15 +4,14 @@
  * insults; morale and escape rolls in code); this checks the model goes along.
  *
  *   npm run bench:traits                 # every NPC, RUNS=3
- *   RUNS=10 npm run bench:traits -- hale brena
+ *   RUNS=10 npm run bench:traits -- smith guard
  */
-import { readdirSync, readFileSync } from "node:fs";
 import { OllamaProvider } from "../src/llm/ollama.js";
 import { NpcAgent } from "../src/npc/NpcAgent.js";
-import { parsePersona } from "../src/npc/personaSchema.js";
+import { generatedCast, pickIds } from "./generated.js";
 import { fleeAt, provokeLimit, traitsOf } from "../src/npc/traits.js";
 import type { NpcPersona } from "../src/npc/types.js";
-import { createDemoWorld } from "../src/world/world.js";
+import { createTestWorld } from "../src/world/world.js";
 
 const INSULTS = [
   "Your work is junk and everyone in town knows it.",
@@ -26,9 +25,8 @@ const INSULTS = [
 /** Long enough that every fight ends: the NPC breaks or dies. */
 const FIGHT_ROUNDS = 25;
 
-const NPC_DIR = new URL("../src/data/npcs/", import.meta.url);
-const all = readdirSync(NPC_DIR).filter((f) => f.endsWith(".json")).map((f) => f.replace(/\.json$/, ""));
-const ids = process.argv.slice(2).length > 0 ? process.argv.slice(2) : all;
+const cast = generatedCast(Number(process.env.CAST ?? 8));
+const ids = pickIds(cast, process.argv.slice(2));
 const runs = Number(process.env.RUNS ?? 3);
 const llm = new OllamaProvider();
 await llm.warmUp();
@@ -46,14 +44,14 @@ interface Row {
 const rows: Row[] = [];
 
 for (const id of ids) {
-  const persona: NpcPersona = parsePersona(JSON.parse(readFileSync(new URL(`${id}.json`, NPC_DIR), "utf8")), `${id}.json`);
+  const persona: NpcPersona = cast[id]!;
   const t = traitsOf(persona);
   const row: Row = { id, limit: provokeLimit(t), fleeShare: fleeAt(t), attackedAt: [], early: 0, ends: { fled: 0, begged: 0, "fought on": 0, died: 0 }, brokeAt: [] };
 
   for (let i = 0; i < runs; i++) {
     // Insults until the NPC attacks (or we run out).
     const npc = new NpcAgent(persona, llm);
-    const world = createDemoWorld();
+    const world = createTestWorld();
     for (let n = 1; n <= INSULTS.length; n++) {
       const r = await npc.respond(INSULTS[n - 1]!, world);
       if (r.actions.some((a) => a.name === "attack_player" && a.ok && !(a.args as { automatic?: boolean })?.automatic)) {
@@ -65,7 +63,7 @@ for (const id of ids) {
 
     // A fight the player starts with an iron sword, the NPC at full HP.
     const fighter = new NpcAgent(persona, llm);
-    const arena = createDemoWorld();
+    const arena = createTestWorld();
     arena.player.inventory["iron sword [D]"] = 1;
     arena.player.hp = 400; // so the NPC's side of the fight is what's measured
     arena.player.maxHp = 400;

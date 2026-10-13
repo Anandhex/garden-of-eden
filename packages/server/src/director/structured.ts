@@ -13,13 +13,13 @@ import type { CallKind, LLMProvider } from "../llm/provider.js";
 export async function structured<T extends z.ZodType>(
   llm: LLMProvider,
   schema: T,
-  req: { kind: CallKind; system: string; prompt: string; maxTokens?: number; temperature?: number },
+  req: { kind: CallKind; system: string; prompt: string; maxTokens?: number; temperature?: number; /** The JSON Schema the model is held to, when it should be stricter than the lenient one that reads the reply. */ jsonSchema?: Record<string, unknown> },
   tries = 2,
 ): Promise<z.infer<T> | null> {
   for (let i = 0; i < tries; i++) {
     try {
       const text = llm.generate
-        ? await llm.generate({ ...req, attempt: i, schema: z.toJSONSchema(schema) as Record<string, unknown> })
+        ? await llm.generate({ ...req, attempt: i, schema: req.jsonSchema ?? (z.toJSONSchema(schema) as Record<string, unknown>) })
         : (await llm.chat({ kind: req.kind, attempt: i, system: `${req.system}\nReply with JSON only.`, messages: [{ role: "user", content: req.prompt }], ...(req.maxTokens ? { maxTokens: req.maxTokens } : {}) })).text;
       const parsed = schema.safeParse(JSON.parse(extractJson(text)));
       if (parsed.success) return parsed.data;

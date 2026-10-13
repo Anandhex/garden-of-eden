@@ -434,7 +434,7 @@ export function toolsFor(ctx: ActionContext): ToolDef[] {
   if (ctx.trainingTalk && canTeach.length > 0) {
     tools.push({
       name: "offer_training",
-      // Firm wording, as with change_mood: with the softer "Call this when..." Pell named a
+      // Firm wording, as with change_mood: with the softer "Call this when..." one named a
       // price in words but never made an offer the player could accept.
       description:
         "ALWAYS call this when the player asks you to train or teach them, instead of just naming a price in words. " +
@@ -445,7 +445,7 @@ export function toolsFor(ctx: ActionContext): ToolDef[] {
 
   // Only quests the player can actually take: hidden ones (trust) and ones above their level aren't listed.
   // Named offer_job, not offer_quest: with "quest" in the name, the model only used it when the
-  // player said "quest" (asked for "work", 0/5 Brena; renamed, 5/5).
+  // player said "quest" (asked for "work", 0/5 on one; renamed, 5/5).
   const quests = ctx.questTalk ? questsFor(persona, state, ctx.world.player).available : [];
   if (quests.length > 0) {
     tools.push({
@@ -474,7 +474,7 @@ export function toolsFor(ctx: ActionContext): ToolDef[] {
   const secrets = reachableSecrets(persona, state, ctx.world.player, ctx.world.day);
   if (secrets.length > 0) {
     const topics = secrets.map((s) => `"${s.id}": ${s.about}`).join("; ");
-    // Caught out (a cover story broken): say so in the tool too. With only the situation line, Hale called it 1 time in 3.
+    // Caught out (a cover story broken): say so in the tool too. With only the situation line, one called it 1 time in 3.
     const caught = secrets.filter((s) => isBroken(s, state, ctx.world.player, ctx.world.day));
     const pressure = caught.length > 0 ? ` You've been caught out about ${caught.map((s) => s.about).join(" and ")}: your story won't hold, so call this now and come clean.` : "";
     tools.push({
@@ -483,7 +483,7 @@ export function toolsFor(ctx: ActionContext): ToolDef[] {
       // made up its own secret instead.
       description:
         "ALWAYS call this before talking about any of your secrets. You do NOT know the details until you call it, so never make them up. " +
-        // "You trust this person enough to share" matters: without it Brena called the tool 0/5 at trust 80.
+        // "You trust this person enough to share" matters: without it one called the tool 0/5 at trust 80.
         `${state.relationship > SECRET_TRUST ? "You trust this person enough to share. " : ""}Secrets: ${topics}.${pressure}`,
       parameters: z.toJSONSchema(z.object({ secret: z.enum(secrets.map((s) => s.id) as [string, ...string[]]) })),
     });

@@ -65,11 +65,29 @@ export const config = {
     talkAge: 5,
   },
   // Townsfolk lives (N25, game/people/): every stored person ages, marries, has children, moves and dies by code.
-  // PEOPLE_LIVE says where: "all" (every settlement), "slice" (Millbrook and its nearest neighbour; the rest of the realm
+  // PEOPLE_LIVE says where: "all" (every settlement), "slice" (the start town and its nearest neighbour; the rest of the realm
   // keeps its population as a number), "off", or a comma-separated list of settlement ids. Needs the database.
   peopleLive: process.env.PEOPLE_LIVE ?? "all",
   // Settlements whose days are only worked out when something needs them (comma-separated ids): the result is the same as daily.
   peopleLazy: process.env.PEOPLE_LAZY ?? "",
+  // Lives that change (N25b, npc/review/): every person is reviewed every `everyDays` days (spread by a seeded offset), and the same
+  // day when a big event hits their life (an impact of `shockImpact` or more). Talkers are reviewed by the model, `batch` to a call
+  // (code checks every proposal); everyone else, and any talker the model can't serve, by code's rules. REVIEWS=off: no model
+  // reviews (code's rules still run). Needs the director on, like the nightly chronicle.
+  review: {
+    // Whether anyone is reviewed at all (code's rules or the model's). Tests of other things turn it off.
+    enabled: process.env.REVIEWS !== "none",
+    everyDays: Math.max(1, Number(process.env.REVIEW_EVERY_DAYS ?? 3)),
+    shockImpact: Number(process.env.SHOCK_IMPACT ?? 5),
+    batch: Math.max(1, Math.min(4, Number(process.env.REVIEW_BATCH ?? 3))),
+    model: process.env.REVIEWS !== "off",
+    // Limits on one review (clipped, not rejected): changes, a move on one axis, and the shock review's larger move.
+    maxChanges: 6,
+    maxDelta: 10,
+    shockMaxDelta: 20,
+    // Longest a backstory may grow to by the story lines reviews add.
+    maxBackstory: 900,
+  },
   // Embedding model for recall by meaning (game/db.ts). Optional: without it a hashed bag-of-words stands in.
   embedModel: process.env.EMBED_MODEL ?? "nomic-embed-text",
   // Long-term store (SQLite): the full event log, conversation summaries, director log, embeddings.
@@ -78,7 +96,7 @@ export const config = {
   director: process.env.DIRECTOR !== "off",
   // Most director proposals accepted per night.
   directorMaxPerNight: 3,
-  // The wider realm (N13): kingdoms, towns and villages living on their own, a day at a time, in code. "off" to keep Millbrook alone.
+  // The wider realm (N13): kingdoms, towns and villages living on their own, a day at a time, in code. "off" for a world of one village.
   realm: process.env.REALM !== "off",
   // Seed for a new world's realm (the same seed gives the same realm). Unset: rolled from the new world's dice.
   realmSeed: process.env.REALM_SEED ? Number(process.env.REALM_SEED) : undefined,

@@ -5,7 +5,7 @@ import type { NpcPersona, NpcState } from "./types.js";
  * use for the player (npc/relationship.ts). Written in each NPC file as a starting
  * point (`relationships`), then moved by what happens: gossip from a friend counts
  * for more, a friend being hurt by the player hurts, a supper bought warms a little.
- * All in code; the model only ever sees words ("Brena is a good friend of yours").
+ * All in code; the model only ever sees words ("Mara is a good friend of yours").
  */
 export interface RelationAxes {
   trust: number;
@@ -70,7 +70,7 @@ export function describeRelation(r: RelationAxes): string | null {
   return parts.length > 0 ? parts.join(", ") : null;
 }
 
-/** One situation line about the NPCs here, or null: "Old Pell is here: a friend." */
+/** One situation line about the NPCs here, or null: "Old Odo is here: a friend." */
 export function describePresentRelations(state: Pick<NpcState, "npcRelations">, present: Array<{ id: string; name: string }>): string | null {
   const lines = present.flatMap((p) => {
     const words = describeRelation(relationTo(state, p.id));

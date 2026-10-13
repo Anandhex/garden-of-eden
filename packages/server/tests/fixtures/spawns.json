@@ -4,7 +4,7 @@
       "id": "market_crowd",
       "creature": "villager",
       "count": 5,
-      "place": "village_square",
+      "place": "square",
       "hours": [
         8,
         18
@@ -14,7 +14,7 @@
       "id": "road_folk",
       "creature": "villager",
       "count": 3,
-      "place": "west_road",
+      "place": "gate_road",
       "hours": [
         7,
         17
@@ -24,7 +24,7 @@
       "id": "night_wolves",
       "creature": "wolf",
       "count": 2,
-      "place": "forest_edge",
+      "place": "woods_edge",
       "hours": [
         21,
         4
@@ -46,7 +46,7 @@
       "id": "rook_guards",
       "creature": "bandit",
       "count": 3,
-      "place": "bandit_camp",
+      "place": "camp",
       "quest": "hammer_rook"
     }
   ]

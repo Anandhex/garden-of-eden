@@ -12,12 +12,12 @@
  * Results go to saves/bench/voice-<date>.json.
  */
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { freemem, totalmem } from "node:os";
 import { DEFAULT_VOICE, SentenceSplitter, type NpcVoice } from "@millbrook/shared";
 import { Ollama } from "ollama";
 import { config } from "../src/config.js";
-import { parsePersona } from "../src/npc/personaSchema.js";
+import { generatedCast } from "./generated.js";
 import { setUpVoice, type TtsProvider } from "../src/voice/tts.js";
 import { PIPER_URL, piperInstalled, startPiper } from "./piper.js";
 
@@ -111,7 +111,7 @@ async function modelReply(ollama: Ollama) {
     keep_alive: config.keepAlive,
     options: { num_ctx: config.numCtx, num_predict: config.maxReplyTokens, temperature: config.temperature },
     messages: [
-      { role: "system", content: "You are Brena, a blunt village blacksmith. Reply in two or three short sentences." },
+      { role: "system", content: "You are a blunt village blacksmith. Reply in two or three short sentences." },
       { role: "user", content: "What do you have for sale, and what's the news on the mine road?" },
     ],
   });
@@ -138,9 +138,7 @@ async function main() {
     console.log("To measure Piper: npm run voices:install, then run this again.");
     return;
   }
-  const personas = readdirSync(new URL("../src/data/npcs/", import.meta.url))
-    .filter((f) => f.endsWith(".json"))
-    .map((f) => parsePersona(JSON.parse(readFileSync(new URL(`../src/data/npcs/${f}`, import.meta.url), "utf8")), f));
+  const personas = Object.values(generatedCast(6));
   const ollama = new Ollama({ host: config.ollamaHost });
 
   console.log(`\nMachine: ${mb(totalmem())} MB RAM, ${mb(freemem())} MB free at start${memoryPressure() ? `, ${memoryPressure()} free by macOS's count` : ""}.`);
@@ -160,14 +158,14 @@ async function main() {
   try {
     await modelReply(ollama); // warm
     const llmAlone = await modelReply(ollama);
-    const brenaVoice = personas.find((p) => p.id === "brena")?.voice ?? DEFAULT_VOICE;
-    const [llmTogether, ttsTogether] = await Promise.all([modelReply(ollama), timeVoice(voice.tts, brenaVoice, LINES.slice(0, perVoice))]);
+    const firstVoice = personas[0]?.voice ?? DEFAULT_VOICE;
+    const [llmTogether, ttsTogether] = await Promise.all([modelReply(ollama), timeVoice(voice.tts, firstVoice, LINES.slice(0, perVoice))]);
     llm = { alone: llmAlone, together: llmTogether };
     together = ttsTogether;
     const sentences = new SentenceSplitter().push(`${llmAlone.text} `).length;
     console.log(`\n  Model alone:        first token ${llmAlone.firstTokenMs} ms, reply ${llmAlone.totalMs} ms (${sentences} sentence(s) ready to speak as they finish)`);
     console.log(`  Model while voicing: first token ${llmTogether.firstTokenMs} ms, reply ${llmTogether.totalMs} ms`);
-    console.log(`  Voice while model runs: warm p50 ${together.warmP50} ms (alone ${alone.brena?.warmP50 ?? "?"} ms), real-time factor ${together.rtf}`);
+    console.log(`  Voice while model runs: warm p50 ${together.warmP50} ms (alone ${alone[personas[0]!.id]?.warmP50 ?? "?"} ms), real-time factor ${together.rtf}`);
   } catch (err) {
     console.log(`\n  (Skipped the model comparison: ${(err as Error).message})`);
   }

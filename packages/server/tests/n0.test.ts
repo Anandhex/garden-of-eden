@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
-import brenaJson from "../src/data/npcs/brena.json" with { type: "json" };
-import pellJson from "../src/data/npcs/pell.json" with { type: "json" };
+import brenaJson from "./fixtures/npcs/brena.json" with { type: "json" };
+import pellJson from "./fixtures/npcs/pell.json" with { type: "json" };
 import { config } from "../src/config.js";
 import { restPlayer, isTooHurtToWork } from "../src/game/healing.js";
 import { passMinutes } from "../src/game/simulation.js";
@@ -12,7 +12,7 @@ import { NpcAgent } from "../src/npc/NpcAgent.js";
 import { buildSystemPrompt, buildTurnMessage } from "../src/npc/persona.js";
 import { createNpcState, startEncounter } from "../src/npc/state.js";
 import type { NpcPersona } from "../src/npc/types.js";
-import { createDemoWorld } from "../src/world/world.js";
+import { createTestWorld } from "../src/world/world.js";
 import { face, rolls } from "./dice.test.js";
 import { parsePersona } from "../src/npc/personaSchema.js";
 
@@ -27,7 +27,7 @@ class QuietProvider implements LLMProvider {
   }
 }
 
-const ctxFor = (persona: NpcPersona, world = createDemoWorld(), state = createNpcState(persona)): ActionContext => ({
+const ctxFor = (persona: NpcPersona, world = createTestWorld(), state = createNpcState(persona)): ActionContext => ({
   persona,
   state,
   world,
@@ -39,7 +39,7 @@ const toolNames = (c: ActionContext) => toolsFor(c).map((t) => t.name);
 
 describe("N0 healing and rest", () => {
   it("regenerates HP and MP every hour from endurance and willpower, faster asleep", () => {
-    const world = createDemoWorld(); // 14:00
+    const world = createTestWorld(); // 14:00
     const npc = new NpcAgent(brena, new QuietProvider());
     npc.state.hp = 20;
     npc.state.mp = 0;
@@ -51,7 +51,7 @@ describe("N0 healing and rest", () => {
   });
 
   it("after a fight, /wait 8 brings both sides back up, and the NPC trades again", () => {
-    const world = createDemoWorld(); // 14:00
+    const world = createTestWorld(); // 14:00
     const npc = new NpcAgent(brena, new QuietProvider(), () => 0.99);
     npc.state.hp = 26; // Brena after a fight: 26/90, too hurt to trade
     world.player.hp = 10;
@@ -68,17 +68,17 @@ describe("N0 healing and rest", () => {
   });
 
   it("never heals the dead, or anyone mid-fight", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const dead = createNpcState(brena, { hp: 0, outcome: "dead" });
     const fighting = createNpcState(brena, { hp: 30, inCombat: true });
     passMinutes(brena, dead, world, 120, () => 0.99);
-    passMinutes(brena, fighting, createDemoWorld(), 120, () => 0.99, { talking: true });
+    passMinutes(brena, fighting, createTestWorld(), 120, () => 0.99, { talking: true });
     expect(dead.hp).toBe(0);
     expect(fighting.hp).toBe(30);
   });
 
   it("the player's healing items heal the right amount and are used up", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const npc = new NpcAgent(brena, new QuietProvider());
     world.player.hp = 20;
     world.player.inventory["healing salve [E]"] = 1;
@@ -99,7 +99,7 @@ describe("N0 healing and rest", () => {
   });
 
   it("using an item mid-fight costs the player their turn: the NPC strikes", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const npc = new NpcAgent(brena, new QuietProvider(), rolls(face(15, 20), face(4, 8)));
     npc.state.inCombat = true;
     world.player.hp = 30;
@@ -110,14 +110,14 @@ describe("N0 healing and rest", () => {
   });
 
   it("hurt NPCs use their own healing items: on the hour, and instead of attacking in a fight", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     // Only his everyday salves (his strong one is hidden stock, N6.1).
     const state = createNpcState(pell, { hp: 10, inventory: { "healing salve [E]": 2 } });
     passMinutes(pell, state, world, 60, () => 0.99);
     expect(state.hp).toBe(31); // +1 regen (END 9), +20 salve
     expect(state.inventory["healing salve [E]"]).toBe(1);
 
-    const fight = ctxFor(pell, createDemoWorld(), createNpcState(pell, { hp: 15, inCombat: true, inventory: { "healing salve [E]": 2 } }));
+    const fight = ctxFor(pell, createTestWorld(), createNpcState(pell, { hp: 15, inCombat: true, inventory: { "healing salve [E]": 2 } }));
     const turn = npcFightTurn(fight);
     expect(turn.name).toBe("use_item");
     expect(fight.state.hp).toBe(35);
@@ -126,7 +126,7 @@ describe("N0 healing and rest", () => {
   });
 
   it("an NPC below half HP won't trade or train until healed, and is told so", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const c = ctxFor(brena, world, createNpcState(brena, { hp: 44 })); // 44/90
     expect(toolNames(c)).not.toContain("offer_item");
     expect(toolNames(c)).not.toContain("offer_to_buy");
@@ -145,7 +145,7 @@ describe("N0 healing and rest", () => {
 
 describe("N0 social check limits", () => {
   it("each failure raises the next target by 2; after 3 the NPC refuses until the next day", async () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const npc = new NpcAgent(brena, new QuietProvider(), () => face(2, 20));
     // Brena resists persuasion at 10 + WIL(14) +2 + speechcraft 1 = 13.
     const targets: number[] = [];
@@ -169,7 +169,7 @@ describe("N0 social check limits", () => {
   });
 
   it("a failed intimidation counts as a provocation, towards an attack", async () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const npc = new NpcAgent(brena, new QuietProvider(), () => face(2, 20));
     for (let i = 0; i < 3; i++) await npc.attempt("intimidate", "Hand it over.", world);
     expect(npc.state.provocations).toBe(3); // Brena's limit
@@ -211,7 +211,7 @@ describe("N0 context window", () => {
   it("a 60-turn conversation stays under budget, keeps the system prompt, and orphans no tool results", async () => {
     const llm = new ChattyProvider((req) => estimateRequest(req.system, req.messages, req.tools));
     const npc = new NpcAgent(brena, llm);
-    const world = createDemoWorld();
+    const world = createTestWorld();
     for (let i = 1; i <= 60; i++) await npc.respond(`Tell me about your work, line ${i}.`, world);
 
     const system = buildSystemPrompt(brena);
@@ -230,7 +230,7 @@ describe("N0 context window", () => {
     const run = async (report: (req: ChatRequest) => number) => {
       const llm = new ChattyProvider(report);
       const npc = new NpcAgent(brena, llm);
-      const world = createDemoWorld();
+      const world = createTestWorld();
       for (let i = 1; i <= 30; i++) await npc.respond(`Tell me about your work, line ${i}.`, world);
       return npc.messages.length;
     };
@@ -245,14 +245,14 @@ describe("N0 context window", () => {
 
 describe("N0 finer clock", () => {
   it("30 conversation turns move the clock about an hour", async () => {
-    const world = createDemoWorld(); // 14:00
+    const world = createTestWorld(); // 14:00
     const npc = new NpcAgent(brena, new QuietProvider());
     for (let i = 0; i < 30; i++) await npc.respond("Hm.", world);
     expect([world.hour, world.minute]).toEqual([15, 0]);
   });
 
   it("a trade takes ~5 minutes and a fight round ~1", async () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const npc = new NpcAgent(brena, new QuietProvider(), () => face(2, 20)); // everyone misses
     npc.state.pendingOffer = { item: "dagger [E]", price: 150 };
     await npc.acceptOffer(world);
@@ -264,7 +264,7 @@ describe("N0 finer clock", () => {
   });
 
   it("a job that ends at 16:00 frees the NPC at 16:00, not before", async () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.hour = 15;
     world.minute = 58;
     const npc = new NpcAgent(brena, new QuietProvider());
@@ -280,7 +280,7 @@ describe("N0 finer clock", () => {
   });
 
   it("a job that ends mid-hour finishes at that minute", () => {
-    const world = createDemoWorld(); // 14:00
+    const world = createTestWorld(); // 14:00
     const state = createNpcState(brena, {
       job: { recipeId: "dagger", output: "dagger [E]", qty: 1, until: 14 * 60 + 30, doing: "forging a dagger" },
     });
@@ -292,7 +292,7 @@ describe("N0 finer clock", () => {
   });
 
   it("an NPC doesn't start new work while the player is talking to them", async () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const npc = new NpcAgent(brena, new QuietProvider(), () => 0.01); // would always start crafting
     npc.state.inventory["iron ore [F]"] = 8;
     for (let i = 0; i < 31; i++) await npc.respond("Hm.", world); // crosses 15:00
@@ -310,7 +310,7 @@ describe("N0 losing a fight", () => {
 
   it("knockout (default): the NPC takes some gold, time passes, the player wakes with 25% HP, and the NPC remembers", async () => {
     expect(defaultRule).toBe("knockout");
-    const world = createDemoWorld(); // 14:00, 5 gold, 40 HP
+    const world = createTestWorld(); // 14:00, 5 gold, 40 HP
     world.player.hp = 1;
     const npc = new NpcAgent(brena, new QuietProvider(), () => 0.99); // natural 20s
     npc.state.inCombat = true;
@@ -334,7 +334,7 @@ describe("N0 losing a fight", () => {
 
   it("permadeath (config option): the player dies and the save records it", async () => {
     config.playerDefeat = "permadeath";
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.player.hp = 1;
     const npc = new NpcAgent(brena, new QuietProvider(), () => 0.99);
     npc.state.inCombat = true;
@@ -346,7 +346,7 @@ describe("N0 losing a fight", () => {
   });
 
   it("a failed escape can also knock the player out", async () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.player.hp = 1;
     // Escape roll 2 fails; Brena hits with natural 20s after that.
     const seq = [face(2, 20)];
@@ -381,7 +381,7 @@ describe("model failures", () => {
     };
     const npc = new NpcAgent(brena, failing);
     const before = structuredClone(npc.state);
-    const result = await npc.respond("Hello", createDemoWorld());
+    const result = await npc.respond("Hello", createTestWorld());
     expect(calls).toBe(2);
     expect(result.actions).toEqual([]);
     expect(npc.state).toEqual(before);
@@ -397,7 +397,7 @@ describe("model failures", () => {
         return { text: "Welcome.", toolCalls: [] };
       },
     };
-    const r = await new NpcAgent(brena, flaky).respond("Hello", createDemoWorld());
+    const r = await new NpcAgent(brena, flaky).respond("Hello", createTestWorld());
     expect(r.text).toBe("Welcome.");
   });
 
@@ -411,7 +411,7 @@ describe("model failures", () => {
       },
     };
     let shown = "";
-    const r = await new NpcAgent(brena, dropped).respond("Hello", createDemoWorld(), (d) => (shown += d));
+    const r = await new NpcAgent(brena, dropped).respond("Hello", createTestWorld(), (d) => (shown += d));
     expect(calls).toBe(1);
     expect(shown).toBe("Well,  I need a moment before I can answer that.");
     expect(r.text).toBe(shown);

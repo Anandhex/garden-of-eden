@@ -32,6 +32,7 @@
     "bench:busy": "tsx --env-file-if-exists=.env packages/server/scripts/bench-busy.ts",
     "bench:traits": "tsx packages/server/scripts/bench-traits.ts",
     "bench:director": "tsx packages/server/scripts/bench-director.ts",
+    "bench:reviews": "tsx --env-file-if-exists=.env packages/server/scripts/bench-reviews.ts",
     "gen": "tsx --env-file-if-exists=.env packages/server/scripts/generate-npc.ts",
     "check-npcs": "tsx packages/server/scripts/check-npcs.ts",
     "bench:style": "tsx --env-file-if-exists=.env packages/server/scripts/bench-style.ts"
