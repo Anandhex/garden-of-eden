@@ -14,7 +14,7 @@ import { budgets, kindRank, PROTECTED_KINDS, type CallKind } from "../budgets.js
  * model never hears of it. Summaries are never dropped for being busy.
  */
 export interface BackgroundJob {
-  /** Same key replaces a queued job (e.g. "plan:brena"). */
+  /** Same key replaces a queued job (e.g. "plan:mara"). */
   key: string;
   /** What the job's model call is for: its priority, and its place in the wait estimate. */
   kind: CallKind;

@@ -337,5 +337,6 @@
         "skill": "one_handed"
       }
     }
-  ]
+  ],
+  "faction": "guard"
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import brenaJson from "../src/data/npcs/brena.json" with { type: "json" };
-import pellJson from "../src/data/npcs/pell.json" with { type: "json" };
+import brenaJson from "./fixtures/npcs/brena.json" with { type: "json" };
+import pellJson from "./fixtures/npcs/pell.json" with { type: "json" };
 import { DEFAULT_RESERVE, debtStatus, effectiveGreed, isDebtFree, payDebts } from "../src/game/debts.js";
 import { feePerHour } from "../src/game/training.js";
 import { maxBuyPrice } from "../src/npc/actions.js";
@@ -9,7 +9,7 @@ import { acceptOffer, applyAction, parseAction } from "../src/npc/actions.js";
 import { buildSystemPrompt, buildTurnMessage } from "../src/npc/persona.js";
 import { createNpcState } from "../src/npc/state.js";
 import type { NpcPersona } from "../src/npc/types.js";
-import { createDemoWorld } from "../src/world/world.js";
+import { createTestWorld } from "../src/world/world.js";
 import { parsePersona } from "../src/npc/personaSchema.js";
 
 const pell = parsePersona(pellJson); // owes the mayor 20 gold, keeps 2 gold in reserve, starts with 12 gold (money is in copper)
@@ -47,7 +47,7 @@ describe("debts", () => {
   });
 
   it("are paid down when the NPC sells something", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const state = createNpcState(pell, { money: 200, pendingOffer: { item: "stew [G]", price: 40 } });
     acceptOffer({ persona: pell, state, world, rng: Math.random });
     expect(state.money).toBe(200);
@@ -55,7 +55,7 @@ describe("debts", () => {
   });
 
   it("are paid down from training fees", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const state = createNpcState(pell, { money: 200 });
     const r = train(pell, state, world, "haggling", 2); // 2h toward novice at 95 copper/h (Pell's greed at trust 0)
     expect(r.cost).toBe(190);
@@ -65,14 +65,14 @@ describe("debts", () => {
 
   it("are never shown to the model, in the system prompt or the situation", () => {
     const state = createNpcState(pell);
-    const text = buildSystemPrompt(pell) + buildTurnMessage(pell, state, createDemoWorld(), "How's business?");
+    const text = buildSystemPrompt(pell) + buildTurnMessage(pell, state, createTestWorld(), "How's business?");
     expect(text).not.toMatch(/\b(mayor|debts?|owes?|owed)\b/i);
   });
 
   it("revealing the secret tells the model how much is still owed", () => {
     const state = createNpcState(pell, { relationship: 80, debts: { mayor: 1200 } });
     const parsed = parseAction("reveal_secret", { secret: "debts" });
-    const r = parsed.ok ? applyAction(parsed, { persona: pell, state, world: createDemoWorld(), rng: () => 0.99 }) : null; // 0.99: no lie (Pell may lie, see traits.ts)
+    const r = parsed.ok ? applyAction(parsed, { persona: pell, state, world: createTestWorld(), rng: () => 0.99 }) : null; // 0.99: no lie (Pell may lie, see traits.ts)
     expect(r?.message).toContain("You've paid back 8 gold so far; you still owe the mayor 12 gold.");
   });
 
@@ -109,7 +109,7 @@ describe("greed eases once debts are paid", () => {
   });
 
   it("the switch happens as soon as a sale clears the debt", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const state = createNpcState(pell, { money: 200, debts: { mayor: 40 }, pendingOffer: { item: "stew [G]", price: 40 } });
     expect(effectiveGreed(pell, state)).toBe(0.9);
     acceptOffer({ persona: pell, state, world, rng: Math.random });

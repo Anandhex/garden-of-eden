@@ -1,26 +1,25 @@
 import { seedFrom, seededRng, type Rng } from "../game/dice.js";
-import { HOME_ID } from "../game/realm/generate.js";
 import { housesOf } from "../game/realm/houses.js";
 import type { Realm, Settlement } from "../game/realm/types.js";
-import { AREAS, type AreaId, PLACE_NAMES, PLACE_NEARBY, type PlaceId } from "../game/schedule.js";
+import { type AreaId, type PlaceId } from "../game/schedule.js";
 import type { CrowdZone } from "@millbrook/shared";
-import { type Building, type Den, MAP_H, MAP_W, NPC_LOOKS, type NpcSpot, PLAYER_START, type Tile } from "./map.js";
+import { type Building, type Den, MAP_H, MAP_W, type NpcSpot, PLAYER_START, spriteColor, type Tile } from "./map.js";
 
 /**
  * A map for every place and what's around it (N14, N15). Every settlement's village
- * is made in code from what's built there, Millbrook's included: roads through the
- * middle, walls with gates if it has them, its hall, inn, smithy, market, temple,
+ * is made in code from what's built there: roads through the middle, walls with gates if it has them, its hall, inn, smithy, market, temple,
  * guild hall, barracks and granary, houses by its size, and a paddock by the farms.
  *
  * What isn't the village isn't on the village's map. Each settlement has localities
  * around it, each its own map, reached by walking off the edge of the one before:
  * - **the woods** (east of every village): beasts and game;
  * - **the road** (north, where there's anything up it): to
- *   - **the camp** of a gang seated there (Millbrook: Rook's, on the mine road), and
- *   - **the mine**, the mouth of a dungeon nearby (Millbrook: the Old Mine Deeps).
+ *   - **the camp** of a gang seated there, and
+ *   - **the mine**, the mouth of a dungeon nearby.
  *
- * Creatures roam dens on the map of their area (a den key is a creature kind or a
- * spawn rule's place), and NPCs stand at the places on the map they're on. All of
+ * Creatures roam dens on the map of their area (a den key is a den kind, or a creature
+ * kind: `square`, `gate_road`, `paddock`, `woods_edge`, `deep_woods`, `camp`, `road_ambush`,
+ * `mine_mouth`), and NPCs stand at the places on the map they're on. All of
  * it is seeded by the place's id, so it looks the same on every visit.
  */
 export interface Exit {
@@ -70,30 +69,31 @@ export interface SiteMap {
   placeWords(place: string): { location: string; nearby: string[] };
 }
 
-/** What a map is made from: a settlement (a realm one, or Millbrook's own when there's no realm). */
+/** What a map is made from: a settlement of the realm, or a plain village for a world without a realm. */
 export type SiteInfo = Pick<Settlement, "id" | "name" | "kind" | "buildings" | "terrain" | "population" | "houses">;
 
-/** Millbrook as the realm makes it (realm/generate.ts), for worlds without a realm. */
-export const MILLBROOK_INFO: SiteInfo = {
-  id: HOME_ID,
-  name: "Millbrook",
+/** A plain village, for worlds without a realm (and tests of the maps). */
+export const PLAIN_VILLAGE: SiteInfo = {
+  id: "start",
+  name: "the village",
   kind: "village",
-  buildings: { farms: 1, inn: 1, smithy: 1, walls: 0, mine: 1 },
+  buildings: { farms: 1, inn: 1, smithy: 1 },
   terrain: "valley",
   population: 180,
 };
 
-/** Every den key Millbrook's maps have, for checking spawn rules (src/data/spawns.json). */
-export const DEN_KEYS = ["villager", "village_square", "west_road", "horse", "wolf", "deep_woods", "forest_edge", "bandit", "road_ambush", "bandit_camp", "mine_mouth"] as const;
+/** Every den kind the maps have, for checking spawn rules. */
+export const DEN_KEYS = ["villager", "square", "gate_road", "paddock", "horse", "wolf", "deep_woods", "woods_edge", "bandit", "road_ambush", "camp", "mine_mouth"] as const;
 
 /** Colour of a den's creatures when their kind has none (map.ts CREATURE_COLORS). */
 export const DEN_COLORS: Record<string, string> = {
-  village_square: "#c9b48a",
-  west_road: "#c9b48a",
-  forest_edge: "#8a8f96",
+  square: "#c9b48a",
+  gate_road: "#c9b48a",
+  paddock: "#8b5a2b",
+  woods_edge: "#8a8f96",
   deep_woods: "#8a8f96",
   road_ambush: "#6b3b2a",
-  bandit_camp: "#5a4636",
+  camp: "#5a4636",
   mine_mouth: "#7a6f60",
 };
 
@@ -120,7 +120,6 @@ interface Layout {
 
 /** The localities a settlement has: the woods always; the road when a camp or a mine is up it. */
 export function areasOf(realm: Realm | null | undefined, site: string): AreaId[] {
-  if (site === HOME_ID) return [...AREAS];
   if (!realm) return ["village", "woods"];
   const out: AreaId[] = ["village"];
   const camp = !!gangAt(realm, site);
@@ -137,7 +136,6 @@ const dungeonAt = (realm: Realm, site: string) => Object.values(realm.dungeons).
 
 /** What each area of a settlement is called, and what's about at its place. */
 export function areaWords(realm: Realm | null | undefined, s: SiteInfo, area: AreaId): Anchor & { name: string } {
-  if (s.id === HOME_ID && area !== "village") return { x: 0, y: 0, name: cap(PLACE_NAMES[area]), location: PLACE_NAMES[area], nearby: PLACE_NEARBY[area] };
   switch (area) {
     case "road":
       return { x: 0, y: 0, name: `The road out of ${s.name}`, location: `the road out of ${s.name}`, nearby: ["cart ruts", "pines on both sides"] };
@@ -300,7 +298,6 @@ interface Lot {
 }
 
 function village(s: SiteInfo, areas: AreaId[], realm: Realm | null | undefined, rng: Rng): Layout {
-  const home = s.id === HOME_ID;
   const size = VILLAGE_SIZE[s.kind] ?? VILLAGE_SIZE.village!;
   const W = size.w;
   const H = size.h;
@@ -381,7 +378,7 @@ function village(s: SiteInfo, areas: AreaId[], realm: Realm | null | undefined, 
     zone("exit_woods", "exit_woods", W - 3, my - 1, W - 2, my + 1);
   } else set(W - 1, my, "tree");
 
-  // What's built here, most important first; houses fill the rest by size. Millbrook's keep their names.
+  // What's built here, most important first; houses fill the rest by size.
   const level = (b: keyof SiteInfo["buildings"]) => s.buildings[b] ?? 0;
   const sized = (kind: string, name: string, w = 4, h = 3): Wanted => ({ kind, name, w, h });
   const wanted: Wanted[] = [];
@@ -389,8 +386,8 @@ function village(s: SiteInfo, areas: AreaId[], realm: Realm | null | undefined, 
   if (s.kind === "capital") wanted.push(sized("hall", "Lord chancellor's hall", 5));
   const innNames = [...INNS].sort(() => rng() - 0.5).map((n) => n.replace(/^the /, "").replace(/^./, (c) => c.toUpperCase()));
   const inns = s.kind === "hamlet" && level("inn") === 0 ? 0 : Math.max(1, Math.min(4, level("inn") + (big ? 1 : 0)));
-  for (let i = 0; i < inns; i++) wanted.push(sized("inn", home && i === 0 ? "Gilded Goose" : innNames[i % innNames.length]!));
-  for (let i = 0; i < Math.min(3, level("smithy")); i++) wanted.push(sized("smithy", home && i === 0 ? "Forge" : i === 0 ? "Smithy" : "Smithy"));
+  for (let i = 0; i < inns; i++) wanted.push(sized("inn", innNames[i % innNames.length]!));
+  for (let i = 0; i < Math.min(3, level("smithy")); i++) wanted.push(sized("smithy", "Forge"));
   if (market) wanted.push(sized("market", "Market hall", big ? 5 : 4));
   if (level("temple") > 0) wanted.push(sized("temple", "Temple", big ? 5 : 4));
   if (level("temple") >= 3) wanted.push(sized("temple", "Shrine", 4, 3));
@@ -480,21 +477,22 @@ function village(s: SiteInfo, areas: AreaId[], realm: Realm | null | undefined, 
   const inn = at(first("inn"));
   const smithy = at(first("smithy"));
   const hall = at(first("palace") ?? first("hall"));
-  const words = (place: PlaceId, fallback: Anchor): Anchor => (home ? { ...fallback, location: PLACE_NAMES[place], nearby: PLACE_NEARBY[place] } : fallback);
-  const sq = words("square", { x: big ? mx + 1 : mx + 2, y: my + 1, location: `the square of ${s.name}`, nearby: ["the well", hall ? `the ${hall.building.toLowerCase()}` : "a few stalls", "folk passing"] });
+  const sq: Anchor = { x: big ? mx + 1 : mx + 2, y: my + 1, location: `the square of ${s.name}`, nearby: ["the well", hall ? `the ${hall.building.toLowerCase()}` : "a few stalls", "folk passing"] };
   const placeAnchors: Partial<Record<PlaceId, Anchor>> = {
     square: sq,
-    gate: words("gate", { x: walled ? 4 : 3, y: my - 1, location: `the ${walled ? "gate" : "edge"} of ${s.name}`, nearby: [walled ? "the town gate" : "the road in", "a milestone"] }),
-    inn: inn ? words("inn", { x: inn.x, y: inn.y, location: `outside ${inn.building}, the inn of ${s.name}`, nearby: [`${inn.building}'s door`, "a hanging inn sign"] }) : sq,
-    forge: smithy ? words("forge", { x: smithy.x, y: smithy.y, location: `the smithy of ${s.name}`, nearby: ["an anvil", "a glowing forge"] }) : sq,
+    gate: ({ x: walled ? 4 : 3, y: my - 1, location: `the ${walled ? "gate" : "edge"} of ${s.name}`, nearby: [walled ? "the town gate" : "the road in", "a milestone"] }),
+    inn: inn ? ({ x: inn.x, y: inn.y, location: `outside ${inn.building}, the inn of ${s.name}`, nearby: [`${inn.building}'s door`, "a hanging inn sign"] }) : sq,
+    forge: smithy ? ({ x: smithy.x, y: smithy.y, location: `the smithy of ${s.name}`, nearby: ["an anvil", "a glowing forge"] }) : sq,
   };
   // Where creatures go in the village: the crowd in the square and on the road in, horses in the paddock by the farms.
   const sqDen = { x0: square.x0, y0: square.y0, x1: square.x1, y1: square.y1 };
+  const paddock = { x0: fields.x0, y0: fields.y0, x1: fields.x1, y1: fields.y1 };
   const dens: Record<string, Den> = {
-    village_square: sqDen,
+    square: sqDen,
     villager: sqDen,
-    west_road: { x0: 5, y0: my - 1, x1: 10, y1: my + 1 },
-    horse: { x0: fields.x0, y0: fields.y0, x1: fields.x1, y1: fields.y1 },
+    gate_road: { x0: 5, y0: my - 1, x1: 10, y1: my + 1 },
+    paddock,
+    horse: paddock,
   };
   return { name: s.name, tiles, buildings, anchors: placeAnchors, fallback: "square", dens, exits, start: { x: PLAYER_START.x, y: my }, zones };
 }
@@ -534,11 +532,10 @@ function camp(s: SiteInfo, realm: Realm | null | undefined, rng: Rng): Layout {
   const buildings: Building[] = [];
   carve(tiles, [[0, 9], [8, 9]]);
   const exits = [exitAt(tiles, 0, 9, "road", exitLabel(realm, s, "road"))];
-  const home = s.id === HOME_ID;
-  put(tiles, buildings, { name: home ? "Rook's tent" : "Chief's tent", x: 14, y: 4, w: 4, h: 2, color: "#6b4a3a" });
+  put(tiles, buildings, { name: "Chief's tent", x: 14, y: 4, w: 4, h: 2, color: "#6b4a3a" });
   put(tiles, buildings, { name: "Tent", x: 8, y: 4, w: 3, h: 2, color: "#7a5a40" });
   put(tiles, buildings, { name: "Tent", x: 8, y: 13, w: 3, h: 2, color: "#7a5a40" });
-  put(tiles, buildings, { name: home ? "Stolen carts" : "Loot", x: 16, y: 13, w: 3, h: 1, color: "#8a6a3a" });
+  put(tiles, buildings, { name: "Loot", x: 16, y: 13, w: 3, h: 1, color: "#8a6a3a" });
   put(tiles, buildings, { name: "Fire", x: 13, y: 9, w: 1, h: 1, color: "#d9772b" });
   // The clearing stays open; the woods close in around it.
   forest(tiles, rng, 0.6, 1, (x, y) => x >= 6 && x <= 21 && y >= 3 && y <= 15);
@@ -547,9 +544,9 @@ function camp(s: SiteInfo, realm: Realm | null | undefined, rng: Rng): Layout {
     name: w.name,
     tiles,
     buildings,
-    anchors: { camp: { x: 14, y: 8, location: home ? "the bandit camp at the north end of the mine road" : w.location, nearby: w.nearby } },
+    anchors: { camp: { x: 14, y: 8, location: w.location, nearby: w.nearby } },
     fallback: "camp",
-    dens: { bandit_camp: { x0: 9, y0: 7, x1: 19, y1: 11 } },
+    dens: { camp: { x0: 9, y0: 7, x1: 19, y1: 11 } },
     exits,
     start: { x: 1, y: 9 },
   };
@@ -597,15 +594,13 @@ function woods(s: SiteInfo, realm: Realm | null | undefined, rng: Rng): Layout {
     anchors: { woods: { x: 8, y: 6, location: w.location, nearby: w.nearby } },
     fallback: "woods",
     // Wolves deep in; at night some come to the edge nearest the village. Elsewhere, the pack the realm says is there (game/realm/haunts.ts).
-    dens: { wolf: { x0: 12, y0: 3, x1: 22, y1: 14 }, deep_woods: { x0: 12, y0: 3, x1: 22, y1: 14 }, forest_edge: { x0: 1, y0: 7, x1: 6, y1: 11 } },
+    dens: { wolf: { x0: 12, y0: 3, x1: 22, y1: 14 }, deep_woods: { x0: 12, y0: 3, x1: 22, y1: 14 }, woods_edge: { x0: 1, y0: 7, x1: 6, y1: 11 } },
     exits,
     start: { x: 1, y: 9 },
   };
 }
 
 // ---- Spots ----
-
-const SPOT_COLORS = ["#7a9b57", "#a0607a", "#5f8f9b", "#b59a3f", "#8a6fb5", "#6b8f6b", "#b5763f", "#4f6fa0"];
 
 function finish(s: SiteInfo, area: AreaId, L: Layout): SiteMap {
   const { tiles } = L;
@@ -635,7 +630,6 @@ function finish(s: SiteInfo, area: AreaId, L: Layout): SiteMap {
     }
     return null;
   };
-  const home = s.id === HOME_ID;
   return {
     id: area === "village" ? s.id : `${s.id}:${area}`,
     site: s.id,
@@ -675,10 +669,7 @@ function finish(s: SiteInfo, area: AreaId, L: Layout): SiteMap {
       const anchor = L.anchors[workplace as PlaceId];
       if (!anchor) return null;
       const at = spotAt(workplace, id) ?? { x: anchor.x, y: anchor.y };
-      let h = 0;
-      for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0;
-      const looks = home ? NPC_LOOKS[id] : undefined;
-      return { ...at, color: looks?.color ?? SPOT_COLORS[h % SPOT_COLORS.length]!, location: anchor.location, nearby: looks?.nearby ?? anchor.nearby };
+      return { ...at, color: spriteColor(id), location: anchor.location, nearby: anchor.nearby };
     },
     placeAtTile: (pos) => {
       let best: { place: PlaceId; d: number } = { place: L.fallback, d: Infinity };
@@ -701,5 +692,5 @@ export const exitTo = (map: SiteMap, to: AreaId): Exit | undefined => map.exits.
 /** The exit the player is standing on, if any. */
 export const exitUnder = (map: SiteMap, pos: { x: number; y: number }): Exit | undefined => map.exits.find((e) => e.x === pos.x && e.y === pos.y);
 
-/** Millbrook's village, for worlds without a realm (and tests). */
-export const MILLBROOK: SiteMap = siteMap(MILLBROOK_INFO);
+/** The plain village's map, for worlds without a realm (and tests). */
+export const PLAIN: SiteMap = siteMap(PLAIN_VILLAGE);

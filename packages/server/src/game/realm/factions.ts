@@ -158,7 +158,7 @@ export function factionsDay(realm: Realm, day: number, rng: Rng): void {
   for (const fac of active(realm)) {
     const ms = membersOf(realm, fac);
     fac.members = ms.map((m) => m.id);
-    if (fac.members.length === 0 && !fac.file) {
+    if (fac.members.length === 0) {
       fac.dissolved = day;
       tally(realm, "dissolved");
       realmNews(realm, day, fac.seat, "faction", `${cap(fac.name)} is no more: nobody is left.`, 4, [fac.name]);

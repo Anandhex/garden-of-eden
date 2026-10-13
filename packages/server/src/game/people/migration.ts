@@ -10,6 +10,8 @@ import { recordLifeEvent } from "./events.js";
 import { LIVES } from "./rates.js";
 import { ageFrom } from "./rules.js";
 import type { LifeCtx } from "./step.js";
+import { sendArrival } from "../realm/arrivals.js";
+import { outlookOf } from "./outlook.js";
 
 /**
  * People moving between places (N25). Decided once a day for the whole realm, by household, before
@@ -82,7 +84,9 @@ export function moveHouseholds(ctx: LifeCtx, from: Settlement, to: Settlement, c
   const homes = householdsOf(people.loadSite(from.id, "full") as PersonRow[], day, !!opts.everyone);
   if (homes.length === 0) return 0;
   // Who goes: households in an order of the day's dice, while the count isn't reached.
-  const ordered = homes.map((h) => ({ h, k: rng() })).sort((a, b) => a.k - b.k || (a.h.key < b.h.key ? -1 : 1)).map((x) => x.h);
+  // A household with someone who has come to want to leave (a review's outcome, N25b) goes before the others: the same one die each, the order shifts.
+  const wantsOut = (h: Household) => h.members.some((m) => outlookOf(m).goal?.kind === "move");
+  const ordered = homes.map((h) => ({ h, k: rng() - (wantsOut(h) ? 0.6 : 0) })).sort((a, b) => a.k - b.k || (a.h.key < b.h.key ? -1 : 1)).map((x) => x.h);
   const occupancy = new Map<number, number>();
   for (const r of people.loadSite(to.id, "full") as PersonRow[]) if (r.home !== null) occupancy.set(r.home, (occupancy.get(r.home) ?? 0) + 1);
   const seq = people.seq(to.id);
@@ -103,6 +107,8 @@ export function moveHouseholds(ctx: LifeCtx, from: Settlement, to: Settlement, c
         ...(servant ? { master: null, master_id: null, job: "labourer" } : {}),
         // They were stepped at home through yesterday: they take part in today's step where they are now.
         stepped_day: day - 1,
+        // What they wanted was to go; they have gone.
+        ...(outlookOf(m).goal?.kind === "move" ? { outlook: JSON.stringify({ ...outlookOf(m), goal: undefined }) } : {}),
       });
       occupancy.set(home, (occupancy.get(home) ?? 0) + 1);
       moved++;
@@ -170,7 +176,7 @@ export function migrationDay(ctx: LifeCtx, day: number, live: ReadonlySet<string
     s.population = people.livingCount(s.id);
     to.population = people.livingCount(to.id);
     tally(realm, "migrants", moved);
-    if (to.home && moved >= 3) realm.home.push({ day, kind: "refugees", count: Math.min(4, Math.ceil(moved / 3)), by: s.name });
+    if (moved >= 3) sendArrival(realm, to.id, { day, kind: "refugees", count: Math.min(4, Math.ceil(moved / 3)), by: s.name });
     if (fleeing && moved >= 5 && rng() < 0.3) realmNews(realm, day, s.id, "refugees", `Folk are leaving ${s.name} for ${to.name}: ${moved} gone this week.`, 3, [s.name, to.name]);
   }
   total += homestead(ctx, day, live, ensureCurrent, sites);

@@ -117,7 +117,7 @@ export function gossipTogether(group: Gossiper[], day: number, rng: Rng, world?:
 /** Trust that time together alone can build; more takes deeds. */
 export const FAMILIAR_TRUST = 40;
 
-/** How an event looks to someone who saw it: "they attacked Brena Ashford". */
+/** How an event looks to someone who saw it: "they attacked Mara Ashford". */
 export function witnessedText(event: GameEvent, names: Record<string, string>): string | null {
   const target = names[event.target] ?? event.target;
   switch (event.kind) {

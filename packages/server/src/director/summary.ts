@@ -27,7 +27,7 @@ export type Summary = z.infer<typeof SummarySchema>;
 /** Most importance a summary fact gets: less than any event code wrote. */
 export const SUMMARY_IMPORTANCE_CAP = 4;
 
-/** The conversation as plain lines: "Traveler: ...", "Brena: ...". Situation blocks and tool chatter are left out. */
+/** The conversation as plain lines: "Traveler: ...", "Mara: ...". Situation blocks and tool chatter are left out. */
 export function transcriptLines(messages: readonly ChatMessage[], npcName: string, playerName: string): string[] {
   const lines: string[] = [];
   for (const m of messages) {

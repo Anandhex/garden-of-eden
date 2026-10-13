@@ -1,17 +1,18 @@
 import { describe, expect, it } from "vitest";
-import brenaJson from "../src/data/npcs/brena.json" with { type: "json" };
-import rookJson from "../src/data/npcs/rook.json" with { type: "json" };
+import brenaJson from "./fixtures/npcs/brena.json" with { type: "json" };
+import rookJson from "./fixtures/npcs/rook.json" with { type: "json" };
 import { type Creature, fightCreature, loadCreatureTemplates } from "../src/game/creatures.js";
 import { acceptQuest, turnInQuests } from "../src/game/quests.js";
-import { applySpawnRules, denKey, loadSpawnRules, type SpawnLedger } from "../src/game/spawning.js";
+import { applySpawnRules, denKey, type SpawnLedger } from "../src/game/spawning.js";
 import type { ChatRequest, ChatResult, LLMProvider } from "../src/llm/provider.js";
 import { certaintyOf } from "../src/npc/knowledge.js";
 import { NpcAgent } from "../src/npc/NpcAgent.js";
 import { parsePersona } from "../src/npc/personaSchema.js";
 import { createNpcState } from "../src/npc/state.js";
-import { NPC_LOOKS } from "../src/web/map.js";
-import { MILLBROOK_INFO, siteMap } from "../src/web/sites.js";
-import { createDemoWorld } from "../src/world/world.js";
+import { generateRealm } from "../src/game/realm/generate.js";
+import { siteMap } from "../src/web/sites.js";
+import { createTestWorld } from "../src/world/world.js";
+import { fixtureSpawnRules } from "./helpers.js";
 
 /** Counts model calls; always says a short line. */
 class CountingProvider implements LLMProvider {
@@ -32,9 +33,10 @@ const max = () => 0.999;
 describe("Rook, the bandit leader", () => {
   it("is a full NPC with a spot at his camp, carrying Brena's father's hammer", () => {
     // His spot is at the camp, on the camp's own map off the mine road (N15), not in the village.
-    expect(NPC_LOOKS.rook).toBeDefined();
-    expect(siteMap(MILLBROOK_INFO, "camp").npcSpot("rook", "camp")).not.toBeNull();
-    expect(siteMap(MILLBROOK_INFO).npcSpot("rook", "camp")).toBeNull();
+    const realm = generateRealm(1);
+    const lair = realm.settlements[Object.values(realm.factions).find((f) => f.kind === "gang")!.seat!]!;
+    expect(siteMap(lair, "camp", realm).npcSpot("rook", "camp")).not.toBeNull();
+    expect(siteMap(lair, "village", realm).npcSpot("rook", "camp")).toBeNull();
     expect(rook.startingInventory["forge hammer"]).toBe(1);
     expect(rook.dropsOnDeath).toBe(true);
     // He can't wield it: it's above his rank. It's a trophy, or a ransom.
@@ -47,7 +49,7 @@ describe("Rook, the bandit leader", () => {
   });
 
   it("killed, he drops his pack and purse; a shopkeeper drops nothing", async () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const npc = new NpcAgent(rook, new CountingProvider(), max);
     npc.state.hp = 1;
     const money = world.player.money;
@@ -59,14 +61,14 @@ describe("Rook, the bandit leader", () => {
 
     const smith = new NpcAgent(brena, new CountingProvider(), max);
     smith.state.hp = 1;
-    const r2 = await smith.attackedByPlayer(createDemoWorld());
+    const r2 = await smith.attackedByPlayer(createTestWorld());
     expect(r2.spoils).toBeUndefined();
   });
 });
 
 describe("My father's hammer (N3.2 done-when)", () => {
   it("sends you against three bandit stat blocks and Rook; only Rook ever calls the model", async () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.player.level = 10; // a B-tier job
     world.player.attributes.strength = 20;
     const state = createNpcState(brena);
@@ -80,11 +82,11 @@ describe("My father's hammer (N3.2 done-when)", () => {
     // Taking it brings out his guards, at his camp.
     const creatures: Record<string, Creature> = {};
     const ledger: SpawnLedger = {};
-    const rules = loadSpawnRules();
+    const rules = fixtureSpawnRules();
     applySpawnRules(rules, templates, creatures, ledger, { ...world, recentEvents: [] }, max);
     const guards = ledger.rook_guards!.uids.map((uid) => creatures[uid]!);
     expect(guards).toHaveLength(3);
-    for (const g of guards) expect(denKey(rules, ledger, g)).toBe("bandit_camp");
+    for (const g of guards) expect(denKey(rules, ledger, g)).toBe("camp");
 
     // The guards: fought entirely in code.
     for (const g of guards) {

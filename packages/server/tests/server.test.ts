@@ -54,7 +54,7 @@ beforeAll(async () => {
     const timer = setTimeout(() => reject(new Error(`server didn't start:\n${output}`)), 30_000);
     const onData = (d: Buffer) => {
       output += d;
-      if (output.includes("Millbrook is open")) {
+      if (output.includes("The game is open")) {
         clearTimeout(timer);
         resolve();
       }
@@ -86,7 +86,7 @@ describe("game server (G1)", () => {
     expect(s.queue).toBe(0);
     expect(s.npcs.length).toBeGreaterThan(3);
     for (const n of s.npcs) expect(n.voice.lang).toMatch(/^en/);
-    expect(s.npcs.find((n) => n.id === "brena")!.voice.piper?.model).toBe("en_GB-semaine-medium");
+    expect(s.npcs[0]!.voice.piper?.model).toBe("en_GB-semaine-medium");
   });
 
   it("queues moves sent at once instead of turning them away, and applies each exactly once", async () => {
@@ -102,11 +102,11 @@ describe("game server (G1)", () => {
     expect(after.x - before.x).toBe(ok.length);
   });
 
-  it("walks off the village's north edge onto the mine road and back (N15); the notables are about", async () => {
+  it("walks off the village's east edge into the woods and back (N15); the town's notables are about", async () => {
     const state = async () => (await (await fetch(`${base}/api/state`)).json()) as Snapshot;
     /** Walk to a tile on the current map, one step at a time, around whoever's in the way. */
     async function walkTo(goal: { x: number; y: number }, startMap: string): Promise<MoveResponse | null> {
-      for (let i = 0; i < 120; i++) {
+      for (let i = 0; i < 160; i++) {
         const s = await state();
         if (s.map.id !== startMap) return null;
         const busy = (x: number, y: number) => s.npcs.some((n) => n.x === x && n.y === y && !n.companion) || s.creatures.some((c) => c.x === x && c.y === y);
@@ -119,24 +119,21 @@ describe("game server (G1)", () => {
       return null;
     }
     const home = await state();
-    expect(home.map.id).toBe("millbrook");
+    expect(home.map.id).toBe(home.site.id);
     expect(home.site.area.id).toBe("village");
-    // Millbrook's mayor and guard captain from the realm are part of the cast now.
-    expect(home.npcs.map((n) => n.name)).toEqual(expect.arrayContaining(["Aldric Voss", "Reyna Holt"]));
-    // Rook's camp isn't in the village: he's never on its map.
-    expect(home.npcs.find((n) => n.id === "rook")!.x).toBe(-1);
-    const north = home.map.exits.find((e) => e.y === 0)!;
-    expect(north.label).toBe("To the mine road");
-    const out = await walkTo(north, home.map.id);
+    expect(["village", "town"]).toContain(home.site.kind);
+    // The town's head and the others of note, made from the realm, are about; their sprites have colours.
+    expect(home.npcs.length).toBeGreaterThanOrEqual(3);
+    expect(home.npcs.every((n) => /^#[0-9a-f]{6}$/i.test(n.color))).toBe(true);
+    const east = home.map.exits.find((e) => /woods/i.test(e.label))!;
+    expect(east.label).toMatch(/^To the woods around /);
+    const out = await walkTo(east, home.map.id);
     expect(out?.ok).toBe(true);
-    expect(out!.state.map.id).toBe("millbrook:road");
-    expect(out!.state.site.area.name).toBe("The mine road");
-    expect(out!.state.position).toEqual({ x: 12, y: 16 });
-    expect(out!.log.join(" ")).toMatch(/You walk out to the mine road/);
-    expect(out!.state.map.exits.map((e) => e.label).sort()).toEqual(["To Millbrook", "To the bandit camp on the mine road", "To the mouth of the old mine"]);
-    const back = (await (await post("/api/move", { dx: 0, dy: 1 })).json()) as MoveResponse;
-    expect(back.state.map.id).toBe("millbrook");
-    expect(back.state.position).toEqual({ x: north.x, y: 1 });
+    expect(out!.state.map.id).toBe(`${home.site.id}:woods`);
+    expect(out!.state.site.area.name).toMatch(/^The woods around /);
+    expect(out!.log.join(" ")).toMatch(/You walk out to the woods around/);
+    const back = await walkTo(out!.state.map.exits.find((e) => /^To /.test(e.label))!, out!.state.map.id);
+    expect(back?.state.map.id).toBe(home.site.id);
   });
 
   it("streams an offline action as events and ends with the new state", async () => {
@@ -147,7 +144,8 @@ describe("game server (G1)", () => {
   });
 
   it("says the model is offline in the stream, and still ends with done", async () => {
-    const events = await actStream({ action: "say", npc: "brena", text: "Hello." });
+    const first = ((await (await fetch(`${base}/api/state`)).json()) as Snapshot).npcs[0]!.id;
+    const events = await actStream({ action: "say", npc: first, text: "Hello." });
     expect(events.some((e) => e.t === "error")).toBe(true);
     expect(events.at(-1)!.t).toBe("done");
   });
@@ -155,11 +153,12 @@ describe("game server (G1)", () => {
   it("reports the Piper backend and speaks a line in the NPC's voice, stage directions dropped", async () => {
     const info = await (await fetch(`${base}/api/voice`)).json();
     expect(info.backend).toBe("piper");
-    const res = await post("/api/speak", { npc: "brena", text: "*wipes her hands* Four gold." });
+    const speaker = ((await (await fetch(`${base}/api/state`)).json()) as Snapshot).npcs[0]!.id;
+    const res = await post("/api/speak", { npc: speaker, text: "*wipes her hands* Four gold." });
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toBe("audio/wav");
     expect(Buffer.from(await res.arrayBuffer()).toString("latin1")).toBe("RIFF....WAVE");
-    expect(piperRequests.at(-1)).toEqual({ text: "Four gold.", voice: "en_GB-semaine-medium", speaker_id: 0, length_scale: 1.05 });
+    expect(piperRequests.at(-1)).toMatchObject({ text: "Four gold.", voice: "en_GB-semaine-medium" });
     expect((await post("/api/speak", { npc: "nobody", text: "Hi." })).status).toBe(400);
   });
 

@@ -2,7 +2,7 @@
  * T15: the blind voice test, and consistency checks, against the real model.
  *
  *   npm run bench:style                  # every NPC file
- *   npm run bench:style -- --npc pip     # report one NPC (all still speak: the test needs them all)
+ *   npm run bench:style -- --npc <id>     # report one NPC (all still speak: the test needs them all)
  *
  * The same lines go to every NPC (a fresh conversation each, at their workplace, by
  * day). Then a code classifier, with no model involved, tries to tell who said each
@@ -12,14 +12,14 @@
  * a <situation> block, and a minor never says anything romantic (design rule 7).
  * Results go to saves/bench/style-<date>.json.
  */
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { config } from "../src/config.js";
 import { OllamaProvider } from "../src/llm/ollama.js";
 import { NpcAgent } from "../src/npc/NpcAgent.js";
-import { parsePersona } from "../src/npc/personaSchema.js";
+import { generatedCast } from "./generated.js";
 import { createNpcState } from "../src/npc/state.js";
 import { workplaceOf, PLACE_NAMES, PLACE_NEARBY } from "../src/game/schedule.js";
-import { createDemoWorld } from "../src/world/world.js";
+import { createTestWorld } from "../src/world/world.js";
 import { registerNpcNames } from "../src/world/names.js";
 import { knownNameWords, unknownNames } from "../src/npc/knowledge.js";
 
@@ -29,7 +29,7 @@ const LINES = [
   "Have you heard any news lately?",
   "What do you think of the bandits on the mine road?",
   "Is there anything you need help with?",
-  "Who's the most interesting person in Millbrook?",
+  "Who's the most interesting person in town?",
   "What's the best thing about this village?",
   "I'm new here. Any advice?",
   "What would you do with a pocketful of gold?",
@@ -45,10 +45,7 @@ const arg = (name: string) => {
 };
 const only = arg("npc");
 
-const NPC_DIR = new URL("../src/data/npcs/", import.meta.url);
-const personas = readdirSync(NPC_DIR)
-  .filter((f) => f.endsWith(".json"))
-  .map((f) => parsePersona(JSON.parse(readFileSync(new URL(f, NPC_DIR), "utf8")), f));
+const personas = Object.values(generatedCast(Number(process.env.CAST ?? 8)));
 registerNpcNames(Object.fromEntries(personas.map((p) => [p.id, p.name])));
 
 // ---- The classifier (code only) ----
@@ -56,7 +53,7 @@ registerNpcNames(Object.fromEntries(personas.map((p) => [p.id, p.name])));
 type Profile = Map<string, number>;
 const NAME_WORDS = new Set(personas.flatMap((p) => p.name.toLowerCase().split(" ")));
 
-/** Words and character trigrams, minus every NPC's own name (saying "Pell" isn't a voice). */
+/** Words and character trigrams, minus every NPC's own name (saying their own name isn't a voice). */
 function features(text: string): Profile {
   const f: Profile = new Map();
   const add = (k: string) => f.set(k, (f.get(k) ?? 0) + 1);
@@ -108,7 +105,7 @@ const replies: Reply[] = [];
 for (const p of personas) {
   process.stdout.write(`${p.name}: `);
   for (const line of LINES) {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.hour = 10;
     const place = workplaceOf(p);
     world.player.place = place;
@@ -152,7 +149,7 @@ const results = personas.map((p) => {
   const situationLeak = texts.filter((t) => /<\/?situation>/i.test(t)).length;
   const romance = p.minor ? texts.filter((t) => ROMANCE.test(t)).length : 0;
   // Facts (T15): names that are in no lore and no NPC file. Reported, not failed: every NPC does it a little.
-  const known = knownNameWords(personas, ["Millbrook", "Traveler", "Honest", "Mrs", "Mr", "Mistress", "Master"]);
+  const known = knownNameWords(personas, ["Traveler", "Honest", "Mrs", "Mr", "Mistress", "Master"]);
   const madeUp = [...new Set(texts.flatMap((t) => unknownNames(t, known)))];
   const share = right / mine.length;
   const pass = share >= PASS_SHARE && aiTalk === 0 && situationLeak === 0 && romance === 0;

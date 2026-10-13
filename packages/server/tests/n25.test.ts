@@ -14,7 +14,9 @@ import { lifeStats } from "../src/game/people/report.js";
 import { closeKin, inheritRowTraits } from "../src/game/people/rules.js";
 import { stepSite } from "../src/game/people/step.js";
 import { advanceWorld, lifeDay } from "../src/game/people/world.js";
-import { HOME_ID, generateRealm } from "../src/game/realm/generate.js";
+import { generateRealm } from "../src/game/realm/generate.js";
+import { pickStartSite } from "../src/game/realm/start.js";
+import { townsfolkId } from "../src/game/realm/townsfolk.js";
 import { housesOf } from "../src/game/realm/houses.js";
 import type { PersonRow } from "../src/store/peopleStore.js";
 import { siteMap } from "../src/web/sites.js";
@@ -27,11 +29,14 @@ beforeEach(() => {
   config.peopleLazy = "";
 });
 
+/** The start town of a realm: the place a new game begins, and these tests live in. */
+const home = (realm: { seed: number } & Parameters<typeof pickStartSite>[0]) => pickStartSite(realm, realm.seed);
+
 function world(seed = 1) {
   const realm = generateRealm(seed, 1);
   const store = new WorldStore(":memory:");
   materialisePeople(realm, store.people, 1);
-  const live = liveSites(realm, "slice");
+  const live = liveSites(realm, home(realm), "slice");
   return { realm, store, live };
 }
 const living = (store: WorldStore, site: string) => store.people.loadSite(site, "full") as ReturnType<WorldStore["people"]["loadSite"]> & Array<import("../src/store/peopleStore.js").PersonRow>;
@@ -64,7 +69,7 @@ describe("N25.1 rules and death records", () => {
 describe("N25.2 houses are fixed", () => {
   it("draws the same houses however the population moves, until houses are built", () => {
     const { realm } = world();
-    const s = realm.settlements[HOME_ID]!;
+    const s = realm.settlements[home(realm)]!;
     const count = (x: typeof s) => siteMap(x, "village", realm).buildings.filter((b) => b.kind === "house").length;
     const before = siteMap(s, "village", realm).buildings.map((b) => `${b.kind}${b.x},${b.y}`);
     s.population *= 2;
@@ -78,7 +83,7 @@ describe("N25.2 houses are fixed", () => {
 describe("N25.3 a village lives ten years", () => {
   it("ages, marries, has children and dies; the population is the living roster every day", () => {
     const { realm, store, live } = world();
-    const site = HOME_ID;
+    const site = home(realm);
     const start = living(store, site).length;
     const day0 = realm.day;
     for (let d = day0 + 1; d <= day0 + 120; d++) {
@@ -121,7 +126,7 @@ describe("N25.3 a village lives ten years", () => {
 describe("N25.6 a famine kills where it struck", () => {
   it("writes famine deaths with the place on the record", () => {
     const { realm, store } = world();
-    const site = HOME_ID;
+    const site = home(realm);
     for (let d = 2; d <= 15; d++) {
       store.people.putSiteDay(site, d, { food: 0, prosperity: 20, famine: 1, crowding: 1, houses: 36, raided: false, atWar: false, besieged: false, beasts: false, plague: 0, casualties: [] });
       stepSite({ realm, store }, site, d);
@@ -132,6 +137,7 @@ describe("N25.6 a famine kills where it struck", () => {
   });
   it("a raid's casualty order kills fighters of that place with the event on the record", () => {
     const { realm, store } = world();
+    const HOME_ID = home(realm);
     store.people.putSiteDay(HOME_ID, 2, { food: 80, prosperity: 50, famine: 0, crowding: 1, houses: 36, raided: true, atWar: false, besieged: false, beasts: false, plague: 0, casualties: [{ cause: "raid", count: 6, event: "raid:2:test" }] });
     stepSite({ realm, store }, HOME_ID, 2);
     const dead = store.dumpTable("people").filter((r) => r.death && parseDeath(String(r.death))?.event === "raid:2:test");
@@ -141,9 +147,11 @@ describe("N25.6 a famine kills where it struck", () => {
 
 describe("N25.9 level of detail never changes outcomes", () => {
   it("a lazy place caught up at day 60 is the place that ran daily", () => {
-    const a = world();
-    const b = world();
-    const lazy = [...b.live].find((id) => id !== HOME_ID)!;
+    // Seed 4: here the lazy place and the live one do not move each other's food and coin. (Where they do, the lazy
+    // place's population number lags until its catch-up and the realm's economy reads it: lazy is for budgets only.)
+    const a = world(4);
+    const b = world(4);
+    const lazy = [...b.live].find((id) => id !== home(b.realm))!;
     advanceWorld(a.realm, a.store, 61, { live: a.live });
     config.peopleLazy = lazy;
     advanceWorld(b.realm, b.store, 61, { live: b.live, settleLazy: true });
@@ -166,6 +174,7 @@ describe("N25.9 level of detail never changes outcomes", () => {
 describe("N25.7 moving as households", () => {
   it("a famine at one village sends whole households to a neighbour, the counts matching", () => {
     const { realm, store, live } = world();
+    const HOME_ID = home(realm);
     const from = realm.settlements[HOME_ID]!;
     const to = [...live].map((id) => realm.settlements[id]!).find((s) => s.id !== HOME_ID)!;
     from.food = 0;
@@ -207,12 +216,12 @@ describe("N25.5 the whole realm is within budget and in balance", () => {
     expect(sum).toBe(store.dumpTable("people").filter((r) => r.death === null && !realm.settlements[String(r.site)]?.abandoned).length);
     for (const s of Object.values(realm.settlements)) if (s.kind === "capital") expect(s.population).toBeGreaterThan(500);
     for (const b of checkLifeBounds(realm, store)) expect(b.ok, `${b.name}: ${b.detail}`).toBe(true);
-    expect(lineageOf(store.people, store.people.get("t_millbrook_0")!).children).toBeDefined();
+    expect(lineageOf(store.people, store.people.get(townsfolkId(home(realm), 0))!).children).toBeDefined();
   });
 });
 
 describe("N25.8 rising", () => {
-  it.each([[HOME_ID], ["away"]])("a person born in play at %s who comes of age with promise becomes a figure, then a talking NPC naming both parents", async (where) => {
+  it.each([["home"], ["away"]])("a person born in play at %s who comes of age with promise becomes a figure, then a talking NPC naming both parents", async (where) => {
     const { makeTown } = await import("./helpers.js");
     config.director = false;
     config.planning = false;
@@ -224,7 +233,7 @@ describe("N25.8 rising", () => {
     town.passHours(24);
     const realm = town.world.realm!;
     const day = town.world.day;
-    const site = where === "away" ? [...liveSites(realm, "slice")].find((id) => id !== HOME_ID)! : HOME_ID;
+    const site = where === "away" ? [...liveSites(realm, town.world.startSite, "slice")].find((id) => id !== town.world.startSite)! : town.world.startSite!;
     const folk = store.people.loadSite(site, "full") as PersonRow[];
     const base = folk[0]!;
     const mum = folk.find((r) => r.gender === "female")!;
@@ -243,15 +252,15 @@ describe("N25.8 rising", () => {
     expect(talker, "one of them talks").toBeDefined();
     const persona = town.personas[talker!.talks!]!;
     expect(persona.parents).toHaveLength(2);
-    // Everyone who made a name talks (no cap of 14); one from another place is one of its people, not Millbrook's cast.
-    expect(town.ids.includes(persona.id)).toBe(where !== "away");
-    if (where === "away") expect(town.world.visitors![persona.id]).toBeDefined();
+    // Everyone who made a name talks (no cap of 14), and belongs to the place they grew up in.
+    expect(town.ids.includes(persona.id)).toBe(true);
+    expect(town.world.talkers![persona.id]!.site).toBe(site);
     expect(store.people.get(talker!.person!)!.persona).toBe(persona.id);
   });
 });
 
-describe("N25 save v12", () => {
-  it("a v11 save loads: each place gets the houses its people gave it", async () => {
+describe("N25 save v13", () => {
+  it("a save without houses on record loads: each place gets the houses its people gave it", async () => {
     const { mkdtempSync, readFileSync, writeFileSync } = await import("node:fs");
     const { tmpdir } = await import("node:os");
     const { join } = await import("node:path");
@@ -266,15 +275,15 @@ describe("N25 save v12", () => {
     const file = join(mkdtempSync(join(tmpdir(), "n25-")), "world.json");
     saveWorld(file, w);
     const json = JSON.parse(readFileSync(file, "utf8"));
-    json.version = 11;
+    json.version = 13;
     for (const s of Object.values(json.realm.settlements) as Array<{ houses?: number }>) delete s.houses;
     delete json.realm.casualties;
     writeFileSync(file, JSON.stringify(json));
     const back = loadWorld(file, personas, templates);
-    const mb = back.realm!.settlements[HOME_ID]!;
+    const mb = back.realm!.settlements[back.startSite]!;
     expect(mb.houses).toBe(Math.ceil(mb.population / 5));
     expect(back.realm!.casualties).toEqual([]);
-    expect(back.version).toBe(12);
+    expect(back.version).toBe(13);
   });
 });
 

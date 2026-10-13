@@ -16,13 +16,12 @@ export const PIPER_URL = `http://127.0.0.1:${PIPER_PORT}/synthesize`;
 
 export const piperInstalled = () => existsSync(PYTHON);
 
-/** The Piper models the NPC files use, e.g. ["en_GB-semaine-medium"]. */
+/** The Piper models the NPC templates use, e.g. ["en_GB-semaine-medium"]. */
 export function modelsInNpcFiles(): string[] {
-  const dir = join(ROOT, "packages/server/src/data/npcs");
+  const dir = join(ROOT, "packages/server/src/data/templates");
   const models = new Set<string>();
   for (const f of readdirSync(dir).filter((x) => x.endsWith(".json"))) {
-    const model = (JSON.parse(readFileSync(join(dir, f), "utf8")) as { voice?: { piper?: { model?: string } } }).voice?.piper?.model;
-    if (model) models.add(model);
+    for (const m of readFileSync(join(dir, f), "utf8").matchAll(/"piper":\s*\{\s*"model":\s*"([^"]+)"/g)) models.add(m[1]!);
   }
   return [...models].sort();
 }

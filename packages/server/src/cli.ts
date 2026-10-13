@@ -1,12 +1,11 @@
 import { describeHours, destinations } from "./game/realm/travel.js";
-import { areasOf, areaWords, MILLBROOK_INFO, siteMap } from "./web/sites.js";
+import { areasOf, areaWords, PLAIN_VILLAGE, siteMap } from "./web/sites.js";
 import { AREA_WALK_MINUTES } from "./web/map.js";
 import { describeFactions, describeRealm, describeSettlement } from "./game/realm/view.js";
 import { joinGuild, playerDelve } from "./game/realm/wilds.js";
 import { CLASSES, CLASS_WORDS, CrowdSim, JOB_INFO } from "@millbrook/shared";
 import { weatherOn } from "./game/weather.js";
 import { townEventsOn } from "./game/events-calendar.js";
-import { readdirSync, readFileSync } from "node:fs";
 import { createInterface } from "node:readline/promises";
 import { argv, stdin, stdout } from "node:process";
 import { config } from "./config.js";
@@ -23,14 +22,13 @@ import {
   fleeCreature,
   loadCreatureTemplates,
 } from "./game/creatures.js";
-import { DeathRegistry, describeDeath } from "./game/deaths.js";
+import { describeDeath } from "./game/deaths.js";
 import { SaveMismatchError, saveWorld, type SavedWorld } from "./game/save.js";
 import { openWorld } from "./game/openWorld.js";
 import { acquireSaveLock } from "./store/lock.js";
 import { rankForLevel, xpToNextLevel } from "./game/levels.js";
 import { titleNames } from "./game/titles.js";
 import { restPlayer } from "./game/healing.js";
-import { loadSpawnRules } from "./game/spawning.js";
 import { describeObjective, questProgress, questRewardMoney, recordCreatureDefeat } from "./game/quests.js";
 import { itemLabel } from "./game/items.js";
 import {
@@ -47,9 +45,8 @@ import { OllamaProvider } from "./llm/ollama.js";
 import { NpcAgent } from "./npc/NpcAgent.js";
 import { repairForPlayer } from "./npc/actions.js";
 import { SKILLS, skillLevel, TIERS } from "./npc/skills.js";
-import { parsePersona } from "./npc/personaSchema.js";
 import { startEncounter, statsOf } from "./npc/state.js";
-import type { TurnResult } from "./npc/types.js";
+import type { NpcPersona, TurnResult } from "./npc/types.js";
 import { formatMoney } from "./game/money.js";
 import {
   armorValue,
@@ -86,36 +83,20 @@ import { raiseAttribute } from "./npc/growth.js";
 import { ABILITIES, abilitiesFor, parseAbility } from "./game/abilities.js";
 import { dismiss } from "./game/party.js";
 import { creatureAmbush } from "./game/creatures.js";
-import { bornAge, familyOf, propose } from "./game/family.js";
-import { lintCast } from "./npc/lint.js";
+import { bornAge, bornKids, familyOf, propose } from "./game/family.js";
 
-// Pick who to start with: `npm run chat -- pell`. Defaults to brena. You start where they are.
-const NPC_DIR = new URL("./data/npcs/", import.meta.url);
-const available = readdirSync(NPC_DIR).filter((f) => f.endsWith(".json")).map((f) => f.replace(/\.json$/, ""));
+// The world is generated from a seed and begins at the gate of a start town; nobody is hand-written. `npm run chat -- <name>`
+// starts the conversation with someone of that name there (the head of the place by default).
 const newGame = argv.includes("--new");
 const nameArg = argv.find((arg) => arg.startsWith("--name="))?.slice("--name=".length);
-const startId = argv.find((arg) => !arg.startsWith("--") && arg !== argv[0] && arg !== argv[1]) ?? "brena";
-if (!available.includes(startId)) {
-  console.error(`No NPC "${startId}". Available: ${available.join(", ")}`);
-  process.exit(1);
-}
-// Validate every NPC file up front, so a typo in any of them fails now, not mid-conversation.
-const personas = Object.fromEntries(
-  available.map((id) => [id, parsePersona(JSON.parse(readFileSync(new URL(`${id}.json`, NPC_DIR), "utf8")), `${id}.json`)]),
-);
-/** Display names by id, for the journal (children born in play are added as they come). */
-// The authoring check (T5): what the schema can't see (the cast as a whole, contradictions).
-const lint = lintCast(personas);
-if (Object.keys(lint).length > 0) {
-  for (const [id, problems] of Object.entries(lint)) console.error(`${id}.json:\n${problems.map((p) => `  ${p}`).join("\n")}`);
-  process.exit(1);
-}
+const wanted = argv.find((arg) => !arg.startsWith("--") && arg !== argv[0] && arg !== argv[1]);
+/** Everyone who talks, by id: the town fills it as people are made or met. */
+const personas: Record<string, NpcPersona> = {};
+/** Display names by id, for the journal (people made in play are added as they come). */
 const names = () => Object.fromEntries(Object.entries(personas).map(([id, p]) => [id, p.name]));
 
 // Death is permanent: a dead NPC can't be talked to again, in this run or any later one.
 const creatureTemplates = loadCreatureTemplates();
-const spawnRules = loadSpawnRules();
-const deaths = new DeathRegistry(config.deathsFile);
 // One writer at a time: the save file and the database go together (N18).
 acquireSaveLock(config.saveFile);
 const llm = new OllamaProvider();
@@ -124,7 +105,7 @@ const store = new WorldStore(config.dbFile, await pickEmbedder(new OllamaEmbedde
 // The world and its database come as a pair (N18); a new world starts from an empty database.
 let opened: ReturnType<typeof openWorld>;
 try {
-  opened = openWorld({ file: config.saveFile, deathsFile: config.deathsFile, personas, templates: creatureTemplates, store, fresh: newGame });
+  opened = openWorld({ file: config.saveFile, deathsFile: config.deathsFile, templates: creatureTemplates, store, fresh: newGame });
 } catch (err) {
   if (!(err instanceof SaveMismatchError)) throw err;
   console.error(err.message);
@@ -140,15 +121,33 @@ if (world.player.death) {
 }
 // The player's own name: --name=Anand (kept in the save). NPCs only learn it when told (N4.3).
 if (nameArg) world.player.name = nameArg;
-const town = new Town({ personas, creatureTemplates, spawnRules, world, llm, backgroundLlm: new OllamaProvider(), store, deaths });
+const town = new Town({ personas, creatureTemplates, world, llm, backgroundLlm: new OllamaProvider(), store });
 const agents: Record<string, NpcAgent> = town.agents;
 for (const id of town.ids) {
   // A new session: however the last encounter ended (they fled, you fled, you were knocked out), it's over.
   startEncounter(agents[id]!.state);
 }
+/** Who to start talking to: someone of the name asked for, else the head of the place, else whoever is about. */
+function pickStart(): string {
+  const here = town.localIds().filter((id) => !agents[id]!.isDead);
+  const byName = wanted ? here.find((id) => id === wanted || personas[id]!.name.toLowerCase().includes(wanted.toLowerCase())) : undefined;
+  if (wanted && !byName) {
+    console.error(`Nobody called "${wanted}" is about in ${siteInfo().name}. Who is: ${here.map((id) => personas[id]!.name).join(", ") || "nobody yet"}.`);
+    process.exit(1);
+  }
+  const head = world.realm?.settlements[town.site()]?.leader;
+  const headId = head ? world.realm?.figures[head]?.talks : undefined;
+  const id = byName ?? (headId && here.includes(headId) ? headId : here[0]);
+  if (!id) {
+    console.error(`Nobody to talk to in ${siteInfo().name}.`);
+    process.exit(1);
+  }
+  return id;
+}
+const startId = pickStart();
 /** Who the player is talking to (/to switches). */
 let npc = agents[startId]!;
-const members = () => town.ids.map((id) => ({ id, persona: personas[id]!, state: agents[id]!.state }));
+const members = () => town.members();
 
 /** Where the player is. They start where the NPC they picked is (or works). */
 world.player.place = placeOfNpc(startId) ?? workplaceOf(personas[startId]!);
@@ -185,28 +184,23 @@ function crowdHere(): CrowdSim | null {
 }
 const crowdDay = () => ({ weather: weatherOn(world.day), festival: townEventsOn(world).includes("festival") });
 
-/** The settlement the player is at, or Millbrook's own when there's no realm. */
+/** The settlement the player is at, or a plain village when there's no realm. */
 function siteInfo() {
-  return world.realm?.settlements[town.site()] ?? MILLBROOK_INFO;
+  return world.realm?.settlements[town.site()] ?? PLAIN_VILLAGE;
 }
 
-/** "the village square" at home; "the square of Ashby" or "the woods around Ashby" away (N14, N15). */
+/** "the square of Ashby" or "the woods around Ashby" (N14, N15). */
 const placeLabel = (place: string) => {
-  if (town.atHome() || !world.realm) return PLACE_NAMES[place as PlaceId];
+  if (!world.realm) return PLACE_NAMES[place as PlaceId];
   const area = areaOfPlace(place as PlaceId);
   return area === "village" ? siteMap(siteInfo(), "village", world.realm).placeWords(place).location : areaWords(world.realm, siteInfo(), area).location;
 };
 
-/**
- * The creatures where the player is: Millbrook's own at home; elsewhere the beasts of
- * its woods (in the woods) and the outlaws of its camp (at the camp) (N15).
- */
+/** The creatures where the player is: the place's own, those of its woods in the woods, the outlaws of its camp at the camp (N15). */
 function creaturesHere(): Record<string, Creature> {
-  if (town.atHome()) return world.creatures;
-  const area = world.player.area ?? "village";
-  return Object.fromEntries(Object.entries(town.creaturesHere()).filter(([, c]) => (area === "woods" && c.den === "deep_woods") || (area === "camp" && c.den === "bandit_camp")));
+  return town.creaturesHere();
 }
-const creatureHere = (uid: string): Creature | undefined => creaturesHere()[uid] ?? world.creatures[uid];
+const creatureHere = (uid: string): Creature | undefined => creaturesHere()[uid];
 
 /** The places the player can go here: the village's, and those of the localities around it (N15). */
 const placesHere = () => PLACES.filter((p) => p !== "home" && areasOf(world.realm, town.site()).includes(areaOfPlace(p)));
@@ -242,7 +236,7 @@ function printConsequences(): void {
 }
 
 function persist(): void {
-  for (const id of [...town.ids, ...town.visitorIds()]) world.npcStates[id] = agents[id]!.state;
+  for (const id of town.ids) world.npcStates[id] = agents[id]!.state;
   saveWorld(config.saveFile, world, store);
 }
 
@@ -335,11 +329,11 @@ function printFamily() {
   const fam = familyOf(world);
   const name = (id: string) => (id === "player" ? "you" : (personas[id]?.name ?? id));
   const dead = (id: string) => id !== "player" && agents[id]?.isDead;
-  if (fam.marriages.length + fam.courting.length + fam.expecting.length + Object.keys(fam.born).length === 0) console.log("  No weddings or births yet.");
+  if (fam.marriages.length + fam.courting.length + fam.expecting.length + bornKids(world).length === 0) console.log("  No weddings or births yet.");
   for (const m of fam.marriages) console.log(`  Married: ${name(m.a)} and ${name(m.b)}${m.day > 0 ? ` (day ${m.day})` : ""}${dead(m.a) || dead(m.b) ? " — widowed" : ""}`);
   for (const c of fam.courting) console.log(`  Courting: ${name(c.a)} and ${name(c.b)}, ${c.nights}/${config.family.courtshipNights} nights`);
   for (const e of fam.expecting) console.log(`  Expecting: ${name(e.parents[0])} and ${name(e.parents[1])}, due day ${e.dueDay}`);
-  for (const p of Object.values(fam.born).filter((x) => x.bornOnDay !== undefined)) {
+  for (const p of bornKids(world)) {
     const talents = p.talents?.length ? `; a gift for ${p.talents.join(", ").replaceAll("_", "-")}` : "";
     console.log(`  ${p.name}${agents[p.id]?.isDead ? " (dead)" : ""}: ${bornAge(p, world.day)} years old, child of ${(p.parents ?? []).map(name).join(" and ")}${talents}`);
   }
@@ -405,7 +399,7 @@ function sceneFor(a: NpcAgent): SavedWorld {
  */
 function passAll(hours: number, { talking }: { talking?: string } = {}): string[] {
   // Whoever the player was talking to: the conversation is over, so it can become memories.
-  for (const id of [...town.ids, ...town.visitorIds()]) town.summarise(id);
+  for (const id of town.ids) town.summarise(id);
   return town.passHours(hours, { ...(talking ? { talkingTo: talking } : {}), keep: cliEngaged ? [cliEngaged] : [] });
 }
 
@@ -987,8 +981,8 @@ while (!world.player.death) {
     continue;
   }
   if (line === "/news") {
-    const news = (world.realm?.news ?? []).filter((n) => n.delivered).slice(-10);
-    if (news.length === 0) console.log("  No news from the wider realm has reached Millbrook yet.");
+    const news = (world.realm?.news ?? []).filter((n) => town.siteHere().newsSeen.includes(n.id)).slice(-10);
+    if (news.length === 0) console.log(`  No news from the wider realm has reached ${siteInfo().name} yet.`);
     for (const n of news) console.log(`  Day ${n.day}: ${n.text}`);
     continue;
   }
@@ -1056,7 +1050,7 @@ while (!world.player.death) {
   if (line === "/payfine" || line === "/surrender") {
     const guard = present().find((a) => a.persona.guard);
     if (!guard) {
-      console.log("  There's no guard here to settle with. Corporal Hale keeps the gate.");
+      console.log("  There's no guard here to settle with. Find the watch.");
       continue;
     }
     if (line === "/payfine") console.log(`  ${payFine(world.player).message}`);
@@ -1278,5 +1272,5 @@ while (!world.player.death) {
 
 persist();
 if (world.player.death) console.log(`\nYou were killed by ${world.player.death.killedBy}. Game over: this world is finished (start again with --new).`);
-else console.log(`\nYou leave Millbrook for now. (${formatTime(world)})`);
+else console.log(`\nYou leave ${siteInfo().name} for now. (${formatTime(world)})`);
 rl.close();

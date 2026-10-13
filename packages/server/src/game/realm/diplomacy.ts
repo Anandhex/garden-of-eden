@@ -1,9 +1,10 @@
 import type { Rng } from "../dice.js";
 import { addDeed, addRenown, titled } from "./figures.js";
-import { distance, HOME_ID, neighbours } from "./generate.js";
+import { distance, neighbours } from "./generate.js";
 import { realmNews, tally } from "./log.js";
 import { casualty, fight, gangSide, settlementSide, type Side } from "./military.js";
 import type { Party, Realm, Settlement, Treaty, TreatyKind, War } from "./types.js";
+import { sendArrival } from "./arrivals.js";
 
 /**
  * Treaties, raids and wars (N13.5), in code.
@@ -127,8 +128,8 @@ export function alliedHelp(realm: Realm, defender: Settlement, day: number): { s
 
 /**
  * A raid on `target` by a side. Win: loot (coin and food), damage, fear. Lose:
- * the raiders limp home. Either way the dead are buried and it's news. If the
- * target is Millbrook, the raiders come to its map tonight (game/realm/home.ts).
+ * the raiders limp home. Either way the dead are buried and it's news. The raiders are queued for the
+ * target's own map (game/realm/arrivals.ts).
  */
 export function raid(realm: Realm, attacker: Side, attackerParty: Party, target: Settlement, day: number, rng: Rng, why: string): boolean {
   const defence = settlementSide(realm, target);
@@ -141,7 +142,7 @@ export function raid(realm: Realm, attacker: Side, attackerParty: Party, target:
   casualty(realm, target, "raid", r.lost.defenders, raidRef, day);
   target.lastRaided = day;
   tally(realm, "raids");
-  if (target.home) realm.home.push({ day, kind: "raid", count: Math.max(2, Math.min(6, Math.round(attacker.men / 4))), by: attacker.name });
+  sendArrival(realm, target.id, { day, kind: "raid", count: Math.max(2, Math.min(6, Math.round(attacker.men / 4))), by: attacker.name });
   if (attackerParty.startsWith("s:") && target.kingdom) {
     const ak = realm.settlements[attackerParty.slice(2)]?.kingdom;
     if (ak && ak !== target.kingdom) shiftOpinion(realm, target.kingdom, ak, -15);
@@ -159,9 +160,9 @@ export function raid(realm: Realm, attacker: Side, attackerParty: Party, target:
     }
     // Something burns.
     if (rng() < 0.35) damageBuilding(target, rng);
-    realmNews(realm, day, target.id, "raid", `${cap(attacker.name)} raided ${target.name} (${why}) and carried off ${Math.round(coin / 100)} gold${r.dead.length > 0 ? `; ${r.dead.map((f) => f.name).join(" and ")} died` : ""}.`, target.home ? 8 : 5, [attacker.name, target.name, ...r.dead.map((f) => f.name)], { why });
+    realmNews(realm, day, target.id, "raid", `${cap(attacker.name)} raided ${target.name} (${why}) and carried off ${Math.round(coin / 100)} gold${r.dead.length > 0 ? `; ${r.dead.map((f) => f.name).join(" and ")} died` : ""}.`, 7, [attacker.name, target.name, ...r.dead.map((f) => f.name)], { why });
   } else {
-    realmNews(realm, day, target.id, "raid", `${cap(target.name)} drove off a raid by ${attacker.name}${help.names.length > 0 ? `, with help from ${help.names.join(" and ")}` : ""}${r.dead.length > 0 ? `; ${r.dead.map((f) => f.name).join(" and ")} died` : ""}.`, target.home ? 7 : 4, [attacker.name, target.name, ...help.names, ...r.dead.map((f) => f.name)], { why });
+    realmNews(realm, day, target.id, "raid", `${cap(target.name)} drove off a raid by ${attacker.name}${help.names.length > 0 ? `, with help from ${help.names.join(" and ")}` : ""}${r.dead.length > 0 ? `; ${r.dead.map((f) => f.name).join(" and ")} died` : ""}.`, 6, [attacker.name, target.name, ...help.names, ...r.dead.map((f) => f.name)], { why });
   }
   return r.attackerWon;
 }
@@ -196,7 +197,7 @@ export function raidsDay(realm: Realm, day: number, rng: Rng): void {
     raid(realm, side, `s:${s.id}`, target, day, rng, s.food < 25 ? "they were starving" : lead && lead.greed > 0.8 ? `${lead.name} wanted their coin` : "hard times");
   }
   for (const g of Object.values(realm.factions)) {
-    if (g.dissolved || g.kind !== "gang" || g.file || !g.seat || rng() >= 0.1) continue;
+    if (g.dissolved || g.kind !== "gang" || !g.seat || rng() >= 0.1) continue;
     const side = gangSide(realm, g.id);
     if (side.fighters.length === 0) continue;
     const target = raidTarget(realm, [`f:${g.id}`], g.seat, side.strength, day);
@@ -338,7 +339,7 @@ export function warsDay(realm: Realm, day: number, rng: Rng): void {
     w.battles.push({ day, at: at.id, winner: r.attackerWon ? "attackers" : "defenders", losses: r.lost.attackers + r.lost.defenders, text: `${r.attackerWon ? attack.name : at.name} won at ${at.name}` });
     tally(realm, "battles");
     for (const p of [...w.attackers, ...w.defenders]) if (p.startsWith("k:")) realm.kingdoms[p.slice(2)]!.weariness = Math.min(100, realm.kingdoms[p.slice(2)]!.weariness + 6);
-    if (at.home) realm.home.push({ day, kind: "war_levy", count: r.lost.defenders, by: attack.name });
+    sendArrival(realm, at.id, { day, kind: "war_levy", count: r.lost.defenders, by: attack.name });
     realmNews(realm, day, at.id, "battle", `The battle of ${at.name}: ${r.attackerWon ? `${attack.name} won` : `${at.name} held`}; ${r.lost.attackers + r.lost.defenders} fell${r.dead.length > 0 ? `, ${r.dead.map((f) => f.name).join(" and ")} among them` : ""}.`, 7, [at.name, attack.name, ...r.dead.map((f) => f.name)]);
     // Taken: it changes hands.
     if (r.attackerWon && w.score >= CAPTURE_SCORE && at.kind !== "capital" && w.attackers[0]!.startsWith("k:")) capture(realm, at, w.attackers[0]!.slice(2), day);
@@ -456,7 +457,6 @@ export function endWar(realm: Realm, w: War, day: number, winner: "attackers" | 
   }
   const where = a.startsWith("k:") ? realm.kingdoms[a.slice(2)]?.capital ?? null : null;
   realmNews(realm, day, where, "peace", `The war between ${partyName(realm, a)} and ${partyName(realm, d)} is over: ${w.outcome}.`, 8, [partyName(realm, a), partyName(realm, d)], { why: w.outcome ?? "the fighting ended" });
-  void HOME_ID;
 }
 
 const cap = (s: string) => s[0]!.toUpperCase() + s.slice(1);

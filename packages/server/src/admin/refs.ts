@@ -1,5 +1,5 @@
+import { findCreature } from "../game/site.js";
 import type { AdminCardKind } from "@millbrook/shared";
-import { HOME_ID } from "../game/realm/generate.js";
 import { titled } from "../game/realm/figures.js";
 import { parseTownsfolkId } from "../game/realm/townsfolk.js";
 import type { AdminContext } from "./context.js";
@@ -35,8 +35,7 @@ export function refOfId(ctx: AdminContext, raw: string): string | null {
   if (parseTownsfolkId(raw)) return `town:${raw}`;
   if (world.realm?.figures[raw]) return `figure:${raw}`;
   if (world.npcStates[raw] || ctx.town().personas[raw]) return `cast:${raw}`;
-  if (world.creatures[raw]) return `beast:${raw}`;
-  for (const group of Object.values(world.haunts ?? {})) if (group[raw]) return `beast:${raw}`;
+  if (findCreature(world, raw)) return `beast:${raw}`;
   return null;
 }
 
@@ -47,7 +46,7 @@ export function siteOfRef(ctx: AdminContext, ref: string): string | null {
   if (!p) return null;
   switch (p.kind) {
     case "player":
-      return world.player.site ?? HOME_ID;
+      return world.player.site ?? null;
     case "place":
       return p.id;
     case "figure":
@@ -57,10 +56,10 @@ export function siteOfRef(ctx: AdminContext, ref: string): string | null {
     case "cast": {
       if (parseTownsfolkId(p.id)) return ctx.town().homeSiteOf(p.id);
       const f = ctx.town().figureOf(p.id);
-      return f ? f.home : HOME_ID;
+      return ctx.town().homeSiteOf(p.id) ?? f?.home ?? null;
     }
     case "beast":
-      return world.creatures[p.id] ? HOME_ID : (Object.entries(world.haunts ?? {}).find(([, g]) => g[p.id])?.[0] ?? null);
+      return findCreature(world, p.id)?.site ?? null;
   }
 }
 
@@ -87,6 +86,6 @@ export function nameOfRef(ctx: AdminContext, ref: string): string {
       return (site && townsperson(ctx, site, p.id)?.person.name) ?? ctx.town().store?.people.get(p.id)?.name ?? p.id;
     }
     case "beast":
-      return world.creatures[p.id]?.name ?? Object.values(world.haunts ?? {}).map((g) => g[p.id]).find(Boolean)?.name ?? p.id;
+      return findCreature(world, p.id)?.creature.name ?? p.id;
   }
 }

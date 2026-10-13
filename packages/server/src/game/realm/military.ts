@@ -156,7 +156,7 @@ export function withLivePlaces<T>(live: ReadonlySet<string>, fn: () => T): T {
 /**
  * A fight killed `n` of a settlement's people (N25). Where the people are rows, an order is left for the
  * day's life step to pick who dies and write real deaths with this event on them; elsewhere it is a
- * number, as before. `event`: a ref for the fight ("raid:34:ashby>millbrook"), unique per place and day.
+ * number, as before. `event`: a ref for the fight ("raid:34:ashby>ferndale"), unique per place and day.
  */
 export function casualty(realm: Realm, s: Settlement | null, cause: "battle" | "siege" | "raid" | "beast", n: number, event: string, day: number, killer?: string): void {
   if (!s || n <= 0) return;

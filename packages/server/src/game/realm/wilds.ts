@@ -11,11 +11,12 @@ import { formatMoney } from "../money.js";
 import { recordClear } from "../quests.js";
 import { seasonOf } from "../weather.js";
 import { addDeed, addRenown, figureOvercomes, figurePower, killFigure, makeFigure, takenNames } from "./figures.js";
-import { travelDays, HOME_ID } from "./generate.js";
+import { travelDays } from "./generate.js";
 import { realmNews, tally } from "./log.js";
 import { casualty, fight, settlementSide, type Side } from "./military.js";
 import { beastName } from "./names.js";
 import type { Dungeon, Figure, Pack, Realm } from "./types.js";
+import { sendArrival } from "./arrivals.js";
 
 /**
  * Beasts and dungeons (N13.6), in code.
@@ -29,7 +30,7 @@ import type { Dungeon, Figure, Pack, Realm } from "./types.js";
  * comes out. Adventurers (the guild's, or anyone with the role) delve the ones
  * within reach: level by level, power against what lives there, for treasure,
  * XP and renown, or death. A cleared dungeon is quiet for a while, then
- * something moves in, sometimes worse. The player can delve the one by Millbrook.
+ * something moves in, sometimes worse. The player can delve the ones near where they are.
  */
 export const DANGER_SPILL = 85;
 /** Chance a day adventurers try a dungeon in reach (more with a bounty). */
@@ -106,9 +107,9 @@ function attackFrom(realm: Realm, p: Pack, day: number, rng: Rng): void {
     s.food = Math.max(0, s.food - 8);
     s.lastRaided = day;
   }
-  if (s.home) realm.home.push({ day, kind: "beasts", count: Math.max(1, Math.min(4, Math.round(p.count / 3))), by: p.species });
+  sendArrival(realm, s.id, { day, kind: "beasts", count: Math.max(1, Math.min(4, Math.round(p.count / 3))), by: p.species });
   tally(realm, "beast_attacks");
-  realmNews(realm, day, s.id, "beast", r.attackerWon ? `${cap(side.name)} came out of the wild and savaged ${s.name}'s flocks and fields.` : `${s.name} beat off ${side.name}.`, s.home ? 6 : 4, [s.name, ...(p.alpha ? [realm.figures[p.alpha]!.name] : [])]);
+  realmNews(realm, day, s.id, "beast", r.attackerWon ? `${cap(side.name)} came out of the wild and savaged ${s.name}'s flocks and fields.` : `${s.name} beat off ${side.name}.`, 5, [s.name, ...(p.alpha ? [realm.figures[p.alpha]!.name] : [])]);
 }
 
 /** One day for every dungeon: things breed inside, spill out, and adventurers go in. */
@@ -147,9 +148,9 @@ function spill(realm: Realm, d: Dungeon, day: number, rng: Rng): void {
   casualty(realm, s, "beast", r.lost.defenders, `spill:${day}:${s.id}`, day);
   d.danger = Math.max(30, d.danger - 25);
   if (r.attackerWon) s.lastRaided = day;
-  if (s.home) realm.home.push({ day, kind: "beasts", count: 2, by: "spider" });
+  sendArrival(realm, s.id, { day, kind: "beasts", count: 2, by: "spider" });
   tally(realm, "spills");
-  realmNews(realm, day, s.id, "dungeon", `Things crawled out of ${d.name} and fell on ${s.name}${r.attackerWon ? "" : ", but were driven back"}.`, s.home ? 7 : 5, [d.name, s.name]);
+  realmNews(realm, day, s.id, "dungeon", `Things crawled out of ${d.name} and fell on ${s.name}${r.attackerWon ? "" : ", but were driven back"}.`, 6, [d.name, s.name]);
 }
 
 /** Adventurers within two days of a dungeon who'd go: a guild's own first. Two to four. */
@@ -222,11 +223,17 @@ export const ADVENTURERS = "adventurers_guild";
 /** Where a dungeon's mouth is, in words (N15): up the road from the place it lies by. */
 export function mouthOf(realm: Realm, d: Dungeon): string {
   const s = realm.settlements[d.near];
-  return s ? `${d.name} opens at the end of the road out of ${s.name}${s.id === HOME_ID ? " (the mine road, north of the village)" : ""}` : d.name;
+  return s ? `${d.name} opens at the end of the road out of ${s.name}` : d.name;
 }
 
-/** Dungeons the player can reach from where they are (a day or less; Millbrook by default). */
-export function dungeonsInReach(realm: Realm, from: string = HOME_ID): Dungeon[] {
+/** Where the player is: every player has a site. */
+const playerSite = (player: Pick<PlayerState, "site">): string => {
+  if (!player.site) throw new Error("The player has no site.");
+  return player.site;
+};
+
+/** Dungeons the player can reach from a place (a day or less). */
+export function dungeonsInReach(realm: Realm, from: string): Dungeon[] {
   return Object.values(realm.dungeons).filter((d) => travelDays(realm, d.near, from) <= 1);
 }
 
@@ -250,7 +257,7 @@ export function joinGuild(realm: Realm, player: PlayerState): { ok: boolean; mes
   player.money -= GUILD_FEE;
   (player.factions ??= []).push(ADVENTURERS);
   g.wealth += GUILD_FEE;
-  return { ok: true, message: `You paid ${formatMoney(GUILD_FEE)} and joined ${g.name}. You can delve now: ${dungeonsInReach(realm, player.site ?? HOME_ID).map((d) => d.name).join(", ") || "nothing in reach"}.` };
+  return { ok: true, message: `You paid ${formatMoney(GUILD_FEE)} and joined ${g.name}. You can delve now: ${dungeonsInReach(realm, playerSite(player)).map((d) => d.name).join(", ") || "nothing in reach"}.` };
 }
 
 export interface PlayerDelve {
@@ -269,7 +276,7 @@ export function playerPower(player: PlayerState): number {
 }
 
 /**
- * The player delves a dungeon by Millbrook: level by level, their power against
+ * The player delves a dungeon near where they are: level by level, their power against
  * what lives there. A level won pays its share of the treasure and XP; a level
  * lost costs a quarter of their HP, and below 30% HP they get out. Clearing it
  * all earns the bounty and quiets the dungeon for a while.
@@ -277,7 +284,7 @@ export function playerPower(player: PlayerState): number {
 export function playerDelve(realm: Realm, player: PlayerState, query: string, day: number, rng: Rng): PlayerDelve {
   const none = (message: string): PlayerDelve => ({ ok: false, lines: [message], hours: 0, money: 0, xp: 0 });
   if (!inGuild(player)) return none(`Only members of the adventurers' guild go into the dungeons (join it for ${formatMoney(GUILD_FEE)}).`);
-  const here = player.site ?? HOME_ID;
+  const here = playerSite(player);
   const reach = dungeonsInReach(realm, here);
   const q = query.trim().toLowerCase();
   // At a dungeon's mouth (N15), that's the one; otherwise the one asked for, to say where its mouth is.

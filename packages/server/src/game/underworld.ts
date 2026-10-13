@@ -140,7 +140,7 @@ export function blackMarket(
       text: `On day ${day} you secretly sold a ${itemLabel(key)} to the bandits for ${formatMoney(price)}. If it came out you'd be finished; keep it quiet.`,
     });
     deals.push({ seller: v.id, buyer: c.uid, item: key, price });
-    log.push(`Rumour has it someone in Millbrook is selling weapons to the bandits.`);
+    log.push(`Rumour has it someone in town is selling weapons to the bandits.`);
   }
   return { deals, log: [...new Set(log)] };
 }
@@ -434,7 +434,7 @@ export function passVillageNights(
     const night: Pick<WorldSnapshot, "day" | "recentEvents" | "lastRaidDay"> & { player?: PlayerState; events?: WorldSnapshot["events"]; hour: number; location: string } = {
       day: Math.floor(abs / 24) + 1,
       hour: NIGHT_HOUR,
-      location: "Millbrook",
+      location: "town",
       recentEvents: world.recentEvents,
       ...(world.player ? { player: world.player } : {}),
       ...(world.events ? { events: world.events } : {}),

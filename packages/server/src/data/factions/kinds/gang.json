@@ -1,0 +1,34 @@
+{
+  "id": "gang",
+  "name": "the gangs of the road",
+  "description": "Outlaws who hold the roads and take a toll from every cart. Hurting one is no crime, and the gangs remember who stood with them.",
+  "creatures": [
+    "bandit"
+  ],
+  "attitudes": {
+    "guard": -1,
+    "merchants": -1
+  },
+  "attitudeReasons": {},
+  "ranks": [
+    {
+      "name": "a mark",
+      "minStanding": -100
+    },
+    {
+      "name": "a stranger on the road",
+      "minStanding": -20
+    },
+    {
+      "name": "a friend of the gangs",
+      "minStanding": 30
+    },
+    {
+      "name": "one of the crew",
+      "minStanding": 60,
+      "member": true
+    }
+  ],
+  "joinable": true,
+  "discount": 15
+}

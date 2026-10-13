@@ -141,5 +141,6 @@
       "kind": "training"
     }
   ],
-  "successorOf": "brena"
+  "successorOf": "brena",
+  "faction": "merchants"
 }

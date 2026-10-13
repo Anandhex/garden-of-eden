@@ -92,6 +92,17 @@ export const TemplateSchema = z
   .strict();
 export type NpcTemplate = z.infer<typeof TemplateSchema>;
 
+/**
+ * Where a person is from, for the template text and the model's prompt (N25a): the place's name, what it is
+ * ("village", "town"), and its kingdom. Templates say `{place}` and `{placeKind}`; nothing here knows a name.
+ */
+export interface Where {
+  place: string;
+  kind: string;
+  kingdom?: string;
+}
+export const SOMEWHERE: Where = { place: "the village", kind: "village" };
+
 const TEMPLATE_DIR = new URL("../data/templates/", import.meta.url);
 
 /** Every template file, checked. Throws on the first bad one, naming it. */
@@ -197,28 +208,31 @@ export const IdentitySchema = z
 export type Identity = z.infer<typeof IdentitySchema>;
 
 /** Words that have no place in a child's file (design rule 7). */
-const ADULT_WORDS = /\b(romance|romantic|lover|flirt\w*|seduc\w*|kiss\w*|wife|husband|married|sweetheart|courting|drunk|ale|wine|brothel)\b/i;
+export const ADULT_WORDS = /\b(romance|romantic|lover|flirt\w*|seduc\w*|kiss\w*|wife|husband|married|sweetheart|courting|drunk|ale|wine|brothel)\b/i;
 
-function fill(text: string, r: Rolled, name: string, place: string): string {
+/** Fill a template's tokens: {first} {name} {role} {age}, {place} and {placeKind} (where they are from), {work} (where they work). */
+export function fill(text: string, r: Pick<Rolled, "role" | "age">, name: string, work: string, where: Where = SOMEWHERE): string {
   return text
     .replaceAll("{first}", name.split(" ")[0]!)
     .replaceAll("{name}", name)
     .replaceAll("{role}", r.role)
     .replaceAll("{age}", String(r.age))
-    .replaceAll("{place}", place);
+    .replaceAll("{placeKind}", where.kind)
+    .replaceAll("{place}", where.place)
+    .replaceAll("{work}", work);
 }
 
 /** The template's own words, for when the model can't write them. */
-export function fallbackIdentity(t: NpcTemplate, r: Rolled, rng: Rng, name = `${r.fallbackName.first} ${r.fallbackName.family}`): Identity {
-  const place = PLACE_NAMES[workplaceOf({ schedule: t.schedule })];
+export function fallbackIdentity(t: NpcTemplate, r: Rolled, rng: Rng, name = `${r.fallbackName.first} ${r.fallbackName.family}`, where: Where = SOMEWHERE): Identity {
+  const work = PLACE_NAMES[workplaceOf({ schedule: t.schedule })];
   const set = pick(rng, t.fallback.personality);
   return {
     name,
     personality: agreeing(set, r, t.fallback.personality.flat()),
-    speechStyle: fill(pick(rng, t.fallback.speechStyle), r, name, place),
-    backstory: fill(pick(rng, t.fallback.backstory), r, name, place),
-    appearance: fill(pick(rng, t.fallback.appearance), r, name, place),
-    goals: pick(rng, t.fallback.goals).map((g) => fill(g, r, name, place)),
+    speechStyle: fill(pick(rng, t.fallback.speechStyle), r, name, work, where),
+    backstory: fill(pick(rng, t.fallback.backstory), r, name, work, where),
+    appearance: fill(pick(rng, t.fallback.appearance), r, name, work, where),
+    goals: pick(rng, t.fallback.goals).map((g) => fill(g, r, name, work, where)),
   };
 }
 
@@ -235,12 +249,12 @@ export function agreeing(words: string[], r: Pick<Rolled, "traits" | "greed">, s
 }
 
 /** The numbers, as words for the model (design rule 2). */
-export function describeRolled(t: NpcTemplate, r: Rolled): string {
+export function describeRolled(t: NpcTemplate, r: Rolled, where: Where = SOMEWHERE): string {
   const sp = speciesOf(r.species).name;
-  const place = PLACE_NAMES[workplaceOf({ schedule: t.schedule })];
+  const work = PLACE_NAMES[workplaceOf({ schedule: t.schedule })];
   const stock = Object.keys(r.stock);
   return [
-    `Role: ${r.role} in the village of Millbrook (works at ${place}).`,
+    `Role: ${fill(r.role, r, "", work, where)} in the ${where.kind} of ${where.place}${where.kingdom ? `, in the kingdom of ${where.kingdom}` : ""} (works at ${work}).`,
     `${t.minor ? "A child" : "A person"}: ${sp}, ${r.gender}, ${r.age} years old.`,
     `Temperament: ${describeTraits(r.traits) || "even-tempered"}${r.greed >= 0.6 ? ", fond of money" : r.greed <= 0.25 ? ", not much moved by money" : ""}.`,
     `Skills: ${describeSkills(r.skills)}.`,
@@ -255,12 +269,12 @@ export function describeRolled(t: NpcTemplate, r: Rolled): string {
  * Ask the model for the words. Retries once (structured()); null on failure. A name
  * that's already taken, or (for a child) any adult word, counts as a failure.
  */
-export async function writeIdentity(llm: LLMProvider, t: NpcTemplate, r: Rolled, takenNames: string[] = []): Promise<Identity | null> {
+export async function writeIdentity(llm: LLMProvider, t: NpcTemplate, r: Rolled, takenNames: string[] = [], where: Where = SOMEWHERE): Promise<Identity | null> {
   const system =
-    "You write characters for a small fantasy village called Millbrook. Reply with JSON only. Keep it grounded and plain: " +
+    `You write characters for a ${where.kind} called ${where.place}${where.kingdom ? ` in the kingdom of ${where.kingdom}` : ""}. Reply with JSON only. Keep it grounded and plain: ` +
     "no magic powers, no royalty, no famous ancestors. Never invent other named people or places." +
     (t.minor ? " This is a child: keep everything gentle and age-appropriate; no romance, drink or violence." : "");
-  const prompt = `Write this villager's name (a first name and a family name), personality (3-5 short words), how they speak (one or two sentences, with a habit of speech), backstory (two sentences), appearance (one sentence) and 2-3 goals.\n\n${describeRolled(t, r)}`;
+  const prompt = `Write this villager's name (a first name and a family name), personality (3-5 short words), how they speak (one or two sentences, with a habit of speech), backstory (two sentences), appearance (one sentence) and 2-3 goals.\n\n${describeRolled(t, r, where)}`;
   for (let i = 0; i < 2; i++) {
     const out = await structured(llm, IdentitySchema, { kind: "identity", system, prompt, maxTokens: 400, temperature: 0.9 }, 1);
     if (!out) continue;
@@ -282,11 +296,11 @@ export function idFor(name: string, taken: string[]): string {
 }
 
 /** Put the rolls and the words together into an NPC file. */
-export function assemblePersona(t: NpcTemplate, r: Rolled, words: Identity, id: string): NpcPersona {
+export function assemblePersona(t: NpcTemplate, r: Rolled, words: Identity, id: string, where: Where = SOMEWHERE): NpcPersona {
   return {
     id,
     name: words.name,
-    role: r.role,
+    role: fill(r.role, r, words.name, PLACE_NAMES[workplaceOf({ schedule: t.schedule })], where),
     species: r.species,
     age: r.age,
     tier: r.tier,
@@ -336,17 +350,17 @@ export interface Generated {
 export async function generateNpc(
   t: NpcTemplate,
   rng: Rng,
-  { llm, takenIds = [], takenNames = [] }: { llm?: LLMProvider; takenIds?: string[]; takenNames?: string[] } = {},
+  { llm, takenIds = [], takenNames = [], where = SOMEWHERE }: { llm?: LLMProvider; takenIds?: string[]; takenNames?: string[]; where?: Where } = {},
 ): Promise<Generated> {
   const rolled = rollTemplate(t, rng);
   // Roll the fallback text now as well, so the numbers never depend on whether the model answered.
   const fallbackRng = rng;
   let name = `${rolled.fallbackName.first} ${rolled.fallbackName.family}`;
   if (takenNames.some((n) => n.toLowerCase() === name.toLowerCase())) name = `${rolled.fallbackName.first} ${pick(fallbackRng, t.names.family)}`;
-  const fallback = fallbackIdentity(t, rolled, fallbackRng, name);
-  const written = llm ? await writeIdentity(llm, t, rolled, takenNames).catch(() => null) : null;
+  const fallback = fallbackIdentity(t, rolled, fallbackRng, name, where);
+  const written = llm ? await writeIdentity(llm, t, rolled, takenNames, where).catch(() => null) : null;
   const words = written ? { ...written, personality: agreeing(written.personality, rolled, fallback.personality) } : fallback;
-  return { persona: assemblePersona(t, rolled, words, idFor(words.name, takenIds)), words: written ? "model" : "template" };
+  return { persona: assemblePersona(t, rolled, words, idFor(words.name, takenIds), where), words: written ? "model" : "template" };
 }
 
 /** What the model may rewrite for a child born in play when they start talking: not the name. */
@@ -357,10 +371,10 @@ export const ChildWordsSchema = IdentitySchema.omit({ name: true });
  * looks and goals from the numbers they inherited (code's). Null if it fails twice or
  * slips in anything adult (design rule 7); the template's words stay.
  */
-export async function writeChildWords(llm: LLMProvider, t: NpcTemplate, p: NpcPersona, parents: string): Promise<z.infer<typeof ChildWordsSchema> | null> {
+export async function writeChildWords(llm: LLMProvider, t: NpcTemplate, p: NpcPersona, parents: string, where: Where = SOMEWHERE): Promise<z.infer<typeof ChildWordsSchema> | null> {
   const r = { ...rollTemplate(t, () => 0.5), traits: resolveTraitsFrom(p), greed: p.greed, skills: p.skills, age: p.age };
-  const system = "You write characters for a small fantasy village called Millbrook. Reply with JSON only. This is a child: keep everything gentle and age-appropriate; no romance, drink or violence. Never invent other named people or places.";
-  const prompt = `Write how this child is: personality (3-5 short words), how they speak (one or two sentences, with a habit of speech), backstory (two sentences), appearance (one sentence) and 2-3 goals.\n\nName: ${p.name}. Parents: ${parents}.\n${describeRolled(t, { ...r, gender: p.voice?.gender === "male" ? "male" : "female" })}${p.talents?.length ? `\nA gift for: ${p.talents.join(", ").replaceAll("_", "-")} (from their parents).` : ""}`;
+  const system = `You write characters for a ${where.kind} called ${where.place}. Reply with JSON only. This is a child: keep everything gentle and age-appropriate; no romance, drink or violence. Never invent other named people or places.`;
+  const prompt = `Write how this child is: personality (3-5 short words), how they speak (one or two sentences, with a habit of speech), backstory (two sentences), appearance (one sentence) and 2-3 goals.\n\nName: ${p.name}. Parents: ${parents}.\n${describeRolled(t, { ...r, gender: p.voice?.gender === "male" ? "male" : "female" }, where)}${p.talents?.length ? `\nA gift for: ${p.talents.join(", ").replaceAll("_", "-")} (from their parents).` : ""}`;
   for (let i = 0; i < 2; i++) {
     const out = await structured(llm, ChildWordsSchema, { kind: "child-words", system, prompt, maxTokens: 350, temperature: 0.9 }, 1);
     if (!out) continue;

@@ -51,7 +51,7 @@ export function taxDay(realm: Realm, day: number, rng: Rng): void {
     liege.treasury += due;
     s.arrears = 0;
     tally(realm, "taxes", due);
-    if (s.home) realmNews(realm, day, s.id, "tax", `${s.name} paid ${Math.max(1, Math.round(due / 100))} gold in taxes to ${liege.name}${war ? ", more than usual for the war" : ""}.`, 3, [s.name, liege.name]);
+    realmNews(realm, day, s.id, "tax", `${s.name} paid ${Math.max(1, Math.round(due / 100))} gold in taxes to ${liege.name}${war ? ", more than usual for the war" : ""}.`, 2, [s.name, liege.name]);
   }
   payTreaties(realm, day);
 }
@@ -136,7 +136,7 @@ export function successionDay(realm: Realm, day: number, rng: Rng): void {
 export function install(realm: Realm, s: Settlement, f: Figure, day: number): void {
   s.leader = f.id;
   f.home = s.id;
-  f.role = s.home && f.name === "Aldric Voss" ? "mayor" : leaderRole(s.kind);
+  f.role = leaderRole(s.kind);
   addRenown(f, 5);
   addDeed(f, `became head of ${s.name}`);
   const crown = s.kingdom ? realm.kingdoms[s.kingdom] : undefined;

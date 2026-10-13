@@ -16,7 +16,7 @@ export type Truth = (typeof TRUTHS)[number];
 
 export interface ReputationFact {
   id: string;
-  /** What's said, naming them: "Brena Ashford is a thief". */
+  /** What's said, naming them: "Mara Ashford is a thief". */
   text: string;
   truth: Truth;
   /** Lower-case words that bring it up in the player's line. */
@@ -83,7 +83,7 @@ const mentions = (line: string, words: string[]) => {
   return words.some((w) => new RegExp(`\\b${w.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`).test(lower));
 };
 
-/** Name words for an NPC: "Brena Ashford" → ["brena", "ashford"]. */
+/** Name words for an NPC: "Mara Ashford" → ["mara", "ashford"]. */
 const nameWords = (name: string) => name.toLowerCase().split(/\s+/).filter((w) => w.length > 2 && !["old", "the", "corporal"].includes(w));
 
 /**

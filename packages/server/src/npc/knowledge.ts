@@ -1,10 +1,11 @@
-import { readFileSync } from "node:fs";
 import { z } from "zod";
 import type { NpcPersona } from "./types.js";
 
 /**
- * World lore: one source of truth for places, people, history and news
- * (src/data/world.json). NPCs only know what their `knows` scopes cover, and
+ * World lore: one source of truth for places, people, history and news. None of it is written by hand
+ * (N25a): code makes it from the realm (game/realm/lore.ts: `place.<site>` for a place, `place.<site>.<thing>`
+ * for what's in it, `realm.*` for kingdoms, factions and dungeons, `news.*` for news), plus a few generic
+ * news lines every place can have (`GENERIC_LORE`). NPCs only know what their `knows` scopes cover, and
  * code picks the few entries a player line is about. Nothing outside an NPC's
  * scope ever reaches its prompt, so it can't leak what it shouldn't know; and
  * names that aren't in the lore are flagged (unknownNames) so an invented
@@ -24,7 +25,7 @@ export const LoreEntrySchema = z
   .object({
     id: z.string().regex(/^[a-z0-9_]+(\.[a-z0-9_]+)*$/, "lower-case words joined by dots"),
     kind: z.enum(["place", "person", "history", "news"]),
-    /** How NPCs name it: "the Gilded Goose". */
+    /** How NPCs name it: "the Red Hart". */
     name: z.string().min(1),
     /** Other proper names it goes by. Count as known names, and as keywords. */
     aliases: z.array(z.string().min(1)).default([]),
@@ -81,14 +82,26 @@ export function parseLore(raw: unknown, source = "world file"): Lore {
   return { entries: result.data.lore, byId: new Map(result.data.lore.map((e) => [e.id, e])) };
 }
 
+/** News every place can have, whatever its name: code spreads them by id (game/underworld.ts). */
+export const GENERIC_LORE: LoreEntry[] = [
+  { id: "news.bandit_raid", kind: "news", name: "the bandit raid", aliases: [], keywords: ["raid", "raided", "bandits", "robbed"], text: "Bandits raided a shop in town during the night and made off with goods and coin.", event: true },
+  { id: "news.raid_repelled", kind: "news", name: "the raid driven off", aliases: [], keywords: ["raid", "bandits", "driven off"], text: "A bandit raid on a shop in town was driven off during the night.", event: true },
+];
+
 let base: Lore | undefined;
 let cached: Lore | undefined;
-/** Lore that grew during play (director/chronicle.ts, deaths), kept in the world save. */
+/** Lore that grew during play (the realm's places, news, the chronicle), kept in the world save. */
 let dynamic: LoreEntry[] = [];
 
-/** The world's lore: src/data/world.json (loaded once), plus whatever grew during play. */
+/** Use a different base lore (tests that load hand-written NPC files bring their own world file). `undefined`: the generic lore. */
+export function setBaseLore(lore?: Lore): void {
+  base = lore;
+  cached = undefined;
+}
+
+/** The world's lore: the generic base, plus whatever grew during play. */
 export function worldLore(): Lore {
-  base ??= parseLore(JSON.parse(readFileSync(new URL("../data/world.json", import.meta.url), "utf8")), "src/data/world.json");
+  base ??= parseLore({ lore: GENERIC_LORE }, "the generic lore");
   if (!cached) {
     const extra = dynamic.filter((e) => !base!.byId.has(e.id));
     const entries = [...base.entries, ...extra];
@@ -97,14 +110,14 @@ export function worldLore(): Lore {
   return cached;
 }
 
-/** Is this id in src/data/world.json (not grown in play)? */
+/** Is this id in the base lore (not grown in play)? */
 export function isBaseLore(id: string): boolean {
   worldLore();
   return base!.byId.has(id);
 }
 
 /**
- * Use this world's grown lore (world.lore) on top of world.json. Call on load and
+ * Use this world's grown lore (world.lore) on top of the base lore. Call on load and
  * whenever an entry is added. Entries that clash with the file's ids are ignored.
  */
 export function setDynamicLore(entries: LoreEntry[] | undefined): void {
@@ -272,7 +285,7 @@ export function knownNames(persona: Pick<NpcPersona, "knows">, lore: Lore = worl
     .map((e) => e.name);
 }
 
-/** For the system prompt: "Old Pell (every rumour in the village)" for each knowledgeable person they know, except themselves. */
+/** For the system prompt: "Old Odo (every rumour in the village)" for each knowledgeable person they know, except themselves. */
 export function whoKnowsMore(persona: Pick<NpcPersona, "id" | "knows">, lore: Lore = worldLore()): string[] {
   return knownLore(persona, lore)
     .filter((e) => e.kind === "person" && e.knowsMore && e.npc !== persona.id)
@@ -319,7 +332,7 @@ export function knownNameWords(personas: Array<Pick<NpcPersona, "name">>, extra:
 /**
  * Capitalised words in `text` that aren't known names: likely an invented person
  * or place. Words that open a sentence are skipped: they're capitalised anyway
- * ("Ask Old Pell"), so a name there slips through. A heuristic for
+ * ("Ask Old Odo"), so a name there slips through. A heuristic for
  * tests and benchmarks (T15), not a filter on what NPCs say.
  */
 export function unknownNames(text: string, known: Set<string>): string[] {

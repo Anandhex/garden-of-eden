@@ -2,14 +2,14 @@ import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import brenaJson from "../src/data/npcs/brena.json" with { type: "json" };
-import pellJson from "../src/data/npcs/pell.json" with { type: "json" };
+import brenaJson from "./fixtures/npcs/brena.json" with { type: "json" };
+import pellJson from "./fixtures/npcs/pell.json" with { type: "json" };
 import { formatMoney, formatMoneyShort, MoneySchema, parseMoney, PriceArgSchema, toCoins } from "../src/game/money.js";
 import { loadWorld, newWorld, SAVE_VERSION } from "../src/game/save.js";
 import { parsePersona } from "../src/npc/personaSchema.js";
 import { buildTurnMessage } from "../src/npc/persona.js";
 import { createNpcState } from "../src/npc/state.js";
-import { createDemoWorld } from "../src/world/world.js";
+import { createTestWorld } from "../src/world/world.js";
 
 const brena = parsePersona(brenaJson);
 const pell = parsePersona(pellJson);
@@ -64,7 +64,7 @@ describe("the economy in coins", () => {
   });
 
   it("the model sees prices and purses in coins, never raw copper", () => {
-    const msg = buildTurnMessage(brena, createNpcState(brena), createDemoWorld(), "What do you sell?");
+    const msg = buildTurnMessage(brena, createNpcState(brena), createTestWorld(), "What do you sell?");
     expect(msg).toContain("dagger [E] x3 (1 gold 5 silver each)");
     expect(msg).toContain("Your purse: 3 gold 5 silver.");
     expect(msg).toContain("Traveler has 5 gold and carries");

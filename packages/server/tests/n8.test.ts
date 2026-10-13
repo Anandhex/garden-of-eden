@@ -14,7 +14,7 @@ import { passMinutes, passTime } from "../src/game/simulation.js";
 import { considerRaid } from "../src/game/underworld.js";
 import { loadCreatureTemplates, spawnCreature, type Creature } from "../src/game/creatures.js";
 import { skillLevel } from "../src/npc/skills.js";
-import { createDemoWorld } from "../src/world/world.js";
+import { createTestWorld } from "../src/world/world.js";
 import { always, brena, ctxFor, hale, makeTown, pell } from "./helpers.js";
 import type { Rng } from "../src/game/dice.js";
 
@@ -39,7 +39,7 @@ describe("N8 combat styles", () => {
   });
 
   it("done when: a cowardly NPC begs at 50% HP (with nothing to heal with)", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const ctx = ctxFor(hale, { inCombat: true, inventory: {} }, world, always(0.5));
     ctx.state.hp = Math.floor(statsOf(hale, ctx.state).maxHp / 2);
     const turn = npcFightTurn(ctx);
@@ -67,12 +67,12 @@ describe("N8 combat styles", () => {
 
 describe("N8 MP abilities and statuses", () => {
   it("a heavy blow costs MP and hits harder", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const plain = ctxFor(brena, { inCombat: true }, world, seq(0.7, 0.5));
     const before = world.player.hp;
     npcFightTurn({ ...plain, state: { ...plain.state, mp: 0 } } as typeof plain);
     const plainDamage = before - world.player.hp;
-    const w2 = createDemoWorld();
+    const w2 = createTestWorld();
     const heavy = ctxFor(brena, { inCombat: true }, w2, seq(0.7, 0.5));
     const mp = heavy.state.mp;
     npcFightTurn(heavy);
@@ -98,7 +98,7 @@ describe("N8 MP abilities and statuses", () => {
   });
 
   it("the player knows abilities from their skills, and a war cry can weaken the foe", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.player.skills.intimidation = 2;
     expect(abilitiesFor(world.player.skills).map((a) => a.id)).toContain("war_cry");
     const ctx = ctxFor(brena, { inCombat: true }, world, always(0.1));
@@ -111,7 +111,7 @@ describe("N8 MP abilities and statuses", () => {
 
 describe("N8 subdue and loot", () => {
   it("done when: subduing leaves an NPC alive with lootable stock, and it's a crime if seen", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const ctx = ctxFor(pell, {}, world, always(0.99));
     ctx.state.hp = 2;
     const r = playerAttack(ctx, { subdue: true });
@@ -126,7 +126,7 @@ describe("N8 subdue and loot", () => {
   });
 
   it("the knocked-out come round hours later, with a grudge and a mind for revenge", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const ctx = ctxFor(pell, {}, world, always(0.99));
     ctx.state.hp = 2;
     playerAttack(ctx, { subdue: true });
@@ -146,7 +146,7 @@ describe("N8.1 lasting injuries and illness", () => {
     const worse = startCraft(brena, burned, sword, 0, always(0.7)); // d20 15: 15 + 6 = 21 → +1 tier
     finishCraft(burned, 1000);
     // Bring the herbs: the poultice quest cures the burn.
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.player.level = 2;
     burned.relationship = 20;
     burned.pendingQuest = "burn_poultice";
@@ -187,7 +187,7 @@ describe("N8.1 lasting injuries and illness", () => {
   it("a sufferer posts a quest for the cure", () => {
     const s = createNpcState(hale);
     injure(s, "deep_cut", 1);
-    const world = createDemoWorld();
+    const world = createTestWorld();
     passTime(hale, s, world, 1, always(0.99));
     expect(s.questBoard.some((q) => q.cures === "deep_cut")).toBe(true);
   });
@@ -195,7 +195,7 @@ describe("N8.1 lasting injuries and illness", () => {
 
 describe("N8.2 companions", () => {
   it("done when: Hale comes for 10 silver a day, helps in a fight, and walks off after two unpaid days", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const s = createNpcState(hale, { relationship: 40 });
     expect(offerHire(hale, s, world).ok).toBe(true);
     expect(s.pendingHire!.wage).toBe(Math.round(100 * (1 + 0.5 * 0.6 * 0.6)));
@@ -237,7 +237,7 @@ describe("N8 raids in the player's sight", () => {
     const templates = loadCreatureTemplates();
     const creatures: Record<string, Creature> = {};
     for (let i = 1; i <= 4; i++) creatures[`bandit-${i}`] = spawnCreature(templates.bandit!, `bandit-${i}`, 1, always(0.5));
-    const world = { ...createDemoWorld(), events: [] as never[] };
+    const world = { ...createTestWorld(), events: [] as never[] };
     world.player.place = "inn";
     world.player.attributes.strength = 20;
     const p = createNpcState(pell);

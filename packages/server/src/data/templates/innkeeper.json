@@ -1,0 +1,319 @@
+{
+  "id": "innkeeper",
+  "describe": "an innkeeper, who sells ale, stew and a bed, and hears everything",
+  "roles": [
+    "the innkeeper of {place}",
+    "the landlord of the inn at {place}"
+  ],
+  "species": [
+    "human",
+    "halfling",
+    "dwarf"
+  ],
+  "age": [
+    30,
+    65
+  ],
+  "tier": [
+    "F",
+    "E"
+  ],
+  "growth": [
+    0,
+    1
+  ],
+  "greed": [
+    0.4,
+    0.8
+  ],
+  "traits": {
+    "temper": [
+      0.2,
+      0.5
+    ],
+    "bravery": [
+      0.3,
+      0.6
+    ],
+    "honesty": [
+      0.3,
+      0.7
+    ],
+    "generosity": [
+      0.3,
+      0.6
+    ],
+    "sociability": [
+      0.7,
+      0.95
+    ],
+    "forgiveness": [
+      0.4,
+      0.7
+    ]
+  },
+  "attributes": {
+    "charisma": [
+      11,
+      15
+    ],
+    "intelligence": [
+      10,
+      13
+    ],
+    "perception": [
+      10,
+      13
+    ]
+  },
+  "hp": [
+    35,
+    50
+  ],
+  "mp": [
+    0,
+    8
+  ],
+  "skills": {
+    "haggling": [
+      2,
+      5
+    ],
+    "speechcraft": [
+      2,
+      4
+    ],
+    "alchemy": [
+      0,
+      2
+    ],
+    "sneak": [
+      0,
+      2
+    ],
+    "foraging": [
+      0,
+      2
+    ],
+    "intimidation": [
+      0,
+      1
+    ],
+    "blunt": [
+      0,
+      1
+    ]
+  },
+  "teaches": "haggling",
+  "weapon": [
+    "cudgel",
+    "stick"
+  ],
+  "stock": {
+    "ale [G]": [
+      10,
+      24
+    ],
+    "stew [G]": [
+      3,
+      7
+    ],
+    "bread loaf [G]": [
+      3,
+      8
+    ],
+    "healing salve [E]": [
+      0,
+      2
+    ]
+  },
+  "money": [
+    600,
+    1500
+  ],
+  "buys": [
+    "bread loaf",
+    "ale",
+    "wild herbs",
+    "rabbit pelt"
+  ],
+  "prices": {
+    "ale": [
+      15,
+      25
+    ],
+    "stew": [
+      30,
+      45
+    ],
+    "bread loaf": [
+      8,
+      13
+    ],
+    "healing salve": [
+      120,
+      160
+    ]
+  },
+  "storage": {
+    "name": "the inn's storeroom",
+    "slots": 16
+  },
+  "schedule": [
+    {
+      "from": 6,
+      "to": 20,
+      "activity": "work",
+      "place": "inn"
+    },
+    {
+      "from": 20,
+      "to": 21,
+      "activity": "socialise",
+      "place": "inn"
+    },
+    {
+      "from": 21,
+      "to": 6,
+      "activity": "sleep",
+      "place": "inn"
+    }
+  ],
+  "knows": {
+    "news.*": "rumour",
+    "people.*": "rumour"
+  },
+  "maxQuestTier": "D",
+  "names": {
+    "female": [
+      "Ada",
+      "Bess",
+      "Cora",
+      "Edith",
+      "Greta",
+      "Hilde",
+      "Ida",
+      "Mae",
+      "Nell",
+      "Rosa",
+      "Tilda",
+      "Una"
+    ],
+    "male": [
+      "Abel",
+      "Bram",
+      "Cob",
+      "Dunstan",
+      "Edwin",
+      "Fenn",
+      "Gil",
+      "Hob",
+      "Jory",
+      "Osric",
+      "Ned",
+      "Wat"
+    ],
+    "family": [
+      "Hollis",
+      "Marsh",
+      "Thatcher",
+      "Brook",
+      "Fallow",
+      "Reed",
+      "Cotter",
+      "Ashby",
+      "Linden",
+      "Furrow",
+      "Penny",
+      "Stile"
+    ]
+  },
+  "voice": {
+    "female": {
+      "lang": "en-GB",
+      "pitch": 1.05,
+      "rate": 1.1,
+      "gender": "female",
+      "browser": [
+        "Kate",
+        "Serena",
+        "Moira",
+        "Google UK English Female",
+        "Microsoft Libby Online (Natural) - English (United Kingdom)"
+      ],
+      "piper": {
+        "model": "en_GB-semaine-medium",
+        "speaker": 0
+      }
+    },
+    "male": {
+      "lang": "en-GB",
+      "pitch": 0.95,
+      "rate": 1.1,
+      "gender": "male",
+      "browser": [
+        "Daniel",
+        "Arthur",
+        "Oliver",
+        "Google UK English Male",
+        "Microsoft Ryan Online (Natural) - English (United Kingdom)"
+      ],
+      "piper": {
+        "model": "en_GB-semaine-medium",
+        "speaker": 1
+      }
+    }
+  },
+  "fallback": {
+    "personality": [
+      [
+        "chatty",
+        "shrewd",
+        "hospitable"
+      ],
+      [
+        "nosy",
+        "warm",
+        "calculating"
+      ],
+      [
+        "genial",
+        "sharp-eyed",
+        "cautious"
+      ]
+    ],
+    "speechStyle": [
+      "Warm and wheedling, always wiping something. Lowers their voice for gossip and raises it for prices.",
+      "Talks like a host: 'Sit, sit', and a rumour with every cup."
+    ],
+    "backstory": [
+      "{name} has kept the inn at {place} for years, and has heard every rumour that has ever come through the door.",
+      "{first} took over the inn at {place} from a relative, and learned the trade by listening."
+    ],
+    "appearance": [
+      "A stained apron, a damp cloth over one shoulder and a smile that sizes you up.",
+      "Round and ruddy, with keys at the belt and a ledger never far away."
+    ],
+    "goals": [
+      [
+        "Keep the rooms full and the cellar stocked",
+        "Hear the next piece of news before anyone else"
+      ],
+      [
+        "Pay off what the inn owes",
+        "Find an honest cook"
+      ]
+    ],
+    "fallbackLine": "Mind the step. What'll it be?"
+  },
+  "services": [
+    {
+      "kind": "lodging",
+      "price": 80
+    },
+    {
+      "kind": "heal",
+      "price": 60
+    }
+  ]
+}

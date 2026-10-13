@@ -1,3 +1,4 @@
+import { allCreatures } from "../game/site.js";
 import type { AdminBudgets, AdminHealth } from "@millbrook/shared";
 import { ongoing } from "../game/realm/diplomacy.js";
 import { describeRealm } from "../game/realm/view.js";
@@ -18,7 +19,7 @@ export function health(ctx: AdminContext): AdminHealth {
     queue: ctx.queueLength(),
     cast: town.ids.length,
     castAlive: agents.filter((a) => !a.isDead && !a.state.dormant).length,
-    creatures: Object.values(world.creatures).filter((c) => c.outcome === null).length,
+    creatures: allCreatures(world).filter(({ creature: c }) => c.outcome === null).length,
     eventsInSave: (world.events ?? []).length,
     eventsInDatabase: ctx.store?.eventCount() ?? 0,
     eventsToday: (world.events ?? []).filter((e) => e.day === world.day).length,

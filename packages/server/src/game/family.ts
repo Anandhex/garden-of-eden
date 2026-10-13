@@ -20,12 +20,13 @@ import { ITEM_TIERS } from "./items.js";
 import { ageOn, ageStage, effectiveStats } from "./life.js";
 import { ageGapTooWide, canCourtAt, closeKin } from "./people/rules.js";
 import type { ScheduleBlock } from "./schedule.js";
+import { registerTalker, talkerSite } from "./talkers.js";
 
 /**
  * Families (N11.3): courtship, marriage, children and what runs in the blood.
  *
  * All rules in code (design rule 1); the model only ever hears words ("your wife,
- * Brena", "you're expecting a child"). Every night:
+ * Mara", "you're expecting a child"). Every night:
  *
  * - **Courtship.** Two unmarried NPCs past courting age (two years after they're grown)
  *   who like and trust each other (both ways),
@@ -72,12 +73,6 @@ export interface FamilyState {
   marriages: Marriage[];
   courting: Courtship[];
   expecting: Expecting[];
-  /**
-   * NPC files that live in the save, by id: those born in play, and children who grew
-   * up (a grown file NPC's new file replaces the one in src/data/npcs). Their state is
-   * in npcStates like anyone's.
-   */
-  born: Record<string, NpcPersona>;
   /** The last day each couple (by pairKey) had a child. */
   lastBirth: Record<string, number>;
 }
@@ -86,12 +81,10 @@ export const FamilySchema = z.object({
   marriages: z.array(z.object({ a: z.string(), b: z.string(), day: z.number().int() })).default([]),
   courting: z.array(z.object({ a: z.string(), b: z.string(), since: z.number().int(), nights: z.number().int() })).default([]),
   expecting: z.array(z.object({ parents: z.tuple([z.string(), z.string()]), since: z.number().int(), dueDay: z.number().int() })).default([]),
-  // Born NPC files are checked by the full persona schema when the save loads.
-  born: z.record(z.string(), z.unknown()).default({}),
   lastBirth: z.record(z.string(), z.number().int()).default({}),
 });
 
-export const freshFamily = (): FamilyState => ({ marriages: [], courting: [], expecting: [], born: {}, lastBirth: {} });
+export const freshFamily = (): FamilyState => ({ marriages: [], courting: [], expecting: [], lastBirth: {} });
 
 /** The world's family records, made if missing. */
 export function familyOf(world: Pick<WorldSnapshot, "family">): FamilyState {
@@ -115,7 +108,7 @@ export interface Kin {
   state: NpcState;
 }
 
-/** One key per couple, whichever way round: "brena+hale". */
+/** One key per couple, whichever way round: "mara+tomas". */
 const pairKey = (a: string, b: string) => [a, b].sort().join("+");
 
 // ---- Who's who ----
@@ -325,7 +318,7 @@ export const INFANT_SCHEDULE: ScheduleBlock[] = [
   { from: 18, to: 20, activity: "eat", place: "home" },
 ];
 
-/** The family name: the last word of a parent's name with more than one word ("Brena Ashford" → "Ashford"). */
+/** The family name: the last word of a parent's name with more than one word ("Mara Ashford" → "Ashford"). */
 function familyName(stocks: ParentStock[], fallback: string): string {
   for (const s of stocks) {
     const words = s.name.split(" ");
@@ -342,7 +335,7 @@ function familyName(stocks: ParentStock[], fallback: string): string {
  * A newborn's NPC file, from the child template and their parents. `takenIds` and
  * `takenNames` keep the id and first name new.
  */
-export function makeChild(template: NpcTemplate, a: ParentStock, b: ParentStock, day: number, takenIds: string[], takenNames: string[]): NpcPersona {
+export function makeChild(template: NpcTemplate, a: ParentStock, b: ParentStock, day: number, takenIds: string[], takenNames: string[], place = "the village"): NpcPersona {
   const rng = seededRng(seedFrom(`${a.id}+${b.id}@${day}`));
   const rolled = rollTemplate(template, rng);
   const inh = inherit(a, b, rng);
@@ -369,7 +362,7 @@ export function makeChild(template: NpcTemplate, a: ParentStock, b: ParentStock,
     speechStyle: "A baby: only babbles, cries and laughs.",
     fallbackLine: "Ba!",
     voice: rolled.voice,
-    backstory: `${first} was born in Millbrook on day ${day}, to ${parentsWords}.`,
+    backstory: `${first} was born in ${place} on day ${day}, to ${parentsWords}.`,
     goals: ["Be fed", "Be held"],
     knows: {},
     secrets: [],
@@ -429,16 +422,16 @@ export function skillList(skills: readonly string[]): string {
  * A child comes of age: no longer a minor; they come into their talents' inherited
  * tiers, a grown body, and their working parent's trade and hours.
  */
-export function adulthood(p: NpcPersona, parents: Array<NpcPersona | null>, day: number): NpcPersona {
+export function adulthood(p: NpcPersona, parents: Array<NpcPersona | null>, day: number, place = "the village"): NpcPersona {
   const skills: Skills = { ...p.skills };
   for (const [s, level] of Object.entries(p.inherited ?? {}) as Array<[Skill, number]>) skills[s] = Math.max(skillLevel(skills, s), level);
   const mentor = parents.find((x): x is NpcPersona => x !== null && x.schedule !== undefined && x.minor !== true);
   const teaches = (p.talents ?? []).find((s) => skillLevel(skills, s) > 0);
   const { minor: _minor, ...rest } = p;
-  const parentWord = mentor ? `${mentor.name}'s ${childWord(p)}` : "born and raised in Millbrook";
+  const parentWord = mentor ? `${mentor.name}'s ${childWord(p)}` : `born and raised in ${place}`;
   return {
     ...rest,
-    role: mentor ? `a young villager of Millbrook, ${parentWord}, who works alongside them` : `a young villager of Millbrook, ${parentWord}`,
+    role: mentor ? `a young villager of ${place}, ${parentWord}, who works alongside them` : `a young villager of ${place}, ${parentWord}`,
     goals: ["Make a name for themselves", ...(mentor ? [`Do right by ${mentor.name.split(" ")[0]}`] : ["Find steady work"])],
     stats: { ...p.stats, maxHp: Math.max(p.stats.maxHp, Math.round(p.stats.maxHp / 0.6)) },
     skills,
@@ -466,7 +459,7 @@ export interface FamilyNight {
  * children are expected and born, and children grow up. `template` is the child
  * template (src/data/templates/child.json).
  */
-export function familyNight(members: Kin[], world: WorldSnapshot, rng: Rng, template: NpcTemplate | undefined): FamilyNight {
+export function familyNight(members: Kin[], world: WorldSnapshot, rng: Rng, template: NpcTemplate | undefined, place = { site: "", name: "the village" }): FamilyNight {
   const out: FamilyNight = { log: [], born: [], changed: [] };
   const fam = familyOf(world);
   const byId = (id: string) => members.find((m) => m.id === id);
@@ -518,8 +511,8 @@ export function familyNight(members: Kin[], world: WorldSnapshot, rng: Rng, temp
     if (!e.parents.some(isAlive) || !template) continue;
     const [sa, sb] = e.parents.map((id) => stockOf(members, world.player, id) ?? stockOf(members, world.player, e.parents.find((x) => x !== id)!));
     if (!sa || !sb) continue;
-    const child = makeChild(template, sa, sb, day, takenIds(), takenNames());
-    fam.born[child.id] = child;
+    const child = makeChild(template, sa, sb, day, [...takenIds(), ...Object.keys(world.talkers ?? {})], takenNames(), place.name);
+    registerTalker(world, child, place.site);
     fam.lastBirth[pairKey(...e.parents)] = day;
     out.born.push(child);
     const parentsWords = `${sa.name} and ${sb.name}`;
@@ -563,7 +556,7 @@ export function familyNight(members: Kin[], world: WorldSnapshot, rng: Rng, temp
     out.log.push(`${na} and ${nb} are expecting a child.`);
   }
 
-  // Growing up: born children reach talking age; any minor (Pip too) reaches adulthood.
+  // Growing up: born children reach talking age; any minor reaches adulthood.
   for (const k of members) {
     if ((k.persona.bornOnDay === undefined && !k.persona.minor) || !alive(k)) continue;
     const age = ageOn(k.state.life, day);
@@ -571,7 +564,7 @@ export function familyNight(members: Kin[], world: WorldSnapshot, rng: Rng, temp
     const parents = (k.persona.parents ?? []).map((id) => (id === PLAYER ? null : (byId(id)?.persona ?? null)));
     let next: NpcPersona | null = null;
     if (k.persona.minor && age >= sp.adultAge) {
-      next = adulthood(k.persona, parents, day);
+      next = adulthood(k.persona, parents, day, place.name);
       recordEvent(world, { kind: "coming-of-age", actor: k.id, target: k.id, details: `${k.persona.name} came of age`, importance: 5, witnesses: [] });
       // "has come of age" is already said by the life rules (game/life.ts); this is what the blood brings.
       const gifts = Object.entries(next.inherited ?? {}).map(([sk, lvl]) => `${sk.replace("_", "-")} (${lvl})`);
@@ -581,7 +574,7 @@ export function familyNight(members: Kin[], world: WorldSnapshot, rng: Rng, temp
       out.log.push(`${k.persona.name} is old enough to run errands round the square now.`);
     }
     if (next) {
-      fam.born[k.id] = next;
+      registerTalker(world, next, talkerSite(world, k.id) ?? place.site);
       out.changed.push(next);
     }
   }
@@ -593,6 +586,11 @@ export function familyNight(members: Kin[], world: WorldSnapshot, rng: Rng, temp
 /** Talk about family: the family line is only shown then, or when family is present (design rule 3). */
 export const FAMILY_TALK = /\b(famil\w*|wife|husband|spouse|married|marry|wedding|child\w*|kids?|son|daughter|baby|babies|parents?|mother|father|mum|mam|dad|pa|ma|brothers?|sisters?|courting|sweetheart)\b/i;
 
+/** Everyone born in play (talkers with a birth day), grown up or not. */
+export function bornKids(world: Pick<WorldSnapshot, "talkers">): NpcPersona[] {
+  return Object.values(world.talkers ?? {}).map((t) => t.persona).filter((p) => p.bornOnDay !== undefined);
+}
+
 /** Age in whole years of someone born in play, on `day`. */
 export function bornAge(p: Pick<NpcPersona, "bornOnDay">, day: number): number {
   return Math.max(0, Math.floor((day - (p.bornOnDay ?? day)) / config.daysPerYear));
@@ -601,8 +599,8 @@ export function bornAge(p: Pick<NpcPersona, "bornOnDay">, day: number): number {
 const wordFor = (gender: string | undefined, female: string, male: string, other: string) => (gender === "female" ? female : gender === "male" ? male : other);
 
 /**
- * One situation line about their family, or null: "Your husband is Corporal Hale. Your
- * children: Tam (6), Pip (a baby). You're expecting another child, due in 3 days."
+ * One situation line about their family, or null: "Your husband is Tomas Reed. Your
+ * children: Tam (6), Ivo (a baby). You're expecting another child, due in 3 days."
  * Only the living count; the dead are in the news and their memories.
  */
 export function describeFamily(persona: NpcPersona, world: WorldSnapshot): string | null {
@@ -615,7 +613,7 @@ export function describeFamily(persona: NpcPersona, world: WorldSnapshot): strin
     if (spouse) parts.push(spouse === PLAYER ? `You are married to ${world.player.name}.` : `Your ${wordFor(npcGender(spouse), "wife", "husband", "spouse")} is ${name(spouse)}.`);
     const court = fam.courting.find((c) => c.a === persona.id || c.b === persona.id);
     if (court) parts.push(`You're courting ${name(court.a === persona.id ? court.b : court.a)}.`);
-    const kids = Object.values(fam.born).filter((p) => p.bornOnDay !== undefined && p.parents?.includes(persona.id) && living(p.id));
+    const kids = bornKids(world).filter((p) => p.parents?.includes(persona.id) && living(p.id));
     if (kids.length > 0) parts.push(`Your children: ${kids.map((p) => `${p.name.split(" ")[0]} (${bornAge(p, world.day) < 1 ? "a baby" : bornAge(p, world.day)})`).join(", ")}.`);
     const due = fam.expecting.find((e) => e.parents.includes(persona.id));
     if (due) parts.push(`You're expecting ${kids.length > 0 ? "another" : "a"} child, due in ${Math.max(0, due.dueDay - world.day)} day(s).`);
@@ -634,7 +632,7 @@ export function familyPresent(persona: NpcPersona, world: WorldSnapshot): boolea
   if (!fam) return false;
   const spouse = spouseOf(world, persona.id);
   if (spouse && here.has(spouse)) return true;
-  return Object.values(fam.born).some((p) => p.parents?.includes(persona.id) && here.has(p.id));
+  return bornKids(world).some((p) => p.parents?.includes(persona.id) && here.has(p.id));
 }
 
 /** Marriages a new world starts with: every NPC file that names a spouse (both ways). */

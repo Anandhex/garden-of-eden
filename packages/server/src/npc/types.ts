@@ -27,6 +27,8 @@ import type { CompanionState } from "../game/party.js";
 import type { GrowthChallenge, GrowthState } from "./growth.js";
 import type { Arc, ArcProgress } from "./arcs.js";
 import type { NpcGoal } from "../director/revenge.js";
+import type { SiteState } from "../game/site.js";
+import type { Talker } from "../game/talkers.js";
 import type { Crime } from "../game/crime.js";
 import type { LoreEntry } from "./knowledge.js";
 import type { SpawnRule } from "../game/spawning.js";
@@ -72,7 +74,7 @@ export interface NpcPersona {
   backstory: string;
   goals: string[];
   /**
-   * Which world lore (src/data/world.json) the NPC knows, and how sure they are, by
+   * Which world lore the NPC knows, and how sure they are, by
    * scope: an exact id, "x.*" or "*". The most specific scope wins. See npc/knowledge.ts.
    */
   knows: Record<string, Certainty>;
@@ -417,6 +419,25 @@ export interface NpcState {
   fightRound?: number;
   /** Lore learned in play, on top of the file's `knows` (npc/knowledge.ts): told, overheard or witnessed. */
   learned: Record<string, Certainty>;
+  /** How they see what isn't a person they talk to (N25b): their lord, a faction, a place, by ref ("lord:<figure>", "faction:<id>", "site:<id>"). */
+  views?: Record<string, RelationAxes>;
+  /** What they want from what has happened to them (N25b, npc/review/): set by life reviews; revenge stays in `goals`. */
+  lifeGoals?: LifeGoal[];
+  /** Their last life review (N25b): the day, and the day of the last shock review. */
+  review?: { day: number; shock?: number; /** Events (refs) it already weighed, so a later review does not weigh them twice. */ seen?: string[] };
+}
+
+/** What a life review made someone want (N25b). The kinds are fixed; the words are written, the numbers are code's. */
+export interface LifeGoal {
+  id: string;
+  kind: "move" | "avenge" | "pay_debt" | "protect" | "make_amends" | "save_coin" | "leave_post";
+  /** A person, place or faction ref, if the goal is about one. */
+  target?: string;
+  /** How it's put to them, written to them: "You want to see the wolves that took your brother hunted down." */
+  words: string;
+  since: number;
+  /** 0..1: how much it weighs. Fades slowly; below FADED it's dropped. */
+  strength: number;
 }
 
 export interface NpcMemory {
@@ -455,7 +476,7 @@ export interface WorldSnapshot {
   timeOfDay: "morning" | "afternoon" | "evening" | "night";
   location: string;
   nearby: string[];
-  /** Today's events, as lore ids (src/data/world.json). Every NPC hears of them. */
+  /** Today's events in town, as lore ids. Every NPC there hears of them. On a saved world this is the player's site's own list (game/site.ts). */
   recentEvents: string[];
   player: PlayerState;
   /** Other NPCs (ids) at the same place as this conversation (game/scene.ts). */
@@ -466,23 +487,29 @@ export interface WorldSnapshot {
   events?: GameEvent[];
   /** The day of the last bandit raid (game/underworld.ts): a raid day for the town calendar. */
   lastRaidDay?: number;
-  /** Lore that grew during play (director/chronicle.ts), merged with src/data/world.json. */
+  /** Lore that grew during play (director/chronicle.ts), merged with the base lore. */
   lore?: LoreEntry[];
   /** Day each news id in recentEvents arrived, so news can expire. */
   newsDays?: Record<string, number>;
-  /** Spawn rules made during play (director quests, hired ambushes), on top of src/data/spawns.json. */
+  /** Spawn rules made during play here (director quests, hired ambushes), on top of the ones the realm generates for a place. */
   extraSpawnRules?: SpawnRule[];
   /** What the director proposed and whether code accepted it (the last few; the rest is in the database). */
   directorLog?: DirectorLogEntry[];
   /** The last day the nightly chronicle ran for. */
   chronicleDay?: number;
-  /** Marriages, courtships, children on the way and NPCs born in play (game/family.ts). */
+  /** Marriages, courtships and children on the way (game/family.ts). */
   family?: FamilyState;
+  /** Where the world began: the start town the seed picked. Only new-game setup and the `slice` config read it. */
+  startSite?: string;
+  /** What each place keeps about its own day (game/site.ts), by settlement id. */
+  sites?: Record<string, SiteState>;
+  /** Every talking person, by persona id, with the place they belong to (game/talkers.ts). */
+  talkers?: Record<string, Talker>;
   /** Who has died, by NPC id (the permanent record). Set on saved worlds. */
   deaths?: Record<string, unknown>;
   /** What each death's news means to whoever hears it later, by news id (game/deathNews.ts, N13.0). */
   deathNotes?: Record<string, DeathNote>;
-  /** Millbrook's kingdom is at war (N13.5): weapons, armour and food cost more. Set nightly by the town. */
+  /** The kingdom the player is in is at war (N13.5): weapons, armour and food cost more. Set nightly by the town. */
   atWar?: boolean;
 }
 
@@ -548,7 +575,7 @@ export interface PlayerState {
   /** Fights won (the opponent died, ran or begged), for the Veteran title. */
   fightsWon?: number;
   journal?: JournalEntry[];
-  /** Things the player has learned that can break cover stories: "pell.hale_cellar" (npc/secrets.ts). */
+  /** Things the player has learned that can break cover stories: "odo.tomas_cellar" (npc/secrets.ts). */
   facts?: string[];
   /** The player's own promises, like repaying a loan (game/commitments.ts). */
   commitments?: Commitment[];
@@ -587,7 +614,7 @@ export interface PlayerState {
   gathered?: Array<{ item: string; place: string; day: number }>;
   /** Renown in the wider realm (N13): delving and clearing dungeons. Sets the player's rank in the adventurers' guild. */
   renown?: number;
-  /** The settlement the player is in (N14): a realm id; Millbrook when unset. */
+  /** The settlement the player is in (N14): a realm id. New worlds always set it (the start town); a bare test world may not. */
   site?: string;
   /** Where around that settlement (N15): its village (when unset), or a locality: the road, a camp, a mine, the woods. */
   area?: AreaId;

@@ -2,9 +2,9 @@ import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import brenaJson from "../src/data/npcs/brena.json" with { type: "json" };
-import haleJson from "../src/data/npcs/hale.json" with { type: "json" };
-import pellJson from "../src/data/npcs/pell.json" with { type: "json" };
+import brenaJson from "./fixtures/npcs/brena.json" with { type: "json" };
+import haleJson from "./fixtures/npcs/hale.json" with { type: "json" };
+import pellJson from "./fixtures/npcs/pell.json" with { type: "json" };
 import { config } from "../src/config.js";
 import { finishCraft } from "../src/game/crafting.js";
 import {
@@ -31,7 +31,7 @@ import { buildTurnMessage } from "../src/npc/persona.js";
 import { createNpcState, lifeContext, npcGainXp, npcOvercome, statsOf } from "../src/npc/state.js";
 import type { NpcPersona } from "../src/npc/types.js";
 import { SPECIES } from "../src/world/species.js";
-import { createDemoWorld } from "../src/world/world.js";
+import { createTestWorld } from "../src/world/world.js";
 
 const brena = parsePersona(brenaJson, "brena.json");
 const pell = parsePersona(pellJson, "pell.json");
@@ -145,7 +145,7 @@ describe("age", () => {
   it("is described to the NPC in words", () => {
     expect(describeLife(human.name, createNpcState(brena).life, 1)).toBe("34-year-old human, rank C");
     expect(describeLife(human.name, createNpcState(pell).life, 1)).toBe("68-year-old human (getting old), rank E");
-    const msg = buildTurnMessage(brena, createNpcState(brena), createDemoWorld(), "Hello");
+    const msg = buildTurnMessage(brena, createNpcState(brena), createTestWorld(), "Hello");
     expect(msg).toContain("You: 34-year-old human, rank C.");
   });
 });
@@ -170,7 +170,7 @@ describe("natural death", () => {
   it("takes an NPC in their sleep, permanently", () => {
     const state = createNpcState(pell, { life: createLife(human, 94, "E", 1 - config.daysPerYear + 1) });
     // Turns 95 within the day; at 95 death is certain.
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.day = 2;
     world.hour = 23;
     const log = passTime(pell, state, world, 2, never);
@@ -182,7 +182,7 @@ describe("natural death", () => {
 
   it("leaves younger NPCs alone, but they still age and grow", () => {
     const state = createNpcState(brena);
-    const world = createDemoWorld();
+    const world = createTestWorld();
     passTime(brena, state, world, 24 * 3, never);
     expect(state.outcome).toBeNull();
     expect(state.life.xp).toBeGreaterThanOrEqual(3 * DAILY_XP);
@@ -205,7 +205,7 @@ describe("NPCs grow by working", () => {
     const state = createNpcState(brena, {
       job: { recipeId: "dagger", output: "dagger [E]", qty: 1, until: 60, doing: "forging a dagger" },
     });
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.day = 1;
     world.hour = 0;
     world.minute = 0;
@@ -220,7 +220,7 @@ describe("NPCs grow by working", () => {
       job: { recipeId: "iron_sword", output: "iron sword [B]", qty: 1, until: 60, doing: "forging an iron sword" },
     });
     state.life.xp = xpToNextTier("C");
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.hour = 0;
     world.minute = 0;
     const log = passTime(brena, state, world, 1, never);
@@ -231,7 +231,7 @@ describe("NPCs grow by working", () => {
   it("teaching earns XP but can't raise their rank", () => {
     const state = createNpcState(brena, { relationship: 60 });
     state.life.xp = xpToNextTier("C") - 1;
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.player.money = 500;
     const result = train(brena, state, world, "smithing", 2);
     expect(result.ok).toBe(true);
@@ -281,7 +281,7 @@ describe("titles", () => {
   it("the NPC hears its titles", () => {
     const state = createNpcState(brena);
     state.life.titles.push({ id: "veteran", day: 1 });
-    expect(buildTurnMessage(brena, state, createDemoWorld(), "Hi")).toContain("You: 34-year-old human, rank C, known as Veteran.");
+    expect(buildTurnMessage(brena, state, createTestWorld(), "Hi")).toContain("You: 34-year-old human, rank C, known as Veteran.");
   });
 });
 

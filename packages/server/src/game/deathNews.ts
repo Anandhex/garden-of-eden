@@ -120,19 +120,22 @@ export function heardNews(m: Mourner, newsId: string, world: DeathWorld, certain
 }
 
 /**
- * News for the prompt: news from the world file (raids, the cart attack) is
- * village-wide, so everyone hears it; news made in play (deaths, weddings, the
- * realm) only reaches those who have learned it.
+ * News for the prompt: the generic news every place has (raids) is town-wide, so everyone
+ * there hears it; news made in play (deaths, weddings, the realm) only reaches those who
+ * have learned it.
  */
 export function newsHeard(state: Pick<NpcState, "learned">, recent: readonly string[], fromAway = false): string[] {
-  // Someone from another place (N14) only knows Millbrook's news if it reached them.
+  // Someone from another place (N14) only knows this place's news if it reached them.
   return recent.filter((id) => (!fromAway && !isPlayMadeNews(id)) || state.learned[id] !== undefined);
 }
 
-/** A persona for someone of another place (game/realm/visitors.ts: "v_" ids), not Millbrook's cast. */
-export const isFromAway = (persona: { id: string }) => persona.id.startsWith("v_");
+/** A talker who belongs to another place than the player's now (a companion from elsewhere): they only know this place's news if it reached them. */
+export const isFromAway = (persona: { id: string }, world: { talkers?: Record<string, { site: string }>; player: { site?: string } }): boolean => {
+  const home = world.talkers?.[persona.id]?.site;
+  return home !== undefined && world.player.site !== undefined && home !== world.player.site;
+};
 
-/** News made in play (deaths, weddings, the realm), rather than in src/data/world.json. */
+/** News made in play (deaths, weddings, the realm), rather than the generic news. */
 function isPlayMadeNews(id: string): boolean {
   return !isBaseLore(id);
 }

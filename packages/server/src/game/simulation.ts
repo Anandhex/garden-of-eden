@@ -204,7 +204,7 @@ function hourTick(persona: NpcPersona, state: NpcState, world: WorldSnapshot, rn
     }
   }
 
-  // Paid off the last debt: a challenge met (Pell's, N9).
+  // Paid off the last debt: a challenge met (an innkeeper's, N9).
   if ((persona.debts ?? []).length > 0 && state.triggerDay["debt_cleared"] === undefined && isDebtFree(persona, state)) {
     state.triggerDay["debt_cleared"] = world.day;
     log.push(...growthEvent(persona, state, { kind: "debt_cleared" }, world.day));

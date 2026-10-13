@@ -5,7 +5,7 @@ import { factionOf, shiftStanding, STANDING } from "./factions.js";
 import { note } from "./journal.js";
 
 /**
- * Crimes (N7): attacking, killing, stealing or looting in Millbrook. A crime only
+ * Crimes (N7): attacking, killing, stealing or looting in a place. A crime only
  * counts once a guard knows of it: they saw it, or someone told them (gossip
  * carries the event, game/gossip.ts). Then there's a bounty, the guard brings it up
  * (npc/initiative.ts), won't deal with the player, and at a high enough bounty
@@ -41,7 +41,7 @@ export function crimeFor(event: GameEvent, personas: Record<string, NpcPersona>)
   if (event.actor !== "player") return null;
   const victim = personas[event.target];
   if (!victim) return null;
-  if (factionOf({ persona: victim })?.id === "bandits") return null;
+  if (factionOf({ persona: victim })?.id === "gang") return null;
   if (event.kind === "attacked") return "assault";
   if (event.kind === "killed") return "murder";
   if (event.kind === "theft-caught" || event.kind === "theft") return "theft";

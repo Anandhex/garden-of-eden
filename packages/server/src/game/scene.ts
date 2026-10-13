@@ -49,7 +49,7 @@ export class Scene {
   }
 }
 
-/** The NPC a line addresses by name ("Pell, what about Brena?" is to Pell): the present NPC named first, if any. */
+/** The NPC a line addresses by name ("Odo, what about Mara?" is to Odo): the present NPC named first, if any. */
 export function addressedByName(line: string, present: NpcAgent[]): NpcAgent | null {
   const lower = line.toLowerCase();
   let best: { agent: NpcAgent; at: number } | null = null;

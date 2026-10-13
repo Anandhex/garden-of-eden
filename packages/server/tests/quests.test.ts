@@ -2,8 +2,8 @@ import { loadCreatureTemplates } from "../src/game/creatures.js";
 import { readdirSync, readFileSync } from "node:fs";
 import { MoneySchema } from "../src/game/money.js";
 import { describe, expect, it } from "vitest";
-import brenaJson from "../src/data/npcs/brena.json" with { type: "json" };
-import pellJson from "../src/data/npcs/pell.json" with { type: "json" };
+import brenaJson from "./fixtures/npcs/brena.json" with { type: "json" };
+import pellJson from "./fixtures/npcs/pell.json" with { type: "json" };
 import { craftingNeeds } from "../src/game/crafting.js";
 import { ITEMS } from "../src/game/items.js";
 import { canTakeQuestTier, compareTiers, gainXp, QUEST_TIERS, xpToNextLevel } from "../src/game/levels.js";
@@ -18,12 +18,12 @@ import {
 } from "../src/game/quests.js";
 import { createNpcState } from "../src/npc/state.js";
 import type { NpcPersona } from "../src/npc/types.js";
-import { createDemoWorld } from "../src/world/world.js";
+import { createTestWorld } from "../src/world/world.js";
 import { parsePersona } from "../src/npc/personaSchema.js";
 
 const brena = parsePersona(brenaJson);
 const pell = parsePersona(pellJson);
-const NPC_DIR = new URL("../src/data/npcs/", import.meta.url);
+const NPC_DIR = new URL("./fixtures/npcs/", import.meta.url);
 
 describe("levels", () => {
   it("need more XP each level: 50, 100, 150...", () => {
@@ -72,7 +72,7 @@ describe("every NPC file's quests", () => {
 
 describe("who sees which quests", () => {
   it("quests above the NPC's trust are hidden entirely", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const ids = (trust: number) => {
       const v = questsFor(brena, createNpcState(brena, { relationship: trust, respect: 20 }), world.player);
       return [...v.available, ...v.tooHard].map((q) => q.id);
@@ -87,7 +87,7 @@ describe("who sees which quests", () => {
   });
 
   it("quests above the player's level are known but can't be taken", () => {
-    const world = createDemoWorld(); // level 1
+    const world = createTestWorld(); // level 1
     const v = questsFor(brena, createNpcState(brena, { relationship: 60, respect: 20 }), world.player);
     expect(v.available.map((q) => q.id)).toEqual(["hot_meal"]);
     expect(v.tooHard.map((q) => q.id)).toEqual(["burn_poultice", "apprentice_work", "hammer_whereabouts"]);
@@ -97,7 +97,7 @@ describe("who sees which quests", () => {
   });
 
   it("tells the model what to offer and what to refuse as too dangerous", () => {
-    const text = describeQuestsForNpc(brena, createNpcState(brena, { relationship: 60, respect: 20 }), createDemoWorld().player);
+    const text = describeQuestsForNpc(brena, createNpcState(brena, { relationship: 60, respect: 20 }), createTestWorld().player);
     expect(text).toContain('"hot_meal" [G] A hot meal: bring 1 stew for 8 silver');
     expect(text).toContain("Too dangerous for them at their level, so refuse if asked: [F] Herbs for a burn (needs level 2); [F] Show me your hands (needs level 2); [F] Who has the hammer? (needs level 2)");
   });
@@ -115,7 +115,7 @@ describe("quests made from the NPC's needs", () => {
 
   it("turns a need into a quest: tier from the value, reward from her purse", () => {
     const state = createNpcState(brena); // 3 gold 5 silver
-    refreshNeedQuests(brena, state, createDemoWorld().player);
+    refreshNeedQuests(brena, state, createTestWorld().player);
     expect(state.questBoard).toEqual([
       expect.objectContaining({
         id: "need_brena_iron_ore",
@@ -128,20 +128,20 @@ describe("quests made from the NPC's needs", () => {
 
   it("a broke NPC posts no need quests", () => {
     const state = createNpcState(brena, { money: 0 });
-    refreshNeedQuests(brena, state, createDemoWorld().player);
+    refreshNeedQuests(brena, state, createTestWorld().player);
     expect(state.questBoard).toEqual([]);
   });
 
   it("no need once the stock is there", () => {
     const state = createNpcState(brena, { inventory: { "iron ore [F]": 8 } });
-    refreshNeedQuests(brena, state, createDemoWorld().player);
+    refreshNeedQuests(brena, state, createTestWorld().player);
     expect(state.questBoard).toEqual([]);
   });
 });
 
 describe("taking and finishing a quest", () => {
   it("accept → bring the items → turn in: items to the NPC, gold and XP to the player", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.player.money = 0;
     const state = createNpcState(brena, { pendingQuest: "hot_meal" });
     expect(acceptQuest(brena, state, world.player)?.id).toBe("hot_meal");
@@ -162,13 +162,13 @@ describe("taking and finishing a quest", () => {
   });
 
   it("a finished quest can't be taken again", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.player.quests.completed.push("hot_meal");
     expect(questsFor(brena, createNpcState(brena), world.player).available.map((q) => q.id)).not.toContain("hot_meal");
   });
 
   it("enough XP levels the player up, opening higher tiers", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.player.xp = 40;
     const state = createNpcState(brena, { pendingQuest: "hot_meal" });
     acceptQuest(brena, state, world.player);
@@ -181,7 +181,7 @@ describe("taking and finishing a quest", () => {
   });
 
   it("can't accept a quest above your level, even if it was offered", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const state = createNpcState(brena, { relationship: 60, pendingQuest: "fathers_hammer" });
     expect(acceptQuest(brena, state, world.player)).toBeNull();
     expect(world.player.quests.active).toEqual([]);

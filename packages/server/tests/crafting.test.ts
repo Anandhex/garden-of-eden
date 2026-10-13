@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import brenaJson from "../src/data/npcs/brena.json" with { type: "json" };
-import pellJson from "../src/data/npcs/pell.json" with { type: "json" };
+import brenaJson from "./fixtures/npcs/brena.json" with { type: "json" };
+import pellJson from "./fixtures/npcs/pell.json" with { type: "json" };
 import { absoluteHour } from "../src/game/clock.js";
 import {
   countItem,
@@ -16,7 +16,7 @@ import {
 import { busyWith, passTime } from "../src/game/simulation.js";
 import { createNpcState } from "../src/npc/state.js";
 import type { NpcPersona } from "../src/npc/types.js";
-import { createDemoWorld } from "../src/world/world.js";
+import { createTestWorld } from "../src/world/world.js";
 import { parsePersona } from "../src/npc/personaSchema.js";
 
 const brena = parsePersona(brenaJson);
@@ -64,7 +64,7 @@ describe("recipes", () => {
 
 describe("time passing", () => {
   it("an NPC with materials starts crafting and is busy until done", () => {
-    const world = createDemoWorld(); // Day 1, 14:00
+    const world = createTestWorld(); // Day 1, 14:00
     const state = createNpcState(brena, { inventory: { "iron ore [F]": 2 } });
     const log = passTime(brena, state, world, 1, () => 0.01); // always crafts, picks the first recipe it can
     expect(log[0]).toMatch(/started/);
@@ -75,7 +75,7 @@ describe("time passing", () => {
   });
 
   it("nobody crafts outside working hours", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.hour = 21;
     const state = createNpcState(brena, { inventory: { "iron ore [F]": 4 } });
     passTime(brena, state, world, 3, () => 0.01);
@@ -83,7 +83,7 @@ describe("time passing", () => {
   });
 
   it("idle NPCs sell stock to villagers for gold (which can pay down debts)", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const state = createNpcState(pell, { money: 200, inventory: { "ale [G]": 1 } }); // no herbs: can't brew
     const before = state.debts.mayor!;
     passTime(pell, state, world, 1, () => 0.1);
@@ -92,14 +92,14 @@ describe("time passing", () => {
   });
 
   it("time passes even for the dead, but they do nothing", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const state = createNpcState(brena, { outcome: "dead", inventory: { "iron ore [F]": 4 } });
     expect(passTime(brena, state, world, 2, () => 0.01)).toEqual([]);
     expect(absoluteHour(world)).toBe(16);
   });
 
   it("needs and quests are refreshed after time passes", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const state = createNpcState(brena);
     passTime(brena, state, world, 1, () => 0.99);
     expect(state.questBoard.map((q) => q.id)).toEqual(["need_brena_iron_ore"]);

@@ -87,7 +87,7 @@ export function renderSheet(): void {
     row("trust · fear · respect · liking", `${p.reputation.trust} · ${p.reputation.fear} · ${p.reputation.respect} · ${p.reputation.affection}`);
     if (p.bounty) {
       h("Wanted");
-      body.append(emptyP(`The guard wants you for ${p.crimes.join(", ")}. Fine: ${coins(p.bounty)}. Pay it or give yourself up to Corporal Hale.`));
+      body.append(emptyP(`The guard wants you for ${p.crimes.join(", ")}. Fine: ${coins(p.bounty)}. Pay it or give yourself up to the guard.`));
     }
     h("Factions");
     for (const f of p.factions) {
@@ -124,11 +124,11 @@ export function renderSheet(): void {
 
 export function renderHeader(): void {
   const s = game();
-  // Out at a locality (N15): "Millbrook · The mine road".
+  // Out at a locality (N15): "Ashby · The road out".
   const where = s.site.area.id === "village" ? s.site.name : `${s.site.name} · ${s.site.area.name}`;
   $("site-name").textContent = where;
   const ways = s.site.area.exits.length > 0 ? ` Walk off the map's edge: ${s.site.area.exits.join(", ")}.` : "";
-  $("site-name").title = `${s.site.home ? "Home: Millbrook" : `${s.site.name}, a ${s.site.kind}${s.site.kingdom ? ` of ${s.site.kingdom}` : ""}. Travel from the Realm tab.`}${ways}`;
+  $("site-name").title = `${s.site.name}, a ${s.site.kind}${s.site.kingdom ? ` of ${s.site.kingdom}` : ""}. Travel from the Realm tab.${ways}`;
   document.title = where;
   $("time").textContent = s.time.text;
   $("today").textContent = `${s.time.weather}, ${s.time.season}${s.time.events.length ? ` · ${s.time.events.join(", ")}` : ""}`;

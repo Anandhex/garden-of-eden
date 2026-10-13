@@ -10,7 +10,7 @@ import { captureFrame, turnEvents } from "../src/game/turnEvents.js";
 import { parsePersona } from "../src/npc/personaSchema.js";
 import { CachedTts, findProgram, listPiperModels, PiperCliTts, PiperHttpTts, setUpVoice, type TtsProvider } from "../src/voice/tts.js";
 import { ActionQueue, QueueFullError } from "../src/web/queue.js";
-import brenaJson from "../src/data/npcs/brena.json" with { type: "json" };
+import brenaJson from "./fixtures/npcs/brena.json" with { type: "json" };
 import { allPersonas, makeTown } from "./helpers.js";
 
 const tick = () => new Promise((r) => setTimeout(r, 0));

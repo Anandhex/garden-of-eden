@@ -19,6 +19,7 @@ import { formatMoney } from "../game/money.js";
 import { describeLookup, eventTexts, isNewsTalk, knownNameWords, lookupLore, rumourMonger, unknownNames, whoKnowsMore } from "./knowledge.js";
 import { describeRecall } from "./memory.js";
 import { describeEmotion } from "./emotions.js";
+import { describeLifeGoals } from "./review/apply.js";
 import { describeNeeds } from "../game/needs.js";
 import { activeQuirks } from "./quirks.js";
 import { describeWhoTheyAre } from "./names.js";
@@ -172,7 +173,7 @@ function buildSituation(
   const stats = statsOf(persona, state);
   // Today's village-wide events are shown to everyone; news made in play (deaths, the realm) only to
   // those who've heard it (N13.0); lore lines only for what the player asked about.
-  const news = eventTexts(newsHeard(state, world.recentEvents, isFromAway(persona)));
+  const news = eventTexts(newsHeard(state, world.recentEvents, isFromAway(persona, world)));
   // What they know: their file's scopes plus what they learned in play (N7).
   const knowing = { ...persona, knows: knowsOf(persona, state) };
   const lore = playerLine ? describeLookup(knowing, lookupLore(knowing, playerLine, undefined, new Set(world.recentEvents))) : [];
@@ -205,6 +206,7 @@ function buildSituation(
     describeGrowth(state, world.day),
     ...(!playerLine || arcTalk(persona, playerLine) ? describeArcs(persona, state) : []),
     describeRevenge(state),
+    describeLifeGoals(state),
     playerLine && PLAN_TALK.test(playerLine) ? describePlan(state, world.day) : null,
     describeBond(persona, state, player),
     // Family (N11.3): only when the talk is about it, or family is here (design rule 3).

@@ -2,8 +2,8 @@
   "id": "farmer",
   "describe": "a smallholder who sells eggs, turnips and wool at the square",
   "roles": [
-    "a farmer from the fields east of Millbrook",
-    "a smallholder who keeps hens and sheep outside Millbrook"
+    "a farmer from the fields outside {place}",
+    "a smallholder who keeps hens and sheep outside {place}"
   ],
   "species": [
     "human",
@@ -173,9 +173,7 @@
     }
   ],
   "knows": {
-    "millbrook.*": "certain",
     "news.*": "rumour",
-    "mine_road.*": "rumour",
     "people.*": "rumour"
   },
   "maxQuestTier": "F",
@@ -282,7 +280,7 @@
       "Slow and plain. Says 'aye' and 'mind you' and never hurries a sale."
     ],
     "backstory": [
-      "{name} has worked the same few fields outside Millbrook for years, and brings eggs and turnips to the square every morning.",
+      "{name} has worked the same few fields outside {place} for years, and brings eggs and turnips to the square every morning.",
       "{first} took over a smallholding from an aunt and has kept it going through two bad winters."
     ],
     "appearance": [

@@ -104,7 +104,6 @@ button.small {
 .realm-map .place { cursor: pointer; }
 .realm-map .place text { fill: var(--text); font-size: 30px; font-weight: 600; paint-order: stroke; stroke: var(--panel2); stroke-width: 6px; pointer-events: none; }
 .realm-map .place circle { stroke: var(--bg, #111); stroke-width: 1.5; }
-.realm-map .place.home circle:last-of-type { stroke: #fff; stroke-width: 3; }
 .realm-map .place.selected circle:last-of-type { stroke: var(--info); stroke-width: 3; }
 .realm-map .place.abandoned { opacity: .35; }
 .realm-map .war-ring { fill: none; stroke: var(--bad); stroke-width: 5; }

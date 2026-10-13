@@ -21,8 +21,8 @@ import { createNpcState } from "../src/npc/state.js";
 import { traitsOf } from "../src/npc/traits.js";
 import { fearMoralePenalty, giftTrust } from "../src/npc/triggers.js";
 import type { NpcState } from "../src/npc/types.js";
-import { createDemoWorld } from "../src/world/world.js";
-import brenaJson from "../src/data/npcs/brena.json" with { type: "json" };
+import { createTestWorld } from "../src/world/world.js";
+import brenaJson from "./fixtures/npcs/brena.json" with { type: "json" };
 import { always, brena, call, ctxFor, FakeProvider, hale, pell, rook, say, worldAt } from "./helpers.js";
 
 const act = (c: ReturnType<typeof ctxFor>, name: string, args: Record<string, unknown> = {}) => {
@@ -48,7 +48,7 @@ describe("N5 memory and relationships", () => {
   });
 
   it("done when: two quests earn the respect that unlocks expert training, which trust alone didn't", () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.player.skills.smithing = 3;
     world.player.money = 100_000;
     const state = createNpcState(brena, { relationship: 60 });

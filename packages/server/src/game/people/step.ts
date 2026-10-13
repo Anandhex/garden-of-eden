@@ -278,6 +278,7 @@ export function stepSite(ctx: LifeCtx, site: string, day: number): SiteStep {
       expecting: null,
       last_birth: null,
       stepped_day: day,
+      outlook: null,
       rev: 0,
     };
     people.setSeq(site, { next_id: seq.next_id + 1, next_n: seq.next_n + 1 });

@@ -10,6 +10,7 @@ import {
   childhood,
   describeFamily,
   familyNight,
+  bornKids,
   familyOf,
   inherit,
   makeChild,
@@ -32,8 +33,8 @@ import { createNpcState } from "../src/npc/state.js";
 import { adjustRelation } from "../src/npc/social.js";
 import { assemblePersona, fallbackIdentity, generateNpc, loadTemplates, rollTemplate, writeIdentity } from "../src/npc/templates.js";
 import type { NpcPersona } from "../src/npc/types.js";
-import { MILLBROOK } from "../src/web/sites.js";
-import { createDemoWorld } from "../src/world/world.js";
+import { PLAIN } from "../src/web/sites.js";
+import { createTestWorld } from "../src/world/world.js";
 import { loadCreatureTemplates } from "../src/game/creatures.js";
 import type { ChatRequest, ChatResult, GenerateRequest, LLMProvider } from "../src/llm/provider.js";
 import { allPersonas, always, brena, ctxFor, FakeProvider, hale, makeTown, pell, pip, say } from "./helpers.js";
@@ -79,7 +80,7 @@ const goodWords = {
 
 describe("N11.1 NPCs from templates", () => {
   it("every template file is valid, and the four the roadmap names are there", () => {
-    expect(Object.keys(templates).sort()).toEqual(["bandit", "child", "farmer", "guard", "merchant"]);
+    expect(Object.keys(templates).sort()).toEqual(["bandit", "child", "farmer", "guard", "innkeeper", "merchant", "smith"]);
     expect(templates.child!.minor).toBe(true);
   });
 
@@ -159,17 +160,17 @@ describe("N11.1 NPCs from templates", () => {
   it("a generated farmer works in the chat with no hand edits", async () => {
     const { persona } = await generateNpc(templates.farmer!, seededRng(5));
     const agent = new NpcAgent(persona, new FakeProvider([say("Eggs are a copper each, mind.")]), always(0.5));
-    const r = await agent.respond("What do you sell?", createDemoWorld());
+    const r = await agent.respond("What do you sell?", createTestWorld());
     expect(r.text).toContain("Eggs");
     expect(buildSystemPrompt(persona)).toContain(persona.name);
   });
 
   it("a generated NPC gets a free spot on the map at its workplace", async () => {
     const { persona } = await generateNpc(templates.farmer!, seededRng(5));
-    const spot = MILLBROOK.npcSpot(persona.id, "square")!;
-    expect(MILLBROOK.isSolid(spot.x, spot.y)).toBe(false);
-    expect(MILLBROOK.spotAt("square", persona.id)).toEqual({ x: spot.x, y: spot.y });
-    expect(MILLBROOK.spotAt("square", "someone_else")).not.toEqual({ x: spot.x, y: spot.y });
+    const spot = PLAIN.npcSpot(persona.id, "square")!;
+    expect(PLAIN.isSolid(spot.x, spot.y)).toBe(false);
+    expect(PLAIN.spotAt("square", persona.id)).toEqual({ x: spot.x, y: spot.y });
+    expect(PLAIN.spotAt("square", "someone_else")).not.toEqual({ x: spot.x, y: spot.y });
   });
 
   it("the authoring check (T5) catches what the schema can't", () => {
@@ -211,7 +212,7 @@ describe("N11.2 a child NPC", () => {
     const forced = { ...pip, romance: { open: true } };
     expect(romanceAllowed(forced)).toBe(false);
     const state = createNpcState(pip, { affection: 100, relationship: 100 });
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const words = /\b(romance|courting|drawn to|together|kiss|sweetheart|marry|married)\b/i;
     expect(describeBond(forced, state, world.player) ?? "").not.toMatch(words);
     expect(buildSystemPrompt(pip)).not.toMatch(words);
@@ -277,7 +278,7 @@ function fondTown(rng: Rng = always(0.01)) {
 
 /** Let `days` midnights pass for the town's family rules alone. */
 /** Children born in play (the save also keeps grown-up children's files, like Pip's). */
-const births = (town: ReturnType<typeof makeTown>) => Object.values(familyOf(town.world).born).filter((p) => p.bornOnDay !== undefined);
+const births = (town: ReturnType<typeof makeTown>) => bornKids(town.world);
 
 function nights(town: ReturnType<typeof makeTown>, days: number): string[] {
   const from = town.world.day;
@@ -447,7 +448,7 @@ describe("N11.3 children", () => {
     const town = marriedTown();
     nights(town, 1 + config.family.pregnancyDays);
     const id = births(town)[0]!.id;
-    const born = familyOf(town.world).born[id]!;
+    const born = town.world.talkers![id]!.persona;
     // Talking age.
     nights(town, config.family.talkAge * config.daysPerYear);
     const child = town.personas[id]!;
@@ -513,7 +514,7 @@ describe("N11.3 children", () => {
       for (const k of town.ids) town.world.npcStates[k] = town.agents[k]!.state;
       saveWorld(join(dir, "w.json"), town.world);
       const loaded = loadWorld(join(dir, "w.json"), allPersonas(), loadCreatureTemplates());
-      expect(loaded.family!.born[id]!.name).toBe(town.personas[id]!.name);
+      expect(loaded.talkers![id]!.persona.name).toBe(town.personas[id]!.name);
       expect(loaded.npcStates[id]).toBeDefined();
       expect(spouseOf(loaded, "brena")).toBe("hale");
       const again = makeTown({ world: loaded });

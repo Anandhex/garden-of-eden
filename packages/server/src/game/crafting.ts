@@ -87,7 +87,7 @@ export function knownRecipes(persona: NpcPersona): Recipe[] {
 /**
  * Recipes for the NPC's trade: ones they know whose output they sell. These are
  * what they actually make in their working hours, and what their needs come from.
- * (Brena knows how to cook stew, but she's a smith: she doesn't sell it.)
+ * (A smith knows how to cook stew, but she's a smith: she doesn't sell it.)
  */
 export function tradeRecipes(persona: NpcPersona): Recipe[] {
   return knownRecipes(persona).filter((r) => persona.prices[r.output] !== undefined);
@@ -140,7 +140,7 @@ export function finishCraft(state: NpcState, now: number): CraftJob | null {
 
 /**
  * What the NPC is short of: for each trade recipe, enough input for two batches.
- * E.g. Brena (smithing 5) with no iron ore needs 8 (two iron swords' worth).
+ * E.g. a smith (smithing 5) with no iron ore needs 8 (two iron swords' worth).
  */
 export function craftingNeeds(persona: NpcPersona, state: NpcState): Record<string, number> {
   const needs: Record<string, number> = {};

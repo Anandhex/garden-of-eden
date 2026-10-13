@@ -8,7 +8,7 @@ import type { View } from "./types";
 /** Search: anyone by name, class, job, role, place or faction. Townsfolk are listed place by place, so a first search may need to ask again. */
 export class SearchView implements View {
   readonly el = el("section", { className: "view search" });
-  private readonly input = el("input", { type: "search", placeholder: "Name, job, class, place or faction (try: miller, serf, a place name, brena, player)", autocomplete: "off" });
+  private readonly input = el("input", { type: "search", placeholder: "Name, job, class, place or faction (try: miller, serf, a place name, player)", autocomplete: "off" });
   private readonly kind = el("select");
   private readonly out = el("div", { className: "results" });
   private readonly status = el("p", { className: "muted" });

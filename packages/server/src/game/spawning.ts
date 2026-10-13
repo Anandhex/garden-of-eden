@@ -1,18 +1,18 @@
-import { readFileSync } from "node:fs";
 import { z } from "zod";
 import type { WorldSnapshot } from "../npc/types.js";
 import { type Creature, type CreatureTemplate, spawnCreature } from "./creatures.js";
 import type { Rng } from "./dice.js";
 
 /**
- * Spawn rules: creatures that turn up by place, time, event or quest
- * (src/data/spawns.json), on top of each kind's usual numbers (DEMO_SPAWNS).
+ * Spawn rules: creatures that turn up by place, time, event or quest, on top of the beasts and
+ * outlaws the realm puts on a place's maps. The rules for a place come from what the realm says is
+ * there (game/realm/spawnrules.ts) and from play (`SiteState.rules`).
  *
  * - `hours: [from, to]`: around only in those hours (wrapping past midnight, e.g. [21, 4]).
- * - `event`: around while that lore event id is in world.recentEvents.
+ * - `event`: around while that lore event id is in the place's recentEvents.
  * - `quest`: around while the player has that quest active, e.g. the bandits a
  *   "defeat" quest sends them after.
- * - `place`: where they show up (a den key in web/map.ts); defaults to the kind's own den.
+ * - `place`: where they show up (a den kind in web/sites.ts); defaults to the kind's own den.
  *
  * Every condition given must hold. A rule spawns its group once each time it
  * comes due (each night, each event, each time the quest is taken); ones that
@@ -55,11 +55,6 @@ export function parseSpawnRules(raw: unknown, source = "spawn file"): SpawnRule[
     ids.add(r.id);
   }
   return result.data.rules;
-}
-
-/** The rules in src/data/spawns.json. */
-export function loadSpawnRules(file: URL = new URL("../data/spawns.json", import.meta.url)): SpawnRule[] {
-  return parseSpawnRules(JSON.parse(readFileSync(file, "utf8")), "src/data/spawns.json");
 }
 
 /** Is `hour` inside [from, to], wrapping past midnight? */
@@ -159,10 +154,10 @@ export function denKey(rules: SpawnRule[], ledger: SpawnLedger, c: Creature): st
   return c.template;
 }
 
-/** Every rule in play: the file's, plus the ones made during play (world.extraSpawnRules), dropping expired ones. */
-export function allSpawnRules(fileRules: SpawnRule[], world: { extraSpawnRules?: SpawnRule[]; day: number }): SpawnRule[] {
-  if (world.extraSpawnRules) world.extraSpawnRules = world.extraSpawnRules.filter((r) => r.untilDay === undefined || world.day <= r.untilDay + 1);
-  return [...fileRules, ...(world.extraSpawnRules ?? [])];
+/** Every rule in play at a place: the ones made from the realm, plus the ones made during play, dropping expired ones. */
+export function allSpawnRules(generated: SpawnRule[], site: { rules: SpawnRule[] }, day: number): SpawnRule[] {
+  site.rules = site.rules.filter((r) => r.untilDay === undefined || day <= r.untilDay + 1);
+  return [...generated, ...site.rules];
 }
 
 /** Creatures lying in wait for the player (ambush rules) still alive and out. */
@@ -174,7 +169,7 @@ export function ambushers(rules: SpawnRule[], ledger: SpawnLedger, creatures: Re
     .filter((c): c is Creature => !!c && !c.outcome);
 }
 
-/** Rule creature kinds and places that don't exist: a typo in spawns.json. */
+/** Rule creature kinds and places that don't exist: a typo. */
 export function badSpawnRules(rules: SpawnRule[], templates: Record<string, CreatureTemplate>, places: readonly string[]): string[] {
   const problems: string[] = [];
   for (const r of rules) {

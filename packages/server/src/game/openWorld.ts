@@ -2,7 +2,8 @@ import type { NpcPersona } from "../npc/types.js";
 import { materialisePeople } from "../store/materialise.js";
 import type { CreatureTemplate } from "./creatures.js";
 import type { WorldStore } from "./db.js";
-import { importDeaths, loadWorldWithNotice, newWorld, type SavedWorld } from "./save.js";
+import { existsSync, renameSync } from "node:fs";
+import { loadWorldWithNotice, newWorld, type SavedWorld } from "./save.js";
 
 export interface OpenedWorld {
   world: SavedWorld;
@@ -12,14 +13,14 @@ export interface OpenedWorld {
 
 /**
  * The world to play (N18): a new one, or the saved one, together with its database. A new world
- * (or one begun because the old save was from before v11) starts from an empty database and has
+ * (or one begun because the old save was from before v13) starts from an empty database and has
  * every settlement's people rolled into it. Throws `SaveMismatchError` when the save file and the
  * database are from different moments.
  */
 export function openWorld(o: {
   file: string;
   deathsFile: string;
-  personas: Record<string, NpcPersona>;
+  personas?: Record<string, NpcPersona>;
   templates: Record<string, CreatureTemplate>;
   store: WorldStore;
   fresh: boolean;
@@ -28,11 +29,13 @@ export function openWorld(o: {
   let notice: string | null = null;
   if (o.fresh) {
     o.store.reset();
-    world = newWorld(o.personas, o.templates);
+    world = newWorld(o.personas ?? {}, o.templates);
   } else {
-    const loaded = loadWorldWithNotice(o.file, o.personas, o.templates, o.store);
-    world = importDeaths(loaded.world, o.deathsFile);
+    const loaded = loadWorldWithNotice(o.file, o.personas ?? {}, o.templates, o.store);
+    world = loaded.world;
     notice = loaded.notice;
+    // The old death record goes aside with the old save: deaths live on people rows now (N25a).
+    if (loaded.setAside && existsSync(o.deathsFile)) renameSync(o.deathsFile, `${o.deathsFile}.v12.bak`);
   }
   // No people yet: a new world, an old save set aside, or a database that was deleted. (The last can only
   // roll the people the realm would give now; the pair stays consistent from here.)

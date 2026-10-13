@@ -59,10 +59,10 @@ export function drawRealmMap(r: RealmView, o: RealmMapOptions = {}): SVGSVGEleme
   }
   for (const x of r.settlements) {
     const k = r.kingdoms.find((k) => k.id === x.kingdom);
-    const g = svg("g", { class: `place${x.id === o.here ? " here" : ""}${x.home ? " home" : ""}${x.abandoned ? " abandoned" : ""}${x.id === o.selected ? " selected" : ""}${o.pinned?.has(x.id) ? " pinned" : ""}`, tabindex: 0 });
+    const g = svg("g", { class: `place${x.id === o.here ? " here" : ""}${x.abandoned ? " abandoned" : ""}${x.id === o.selected ? " selected" : ""}${o.pinned?.has(x.id) ? " pinned" : ""}`, tabindex: 0 });
     if (x.atWar || x.raided) g.append(svg("circle", { cx: x.x, cy: x.y, r: (RADIUS[x.kind] ?? 6) + 5, class: x.atWar ? "war-ring" : "raid-ring" }));
     g.append(svg("circle", { cx: x.x, cy: x.y, r: RADIUS[x.kind] ?? 6, fill: k?.color ?? "#888" }));
-    if (x.kind === "capital" || x.kind === "city" || x.kind === "town" || x.home || x.id === o.selected) {
+    if (x.kind === "capital" || x.kind === "city" || x.kind === "town" || x.here || x.id === o.selected) {
       const label = svg("text", { x: x.x, y: x.y - (RADIUS[x.kind] ?? 6) - 4, "text-anchor": "middle" });
       label.textContent = x.name;
       g.append(label);

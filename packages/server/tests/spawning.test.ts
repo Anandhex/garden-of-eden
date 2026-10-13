@@ -2,7 +2,7 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import haleJson from "../src/data/npcs/hale.json" with { type: "json" };
+import haleJson from "./fixtures/npcs/hale.json" with { type: "json" };
 import { fightCreature, loadCreatureTemplates, type Creature } from "../src/game/creatures.js";
 import { acceptQuest, describeObjective, questProgress, recordCreatureDefeat, turnInQuests } from "../src/game/quests.js";
 import { loadWorld, newWorld, saveWorld } from "../src/game/save.js";
@@ -11,7 +11,6 @@ import {
   badSpawnRules,
   denKey,
   inHours,
-  loadSpawnRules,
   parseSpawnRules,
   type SpawnLedger,
   type SpawnRule,
@@ -20,7 +19,9 @@ import {
 import { parsePersona } from "../src/npc/personaSchema.js";
 import { createNpcState } from "../src/npc/state.js";
 import { DEN_KEYS } from "../src/web/sites.js";
-import { createDemoWorld } from "../src/world/world.js";
+import { createTestWorld } from "../src/world/world.js";
+import { creaturesOf, siteState } from "../src/game/site.js";
+import { fixtureSpawnRules } from "./helpers.js";
 
 const templates = loadCreatureTemplates();
 const hale = parsePersona(haleJson);
@@ -28,7 +29,7 @@ const rng = () => 0.5;
 const alive = (creatures: Record<string, Creature>, kind: string) => Object.values(creatures).filter((c) => c.template === kind && !c.outcome);
 
 function at(hour: number, day = 1) {
-  const world = createDemoWorld();
+  const world = createTestWorld();
   world.day = day;
   world.hour = hour;
   return world;
@@ -36,7 +37,7 @@ function at(hour: number, day = 1) {
 
 describe("spawn rule files", () => {
   it("the game's rules parse, and name real creatures and places", () => {
-    const rules = loadSpawnRules();
+    const rules = fixtureSpawnRules();
     expect(rules.length).toBeGreaterThan(0);
     expect(badSpawnRules(rules, templates, [...DEN_KEYS])).toEqual([]);
   });
@@ -45,7 +46,7 @@ describe("spawn rule files", () => {
     expect(() => parseSpawnRules({ rules: [{ id: "a", creature: "wolf", count: 1, colour: "red" }] })).toThrow();
     const r = { id: "a", creature: "wolf", count: 1 };
     expect(() => parseSpawnRules({ rules: [r, r] })).toThrow(/duplicate/);
-    expect(badSpawnRules([{ id: "x", creature: "dragon", count: 1, place: "moon" }], templates, ["forest_edge"])).toEqual([
+    expect(badSpawnRules([{ id: "x", creature: "dragon", count: 1, place: "moon" }], templates, ["woods_edge"])).toEqual([
       'x: no creature "dragon"',
       'x: no place "moon"',
     ]);
@@ -67,6 +68,7 @@ describe("when a rule is due", () => {
 
   it("an event rule is due while its event is news; a quest rule while the quest is active", () => {
     const world = at(12);
+    world.recentEvents = ["news.cart_attack"];
     expect(windowKey({ id: "e", creature: "bandit", count: 1, event: "news.cart_attack" }, world)).not.toBeNull();
     world.recentEvents = [];
     expect(windowKey({ id: "e", creature: "bandit", count: 1, event: "news.cart_attack" }, world)).toBeNull();
@@ -78,13 +80,13 @@ describe("when a rule is due", () => {
 });
 
 describe("applySpawnRules", () => {
-  const night: SpawnRule = { id: "night", creature: "wolf", count: 2, hours: [21, 4], place: "forest_edge" };
+  const night: SpawnRule = { id: "night", creature: "wolf", count: 2, hours: [21, 4], place: "woods_edge" };
 
   it("spawns a group when its window opens, once; the dead stay dead until the next window", () => {
     const creatures: Record<string, Creature> = {};
     const ledger: SpawnLedger = {};
     expect(applySpawnRules([night], templates, creatures, ledger, at(12), rng)).toEqual([]);
-    expect(applySpawnRules([night], templates, creatures, ledger, at(21), rng)).toEqual(["2 wolves turn up (forest edge)."]);
+    expect(applySpawnRules([night], templates, creatures, ledger, at(21), rng)).toEqual(["2 wolves turn up (woods edge)."]);
     expect(alive(creatures, "wolf")).toHaveLength(2);
     creatures[ledger.night!.uids[0]!]!.outcome = "dead";
     applySpawnRules([night], templates, creatures, ledger, at(23), rng);
@@ -126,24 +128,24 @@ describe("applySpawnRules", () => {
     const ledger: SpawnLedger = {};
     const rules = [night, { id: "plain", creature: "wolf", count: 1 }];
     applySpawnRules(rules, templates, creatures, ledger, at(22), rng);
-    expect(denKey(rules, ledger, creatures[ledger.night!.uids[0]!]!)).toBe("forest_edge");
+    expect(denKey(rules, ledger, creatures[ledger.night!.uids[0]!]!)).toBe("woods_edge");
     expect(denKey(rules, ledger, creatures[ledger.plain!.uids[0]!]!)).toBe("wolf");
   });
 
   it("the ledger survives a save", () => {
     const file = join(mkdtempSync(join(tmpdir(), "llm-game-spawns-")), "world.json");
     const world = newWorld({ hale }, templates);
-    applySpawnRules([night], templates, world.creatures, (world.spawns ??= {}), { ...world, hour: 22 }, rng);
+    applySpawnRules([night], templates, creaturesOf(world), siteState(world).spawns, { ...world, hour: 22 }, rng);
     saveWorld(file, world);
     const loaded = loadWorld(file, { hale }, templates);
-    expect(loaded.spawns).toEqual(world.spawns);
+    expect(siteState(loaded).spawns).toEqual(siteState(world).spawns);
   });
 });
 
 describe("defeat quests", () => {
   /** Hale's "Trouble on the mine road": kill or drive off 3 bandits. */
   function takeIt() {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     world.player.level = 5;
     const state = createNpcState(hale);
     state.relationship = 20;
@@ -156,7 +158,7 @@ describe("defeat quests", () => {
     const { world, quest } = takeIt();
     expect(describeObjective(quest)).toBe("kill or drive off 3 bandits");
     const creatures: Record<string, Creature> = {};
-    const log = applySpawnRules(loadSpawnRules(), templates, creatures, {}, { ...world, hour: 12, recentEvents: [] }, rng);
+    const log = applySpawnRules(fixtureSpawnRules(), templates, creatures, {}, { ...world, hour: 12, recentEvents: [] }, rng);
     expect(log).toContain("3 bandits turn up.");
     expect(alive(creatures, "bandit")).toHaveLength(3);
   });
@@ -188,7 +190,7 @@ describe("defeat quests", () => {
   it("a kill in a real creature fight counts", () => {
     const { world } = takeIt();
     const creatures: Record<string, Creature> = {};
-    applySpawnRules(loadSpawnRules(), templates, creatures, {}, { ...world, hour: 12, recentEvents: [] }, rng);
+    applySpawnRules(fixtureSpawnRules(), templates, creatures, {}, { ...world, hour: 12, recentEvents: [] }, rng);
     const target = alive(creatures, "bandit")[0]!;
     target.hp = 1;
     const round = fightCreature(templates.bandit!, target, world, () => 0.99);

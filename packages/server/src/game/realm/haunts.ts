@@ -5,41 +5,38 @@ import { formatMoney } from "../money.js";
 import type { PlayerState } from "../../npc/types.js";
 import { speciesOf } from "../../world/species.js";
 import { killFigure, titled } from "./figures.js";
-import { HOME_ID } from "./generate.js";
 import { realmNews, tally } from "./log.js";
 import { plural } from "./names.js";
 import type { Figure, Realm } from "./types.js";
 
 /**
- * The beasts and outlaws of other places, on their maps (N15). Millbrook's creatures
- * live in `world.creatures` and its own day; everywhere else the realm keeps packs
- * and gangs as numbers and names (N13). When the player walks into another place's
- * woods or a gang's camp, what the realm says is there turns up on the map: so many
- * of the pack (its named alpha among them), the gang's members by name. What the
- * player does to them goes back to the realm: a beast killed is one fewer in the
- * pack (and a share of any bounty on it), a gang member killed is a realm death.
- * Kept in the save by place (`world.haunts`), so the same wolves are there next time.
+ * The beasts and outlaws of a place, on its maps (N15, N25a). The realm keeps packs and gangs as numbers and
+ * names (N13). When the player walks into a place's woods or a gang's camp, what the realm says is there turns
+ * up on the map: so many of the pack (its named alpha among them), the gang's members by name. What the player
+ * does to them goes back to the realm: a beast killed is one fewer in the pack (and a share of any bounty on
+ * it), a gang member killed is a realm death. They live in the place's own creatures (`SiteState.creatures`),
+ * with whatever else the place's spawn rules put there, so the same wolves are there next time.
  */
-export type Haunts = Record<string, Record<string, Creature>>;
 
 /** Most of a pack, or of a gang, about on the map at once. */
 export const MAX_ON_MAP = 5;
 /** Where they roam on another place's locality maps (web/sites.ts). */
 export const BEAST_DEN = "deep_woods";
-export const GANG_DEN = "bandit_camp";
+export const GANG_DEN = "camp";
 
-/** The gang seated at a place, if any (a faction file's gang is Millbrook's own, on its own map). */
-export const gangOf = (realm: Realm, site: string) => Object.values(realm.factions).find((f) => f.kind === "gang" && f.dissolved === undefined && f.seat === site && !f.file);
+/** The gang seated at a place, if any. */
+export const gangOf = (realm: Realm, site: string) => Object.values(realm.factions).find((f) => f.kind === "gang" && f.dissolved === undefined && f.seat === site);
 
 /**
  * Bring a place's haunts in line with the realm: the pack's beasts and the gang's
  * members on the map, no more than there are (thinned off-screen, they're gone).
- * `talking`: figures who are talking NPCs there already (N14 visitors), not creatures.
+ * `talking`: figures who are talking NPCs there already, not creatures.
  */
-export function stockHaunts(realm: Realm, haunts: Haunts, site: string, templates: Record<string, CreatureTemplate>, day: number, rng: Rng, talking: (f: Figure) => boolean = () => false): Creature[] {
-  if (site === HOME_ID || !realm.settlements[site]) return [];
-  const here = (haunts[site] ??= {});
-  for (const [uid, c] of Object.entries(here)) if (c.outcome) delete here[uid];
+export function stockHaunts(realm: Realm, creatures: Record<string, Creature>, site: string, templates: Record<string, CreatureTemplate>, day: number, rng: Rng, talking: (f: Figure) => boolean = () => false): Creature[] {
+  if (!realm.settlements[site]) return [];
+  const here = creatures;
+  const isHaunt = (c: Creature) => !!c.packId || c.den === GANG_DEN;
+  for (const [uid, c] of Object.entries(here)) if (c.outcome && isHaunt(c)) delete here[uid];
   // The pack (or packs) that roam its woods.
   for (const p of Object.values(realm.packs).filter((x) => x.near === site)) {
     const t = templates[p.species];
@@ -74,7 +71,7 @@ export function stockHaunts(realm: Realm, haunts: Haunts, site: string, template
         .slice(0, MAX_ON_MAP)
     : [];
   const wanted = new Set(members.map((f) => f.id));
-  for (const [uid, c] of Object.entries(here)) if (!c.packId && (!c.figure || !wanted.has(c.figure))) delete here[uid];
+  for (const [uid, c] of Object.entries(here)) if (!c.packId && c.den === GANG_DEN && (!c.figure || !wanted.has(c.figure))) delete here[uid];
   const t = templates.bandit;
   for (const f of members) {
     if (!t || Object.values(here).some((c) => c.figure === f.id)) continue;
@@ -84,7 +81,7 @@ export function stockHaunts(realm: Realm, haunts: Haunts, site: string, template
     c.life = structuredClone(f.life) as Life;
     here[c.uid] = c;
   }
-  return Object.values(here);
+  return Object.values(here).filter(isHaunt);
 }
 
 /**
@@ -93,13 +90,12 @@ export function stockHaunts(realm: Realm, haunts: Haunts, site: string, template
  * (the alpha, a gang member) is a realm death, with news. Those who ran are gone
  * until the next visit. Returns lines for the player.
  */
-export function settleHaunts(realm: Realm, haunts: Haunts, site: string, player: PlayerState, day: number): string[] {
-  const here = haunts[site];
-  if (!here) return [];
+export function settleHaunts(realm: Realm, creatures: Record<string, Creature>, site: string, player: PlayerState, day: number): string[] {
+  const here = creatures;
   const lines: string[] = [];
   const s = realm.settlements[site];
   for (const [uid, c] of Object.entries(here)) {
-    if (!c.outcome) continue;
+    if (!c.outcome || (!c.packId && c.den !== GANG_DEN)) continue;
     delete here[uid];
     if (c.outcome !== "dead") continue;
     const p = c.packId ? realm.packs[c.packId] : undefined;

@@ -1,6 +1,6 @@
+import { allCreatures } from "../game/site.js";
 import type { AdminCardKind, AdminSearchHit, AdminSearchResult } from "@millbrook/shared";
 import { titled } from "../game/realm/figures.js";
-import { HOME_ID } from "../game/realm/generate.js";
 import { parseTownsfolkId } from "../game/realm/townsfolk.js";
 import type { AdminContext } from "./context.js";
 import { folkOf } from "./folk.js";
@@ -79,13 +79,13 @@ export function search(ctx: AdminContext, query: string, filters: { kind?: Admin
   const siteName = (site: string | null) => (site ? (realm?.settlements[site]?.name ?? site) : "");
 
   // The player, and places (to pin them).
-  add({ ref: "player", kind: "player", name: world.player.name, detail: `the player, in ${siteName(world.player.site ?? HOME_ID)}`, site: world.player.site ?? HOME_ID }, world.player.name, "player you");
+  add({ ref: "player", kind: "player", name: world.player.name, detail: `the player, in ${siteName(world.player.site ?? null)}`, site: world.player.site ?? null }, world.player.name, "player you");
   for (const s of Object.values(realm?.settlements ?? {})) add({ ref: `place:${s.id}`, kind: "place", name: s.name, detail: `${s.abandoned ? "abandoned " : ""}${s.kind}${s.kingdom ? ` of ${realm!.kingdoms[s.kingdom]?.name}` : ", free"}, ${s.population} people`, site: s.id }, s.name, `${s.kind} place settlement ${s.kingdom ? realm!.kingdoms[s.kingdom]?.name ?? "" : "free"}`.toLowerCase());
   // The cast, the people of other places the player has met, and townsfolk who became talking NPCs.
   for (const [id, persona] of Object.entries(town.personas)) {
     const folk = parseTownsfolkId(id);
     const figure = folk ? undefined : town.figureOf(id);
-    const site = folk ? (town.homeSiteOf(id) ?? folk.site) : figure ? figure.home : HOME_ID;
+    const site = folk ? (town.homeSiteOf(id) ?? folk.site) : (town.homeSiteOf(id) ?? figure?.home ?? null);
     const dead = world.npcStates[id]?.outcome === "dead";
     add(
       { ref: folk ? `town:${id}` : `cast:${id}`, kind: folk ? "townsperson" : "cast", name: persona.name, detail: `${persona.role}${site ? ` of ${siteName(site)}` : ""}${dead ? " (dead)" : ""}`, site },
@@ -103,9 +103,8 @@ export function search(ctx: AdminContext, query: string, filters: { kind?: Admin
       `${f.role} ${where} ${faction} ${f.life.tier}`.toLowerCase(),
     );
   }
-  // Creatures: Millbrook's own, and the beasts and outlaws of other places' woods and camps.
-  for (const c of Object.values(world.creatures)) add({ ref: `beast:${c.uid}`, kind: "beast", name: c.name, detail: `${c.template}${c.outcome === "dead" ? " (dead)" : ""}`, site: HOME_ID }, c.name, `${c.template} beast`);
-  for (const [site, group] of Object.entries(world.haunts ?? {})) for (const c of Object.values(group)) add({ ref: `beast:${c.uid}`, kind: "beast", name: c.name, detail: `${c.template} near ${siteName(site)}${c.outcome === "dead" ? " (dead)" : ""}`, site }, c.name, `${c.template} beast ${siteName(site)}`);
+  // Creatures: the beasts, outlaws and crowd of every place's maps.
+  for (const { site, creature: c } of allCreatures(world)) add({ ref: `beast:${c.uid}`, kind: "beast", name: c.name, detail: `${c.template} near ${siteName(site)}${c.outcome === "dead" ? " (dead)" : ""}`, site }, c.name, `${c.template} beast ${siteName(site)}`);
 
   // The townsfolk, place by place, within the time budget.
   let indexed = 0;
@@ -124,7 +123,7 @@ export function search(ctx: AdminContext, query: string, filters: { kind?: Admin
     const started = performance.now();
     const order = Object.values(realm.settlements)
       .filter((s) => !s.abandoned && (!filters.site || s.id === filters.site))
-      .sort((a, b) => Number(q !== "" && b.name.toLowerCase().includes(q)) - Number(q !== "" && a.name.toLowerCase().includes(q)) || Number(b.id === HOME_ID) - Number(a.id === HOME_ID) || a.population - b.population);
+      .sort((a, b) => Number(q !== "" && b.name.toLowerCase().includes(q)) - Number(q !== "" && a.name.toLowerCase().includes(q)) || Number(b.id === world.player.site) - Number(a.id === world.player.site) || a.population - b.population);
     places = order.length;
     for (const s of order) {
       const key = `${s.population}|${world.day}|${s.leader ?? ""}`;

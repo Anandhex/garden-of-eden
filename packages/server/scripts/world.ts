@@ -8,18 +8,15 @@
  *
  * Stop the game first: it holds saves/.lock while it plays.
  */
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { config } from "../src/config.js";
 import { loadCreatureTemplates } from "../src/game/creatures.js";
 import { WorldStore } from "../src/game/db.js";
 import { loadWorld } from "../src/game/save.js";
-import { parsePersona } from "../src/npc/personaSchema.js";
 import { ImportError, importWorld, readMbWorld, writeMbWorld, exportWorld } from "../src/store/exchange.js";
 import { acquireSaveLock } from "../src/store/lock.js";
 
-const NPC_DIR = new URL("../src/data/npcs/", import.meta.url);
-const allNpcs = () => Object.fromEntries(readdirSync(NPC_DIR).filter((f) => f.endsWith(".json")).map((f) => [f.replace(/\.json$/, ""), parsePersona(JSON.parse(readFileSync(new URL(f, NPC_DIR), "utf8")), f)]));
 
 const [command, file, ...rest] = process.argv.slice(2);
 const flag = (name: string) => rest.includes(`--${name}`);
@@ -35,7 +32,7 @@ try {
     acquireSaveLock(config.saveFile);
     if (!existsSync(config.saveFile)) throw new ImportError(`There is no world at ${config.saveFile}.`);
     const store = new WorldStore(config.dbFile);
-    const world = loadWorld(config.saveFile, allNpcs(), loadCreatureTemplates(), store);
+    const world = loadWorld(config.saveFile, {}, loadCreatureTemplates(), store);
     const bytes = writeMbWorld(file, world, store);
     console.log(`Exported day ${world.day} (${store.people.count()} people, ${store.eventCount()} events) to ${file}: ${(bytes / 1e6).toFixed(1)} MB.`);
     if (flag("pretty")) {

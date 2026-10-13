@@ -60,7 +60,7 @@ export function moraleTarget(t: Pick<Traits, "bravery">): number {
 
 /**
  * Scales the trust an annoyed or angry mood costs: x0.5 for a placid NPC, x1.25 for a hothead.
- * Brena (0.67) stays at x1, so her old -5/-15 is unchanged.
+ * A middling 0.67 stays at x1, so the old -5/-15 is unchanged.
  */
 export function insultTrustFactor(t: Pick<Traits, "temper">): number {
   return 0.5 + 0.75 * t.temper;

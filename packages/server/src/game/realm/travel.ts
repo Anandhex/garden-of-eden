@@ -8,7 +8,7 @@ import { formatMoney } from "../money.js";
 import { recordCreatureDefeat } from "../quests.js";
 import { atWar } from "./economy.js";
 import { figurePower } from "./figures.js";
-import { HOME_ID, TRAVEL_PER_DAY } from "./generate.js";
+import { TRAVEL_PER_DAY } from "./generate.js";
 import { realmNews, tally } from "./log.js";
 import { gangSide } from "./military.js";
 import type { Realm } from "./types.js";
@@ -16,7 +16,7 @@ import { packSide, playerPower } from "./wilds.js";
 
 /**
  * Travel (N14): the player walks the realm's roads. Where they are is
- * `player.site` (a settlement id; Millbrook by default). A trip follows the
+ * `player.site` (a settlement id). A trip follows the
  * shortest road route; it takes the hours the distance takes, and the caller lets
  * the world live them. On the way, a big pack, a gang or a war may stop them:
  * fought in code like a delve, with their companions' strength added.
@@ -25,7 +25,11 @@ import { packSide, playerPower } from "./wilds.js";
 /** Most encounters on one trip. */
 export const MAX_ENCOUNTERS = 2;
 
-export const siteOf = (player: Pick<PlayerState, "site">) => player.site ?? HOME_ID;
+/** Where the player is: a settlement id (every player has one). */
+export const siteOf = (player: Pick<PlayerState, "site">): string => {
+  if (!player.site) throw new Error("The player has no site.");
+  return player.site;
+};
 
 export interface Route {
   /** Settlement ids from start to end, both included. */
@@ -99,7 +103,7 @@ export function dangersOn(realm: Realm, r: Route): string[] {
 
 function gangsNear(realm: Realm, id: string) {
   const near = new Set([id, ...(realm.settlements[id]?.roads ?? [])]);
-  return Object.values(realm.factions).filter((f) => !f.dissolved && f.kind === "gang" && !f.file && f.seat && near.has(f.seat) && f.members.length > 0);
+  return Object.values(realm.factions).filter((f) => !f.dissolved && f.kind === "gang" && f.seat && near.has(f.seat) && f.members.length > 0);
 }
 
 export interface Trip {

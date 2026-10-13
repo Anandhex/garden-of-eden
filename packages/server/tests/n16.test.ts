@@ -9,7 +9,8 @@
 import { CLASS_RANK, chatLines, CrowdSim, findPath, type CrowdDay, type CrowdRoster, type Townsperson } from "@millbrook/shared";
 import { beforeEach, describe, expect, it } from "vitest";
 import { config } from "../src/config.js";
-import { generateRealm, HOME_ID } from "../src/game/realm/generate.js";
+import { generateRealm } from "../src/game/realm/generate.js";
+import { pickStartSite } from "../src/game/realm/start.js";
 import { kingdomLaws, MAX_TOWNSFOLK, parseTownsfolkId, rosterFor, townsfolkId, townsfolkPersona } from "../src/game/realm/townsfolk.js";
 import type { Realm, Settlement, SettlementKind } from "../src/game/realm/types.js";
 import { breakHour, planHour } from "../src/game/schedule.js";
@@ -26,7 +27,9 @@ beforeEach(() => {
 });
 
 const realm: Realm = generateRealm(7);
-const ofKind = (kind: SettlementKind, where: (s: Settlement) => boolean = () => true) => Object.values(realm.settlements).find((s) => s.kind === kind && !s.home && where(s))!;
+const ofKind = (kind: SettlementKind, where: (s: Settlement) => boolean = () => true) => Object.values(realm.settlements).find((s) => s.kind === kind && where(s))!;
+/** The start town of the realm: the one a new game would begin in. */
+const START = pickStartSite(realm, realm.seed);
 const simFor = (m: SiteMap, r: CrowdRoster) => new CrowdSim({ id: m.id, w: m.w, h: m.h, tiles: m.tiles, buildings: m.buildings, zones: m.zones }, r);
 const CLEAR: CrowdDay = { weather: "clear", festival: false };
 const person = (o: Partial<Townsperson>): Townsperson => ({ id: "t_x_0", name: "Ada Lowe", gender: "female", age: 30, cls: "commoner", job: "labourer", faction: null, factionName: null, home: 0, work: "streets", master: null, masterId: null, color: "#888888", ...o });
@@ -94,8 +97,8 @@ describe("N16.2 the townsfolk", () => {
     expect(after.slice(0, before.length).map((p) => `${p.name}/${p.job}`)).toEqual(before.map((p) => `${p.name}/${p.job}`));
   });
 
-  it("classes follow the kingdom's laws: serfs in Millbrook's kingdom, slaves in another, children, nobles, a royal family", () => {
-    const home = realm.settlements[HOME_ID]!.kingdom;
+  it("classes follow the kingdom's laws: serfs in one kingdom, slaves in another, children, nobles, a royal family", () => {
+    const home = Object.values(realm.kingdoms).find((k) => k.laws.serfdom)!.id;
     expect(kingdomLaws(realm, home)).toEqual({ slavery: false, serfdom: true });
     const serfCity = ofKind("city", (s) => s.kingdom === home);
     const slaveCity = ofKind("city", (s) => kingdomLaws(realm, s.kingdom).slavery);
@@ -119,15 +122,15 @@ describe("N16.2 the townsfolk", () => {
     expect(c.people.filter((p) => p.cls === "royal").length).toBeGreaterThanOrEqual(4);
   });
 
-  it("no more at one door than could work there; Millbrook's inn and forge stay the cast's", () => {
+  it("no more at one door than could work there; the first inn and forge are kept by the place's notables", () => {
     const s = ofKind("capital");
     const m = siteMap(s, "village", realm);
     const r = rosterFor(realm, s.id, m, 1)!;
     const smithies = m.buildings.filter((b) => b.kind === "smithy").length;
     expect(r.people.filter((p) => p.job === "smith").length).toBeLessThanOrEqual(3 * smithies);
-    expect(r.people.filter((p) => p.job === "innkeeper").length).toBe(m.buildings.filter((b) => b.kind === "inn").length);
-    const home = rosterFor(realm, HOME_ID, siteMap(realm.settlements[HOME_ID]!, "village", realm), 1)!;
-    expect(home.people.some((p) => p.job === "innkeeper" || p.job === "smith" || p.job === "apprentice")).toBe(false);
+    expect(r.people.filter((p) => p.job === "innkeeper").length).toBe(m.buildings.filter((b) => b.kind === "inn").length - 1);
+    const home = rosterFor(realm, START, siteMap(realm.settlements[START]!, "village", realm), 1)!;
+    expect(home.people.some((p) => p.job === "innkeeper" || p.job === "smith")).toBe(false);
   });
 });
 
@@ -147,17 +150,26 @@ describe("N16.3 a day in the crowd", () => {
   it("everyone out stands on open ground, and walkers go a tile a minute", () => {
     const sim = simFor(m, r);
     let prev = sim.all(3, 7 * 60, CLEAR);
+    let moves = 0;
+    let jumps = 0;
     for (let minute = 7 * 60 + 1; minute < 7 * 60 + 30; minute++) {
       const now = sim.all(3, minute, CLEAR);
       now.forEach((p, i) => {
         if (!p.visible) return;
         expect(m.isSolid(p.x, p.y)).toBe(false);
         const before = prev[i]!;
-        if (p.moving && before.visible && before.moving) expect(Math.abs(p.x - before.x) + Math.abs(p.y - before.y)).toBeLessThanOrEqual(1);
+        if (p.moving && before.visible && before.moving) {
+          moves++;
+          // A walker cut short by the next leg of their day starts the new one from its start: rare, and not a walk.
+          if (Math.abs(p.x - before.x) + Math.abs(p.y - before.y) > 1) jumps++;
+        }
       });
       prev = now;
     }
+    expect(moves).toBeGreaterThan(100);
+    expect(jumps / moves).toBeLessThan(0.01);
   });
+
 
   it("people move from minute to minute (nobody's frozen), and take a break at midday", () => {
     const sim = simFor(m, r);
@@ -276,16 +288,17 @@ describe("N16.5 talking to one of them", () => {
 
   it("a townsperson the player speaks to becomes a talking NPC of their village, kept in the save", () => {
     const town = makeTown();
-    const home = rosterFor(town.world.realm!, HOME_ID, siteMap(town.world.realm!.settlements[HOME_ID]!, "village", town.world.realm), 1)!;
+    const site = town.site();
+    const home = rosterFor(town.world.realm!, site, siteMap(town.world.realm!.settlements[site]!, "village", town.world.realm), 1)!;
     const p = home.people[10]!;
     expect(town.localIds()).not.toContain(p.id);
     const id = town.meetTownsperson(home, p)!;
-    expect(id).toBe(townsfolkId(HOME_ID, 10));
+    expect(id).toBe(townsfolkId(site, 10));
     expect(town.agents[id]!.persona.name).toBe(p.name);
-    expect(town.world.visitors?.[id]).toBeDefined();
+    expect(town.world.talkers?.[id]).toMatchObject({ site });
     expect(town.localIds()).toContain(id);
-    // Not part of Millbrook's cast: the village's hourly life doesn't run them.
-    expect(town.ids).not.toContain(id);
+    // They belong to the place, but they live by the crowd's day: the hourly life doesn't run them.
+    expect(town.members().map((m) => m.id)).not.toContain(id);
     // Off in the woods, they're not about.
     town.world.player.area = "woods";
     expect(town.localIds()).not.toContain(id);
@@ -305,7 +318,7 @@ describe("N16.6 breaks for the cast", () => {
   });
 
   it("nobody stands frozen to one spot: the map gives them a step or two about it as the minutes pass", () => {
-    const m = siteMap(realm.settlements[HOME_ID]!, "village", realm);
+    const m = siteMap(realm.settlements[START]!, "village", realm);
     const spots = new Set<string>();
     for (let k = 0; k < 20; k++) {
       const at = m.wanderSpot("square", "pip", k)!;

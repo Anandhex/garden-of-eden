@@ -1,16 +1,13 @@
 {
   "id": "guard",
-  "name": "the village guard",
-  "description": "Millbrook's small guard under Captain Reyna Holt. They keep the gate and the peace.",
-  "members": [
-    "hale"
-  ],
+  "name": "the guard",
+  "description": "The watch of any town or village: they keep the gate and the peace.",
   "attitudes": {
-    "bandits": -1,
+    "gang": -1,
     "merchants": -0.5
   },
   "attitudeReasons": {
-    "merchants": "the merchants keep complaining to the captain about the tolls at the gate"
+    "merchants": "the merchants keep complaining about the tolls at the gate"
   },
   "ranks": [
     {

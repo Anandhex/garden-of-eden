@@ -9,13 +9,13 @@ import { WorldStore } from "../src/game/db.js";
 import { cosine, hashedEmbedding, pickEmbedder, hashedEmbedder } from "../src/game/embeddings.js";
 import { recordEvent } from "../src/game/events.js";
 import { gossipTogether } from "../src/game/gossip.js";
-import { createDemoWorld } from "../src/world/world.js";
+import { createTestWorld } from "../src/world/world.js";
 import { always, brena, FakeProvider, makeTown, pell, say } from "./helpers.js";
 
 describe("conversation summaries (optional)", () => {
   it("turn a talk into a few capped, marked memories that are never gossiped", async () => {
     const npc = new NpcAgent(brena, new FakeProvider([say("Tomas? My brother. Haven't heard from him."), say("Bah. Off with you.")]));
-    const world = createDemoWorld();
+    const world = createTestWorld();
     await npc.respond("Do you have a brother called Tomas?", world);
     await npc.respond("I'm looking for work in the city.", world);
     const transcript = npc.takeTranscript();
@@ -44,7 +44,7 @@ describe("conversation summaries (optional)", () => {
   it("dropped exchanges are kept for summarising, not lost", async () => {
     const replies = Array.from({ length: 80 }, (_, i) => say(`Reply ${i} ${"words ".repeat(30)}`));
     const npc = new NpcAgent(brena, new FakeProvider(replies));
-    const world = createDemoWorld();
+    const world = createTestWorld();
     for (let i = 0; i < 40; i++) await npc.respond(`Line ${i} ${"talk ".repeat(30)}`, world);
     expect(npc.messages.length).toBeLessThan(80);
     expect(npc.pendingTranscript).toBeGreaterThanOrEqual(80);
@@ -53,7 +53,7 @@ describe("conversation summaries (optional)", () => {
 
 describe("off-screen planning (optional)", () => {
   it("one checked call a day: flavour for the situation, never acted on", async () => {
-    const world = createDemoWorld();
+    const world = createTestWorld();
     const s = createNpcState(brena);
     expect(needsPlan(s, 1)).toBe(true);
     const plan = await planDay(new FakeProvider([say('{"intentions":["Find ore for the forge","Ask Old Pell about Tomas"]}')]), brena, s, world, ["Old Pell"]);
@@ -112,7 +112,7 @@ describe("background work makes way for the player", () => {
 describe("the long-term store (SQLite) and recall by meaning", () => {
   it("keeps every event, beyond what the save keeps", () => {
     const store = new WorldStore();
-    const world = createDemoWorld();
+    const world = createTestWorld();
     for (let i = 0; i < 5; i++) store.archiveEvent(recordEvent(world, { kind: "bought", actor: "player", target: "brena", details: `item ${i}`, importance: 2 }));
     expect(store.eventCount()).toBe(5);
     expect(store.eventsAbout("brena")).toHaveLength(5);

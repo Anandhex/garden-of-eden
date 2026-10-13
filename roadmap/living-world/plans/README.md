@@ -17,11 +17,13 @@ Read this page first. It holds the rules every phase shares; the phase plans ass
 | N23 | [Sharing worlds](n23-sharing-worlds.md) | N18, N20 | |
 | N24 | [Global reporting](n24-global-reporting.md) | N17, N18 | |
 | N25 | [Townsfolk lives](n25-townsfolk-lives.md) | N18 | ✅ built (steps 1-10; see the stage file for what differs) |
-| N26 | [The open road](n26-the-open-road.md) | N18, N19, N25 | ✅ one road |
+| N25a | [A world without a centre](n25a-a-world-without-a-centre.md) | N18, N25 (N24 step 2b, or absorbs it) | ✅ before N26 (built) |
+| N25b | [Lives that change](n25b-lives-that-change.md) | N18, N19, N25, N25a | ✅ the two towns (built) |
+| N26 | [The open road](n26-the-open-road.md) | N18, N19, N25, N25a | ✅ one road |
 | N27 | [The wilds](n27-the-wilds.md) | N26 | |
 | N28 | [Fauna and flora](n28-fauna-and-flora.md) | N26, N27 | |
 
-The vertical slice (see the [overview](../README.md#milestone-the-vertical-slice)) builds N17 → N18 → N25 → N26 first, for Millbrook, its neighbour and the road between. Each plan has a **Slice cut** section that says what that phase needs for the slice and what waits.
+The vertical slice (see the [overview](../README.md#milestone-the-vertical-slice)) builds N17 → N18 → N25 → N25a → N25b → N26 first, for the start town, its liege town and the road between. Each plan has a **Slice cut** section that says what that phase needs for the slice and what waits.
 
 ---
 
@@ -96,7 +98,8 @@ N18 moves townsfolk into SQLite and N25 makes them live. From N18 on, add one fa
 4. Write the step's tests with the step, not at the end. Tests are deterministic: fixed seeds, `DIRECTOR=off`, `PLANNING=off`, a stub LLM (`FakeProvider` in [`tests/helpers.ts`](../../../packages/server/tests/helpers.ts) returns canned replies; add a `NoModelProvider` there that throws, for code that must make no call).
 5. Never weaken an existing test to make a step pass. If an old test really is wrong now (it tests save migration, which N18 deletes), delete it on purpose and say so in the commit.
 6. Finish with the **Done when** check, ticked in the stage file (`[x]`, `[~]` for partly), the phase's status line, the ROADMAP.md status row, and README.md's "what NPCs can do" if players see something new. Write a **How it's built** paragraph under the phase in the stage file, like N14–N16 have.
-7. Play it. Anything a player sees gets checked in the browser (`npm run web`), not just in tests. Say what you saw.
+7. **No site is special and nobody is hand-written** (from N25a): never compare a site id to a constant; every place and person is generated; test people are picked by job, not by name.
+8. Play it. Anything a player sees gets checked in the browser (`npm run web`), not just in tests. Say what you saw.
 
 **Commands:** `npm run typecheck`, `npm test`, `npm run check-npcs`, `npm run build`, `npm run sim:realm`, `npm run bench`, `npm run web`. CI runs typecheck, check-npcs, build and test ([`ci.yml`](../../../.github/workflows/ci.yml)).
 

@@ -4,7 +4,7 @@
  *
  *   npm run sim:lives
  *   DAYS=240 SEED=7 npm run sim:lives
- *   PEOPLE_LIVE=slice npm run sim:lives     # only Millbrook and its neighbour
+ *   PEOPLE_LIVE=slice npm run sim:lives     # only the start town and its neighbour
  *   npm run sim:lives -- --check            # also print each step's timing against its budget; exit 1 if one is over
  */
 import { perfSlack } from "../src/budgets.js";

@@ -67,6 +67,12 @@ export const EVENT_KINDS = [
   "coming-of-age",
   // Townsfolk lives (N25)
   "migration",
+  // Lives that change (N25b): what a life review changed, written to the person it changed (known to them alone)
+  "changed-mind",
+  "new-goal",
+  "new-fear",
+  "secret-made",
+  "story-turn",
 ] as const;
 export type EventKind = (typeof EVENT_KINDS)[number];
 
@@ -83,7 +89,7 @@ export interface GameEvent {
   details: string;
   /** 1-10. Low-importance events are pruned first. */
   importance: number;
-  /** Where it happened, if known (a description, "Millbrook forge"). */
+  /** Where it happened, if known (a description, "the forge"). */
   where?: string;
   /** The place id (game/schedule.ts), for witnesses. */
   place?: string;

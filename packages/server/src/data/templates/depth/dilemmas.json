@@ -1,0 +1,86 @@
+[
+  {
+    "kind": "bribe",
+    "requires": { "job": ["guard"] },
+    "id": "look_away",
+    "offer": "offer the player a cut of the gate toll if they will wave a cart of unmarked goods through and say nothing to the captain",
+    "keywords": ["gate", "toll", "cart", "smuggle", "captain"],
+    "minTrust": 20,
+    "options": [
+      { "id": "take", "label": "take the money and say nothing", "effects": { "trust": 15, "respect": -5, "money": 300, "reputation": { "respect": -3 }, "memory": "they took your bribe and looked away" } },
+      { "id": "refuse", "label": "refuse and warn them off", "effects": { "trust": -10, "respect": 10, "memory": "they refused your offer to look the other way" } }
+    ]
+  },
+  {
+    "kind": "favour_lie",
+    "requires": { "job": ["smith", "merchant", "innkeeper"] },
+    "id": "cover_for_me",
+    "offer": "ask the player to tell the head of the town that the books are in order, when they are not quite",
+    "keywords": ["books", "accounts", "tax", "taxes", "ledger"],
+    "minTrust": 30,
+    "options": [
+      { "id": "lie", "label": "tell the lie for them", "effects": { "trust": 20, "affection": 10, "money": 200, "memory": "they agreed to cover for the accounts" } },
+      { "id": "refuse", "label": "refuse to lie", "effects": { "trust": -5, "respect": 5, "memory": "they would not lie for them" } }
+    ]
+  },
+  {
+    "kind": "debt_plea",
+    "requires": { "fact": ["debt"] },
+    "id": "help_with_the_debt",
+    "offer": "ask the player, quietly, to lend enough to pay the next instalment of the debt before anyone sees how short they are",
+    "keywords": ["debt", "owe", "loan", "lend", "short"],
+    "minTrust": 40,
+    "options": [
+      { "id": "lend", "label": "lend them the money", "effects": { "trust": 25, "affection": 15, "money": -500, "memory": "they lent you money when you were short" } },
+      { "id": "decline", "label": "decline", "effects": { "trust": -5, "memory": "they would not help with the debt" } }
+    ]
+  },
+  {
+    "kind": "faction_order",
+    "requires": { "fact": ["gang"] },
+    "id": "carry_a_message",
+    "offer": "ask the player to carry a sealed message to a friend outside the town and ask no questions about it",
+    "keywords": ["message", "letter", "carry", "errand"],
+    "minTrust": 35,
+    "options": [
+      { "id": "carry", "label": "carry the message", "effects": { "trust": 15, "money": 150, "standing": { "gang": 5, "guard": -3 }, "memory": "you agreed to carry a message and ask no questions" } },
+      { "id": "refuse", "label": "refuse", "effects": { "trust": -10, "fear": 5, "memory": "you refused to carry their message" } }
+    ]
+  },
+  {
+    "kind": "family_plea",
+    "requires": { "fact": ["child"] },
+    "id": "look_after_my_child",
+    "offer": "ask the player to keep an eye on their child while they work, and to teach them to keep out of trouble",
+    "keywords": ["child", "children", "son", "daughter", "kid"],
+    "minTrust": 30,
+    "options": [
+      { "id": "agree", "label": "agree to look out for the child", "effects": { "trust": 15, "affection": 15, "memory": "you promised to look out for their child" } },
+      { "id": "decline", "label": "say you are too busy", "effects": { "trust": -3, "memory": "you said you had no time to look out for their child" } }
+    ]
+  },
+  {
+    "kind": "condition",
+    "requires": { "fact": ["famine"] },
+    "id": "share_the_grain",
+    "offer": "ask the player to sell them a sack of grain at cost, because the stores are low and hungry folk are talking of a riot",
+    "keywords": ["grain", "hunger", "food", "starving", "bread"],
+    "minTrust": 10,
+    "options": [
+      { "id": "give", "label": "give them what they ask", "effects": { "trust": 15, "affection": 10, "respect": 10, "reputation": { "affection": 4 }, "memory": "you shared your food when the town was hungry" } },
+      { "id": "refuse", "label": "keep your food for yourself", "effects": { "trust": -5, "respect": -5, "reputation": { "affection": -2 }, "memory": "you refused to share when the town was hungry" } }
+    ]
+  },
+  {
+    "kind": "reputation",
+    "requires": { "traits": { "honesty": [0, 0.45] } },
+    "id": "a_quiet_word",
+    "offer": "ask the player to say, when anyone asks, that they were with them at the inn the night something went missing",
+    "keywords": ["alibi", "that night", "missing", "stolen", "vouch"],
+    "minTrust": 45,
+    "options": [
+      { "id": "vouch", "label": "vouch for them", "effects": { "trust": 20, "respect": -5, "memory": "you vouched for them and asked nothing" } },
+      { "id": "refuse", "label": "refuse to vouch", "effects": { "trust": -15, "fear": 5, "memory": "you would not vouch for them" } }
+    ]
+  }
+]

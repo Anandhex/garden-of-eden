@@ -13,7 +13,7 @@ import { addEmotion } from "../npc/emotions.js";
 
 /**
  * Moral dilemmas (N7.2): an NPC puts a choice to the player with a cost on each
- * side. Hale offers a cut to look the other way; Brena asks you to lie to the mayor
+ * side. A guard offers a cut to look the other way; a smith asks you to lie to the mayor
  * for her. Every effect is set in the NPC file and applied in code; the model only
  * puts the offer in words (the gated present_dilemma tool) and reacts to the choice.
  * The choice is logged (N5) and remembered.

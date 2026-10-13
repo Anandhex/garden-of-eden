@@ -4,7 +4,7 @@ import { ongoing, partyName } from "./diplomacy.js";
 import { atWar, income } from "./economy.js";
 import { chainOf, titled } from "./figures.js";
 import { membersOf, rankIn } from "./factions.js";
-import { HOME_ID, REALM_H, REALM_W } from "./generate.js";
+import { REALM_H, REALM_W } from "./generate.js";
 import type { Realm, Settlement } from "./types.js";
 
 /**
@@ -18,7 +18,7 @@ const leaderWords = (realm: Realm, s: Settlement) => {
 };
 
 /** A few lines on the whole realm. */
-export function describeRealm(realm: Realm): string[] {
+export function describeRealm(realm: Realm, here?: string): string[] {
   const lines: string[] = [];
   for (const k of Object.values(realm.kingdoms)) {
     const ruler = k.ruler ? realm.figures[k.ruler] : undefined;
@@ -36,7 +36,7 @@ export function describeRealm(realm: Realm): string[] {
   lines.push(`Factions (${facs.length}): ${facs.map((f) => `${f.name} [${f.kind}${f.parent ? `, split from ${realm.factions[f.parent]?.name ?? "?"}` : ""}] ${f.members.length}`).join("; ")}.`);
   const treaties = realm.treaties.filter((t) => !t.broken && t.until >= realm.day);
   lines.push(`Treaties in force (${treaties.length}): ${treaties.slice(0, 8).map((t) => `${t.kind.replace("_", "-")} ${partyName(realm, t.a)} / ${partyName(realm, t.b)}`).join("; ")}${treaties.length > 8 ? "; ..." : ""}.`);
-  const home = realm.settlements[HOME_ID];
+  const home = here ? realm.settlements[here] : undefined;
   if (home) lines.push(...describeSettlement(realm, home.id));
   return lines;
 }
@@ -69,7 +69,7 @@ export function describeFactions(realm: Realm): string[] {
 }
 
 /** The realm for the browser (N13.9): small enough to send with every state. */
-export function realmView(realm: Realm): RealmView {
+export function realmView(realm: Realm, opts: { here?: string; heard?: (newsId: string) => boolean } = {}): RealmView {
   const fig = (id: string | null) => (id && realm.figures[id] ? titled(realm.figures[id]!) : null);
   return {
     day: realm.day,
@@ -91,7 +91,7 @@ export function realmView(realm: Realm): RealmView {
       buildings: Object.fromEntries(Object.entries(s.buildings).filter(([, l]) => (l ?? 0) > 0)) as Record<string, number>,
       project: s.project ? `${s.project.building} (day ${s.project.done})` : null,
       roads: s.roads,
-      home: !!s.home,
+      here: s.id === opts.here,
       abandoned: !!s.abandoned,
       atWar: atWar(realm, s),
       raided: s.lastRaided !== undefined && realm.day - s.lastRaided <= 5,
@@ -122,7 +122,7 @@ export function realmView(realm: Realm): RealmView {
       .sort((a, b) => b.renown - a.renown)
       .slice(0, 30)
       .map((f) => ({ name: titled(f), role: f.role, rank: f.life.tier, renown: f.renown, home: f.home ? (realm.settlements[f.home]?.name ?? null) : null, faction: f.faction ? (realm.factions[f.faction]?.name ?? null) : null, superior: fig(f.superior), deeds: f.deeds.slice(-3), talks: !!f.talks, rose: !!f.rose })),
-    news: realm.news.slice(-40).reverse().map((n) => ({ day: n.day, text: n.text, importance: n.importance, heard: !!n.delivered })),
+    news: realm.news.slice(-40).reverse().map((n) => ({ day: n.day, text: n.text, importance: n.importance, heard: opts.heard ? opts.heard(n.id) : false })),
     director: realm.director.slice(-10).reverse(),
     stats: realm.stats,
   };

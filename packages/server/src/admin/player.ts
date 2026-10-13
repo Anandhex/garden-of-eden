@@ -2,7 +2,6 @@ import type { AdminBelief, AdminCard, AdminOpinion, AdminPlayerView } from "@mil
 import { loanDue } from "../game/favours.js";
 import { formatMoney } from "../game/money.js";
 import { describeReputation } from "../game/reputation.js";
-import { HOME_ID } from "../game/realm/generate.js";
 import type { NpcState } from "../npc/types.js";
 import type { AdminContext } from "./context.js";
 
@@ -22,7 +21,7 @@ export function playerView(ctx: AdminContext): AdminPlayerView {
   const player = world.player;
   const opinions: AdminOpinion[] = [];
   const byKey = new Map<string, AdminBelief>();
-  const people = new Set([...town.ids, ...town.visitorIds()]);
+  const people = new Set(town.ids);
   for (const id of people) {
     const persona = town.personas[id];
     const state = town.agents[id]?.state ?? world.npcStates[id];
@@ -70,8 +69,8 @@ export function playerView(ctx: AdminContext): AdminPlayerView {
 export function playerCard(ctx: AdminContext): AdminCard {
   const world = ctx.world();
   const p = world.player;
-  const site = p.site ?? HOME_ID;
-  const siteName = world.realm?.settlements[site]?.name ?? site;
+  const site = p.site ?? null;
+  const siteName = (site ? world.realm?.settlements[site]?.name : undefined) ?? site ?? "nowhere";
   const view = playerView(ctx);
   const rep = describeReputation(p.reputation);
   return {

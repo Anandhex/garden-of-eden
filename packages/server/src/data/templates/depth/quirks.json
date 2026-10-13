@@ -1,0 +1,16 @@
+[
+  { "when": { "job": ["smith"] }, "quirk": { "when": { "activity": ["work"] }, "line": "You tap the anvil twice before you answer anyone, as you always do." } },
+  { "when": { "job": ["smith"] }, "quirk": { "when": { "topic": ["sword", "blade", "weapon"] }, "line": "You squint at the edge of whatever blade is mentioned, as if you could see it from here." } },
+  { "when": { "job": ["innkeeper"] }, "quirk": { "when": { "activity": ["work"] }, "line": "You wipe the same mug over and over while you talk." } },
+  { "when": { "job": ["innkeeper"] }, "quirk": { "when": { "topic": ["rumour", "news", "stranger"] }, "line": "You lean in and lower your voice for anything that sounds like gossip." } },
+  { "when": { "job": ["merchant"] }, "quirk": { "when": { "topic": ["price", "buy", "sell", "coin"] }, "line": "You count on your fingers while you speak of money." } },
+  { "when": { "job": ["farmer"] }, "quirk": { "when": { "hours": [5, 9] }, "line": "You squint at the sky and say what the weather will do before anything else." } },
+  { "when": { "job": ["guard"] }, "quirk": { "when": { "activity": ["work"] }, "line": "Your eyes move over the crowd while you talk, never settling on the person you're speaking to." } },
+  { "when": { "job": ["child"] }, "quirk": { "when": { "activity": ["socialise"] }, "line": "You can't stand still: you scuff your feet and pick at your sleeve." } },
+  { "when": { "job": ["bandit"] }, "quirk": { "when": { "mood": ["angry", "afraid"] }, "line": "Your hand drifts to your belt when anyone raises their voice." } },
+  { "when": { "traits": { "sociability": [0, 0.35] } }, "quirk": { "when": { "topic": ["you", "yourself", "family"] }, "line": "You answer questions about yourself with a shrug and a change of subject." } },
+  { "when": { "traits": { "temper": [0.65, 1] } }, "quirk": { "when": { "hurt": true }, "line": "Pain makes you short and sharp-tongued." } },
+  { "when": { "traits": { "honesty": [0, 0.35] } }, "quirk": { "when": { "topic": ["honest", "truth", "swear"] }, "line": "You laugh a little too quickly when anyone speaks of honesty." } },
+  { "when": { "elder": true }, "quirk": { "when": { "hours": [18, 22] }, "line": "In the evening you are slower and softer, and you start sentences with 'In my day'." } },
+  { "when": {}, "quirk": { "when": { "hours": [5, 8] }, "line": "You are not yourself before you've had something warm to eat or drink." } }
+]

@@ -1,11 +1,12 @@
-import { mkdtempSync } from "node:fs";
-import { writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { describe, expect, it } from "vitest";
-import brena from "../src/data/npcs/brena.json" with { type: "json" };
-import pell from "../src/data/npcs/pell.json" with { type: "json" };
-import { importDeaths, loadWorld, newWorld, saveWorld } from "../src/game/save.js";
+import brena from "./fixtures/npcs/brena.json" with { type: "json" };
+import pell from "./fixtures/npcs/pell.json" with { type: "json" };
+import { WorldStore } from "../src/game/db.js";
+import { openWorld } from "../src/game/openWorld.js";
+import { loadWorld, newWorld, saveWorld } from "../src/game/save.js";
 import { parsePersona } from "../src/npc/personaSchema.js";
 
 const personas = {
@@ -55,15 +56,18 @@ describe("world saves", () => {
     expect(loaded.position).toEqual({ x: 5, y: 9 });
   });
 
-  it("imports the old deaths file only once", () => {
+  it("sets an old (v12) save aside with its deaths file, and begins a new world", () => {
     const dir = mkdtempSync(join(tmpdir(), "llm-game-save-"));
+    const file = join(dir, "world.json");
     const deathsFile = join(dir, "deaths.json");
-    const death = { npcId: "pell", name: "Old Pell", day: 2, hour: 9, killedBy: "player" };
-    writeFileSync(deathsFile, JSON.stringify({ pell: death }));
-    const imported = importDeaths(newWorld(personas), deathsFile);
-    expect(imported.deaths).toEqual({ pell: death });
-    imported.deaths = { brena: { ...death, npcId: "brena" } };
-    expect(Object.keys(importDeaths(imported, deathsFile).deaths)).toEqual(["brena"]);
+    writeFileSync(file, `${JSON.stringify({ ...newWorld(personas), version: 12 })}\n`);
+    writeFileSync(deathsFile, JSON.stringify({ pell: { npcId: "pell", name: "Old Pell", day: 2, hour: 9, killedBy: "player" } }));
+    const opened = openWorld({ file, deathsFile, templates: {}, store: new WorldStore(":memory:"), fresh: false });
+    expect(opened.notice).toMatch(/older version \(12\)/);
+    expect(opened.world.deaths).toEqual({});
+    expect(existsSync(deathsFile)).toBe(false);
+    expect(existsSync(`${deathsFile}.v12.bak`)).toBe(true);
+    expect(existsSync(file.replace(/\.json$/, ".v12.bak.json"))).toBe(true);
   });
 
   it("upgrades saves without a minute or journal", () => {

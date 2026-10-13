@@ -29,7 +29,7 @@ export function journalFor(player: PlayerState, npc?: string): JournalEntry[] {
   return (player.journal ?? []).filter((e) => !npc || e.npc === npc);
 }
 
-/** Notes grouped by NPC, for /journal: "Brena Ashford" → lines. Notes about no one go under "General". */
+/** Notes grouped by NPC, for /journal: "Mara Ashford" → lines. Notes about no one go under "General". */
 export function journalByNpc(player: PlayerState, names: Record<string, string>, npc?: string): Array<{ who: string; lines: string[] }> {
   const groups = new Map<string, string[]>();
   for (const e of journalFor(player, npc)) {

@@ -132,6 +132,10 @@ export interface BusyOptions {
   /** Quest boards written up each day. */
   flavours?: number;
   retellsPerDay?: number;
+  /** Batched life-review calls a day (N25b: a town of thirty talkers is three or four a day, three to a call), the shock reviews of a war starting on the fourth day, and the stories of a newly met place's notables on the first (N25a). */
+  reviewsPerDay?: number;
+  shockReviews?: number;
+  stories?: number;
   /** Conversations the player has each day (each ends in a summary). */
   talksPerDay?: number;
   /** Multiply every model latency (a slower model, or a stress test). */
@@ -268,6 +272,11 @@ export async function runBusy(env: BusyEnv, o: BusyOptions & { dayMs: number }):
     for (let i = 0; i < planners; i++) queue(`plan:${i}:${d}`, "plan");
     for (let i = 0; i < flavours; i++) queue(`flavor:${i}:${d}`, "quest-flavor");
     for (let i = 0; i < (o.retellsPerDay ?? 2); i++) queue(`retell:${d}:${i}`, "retell");
+    // N25b: a town's talkers are reviewed on a cycle (two batched calls a day is about eighteen talkers; thirty people is three or four), and a war starting
+    // on the fourth day shocks everyone at once; N25a: a place's new notables get their stories when it is first activated.
+    for (let i = 0; i < (o.reviewsPerDay ?? 2); i++) queue(`life-review:${d}:${i}`, "life-review");
+    if (d === 3) for (let i = 0; i < (o.shockReviews ?? 4); i++) queue(`life-review:shock:${d}:${i}`, "life-review");
+    if (d === 0) for (let i = 0; i < (o.stories ?? 8); i++) queue(`persona-story:${i}`, "persona-story");
     if (d === 2) queue("faction-name:f1", "faction-name");
     if (d === 4) queue("child-words:c1", "child-words");
     for (const [kind, n] of Object.entries(o.extra ?? {}) as Array<[CallKind, number]>) for (let i = 0; i < n; i++) queue(`${kind}:extra:${d}:${i}`, kind);

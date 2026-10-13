@@ -15,7 +15,7 @@ import {
   weaponFor,
 } from "../src/game/items.js";
 
-const NPC_DIR = new URL("../src/data/npcs/", import.meta.url);
+const NPC_DIR = new URL("./fixtures/npcs/", import.meta.url);
 
 describe("item tiers", () => {
   it("run G to SSS", () => {
