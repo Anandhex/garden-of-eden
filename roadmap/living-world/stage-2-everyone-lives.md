@@ -8,6 +8,8 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 
 **Status:** ⬜ Planned
 
+**Implementation plan:** [plans/n25-townsfolk-lives.md](plans/n25-townsfolk-lives.md)
+
 **Goal:** ordinary townsfolk age, marry, have children and die, so a place's population is a count of real people, and a townsperson's child can grow up to become a named or talking NPC.
 
 **The rules:** levels of detail, all in code, no model calls:
@@ -23,7 +25,7 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 - [ ] **The population number becomes a count:** roster changes replace N16's "only the population number changes"; a growing town still adds to the end, so existing people keep their place
 - [ ] **Migration as people:** N13's moves to better places move named townsfolk, with their family
 - [ ] **Rising:** a notable's child, or a child with strong inherited traits, goes through N13's rise rules and can become a named or talking NPC; lineage kept, so the admin view can trace who came from whom
-- [ ] Save change for roster births, deaths and moves; an older save keeps its people
+- [ ] Births, deaths and moves stored in N18's people tables (no migration of older saves: they're set aside, user decision 2026-10-13)
 - [ ] Tests, README, this roadmap
 
 - **Done when:** over 10 simulated years a village's people age, marry, have children and die, the population figure equals the living roster, a born townsperson rises to a talking NPC with their parents in their file, a famine kills people in the place it struck, and a capital still runs at 60 fps.
@@ -32,11 +34,13 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 
 **Status:** ⬜ Planned
 
+**Implementation plan:** [plans/n26-the-open-road.md](plans/n26-the-open-road.md)
+
 **Goal:** travel is a journey, not a time skip. The player walks the realm between places through a world that is there: roads, people on them, roadside places, night, weather and things to stop for. A trip takes real playing time and is full of interaction.
 
 **What exists:** N14's travel picks a route, skips the hours the distance takes (`hoursFor`, `TRAVEL_PER_DAY`) and rolls at most two encounters, fought in code. Between places there is nothing to walk through; N15's localities are the only maps outside a village.
 
-**The rules:** the realm between places becomes walkable maps (chunks), generated with a seed from the realm's terrain, roads and rivers, so a stretch of road looks the same every time. On these maps a tile takes more game time than in a village (a set **travel time scale**), so a day's walk is several real minutes of play, not hours and not an instant. Everything met on the road is real: travellers are the realm's people actually moving (N33's carriers, caravans, armies, adventurers, runaways), not spawned for the moment.
+**The rules:** the realm between places becomes walkable maps (chunks), generated with a seed from the realm's terrain, roads and rivers, so a stretch of road looks the same every time. A set **travel time scale** makes a day's walk take several real minutes of play (about 7 of walking), not hours and not an instant. To get that at the normal walking speed, a road tile passes *less* game time than a village tile, so the clock runs faster on the road (user decision 2026-10-13). Everything met on the road is real: travellers are the realm's people actually moving (N33's carriers, caravans, armies, adventurers, runaways), not spawned for the moment.
 
 - [ ] **Walkable realm:** chunk maps between places, by terrain (plains, forest, hills, marsh, coast), with the road through them, rivers, bridges, fords and ferries; walk from one chunk into the next; N14's routes become the roads on these maps
 - [ ] **Time on the road:** a travel time scale per tile; day and night, weather (N30) that slows and soaks; the header shows the day and how far to the next place
@@ -56,6 +60,8 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 
 **Status:** ⬜ Planned
 
+**Implementation plan:** [plans/n27-the-wilds.md](plans/n27-the-wilds.md)
+
 **Goal:** off the road the world is open to explore: places to find, ways to get lost, and things no one has told the player about.
 
 **The rules:** the land away from roads is walkable chunks too (N26), by terrain, with points of interest placed by seed and by the realm's state (a pack's lair where its pack lives, a hidden camp where a gang or liberation group really is). Nothing is on the player's map until they find it or hear of it (N65).
@@ -73,6 +79,8 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 ## N28: Fauna and flora
 
 **Status:** ⬜ Planned
+
+**Implementation plan:** [plans/n28-fauna-and-flora.md](plans/n28-fauna-and-flora.md)
 
 **Goal:** the land is full of living things: many animals and plants, different in every terrain and season, that the player and NPCs notice, use, hunt, gather, fear and learn about.
 

@@ -23,7 +23,7 @@ Each track has its own folder (see **Where things are** below). Mark items `[x]`
 | Tooling track (T1–T15) | [roadmap/tooling/](roadmap/tooling/README.md) | 🟡 Tests, simulation, checks and evals |
 | Game track (G1–G4) | [roadmap/game/](roadmap/game/README.md) | 🟡 The browser client, game feel, performance, shipping |
 
-**Next up:** the [vertical slice](roadmap/living-world/README.md#milestone-the-vertical-slice), starting with [N17 The admin world view](roadmap/living-world/stage-1-foundations.md#n17-the-admin-world-view).
+**Next up:** the [vertical slice](roadmap/living-world/README.md#milestone-the-vertical-slice), starting with [N17 The admin world view](roadmap/living-world/stage-1-foundations.md#n17-the-admin-world-view). Detailed build guides for N17–N28 are in [roadmap/living-world/plans/](roadmap/living-world/plans/README.md).
 
 ## Status
 

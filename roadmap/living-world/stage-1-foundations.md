@@ -8,9 +8,11 @@ See the world, keep it fast and stable, and know what the player knows. Everythi
 
 **Status:** ⬜ Planned
 
+**Implementation plan:** [plans/n17-admin-world-view.md](plans/n17-admin-world-view.md)
+
 **Goal:** an administrator's view of the whole world, separate from the game: see what is happening everywhere and why, and pin an NPC, the player or a place to follow them.
 
-**The rules:** read-only. It shows the truth (what really happened), not what the player knows. It reads the same state and event log the game uses; it never changes them. A separate page (`/admin`), not a tab in the game.
+**The rules:** read-only, with one exception: the time controls (pause, step, fast-forward) act on the live game, because the user wants them in the admin panel (decided 2026-10-13). They run the same code as the player waiting and are logged. It shows the truth (what really happened), not what the player knows. It reads the same state and event log the game uses; it never changes them. A separate page (`/admin`), not a tab in the game.
 
 - [ ] **Realm overview:** a live map with kingdom borders, settlements, roads, armies, packs and caravans; per place population (by class), prosperity, food, coin; current wars, treaties and factions
 - [ ] **Event stream:** every event in the realm, filterable by place, faction, person, type and importance, each with its **why** (the director's reason, an NPC's decision and the options it weighed once N38 exists)
@@ -21,11 +23,13 @@ See the world, keep it fast and stable, and know what the player knows. Everythi
 - [ ] **Health:** tick timings, counts (fights, factions, kingdoms, population), the numbers `sim:realm` prints, so tuning can be done live
 - [ ] Tests, README, this roadmap
 
-- **Done when:** the admin page shows the realm map and its numbers; the event stream shows a war, a death and a director push with their reasons; pinning a townsperson in another town shows their day hour by hour; pinning the player shows a rumour about them and who believes it; nothing on the admin page changes the save.
+- **Done when:** the admin page shows the realm map and its numbers; the event stream shows a war, a death and a director push with their reasons; pinning a townsperson in another town shows their day hour by hour; pinning the player shows a rumour about them and who believes it; nothing on the admin page changes the save except the time controls, which move the clock just as the player waiting would, and are logged.
 
 ## N18: Scale and storage
 
 **Status:** ⬜ Planned
+
+**Implementation plan:** [plans/n18-scale-and-storage.md](plans/n18-scale-and-storage.md)
 
 **Goal:** the save holds tens of thousands of real people and their state without slowing down.
 
@@ -35,15 +39,17 @@ See the world, keep it fast and stable, and know what the player knows. Everythi
 
 - [ ] Tables for people (identity, life, family links), relationships, knowledge records, grievances, ambitions, jobs held; indexed by place and id
 - [ ] Load by place and level of detail (N25); write in batches at the end of a tick; no full-save rewrite per hour
-- [ ] Save versions and migrations for both files, tested from every past version (v10 onward)
+- [ ] Save version 11 for both files, as a clean break: older saves are set aside and a new world starts (user decision 2026-10-13: old saves don't matter). Migrations from v11 onward, each tested
 - [ ] An export and import of a whole world (for bug reports and seeded test fixtures)
 - [ ] Tests, README, this roadmap
 
-- **Done when:** a realm with 50,000 people saves in under a second and loads the player's place in under two; a v10 save migrates and plays on; an exported world imports and replays identically with the same seed.
+- **Done when:** a realm with 50,000 people saves in under a second and loads the player's place in under two; a pre-v11 save is set aside and a new world starts; an exported world imports and replays identically with the same seed.
 
 ## N19: Performance and model-call budgets
 
 **Status:** ⬜ Planned
+
+**Implementation plan:** [plans/n19-performance-and-budgets.md](plans/n19-performance-and-budgets.md)
 
 **Goal:** every later phase has limits it can't quietly break: frame rate, tick time and how much the one local model is asked to do.
 
@@ -62,6 +68,8 @@ See the world, keep it fast and stable, and know what the player knows. Everythi
 
 **Status:** ⬜ Planned
 
+**Implementation plan:** [plans/n20-stories-drama-liveness.md](plans/n20-stories-drama-liveness.md)
+
 **Goal:** the emergent drama is noticed. Code finds chains of events that caused each other and surfaces the best as stories; a drama manager keeps something brewing near the player; the admin view measures how alive the world is.
 
 **The rules:** every event records what caused it (a parent event id, or the decision that made it), so chains are a graph walk in code. The drama manager never invents events: it only speeds up or moves nearer things already in motion (a grudge close to its threshold, a pack about to raid, a caravan on the road). The model writes only a story's title and summary, from the facts code gives it.
@@ -79,6 +87,8 @@ See the world, keep it fast and stable, and know what the player knows. Everythi
 
 **Status:** ⬜ Planned
 
+**Implementation plan:** [plans/n21-callbacks.md](plans/n21-callbacks.md)
+
 **Goal:** the player sees when the world's events trace back to something they did.
 
 **The rules:** N20's cause links are walked back from notable events; if a chain reaches a player action within a few steps, the player is told, through a person who'd know or the journal (N65), never more than the player could learn.
@@ -93,6 +103,8 @@ See the world, keep it fast and stable, and know what the player knows. Everythi
 ## N22: Long-run balance tests
 
 **Status:** ⬜ Planned
+
+**Implementation plan:** [plans/n22-long-run-balance.md](plans/n22-long-run-balance.md)
 
 **Goal:** the realm neither collapses nor stalls over years of play.
 
@@ -109,6 +121,8 @@ See the world, keep it fast and stable, and know what the player knows. Everythi
 
 **Status:** ⬜ Planned
 
+**Implementation plan:** [plans/n23-sharing-worlds.md](plans/n23-sharing-worlds.md)
+
 **Goal:** worlds and their stories can be shared and replayed.
 
 **The rules:** built on N18's export and import. A world seed and its chronicle are enough to replay the world exactly; snapshots let a story be replayed from a chosen day.
@@ -124,6 +138,8 @@ See the world, keep it fast and stable, and know what the player knows. Everythi
 ## N24: Global reporting
 
 **Status:** ⬜ Planned
+
+**Implementation plan:** [plans/n24-global-reporting.md](plans/n24-global-reporting.md)
 
 **Goal:** the player's feed covers the whole realm, not just Millbrook, without spoiling what the player shouldn't know yet.
 
