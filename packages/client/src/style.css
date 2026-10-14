@@ -113,3 +113,16 @@ button.small {
 .realm-legend { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
 .realm-legend .chip { border: 2px solid var(--line); border-radius: 999px; padding: 1px 8px; font-size: 12px; color: var(--muted); }
 .realm-map .place.here circle:last-of-type { stroke: #ffd27a; stroke-width: 5; }
+
+/* The open road (N26) */
+#roadbar { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; padding: 6px 10px; margin-top: 6px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; font-size: 13px; }
+#roadbar[hidden] { display: none; }
+#roadbar .where { font-weight: 600; }
+#roadbar .need { display: inline-flex; align-items: center; gap: 4px; }
+#roadbar .need i { display: inline-block; width: 46px; height: 6px; background: #0006; border-radius: 3px; overflow: hidden; vertical-align: middle; }
+#roadbar .need i b { display: block; height: 100%; background: #7ac77a; }
+#roadbar .need.low i b { background: #e0675b; }
+#roadbar .spacer { flex: 1; }
+#roadbar .dim { opacity: 0.7; }
+#situation { display: flex; flex-direction: column; gap: 8px; }
+#situation .choices { display: flex; flex-direction: column; gap: 6px; }

@@ -11,6 +11,9 @@ import { store, world } from "../store";
 import { crowd, describeFolk, folkAt, insideOf, loadCrowd, updateCrowd } from "../crowd";
 import { CrowdLayer } from "./CrowdLayer";
 import { fpsWanted, mountFpsOverlay } from "./frame";
+import { land, loadRoadData, solidAt } from "../roadData";
+import { RoadLayer } from "./RoadLayer";
+import { KIND_COLOR, travellers, placeTravellers, refreshJourneys, travellerNear } from "../travellers";
 import { GRASS_VARIANTS, hexColor, makeTextures, ORIGINS, PATH_VARIANTS, TILE, tileHash } from "./textures";
 
 /** The view (N16): 26 by 18 tiles of the map, following the player round bigger places. */
@@ -244,6 +247,9 @@ export class WorldScene extends Phaser.Scene {
   private clock!: Phaser.GameObjects.Graphics;
   private clockText!: Phaser.GameObjects.Text;
   private crowdLayer!: CrowdLayer;
+  /** The open road (N26): drawn instead of a map while the player walks between places. */
+  private road: RoadLayer | null = null;
+  private lastTravellers = -1;
   /** `?fps=1`: frames per second and the worst frame, for the manual 60 fps check (N19). */
   private fps: { update(now: number, delta: number, loopFps: number): void } | null = fpsWanted() ? mountFpsOverlay() : null;
   private tip!: Phaser.GameObjects.Text;
@@ -256,6 +262,7 @@ export class WorldScene extends Phaser.Scene {
     // A restart (a new place) starts from nothing.
     this.actors = new Map();
     this.built = false;
+    this.road = null;
     makeTextures(this);
     this.night = this.add.rectangle(0, 0, this.scale.width, this.scale.height, 0x0a1030, 0).setOrigin(0).setDepth(500).setScrollFactor(0);
     this.rain = this.add.particles(0, -10, "drop", {
@@ -288,8 +295,8 @@ export class WorldScene extends Phaser.Scene {
     this.crowdLayer = new CrowdLayer(this);
     this.tip = this.add.text(0, 0, "", { ...font(11, "#f3e9d2", false), backgroundColor: "#000000b0", padding: { x: 5, y: 3 }, wordWrap: { width: 300 } }).setDepth(1200).setResolution(DPR).setVisible(false);
 
-    this.input.on("pointerdown", (p: Phaser.Input.Pointer) => clickTile(Math.floor(p.worldX / TILE), Math.floor(p.worldY / TILE)));
-    this.input.on("pointermove", (p: Phaser.Input.Pointer) => this.hoverAt(Math.floor(p.worldX / TILE), Math.floor(p.worldY / TILE), p.worldX, p.worldY));
+    this.input.on("pointerdown", (p: Phaser.Input.Pointer) => clickTile(Math.floor(p.worldX / TILE) + this.shift().x, Math.floor(p.worldY / TILE) + this.shift().y));
+    this.input.on("pointermove", (p: Phaser.Input.Pointer) => this.hoverAt(Math.floor(p.worldX / TILE) + this.shift().x, Math.floor(p.worldY / TILE) + this.shift().y, p.worldX, p.worldY));
     this.input.on("gameout", () => {
       this.hover.clear();
       this.tip.setVisible(false);
@@ -304,7 +311,29 @@ export class WorldScene extends Phaser.Scene {
 
   // ---------- the map ----------
 
+  /** Tiles to add to a scene tile to get the game's: nothing in a village, the origin on the road. */
+  private shift(): { x: number; y: number } {
+    return this.road ? this.road.origin : { x: 0, y: 0 };
+  }
+
+  /** The game's tile as a scene tile. */
+  private local(t: { x: number; y: number }): { x: number; y: number } {
+    const o = this.shift();
+    return { x: t.x - o.x, y: t.y - o.y };
+  }
+
+  private buildRoad(s: Snapshot): void {
+    land.origin = { x: s.position.x, y: s.position.y };
+    this.road = new RoadLayer(this, land.origin);
+    this.player = new Actor(this, { x: 0, y: 0 });
+    this.player.setLook("player", "#3f7fd0");
+    this.cameras.main.removeBounds();
+    this.cameras.main.startFollow(this.player.c, true, 0.18, 0.18);
+    this.built = true;
+  }
+
   private buildMap(s: Snapshot): void {
+    if (s.road) return this.buildRoad(s);
     const { w, h, tiles } = s.map;
     for (let y = 0; y < h; y++) {
       for (let x = 0; x < w; x++) {
@@ -357,6 +386,7 @@ export class WorldScene extends Phaser.Scene {
 
   /** Tiles a walker can't cross (for drawing NPCs walking between places). */
   private blocked = (x: number, y: number): boolean => {
+    if (this.road) return solidAt(x + this.road.origin.x, y + this.road.origin.y);
     const t = store.state?.map.tiles[y]?.[x];
     return t === undefined || t === "tree" || t === "wall" || t === "water";
   };
@@ -369,17 +399,38 @@ export class WorldScene extends Phaser.Scene {
       this.scene.restart();
       return;
     }
+    // The road: wait for its data, and start the scene over when the player is far from the origin (the GPU wants small numbers).
+    if (s.road && !land.data) {
+      void loadRoadData().then(() => store.state === s && this.sync(s));
+      return;
+    }
+    if (this.road && this.built && (Math.abs(s.position.x - this.road.origin.x) > 2500 || Math.abs(s.position.y - this.road.origin.y) > 2500)) {
+      this.scene.restart();
+      return;
+    }
     if (!this.built) {
       this.buildMap(s);
       this.mapId = s.map.id;
     }
     const seen = new Set<string>();
     const near = nearest();
-    for (const n of s.npcs) {
-      if (n.away) continue;
-      seen.add(n.id);
-      this.place(n.id, n, n.dead ? "grave" : "person", n.color, n.dead ? `${n.name} †` : n.name, near?.id === n.id, n.dead ? 1 : n.hp / n.maxHp, n.companion ? 90 : 150);
-    }
+    if (this.road && s.road) {
+      // The people on the road (N26): placed from their journeys with the formula the server uses.
+      const names = (id: string) => land.data?.footprints.find((f) => f.id === id)?.name ?? id;
+      void refreshJourneys(s).then(() => store.state === s && this.road && placeTravellers(s, names).length !== this.lastTravellers && ((this.lastTravellers = placeTravellers(s, names).length), this.sync(s)));
+      const close = travellerNear(s, s.map.talkRange);
+      for (const t of placeTravellers(s, names)) {
+        if (Math.hypot(t.x - s.position.x, t.y - s.position.y) > 60) continue;
+        seen.add(t.id);
+        const here = Math.hypot(t.x - s.position.x, t.y - s.position.y) <= 8;
+        this.place(t.id, t, "person", KIND_COLOR[t.kind] ?? "#8a7a5f", here || close?.id === t.id ? t.name : `[${t.kind}]`, close?.id === t.id, 1, 450);
+      }
+    } else
+      for (const n of s.npcs) {
+        if (n.away) continue;
+        seen.add(n.id);
+        this.place(n.id, n, n.dead ? "grave" : "person", n.color, n.dead ? `${n.name} †` : n.name, near?.id === n.id, n.dead ? 1 : n.hp / n.maxHp, n.companion ? 90 : 150);
+      }
     const prey = nearestCreature();
     for (const c of s.creatures) {
       seen.add(c.uid);
@@ -393,8 +444,15 @@ export class WorldScene extends Phaser.Scene {
       a.bubble = null;
       this.tweens.add({ targets: a.c, alpha: 0, duration: 300, onComplete: () => a.destroy() });
     }
-    const far = Math.abs(this.player.tile.x - s.position.x) + Math.abs(this.player.tile.y - s.position.y) > 1;
-    this.player.goTo(s.position, { stepMs: 80, jump: far });
+    const here = this.local(s.position);
+    const far = Math.abs(this.player.tile.x - here.x) + Math.abs(this.player.tile.y - here.y) > 1;
+    this.player.goTo(here, { stepMs: 80, jump: far });
+    if (this.road) {
+      this.player.setLabel(`${s.player.name} (YOU)`, true);
+      this.player.setHp(s.player.hp / s.player.maxHp);
+      this.setSky(s);
+      return;
+    }
     // The townsfolk (N16): fetched once per map, then placed by the clock.
     void loadCrowd(s).then(() => {
       if (store.state !== s || this.mapId !== s.map.id) return;
@@ -406,10 +464,10 @@ export class WorldScene extends Phaser.Scene {
     this.setSky(s);
   }
 
-  private place(id: string, at: NpcView | CreatureView, look: Look, color: string, label: string, highlight: boolean, hp: number, stepMs: number): void {
+  private place(id: string, at: { x: number; y: number }, look: Look, color: string, label: string, highlight: boolean, hp: number, stepMs: number): void {
     let a = this.actors.get(id);
     if (!a) {
-      a = new Actor(this, at);
+      a = new Actor(this, this.local(at));
       a.c.setAlpha(0);
       this.tweens.add({ targets: a.c, alpha: 1, duration: 300 });
       this.actors.set(id, a);
@@ -417,7 +475,7 @@ export class WorldScene extends Phaser.Scene {
     a.setLook(look, color);
     a.setLabel(label, highlight);
     a.setHp(hp);
-    a.goTo(at, { stepMs, blocked: this.blocked });
+    a.goTo(this.local(at), { stepMs, blocked: this.blocked });
   }
 
   /** Night falls and weather comes in. */
@@ -513,6 +571,7 @@ export class WorldScene extends Phaser.Scene {
     this.tip.setVisible(false);
     this.crowdLayer.hover = null;
     const s = store.state;
+    if (s?.road) return this.hoverRoad(x, y, wx, wy);
     if (!s || x < 0 || y < 0 || x >= s.map.w || y >= s.map.h) return;
     const npc = s.npcs.find((n) => n.x === x && n.y === y && !n.away);
     const folk = npc ? null : folkAt(s, x, y);
@@ -542,11 +601,29 @@ export class WorldScene extends Phaser.Scene {
     this.hover.lineStyle(2, someone !== undefined ? 0xffd27a : 0xffffff, someone !== undefined ? 0.8 : 0.35).strokeRect(x * TILE + 1, y * TILE + 1, TILE - 2, TILE - 2);
   }
 
+  /** Hover on the road: what the ground is, and the tile outlined if it can be walked. */
+  private hoverRoad(x: number, y: number, wx: number, wy: number): void {
+    const s = store.state;
+    if (!s || !land.data) return;
+    const solid = solidAt(x, y);
+    this.input.setDefaultCursor(solid ? "default" : "crosshair");
+    const place = land.data.footprints.find((f) => x >= f.x0 && x <= f.x1 && y >= f.y0 && y <= f.y1);
+    const near = s.road?.nearby.find((n) => Math.abs(n.x - x) <= 1 && Math.abs(n.y - y) <= 1);
+    const who = travellers.people.find((t) => Math.abs(t.x - x) <= 1 && Math.abs(t.y - y) <= 1);
+    const tip = who ? `${who.name}, ${who.role} of ${who.from}: ${who.purpose}` : place ? `${place.name} (${place.kind}): walk onto its gate to go in` : near ? near.name : "";
+    if (tip) {
+      const v = this.cameras.main.worldView;
+      this.tip.setText(tip).setPosition(Math.min(wx + 14, v.right - this.tip.width - 4), Math.min(wy + 14, v.bottom - this.tip.height - 4)).setVisible(true);
+    }
+    if (!solid) this.hover.lineStyle(2, 0xffffff, 0.35).strokeRect((x - this.shift().x) * TILE + 1, (y - this.shift().y) * TILE + 1, TILE - 2, TILE - 2);
+  }
+
   update(time: number, delta: number): void {
     this.fps?.update(time, delta, this.game.loop.actualFps);
     if (!this.built) return;
     this.player.update(delta);
-    this.crowdLayer.update(time, this.player.tile);
+    if (this.road) this.road.update(Math.round(this.player.c.x / TILE - 0.5) + this.road.origin.x, Math.round(this.player.c.y / TILE - 0.5) + this.road.origin.y);
+    else this.crowdLayer.update(time, this.player.tile);
     for (const a of this.actors.values()) {
       a.update(delta);
       a.bubble?.tick(time);

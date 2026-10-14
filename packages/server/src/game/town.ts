@@ -9,7 +9,7 @@ import { runChronicle } from "../director/chronicle.js";
 import { flavorBoard } from "../director/flavor.js";
 import { needsPlan, planDay } from "../director/planning.js";
 import { summariseConversation } from "../director/summary.js";
-import { absoluteHour } from "./clock.js";
+import { absoluteHour, advanceMinutes } from "./clock.js";
 import { type Creature, type CreatureTemplate, isNotable, passCreatureTime } from "./creatures.js";
 import { reportCrimes, isGuard } from "./crime.js";
 import { type Rng, streamFor } from "./dice.js";
@@ -34,7 +34,7 @@ import { familyNight, familyOf } from "./family.js";
 import { loadTemplates, writeChildWords, type NpcTemplate, type Where } from "../npc/templates.js";
 import { type AreaId, currentPlan, type PlaceId } from "./schedule.js";
 import type { DirectorLogEntry } from "../director/validator.js";
-import { addLore, learnLore } from "../npc/knowledge.js";
+import { addLore, learnLore, worldLore } from "../npc/knowledge.js";
 import { bindActiveSite, creaturesOf, siteIdOf, siteState, type SiteState } from "./site.js";
 import { registerTalker, talkerIdsAt, talkerSite } from "./talkers.js";
 import { applyStory, deepen, factsFor, fallbackDepth } from "../npc/depth/index.js";
@@ -55,18 +55,25 @@ import { applyArrivals, pruneArrivals } from "./realm/arrivals.js";
 import { postNeedQuests } from "./realm/needs.js";
 import { syncTalkers } from "./realm/sync.js";
 import { tally } from "./realm/log.js";
-import { deliverNews, realmNewsId, RETELL_IMPORTANCE, retellNews } from "./realm/news.js";
+import { deliverNews, realmNewsId, RETELL_IMPORTANCE, retellNews, shortName } from "./realm/news.js";
 import { ensurePlaceLore, type Thing } from "./realm/lore.js";
 import { atWar } from "./realm/economy.js";
 import { breedCreatures, castCrowd, nameRisers, personaFor, readyToTalk } from "./realm/rise.js";
 import { arrive, setOut, type Trip } from "./realm/travel.js";
+import { RoadPlay } from "./road/play.js";
+import { journeysOf, pruneJourneys } from "./road/journeys.js";
+import { parseTravellerId, personaOnRoad, ROAD_SITE, travellerPersona } from "./road/travellers.js";
+import { dueLater } from "./road/situations.js";
+import { launchDay } from "./road/sources.js";
+import { commitTrack, startRoad } from "./road/walk.js";
 import { figureTalkerId, notablePersona, notablesOf } from "./realm/notables.js";
 import { parseTownsfolkId, rosterFor, rosterFromStore, townsfolkPersona } from "./realm/townsfolk.js";
 import type { CrowdRoster, Townsperson } from "@millbrook/shared";
 import { settleHaunts, stockHaunts } from "./realm/haunts.js";
 import { killFigure, titled } from "./realm/figures.js";
 import { realmNews } from "./realm/log.js";
-import type { Figure } from "./realm/types.js";
+import type { Figure, RealmNews } from "./realm/types.js";
+import type { Traveller } from "@millbrook/shared";
 import { ITEM_TIERS } from "./items.js";
 
 const HEAD = new Set(["ruler", "lord", "mayor", "village head", "elder"]);
@@ -138,7 +145,22 @@ export class Town {
   private readonly generate: boolean;
   /** Lives that change (N25b): everyone who talks is reviewed every few days and when something big hits them. */
   readonly reviews: LifeReviews;
+  /** The open road (N26): walking between places, travellers, situations, camps. */
+  readonly road: RoadPlay = new RoadPlay(this);
   private stopShocks: (() => void) | undefined;
+
+  /**
+   * Walking moves the clock a minute at a time; each new hour the place gets an hour of life. (The web server has
+   * its own, which also moves the creatures on screen; this one is for callers with no screen.)
+   */
+  walkMinutes(minutes: number): string[] {
+    const before = absoluteHour(this.world);
+    advanceMinutes(this.world, minutes);
+    const crossed = absoluteHour(this.world) - before;
+    if (crossed <= 0) return [];
+    advanceMinutes(this.world, -crossed * 60); // passHours moves the clock itself
+    return this.passHours(crossed);
+  }
 
   /**
    * The dice for one system (N18). A fixed die (tests) wins. Otherwise each system rolls from its
@@ -519,6 +541,63 @@ export class Town {
     return setOut(realm, this.world.player, to, this.world.day, this.rngFor("travel"), this.companionPower());
   }
 
+  /**
+   * Someone on the road becomes a talking NPC (N26): the player spoke to one of a journey's party. Their file is kept in the
+   * registry (under the place "road") so they remember the player. Returns their id, or null if they are not on a journey
+   * any more or no file could be made.
+   */
+  meetTraveller(id: string): string | null {
+    if (this.personas[id] && this.agents[id]) return id;
+    const realm = this.world.realm;
+    const parsed = parseTravellerId(id);
+    const j = parsed ? journeysOf(this.world).find((x) => x.id === parsed.journey) : undefined;
+    if (!realm || !parsed || !j) return null;
+    const persona = travellerPersona(realm, j, parsed.k, this.world.day);
+    if (!persona) return null;
+    const agent = this.enrol(persona, ROAD_SITE);
+    // What they carry, they know.
+    for (const nid of j.carries ?? []) {
+      const n = realm.news.find((x) => x.id === nid);
+      if (n) this.learnNews(agent.state, n);
+    }
+    return persona.id;
+  }
+
+  /** Someone met in a situation on the road becomes a talker who remembers the player (the first time a choice touches them). */
+  meetRoadPerson(key: string, n: number, who: Traveller, from: string, to: string, purpose: string): string | null {
+    const id = `x_${key.toLowerCase().replace(/[^a-z0-9]+/g, "_")}_${n}`;
+    if (this.agents[id]) return id;
+    const realm = this.world.realm;
+    const persona = realm ? personaOnRoad(realm, id, who, from, to, purpose, this.world.day) : null;
+    return persona ? this.enrol(persona, ROAD_SITE).persona.id : null;
+  }
+
+  /** A line for the player's feed, from something that happened away from the screen. */
+  tell(line: string): void {
+    this.news.push(line);
+  }
+
+  /** A traveller learns a piece of realm news as the carrier of it: it becomes lore, and they know it for certain. */
+  learnNews(state: NpcAgent["state"], n: RealmNews): void {
+    const id = realmNewsId(n);
+    if (!worldLore().byId.has(id)) addLore(this.world, { id, kind: "news", name: shortName(n.text), aliases: [], keywords: ["news", "realm", "travellers"], text: n.text, event: true });
+    learnLore(state, id, "certain");
+  }
+
+  /**
+   * The player walks out of the west gate onto the open road (N26). `site` stays the place they left (their world's
+   * "today" is that place's own state) until they arrive somewhere. Returns lines.
+   */
+  leaveByRoad(toward?: string): string[] {
+    const realm = this.world.realm;
+    const here = realm?.settlements[this.site()];
+    if (!realm || !here) return ["There's no road out of here."];
+    const state = startRoad(realm, this.world.player, here.id, toward);
+    if (!state) return [`There's no road out of ${here.name}.`];
+    const dest = toward ? realm.settlements[toward] : undefined;
+    return [dest ? `You leave ${here.name} on the road toward ${dest.name}.` : `You leave ${here.name} by the open road.`];
+  }
+
   /** The player arrives: they're at the gate of the new place, and its people are about. Returns lines. */
   arriveAt(to: string): string[] {
     const realm = this.world.realm;
@@ -526,6 +605,9 @@ export class Town {
     if (!realm || !s) return [];
     const from = this.site();
     if (from !== to) this.deactivate(from);
+    // Off the open road (N26): the stretch they walked is written down, and they are no longer on it.
+    commitTrack(realm, this.world.player);
+    delete this.world.player.road;
     arrive(this.world.player, s.id);
     this.world.player.place = "gate";
     const been = siteState(this.world, s.id).visited === true;
@@ -645,6 +727,10 @@ export class Town {
       const live = this.store ? liveSites(realm, this.world.startSite) : new Set<string>();
       advanceRealm(realm, d, this.fixedRng, { live });
       if (this.store && live.size > 0) this.livesDay(d, live);
+      // The road (N26): the day's departures, and the finished journeys dropped.
+      launchDay(this.world, d);
+      pruneJourneys(this.world, d * 1440);
+      for (const line of dueLater(this, d)) this.tell(line);
       this.world.atWar = atWar(realm, realm.settlements[site]!);
       log.push(...applyArrivals(realm, this.world, site, this.members(), Object.keys(this.templates)));
       const before2 = new Set(siteState(this.world, site).newsSeen);

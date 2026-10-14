@@ -233,3 +233,20 @@ export function showVoices(onChange: () => void): void {
     }
   });
 }
+
+/** Something to stop for on the road (N26): a choice with consequences. Choosing sends it to the server; the modal stays until the server clears it. */
+export function showSituation(sit: import("@millbrook/shared").SituationView): void {
+  openModal((body) => {
+    body.append(heading(sit.title), el("p", { textContent: sit.text }));
+    const choices = el("div", { className: "choices" });
+    for (const c of sit.choices) {
+      const b = el("button", { textContent: c.label, title: c.hint ?? "" });
+      b.onclick = () => {
+        close();
+        void act({ action: "situation", situation: sit.id, choice: c.id });
+      };
+      choices.append(b);
+    }
+    body.append(choices);
+  });
+}

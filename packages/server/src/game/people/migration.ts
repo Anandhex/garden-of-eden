@@ -12,6 +12,7 @@ import { ageFrom } from "./rules.js";
 import type { LifeCtx } from "./step.js";
 import { sendArrival } from "../realm/arrivals.js";
 import { outlookOf } from "./outlook.js";
+import { recordMove } from "../road/moves.js";
 
 /**
  * People moving between places (N25). Decided once a day for the whole realm, by household, before
@@ -114,6 +115,8 @@ export function moveHouseholds(ctx: LifeCtx, from: Settlement, to: Settlement, c
       moved++;
     }
     const head = h.members.find((m) => ageFrom(m.born_day, day) >= speciesOf(m.species).adultAge) ?? h.members[0]!;
+    // On the road they walk the days between (N26): the same people.
+    recordMove(realm, { day, from: from.id, to: to.id, kind: opts.everyone || from.food < FAMINE ? "refugees" : "migrants", party: h.members.map((m) => ({ name: m.name, role: m.cls === "child" || ageFrom(m.born_day, day) < speciesOf(m.species).adultAge ? "child" : "commoner", gender: m.gender === "female" ? ("female" as const) : ("male" as const), person: m.id })) });
     recordLifeEvent(realm, store, {
       kind: "migration",
       actor: head.id,

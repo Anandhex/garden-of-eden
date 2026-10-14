@@ -1,7 +1,9 @@
+import { DAY_WALK_UNITS } from "@millbrook/shared";
 import { seededRng, type Rng } from "../dice.js";
 import type { Tier } from "../life.js";
 import { leaderRole, makeFigure, takenNames } from "./figures.js";
 import { freezeHouses } from "./houses.js";
+import { addWaystations } from "../road/waystations.js";
 import { COLORS, dungeonName, factionName, kingdomName, pick, placeName } from "./names.js";
 import type { BuildingId, Figure, Kingdom, Realm, RealmFaction, Role, Settlement, SettlementKind, Terrain } from "./types.js";
 
@@ -16,7 +18,7 @@ import type { BuildingId, Figure, Kingdom, Realm, RealmFaction, Role, Settlement
 export const REALM_W = 1000;
 export const REALM_H = 700;
 /** Map units a traveller covers in a day (news, migrants, armies). */
-export const TRAVEL_PER_DAY = 45;
+export const TRAVEL_PER_DAY = DAY_WALK_UNITS;
 /** Rank of a settlement's head, by kind. */
 const LEADER_TIER: Record<SettlementKind, Tier[]> = { capital: ["C", "B"], city: ["D", "C"], town: ["E", "D"], village: ["F", "E"], hamlet: ["G", "F"] };
 const POPULATION: Record<SettlementKind, [number, number]> = { capital: [2600, 4200], city: [1600, 2400], town: [450, 1100], village: [70, 380], hamlet: [15, 55] };
@@ -236,6 +238,8 @@ export function generateRealm(seed: number, day = 1): Realm {
   if (a && b) realm.treaties.push({ id: `t${realm.next++}`, kind: "trade", a: `k:${a.id}`, b: `k:${b.id}`, since: day - 50, until: day + 90, why: "the old trade road", amount: undefined });
   if (b && c) realm.treaties.push({ id: `t${realm.next++}`, kind: "non_aggression", a: `k:${b.id}`, b: `k:${c.id}`, since: day - 20, until: day + 60, why: "a truce after the border quarrels" });
   void takenNames;
+  // Inns beside the roads, about a day's walk apart (N26): hamlets with an inn, made last from a stream of their own.
+  addWaystations(realm, day);
   // The houses each place has, fixed from here on (game/realm/houses.ts).
   freezeHouses(realm);
   return realm;

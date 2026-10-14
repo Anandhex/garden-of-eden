@@ -83,6 +83,10 @@ import { pickEmbedder } from "../game/embeddings.js";
 import { OllamaEmbedder } from "../llm/ollama.js";
 import { forage, playerCraft } from "../game/gathering.js";
 import { destinations } from "../game/realm/travel.js";
+import { roadDataOf } from "../game/road/generateRoads.js";
+import { shortestWay, WALK_PACE } from "@millbrook/shared";
+import { parseTravellerId } from "../game/road/travellers.js";
+import { topUp } from "../game/road/needs.js";
 import { areaWords, DEN_COLORS, exitTo, exitUnder, PLAIN_VILLAGE, siteMap, type SiteMap } from "./sites.js";
 import { ongoing } from "../game/realm/diplomacy.js";
 import { realmView } from "../game/realm/view.js";
@@ -133,7 +137,7 @@ const siteInfo = () => (world.realm?.settlements[town.site()] ?? PLAIN_VILLAGE);
 /** The map the player is on (N14, N15): the village of the place they're at, or one of its localities. */
 const here = (): SiteMap => siteMap(siteInfo(), town.area(), world.realm);
 /** Who's about where the player is: the talkers of this place, and whoever travels with them. */
-const local = (): string[] => town.localIds();
+const local = (): string[] => (town.road.onRoad() ? town.road.travellersNear().filter((id) => agents[id]) : town.localIds());
 
 // ---- The townsfolk (N16) ----
 
@@ -142,7 +146,7 @@ let crowd: CrowdSim | null = null;
 /** The townsfolk of the village the player is in, or null (a locality, no realm). */
 function crowdHere(): CrowdSim | null {
   const realm = world.realm;
-  if (!realm || town.area() !== "village") return null;
+  if (!realm || town.area() !== "village" || town.road.onRoad()) return null;
   const map = here();
   const roster = town.rosterAt(town.site(), map, world.day);
   if (!roster) return null;
@@ -252,6 +256,7 @@ const creatureById = (uid: string): Creature | undefined => town.creaturesHere()
  * realm has them (N15, game/realm/haunts.ts).
  */
 function presentCreatures(): Creature[] {
+  if (town.road.onRoad()) return [];
   return Object.values(town.creaturesHere()).filter((c) => !c.outcome && (following(c) || denOf(c)) && creatureTemplates[c.template]);
 }
 
@@ -364,6 +369,8 @@ function npcPlace(id: string): PlaceId | null {
  * on the map the player is on (N15). The dead lie where they fell (their own spot).
  */
 function npcPos(id: string): { x: number; y: number } | null {
+  // On the road (N26): a traveller is where their journey has them, and the dead lie where they fell.
+  if (parseTravellerId(id)) return town.road.onRoad() ? town.road.travellerPos(id) : null;
   if (agents[id]!.state.dormant || !local().includes(id)) return null;
   // The townsfolk (N16) are where the crowd's day has them; the fallen lie where they fell.
   if (parseTownsfolkId(id)) {
@@ -410,6 +417,7 @@ function placeName(place: PlaceId): string {
 function absence(id: string): string | null {
   const a = agents[id]!;
   if (a.isDead || a.state.outcome === "unconscious") return null;
+  if (parseTravellerId(id)) return town.road.onRoad() && town.road.travellerPos(id) ? null : `${personas[id]!.name} has gone on their way.`;
   const folk = parseTownsfolkId(id);
   if (folk) {
     const name = personas[id]!.name;
@@ -482,7 +490,7 @@ function npcView(id: string): NpcView {
     y: spot?.y ?? -1,
     color: npcColor(id),
     place: dead ? null : plan.place,
-    doing: dead ? "dead" : describePlan(plan),
+    doing: dead ? "dead" : parseTravellerId(id) ? "on the road" : describePlan(plan),
     absent: absence(id),
     look: describeNpcAppearance(persona, s, world),
     friendship: friendshipOf(s),
@@ -563,16 +571,28 @@ function siteView(): Snapshot["site"] {
   const map = here();
   const area = { id: map.area, name: map.name, exits: map.exits.map((e) => e.label) };
   if (!realm || !s) return { id: town.site(), name: PLAIN_VILLAGE.name, kind: "village", kingdom: null, destinations: [], area };
-  return { id: s.id, name: s.name, kind: s.kind, kingdom: s.kingdom ? (realm.kingdoms[s.kingdom]?.name ?? null) : null, destinations: destinations(realm, s.id), area };
+  return { id: s.id, name: s.name, kind: s.kind, kingdom: s.kingdom ? (realm.kingdoms[s.kingdom]?.name ?? null) : null, destinations: destinationsOnRoad(realm, s.id), area };
+}
+
+/** The places the roads lead to, with the walk to each by the real road (N26): hours of walking, not the old straight-line days. */
+function destinationsOnRoad(realm: NonNullable<typeof world.realm>, from: string) {
+  const data = roadDataOf(realm);
+  return destinations(realm, from).map((d) => {
+    const w = shortestWay(data, from, d.id);
+    return w ? { ...d, hours: Math.max(1, Math.round(w.tiles / WALK_PACE / 60)) } : d;
+  });
 }
 
 function snapshot(): Snapshot {
   // The chronicle's news, from background work, joins the feed.
   for (const text of town.takeNews()) pushNews({ t: "system", text });
   const p = world.player;
+  const roadView = town.road.view();
   return {
     llm: { ready: llmReady, error: llmError },
-    map: { id: here().id, name: here().name, w: here().w, h: here().h, tiles: here().tiles, buildings: here().buildings, talkRange: TALK_RANGE, exits: here().exits.map((e) => ({ x: e.x, y: e.y, label: e.label })), zones: here().zones },
+    map: roadView
+      ? { id: "road", name: roadView.where, w: 1, h: 1, tiles: [["path"]], buildings: [], talkRange: TALK_RANGE, exits: [], zones: [] }
+      : { id: here().id, name: here().name, w: here().w, h: here().h, tiles: here().tiles, buildings: here().buildings, talkRange: TALK_RANGE, exits: here().exits.map((e) => ({ x: e.x, y: e.y, label: e.label })), zones: here().zones },
     crowd: (() => {
       const sim = crowdHere();
       return sim ? { map: sim.map.id, count: sim.roster.people.length, day: crowdDay() } : null;
@@ -580,7 +600,8 @@ function snapshot(): Snapshot {
     timeFlowSeconds: config.timeFlowSeconds,
     site: siteView(),
     time: { text: formatTime(world), day: world.day, hour: world.hour, minute: world.minute ?? 0, timeOfDay: world.timeOfDay, today: describeToday(world), ...todayInfo(world) },
-    position: world.position!,
+    position: roadView && p.road ? { x: p.road.x, y: p.road.y } : world.position!,
+    road: roadView,
     player: {
       name: p.name,
       money: p.money,
@@ -728,6 +749,13 @@ function npcInRange(id: string): string | null {
 
 /** The conversation happens where the NPC is: that place's description, and who else is there. */
 function setScene(id: string): void {
+  if (parseTravellerId(id)) {
+    world.location = `the open road: ${personas[id]!.role}`;
+    world.nearby = ["the road", "a milestone"];
+    world.present = [];
+    world.sceneLog = [];
+    return;
+  }
   const place = npcPlace(id) ?? "square";
   world.player.place = place;
   const words = here().placeWords(place);
@@ -796,16 +824,10 @@ async function act(body: Record<string, unknown>, emit: Emit): Promise<void> {
   // Travel (N14): the road to another place. The world lives the hours it takes.
   if (action === "travel") {
     if (currentFight()) return void emit({ t: "system", text: "Not in the middle of a fight." });
-    const trip = town.setOutFor(String(body.to ?? ""));
-    for (const text of trip.lines) emit({ t: "note", kind: trip.ok ? "action" : "fail", text });
-    if (!trip.ok || !trip.route) return;
+    // The road is walked now (N26): this sets where the player is bound, and sees them out of the gate.
+    const lines = town.road.setDestination(String(body.to ?? ""), leaveByRoad);
+    for (const text of lines.lines) emit({ t: "note", kind: lines.ok ? "action" : "fail", text });
     engaged = null;
-    trail.length = 0;
-    for (const line of passHours(trip.hours)) emit({ t: "system", text: line });
-    for (const text of town.arriveAt(trip.route.path.at(-1)!)) emit({ t: "note", kind: "action", text });
-    world.position = { ...here().start };
-    placeCreatures();
-    emit({ t: "system", text: `It's ${formatTime(world)}.` });
     return;
   }
   if (action === "joinguild") {
@@ -848,6 +870,61 @@ async function act(body: Record<string, unknown>, emit: Emit): Promise<void> {
     return;
   }
 
+  // The open road (N26): what the player does there that isn't a step.
+  if (action === "situation") {
+    const r = town.road.choose(String(body.choice ?? ""));
+    for (const text of r.lines) emit({ t: "note", kind: r.ok ? "action" : "fail", text });
+    for (const text of town.consequences()) emit({ t: "system", text });
+    return;
+  }
+  if (action === "camp" || (action === "wait" && town.road.onRoad())) {
+    if (currentFight()) return void emit({ t: "system", text: "Not in the middle of a fight." });
+    for (const text of town.road.camp(action === "wait" ? Math.max(1, Math.min(12, Math.floor(Number(body.hours ?? 1)))) : undefined)) emit({ t: "note", kind: "action", text });
+    emit({ t: "system", text: `It's ${formatTime(world)}.` });
+    return;
+  }
+  if (action === "fasttravel") {
+    if (currentFight()) return void emit({ t: "system", text: "Not in the middle of a fight." });
+    for (const text of town.road.fast()) emit({ t: "note", kind: "action", text });
+    if (!town.road.onRoad()) {
+      world.position = { ...here().start };
+      placeCreatures();
+    }
+    emit({ t: "system", text: `It's ${formatTime(world)}.` });
+    return;
+  }
+  if (action === "coach") {
+    const r = town.road.coach(String(body.to ?? ""));
+    for (const text of r.lines) emit({ t: "note", kind: r.ok ? "action" : "fail", text });
+    if (r.ok) {
+      world.position = { ...here().start };
+      placeCreatures();
+    }
+    return;
+  }
+  if (action === "joinjourney" || action === "rob") {
+    if (currentFight()) return void emit({ t: "system", text: "Not in the middle of a fight." });
+    const journey = String(body.journey ?? "");
+    const r = action === "rob" ? town.road.rob(journey) : town.road.travelWith(journey);
+    for (const text of r.lines) emit({ t: "note", kind: r.ok ? "action" : "fail", text });
+    if (r.ok && !town.road.onRoad()) {
+      world.position = { ...here().start };
+      placeCreatures();
+    }
+    return;
+  }
+  if (action === "roadplace") {
+    for (const text of town.road.usePlace(String(body.place ?? ""), String(body.op ?? ""))) emit({ t: "note", kind: "action", text });
+    return;
+  }
+  if (action === "eat") return void emit({ t: "note", kind: "action", text: town.road.eat(String(body.item ?? ""))[0]! });
+  if (action === "drink") return void emit({ t: "note", kind: "action", text: town.road.drinkHere()[0]! });
+  if (action === "mount") {
+    const op = String(body.op ?? "");
+    if (op !== "buy" && op !== "sell" && op !== "feed" && op !== "treat") return void emit({ t: "system", text: "Buy, sell, feed or treat." });
+    return void emit({ t: "note", kind: "action", text: town.road.mount(op, String(body.kind ?? body.item ?? ""))[0]! });
+  }
+
   if (action === "wait") {
     const fighting = Object.values(agents).some((a) => a.state.inCombat) || (engaged !== null && creatureById(engaged) !== undefined && !creatureById(engaged)!.outcome);
     if (fighting) return void emit({ t: "system", text: "You can't wait around in the middle of a fight." });
@@ -863,6 +940,8 @@ async function act(body: Record<string, unknown>, emit: Emit): Promise<void> {
     const i = sim?.index.get(id);
     if (sim && i !== undefined) town.meetTownsperson(sim.roster, sim.roster.people[i]!);
   }
+  // Someone on the road (N26): they become a talking NPC the first time the player speaks to them.
+  if (!agents[id] && parseTravellerId(id)) town.meetTraveller(id);
   const agent = agents[id];
   if (!agent) return void emit({ t: "error", text: "Unknown character." });
   const name = personas[id]!.name;
@@ -1167,6 +1246,9 @@ async function act(body: Record<string, unknown>, emit: Emit): Promise<void> {
         // A room for the night: the village lives on while you sleep.
         if (sleep > 0) {
           for (const line of passHours(sleep)) emit({ t: "system", text: line });
+          // A bed (N26): the road's weariness is gone.
+          topUp(world.player, absoluteMinute(world), 95);
+          if (world.player.roadNeeds) world.player.roadNeeds.rest = 100;
           emit({ t: "ended", npc: id, text: `You wake at ${formatTime(world)}, rested (${p.hp}/${p.maxHp} HP).` });
         }
       }
@@ -1228,6 +1310,7 @@ function move(dx: number, dy: number): { ok: boolean; log: string[]; reason?: st
     return { ok: false, log: [], reason: `You're fighting ${foe.name}. Fight (F) or run (R).` };
   }
   engaged = null;
+  if (town.road.onRoad()) return roadMove(dx, dy);
   if (here().isSolid(nx, ny)) return { ok: false, log: [] };
   // Companions step aside (they're walking behind you); anyone else is in the way.
   if (local().some((id) => { const at = npcPos(id); return !agents[id]!.state.companion && at !== null && at.x === nx && at.y === ny; })) return { ok: false, log: [] };
@@ -1239,7 +1322,8 @@ function move(dx: number, dy: number): { ok: boolean; log: string[]; reason?: st
   pos.y = ny;
   // Off the edge of the map: on to the next area (N15).
   const exit = exitUnder(here(), pos);
-  if (exit) return { ok: true, log: enterArea(exit.to) };
+  if (exit?.to === "realm") return { ok: true, log: leaveByRoad() };
+  if (exit) return { ok: true, log: enterArea(exit.to as AreaId) };
   world.player.place = here().placeAtTile(pos) as PlaceId;
   // Whoever the player is escorting walks a step behind them (N9 escort quests).
   for (const q of world.player.quests.active) {
@@ -1260,6 +1344,24 @@ function move(dx: number, dy: number): { ok: boolean; log: string[]; reason?: st
     log.push(...afterCreatureRound(lurker, creatureAmbush(creatureTemplates[lurker.template]!, lurker, world, town.actionRng())));
   }
   return { ok: true, log };
+}
+
+/** One step on the open road (N26): the world lives the game minutes it takes, and a gate ahead is a place reached. */
+function roadMove(dx: number, dy: number): { ok: boolean; log: string[]; reason?: string } {
+  const r = town.road.step(dx, dy, walkMinutes);
+  if (r.entered) {
+    trail.length = 0;
+    world.position = { ...here().start };
+    placeCreatures();
+  }
+  return { ok: r.ok, log: r.log, ...(r.reason ? { reason: r.reason } : {}) };
+}
+
+/** The player walks out of the west gate (N26): the open road, toward where they were bound if they said. */
+function leaveByRoad(toward?: string): string[] {
+  trail.length = 0;
+  crowd = null;
+  return town.leaveByRoad(toward);
 }
 
 /**
@@ -1481,6 +1583,13 @@ const server = createServer(async (req, res) => {
     if (await handleAdmin(req, res, adminCtx)) return;
 
     if (req.method === "GET" && url === "/api/voice") return json(res, 200, voice.info);
+    // The land between places (N26): the roads, rivers and places the browser makes its chunks from (fetched once).
+    if (req.method === "GET" && url === "/api/road/coach") {
+      const q = town.road.coachQuote(new URL(req.url!, "http://x").searchParams.get("to") ?? "");
+      return json(res, 200, { ok: q.ok, message: q.message, price: q.price });
+    }
+    if (req.method === "GET" && url === "/api/road/journeys") return json(res, 200, town.road.journeysForClient());
+    if (req.method === "GET" && url === "/api/road/data") return json(res, 200, world.realm ? roadDataOf(world.realm) : null);
     // Everyone who lives on the map the player is on (N16): fetched once per map; where they are is worked out from the clock.
     if (req.method === "GET" && url === "/api/crowd") return json(res, 200, crowdHere()?.roster ?? null);
     if (req.method === "GET" && url === "/api/realm") return json(res, 200, world.realm ? realmView(world.realm, { here: town.site(), heard: (id) => town.siteHere().newsSeen.includes(id) }) : null);
@@ -1523,7 +1632,7 @@ const server = createServer(async (req, res) => {
         const before = captureFrame(world, agents);
         const hour = absoluteHour(world);
         const log = walkMinutes(1);
-        wander();
+        if (!town.road.onRoad()) wander();
         if (absoluteHour(world) !== hour || (world.minute ?? 0) % 10 === 0) persist();
         return { ok: true, log, events: turnEvents(before, captureFrame(world, agents)), state: snapshot() };
       });
@@ -1550,7 +1659,7 @@ const server = createServer(async (req, res) => {
           turnActions = [];
           try {
             // Waiting, opening a chat and fighting creatures need no model.
-            const offline = ["travel", "wait", "open", "hunt", "escape", "equip", "unequip", "look", "retrieve", "raise", "join", "dismiss", "forage", "craft", "sneak", "loot", "payfine", "surrender", "joinguild", "delve"].includes(String(body.action));
+            const offline = ["travel", "wait", "open", "hunt", "escape", "equip", "unequip", "look", "retrieve", "raise", "join", "dismiss", "forage", "craft", "sneak", "loot", "payfine", "surrender", "joinguild", "delve", "situation", "camp", "fasttravel", "coach", "joinjourney", "rob", "roadplace", "eat", "drink", "mount"].includes(String(body.action));
             if (!llmReady && !offline) await checkLlm();
             if (!llmReady && !offline) emit({ t: "error", text: llmError });
             else await act(body, emit);

@@ -1,0 +1,75 @@
+{
+ "id": "merchant_deal",
+ "title": "A merchant with a bargain",
+ "where": [
+  "road"
+ ],
+ "when": {
+  "night": false
+ },
+ "chance": 0.1,
+ "actors": [
+  {
+   "role": "merchant"
+  }
+ ],
+ "text": "{a} waves you down from a laden mule. \"Friend! I'm in a hurry and my loss is your gain. Wool, fresh from the shearing, at half what you'd pay in any market.\"",
+ "choices": [
+  {
+   "id": "buy",
+   "label": "Buy ten fleeces (150 copper)",
+   "requires": {
+    "money": 150
+   },
+   "effects": [
+    {
+     "type": "money",
+     "amount": -150
+    },
+    {
+     "type": "item",
+     "item": "wool",
+     "qty": 10
+    },
+    {
+     "type": "trust",
+     "amount": 6
+    }
+   ]
+  },
+  {
+   "id": "haggle",
+   "label": "Haggle",
+   "effects": [
+    {
+     "type": "check",
+     "attr": "charisma",
+     "target": 12,
+     "success": [
+      {
+       "type": "say",
+       "text": "You settle on 100 copper for ten fleeces.",
+       "money": -100,
+       "item": [
+        "wool",
+        10
+       ]
+      }
+     ],
+     "fail": [
+      {
+       "type": "say",
+       "text": "{a} will not shift on the price. You walk on.",
+       "trust": -2
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "no",
+   "label": "No, thank you",
+   "effects": []
+  }
+ ]
+}

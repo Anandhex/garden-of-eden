@@ -21,7 +21,7 @@ const FEMALE = ["Ada", "Bess", "Cora", "Della", "Edda", "Fen", "Gwen", "Hild", "
 const MALE = ["Aldo", "Bran", "Cole", "Dain", "Edric", "Finn", "Gar", "Hob", "Ivo", "Jory", "Kell", "Lorn", "Mott", "Ned", "Osric", "Piers", "Quill", "Rolf", "Sten", "Tam", "Ulf", "Varn", "Wat", "Yorick", "Dunstan", "Garrick", "Hamon", "Leof", "Merek", "Odo"];
 const FAMILY = ["Ashdown", "Barrow", "Cotter", "Dunmore", "Fairweather", "Greaves", "Hallam", "Ingle", "Kestrel", "Lowe", "Marsh", "Nettle", "Orme", "Pike", "Quarry", "Reed", "Sallow", "Thatcher", "Underhill", "Vane", "Wainwright", "Yew", "Brook", "Carver", "Fletcher", "Mason", "Tanner", "Weaver", "Cooper", "Holt"];
 
-const BEAST_NAMES: Record<string, string[]> = {
+export const BEAST_NAMES: Record<string, string[]> = {
   wolf: ["Greyfang", "Ashpelt", "Nightmaw", "Ironjaw", "Frostfang", "Scar", "Old Howler", "Redmuzzle", "Shadowhide", "Torn-Ear"],
   bear: ["Old Grizzle", "Stonepaw", "Barrelback", "Mossback", "the Black Bear of the Fells", "Rendclaw"],
   boar: ["Tuskbreaker", "Bristleback", "the Red Boar", "Gorehide", "Mudking"],

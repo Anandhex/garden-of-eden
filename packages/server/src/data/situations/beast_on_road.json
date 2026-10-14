@@ -1,0 +1,57 @@
+{
+ "id": "beast_on_road",
+ "title": "A beast on the road",
+ "where": [
+  "forest",
+  "hills",
+  "marsh"
+ ],
+ "chance": 0.1,
+ "actors": [],
+ "text": "Something big stands in the road ahead, between you and the next bend. It has seen you. It does not move.",
+ "choices": [
+  {
+   "id": "fight",
+   "label": "Face it",
+   "effects": [
+    {
+     "type": "fight",
+     "species": "wolf"
+    }
+   ]
+  },
+  {
+   "id": "sneak",
+   "label": "Edge round it, quietly",
+   "effects": [
+    {
+     "type": "check",
+     "attr": "agility",
+     "target": 12,
+     "success": [
+      {
+       "type": "say",
+       "text": "It watches you go and does nothing."
+      }
+     ],
+     "fail": [
+      {
+       "type": "fight",
+       "species": "wolf"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "back",
+   "label": "Back away and wait for it to leave (an hour)",
+   "effects": [
+    {
+     "type": "time",
+     "minutes": 60
+    }
+   ]
+  }
+ ]
+}

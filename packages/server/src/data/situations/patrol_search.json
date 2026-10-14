@@ -1,0 +1,89 @@
+{
+ "id": "patrol_search",
+ "title": "A patrol looking for someone",
+ "where": [
+  "road"
+ ],
+ "when": {
+  "night": false
+ },
+ "chance": 0.07,
+ "actors": [
+  {
+   "role": "captain"
+  }
+ ],
+ "text": "{a} reins in a tired horse. \"We're looking for an outlaw who came this way. Tall, scarred, limps. Have you seen anyone like that?\" Behind a rock, off the road, a man crouches very still.",
+ "choices": [
+  {
+   "id": "tell",
+   "label": "Tell them where he is",
+   "effects": [
+    {
+     "type": "reputation",
+     "trust": 2,
+     "respect": 1
+    },
+    {
+     "type": "standing",
+     "who": "crown",
+     "amount": 4
+    },
+    {
+     "type": "money",
+     "amount": 25,
+     "text": "The captain tosses you a purse."
+    },
+    {
+     "type": "later",
+     "id": "outlaw_caught",
+     "days": 1,
+     "outcomes": [
+      {
+       "chance": 1,
+       "text": "The patrol caught the outlaw by the rock, as you said."
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lie",
+   "label": "Say you've seen nobody",
+   "effects": [
+    {
+     "type": "check",
+     "attr": "charisma",
+     "target": 13,
+     "success": [
+      {
+       "type": "say",
+       "text": "They ride on. Behind the rock, a man breathes out.",
+       "reputation": {
+        "fear": 1
+       }
+      }
+     ],
+     "fail": [
+      {
+       "type": "say",
+       "text": "They don't believe you. They search the rock anyway, and find him, and look at you for a long time.",
+       "standing": {
+        "who": "crown",
+        "amount": -6
+       },
+       "reputation": {
+        "trust": -3
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "shrug",
+   "label": "\"No.\" And walk on",
+   "effects": []
+  }
+ ]
+}

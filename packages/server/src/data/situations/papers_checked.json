@@ -1,0 +1,29 @@
+{
+ "id": "papers_checked",
+ "title": "Papers checked",
+ "where": [
+  "road"
+ ],
+ "chance": 0.0,
+ "when": {
+  "crackdown": true
+ },
+ "actors": [
+  {
+   "role": "captain"
+  }
+ ],
+ "text": "{a} stops everyone on the road and asks for papers. (Only under a crackdown, N58.)",
+ "choices": [
+  {
+   "id": "show",
+   "label": "Show your papers",
+   "effects": [
+    {
+     "type": "say",
+     "text": "They wave you on."
+    }
+   ]
+  }
+ ]
+}

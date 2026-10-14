@@ -1,0 +1,103 @@
+{
+ "id": "lost_child",
+ "title": "A child alone",
+ "where": [
+  "road"
+ ],
+ "when": {
+  "night": false
+ },
+ "chance": 0.07,
+ "actors": [
+  {
+   "role": "child"
+  }
+ ],
+ "text": "{a}, no more than ten, is sitting in the road crying. \"I went to find the goat,\" they sniff, \"and now I don't know which way home is.\"",
+ "choices": [
+  {
+   "id": "escort",
+   "label": "Take them to the next place (two hours)",
+   "effects": [
+    {
+     "type": "time",
+     "minutes": 120
+    },
+    {
+     "type": "trust",
+     "amount": 25
+    },
+    {
+     "type": "reputation",
+     "trust": 4,
+     "affection": 3
+    },
+    {
+     "type": "xp",
+     "amount": 6
+    },
+    {
+     "type": "later",
+     "id": "child_family",
+     "days": 2,
+     "outcomes": [
+      {
+       "chance": 1,
+       "text": "{a}'s family sent word of thanks: a loaf and a blessing, and your name in every prayer.",
+       "effects": [
+        {
+         "type": "money",
+         "amount": 12
+        },
+        {
+         "type": "item",
+         "item": "bread loaf",
+         "qty": 2
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "point",
+   "label": "Point them toward the nearest roof and walk on",
+   "effects": [
+    {
+     "type": "trust",
+     "amount": 3
+    },
+    {
+     "type": "reputation",
+     "trust": 1
+    }
+   ]
+  },
+  {
+   "id": "pass",
+   "label": "Walk on",
+   "effects": [
+    {
+     "type": "reputation",
+     "respect": -2
+    },
+    {
+     "type": "later",
+     "id": "child_fate",
+     "days": 1,
+     "outcomes": [
+      {
+       "chance": 0.7,
+       "text": "A shepherd found {a} before dark, and walked them home."
+      },
+      {
+       "chance": 0.3,
+       "text": "{a} wasn't found until morning, cold and frightened. Somebody on the road walked past."
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

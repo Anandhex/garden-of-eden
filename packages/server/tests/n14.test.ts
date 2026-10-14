@@ -36,7 +36,8 @@ describe("N14 travel: routes and the road", () => {
     expect(far.hours).toBeGreaterThanOrEqual(near.hours);
     expect(far.hours).toBeGreaterThanOrEqual(24);
     const dests = destinations(realm, start);
-    expect(dests.length).toBe(Object.values(realm.settlements).filter((s) => !s.abandoned && s.id !== start).length);
+    // (A waystation inn stands beside a road, with none of its own: it is reached by walking in, N26.)
+    expect(dests.length).toBe(Object.values(realm.settlements).filter((s) => !s.abandoned && !s.way && s.id !== start).length);
   });
 
   it("a big pack on the way is a danger, and can stop you; you fight it in code", () => {

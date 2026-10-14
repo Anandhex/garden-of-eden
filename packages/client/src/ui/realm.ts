@@ -16,7 +16,7 @@ let loading = false;
 let selected: string | null = null;
 
 /** "5 hours", "2 days". */
-const hoursWords = (h: number) => (h < 20 ? `${h}h` : `${Math.round((h / 24) * 2) / 2} days`);
+const hoursWords = (h: number) => (h <= 10 ? `${h}h walking` : `${Math.round((h / 10) * 2) / 2} days' walk`);
 
 /** Get the realm if the day moved on (or we have none), then draw again. */
 async function load(): Promise<void> {
@@ -83,7 +83,16 @@ export function renderRealm(body: HTMLElement): void {
   const dest = place ? s.site.destinations.find((d) => d.id === place.id) : undefined;
   if (place && dest) {
     body.append(emptyP(`To ${dest.name}: about ${hoursWords(dest.hours)} on the road${dest.dangers.length ? `. On the way: ${dest.dangers.join(", ")}` : ", and the road is quiet"}.`));
-    body.append(button(`Travel to ${dest.name}`, () => void act({ action: "travel", to: dest.id })));
+    body.append(button(`Walk to ${dest.name}`, () => void act({ action: "travel", to: dest.id })));
+    if (!s.road && s.site.kind !== "hamlet" && s.site.kind !== "village") {
+      body.append(
+        button(`Coach to ${dest.name}`, async () => {
+          const q = (await (await fetch(`/api/road/coach?to=${encodeURIComponent(dest.id)}`)).json()) as { ok: boolean; message: string };
+          if (!q.ok) return void alert(q.message);
+          if (confirm(`${q.message} Take it?`)) void act({ action: "coach", to: dest.id });
+        }),
+      );
+    }
   } else if (place && place.id === s.site.id) {
     body.append(emptyP("Click a place on the map to see the road there."));
   }

@@ -1,3 +1,4 @@
+import { BEAST_NAMES } from "../src/game/realm/names.js";
 import { beforeEach, describe, expect, it } from "vitest";
 import { config } from "../src/config.js";
 import { createNpcState } from "../src/npc/state.js";
@@ -251,7 +252,8 @@ describe("N12 done when: 30 simulated days", () => {
       town.passHours(24);
       await town.background.drain();
     }
-    const known = knownNameWords(Object.values(allPersonas()), [world.player.name, ...Object.values(templates).map((t) => t.name)]);
+    // (The names beasts rise to are in the realm's lore: they are known names too.)
+    const known = knownNameWords(Object.values(allPersonas()), [world.player.name, ...Object.values(templates).map((t) => t.name), ...Object.values(BEAST_NAMES).flat()]);
     const grown = world.lore ?? [];
     expect(grown.length).toBeGreaterThan(0);
     for (const l of grown) expect(unknownNames(`${l.name}. ${l.text}`, known), l.text).toEqual([]);

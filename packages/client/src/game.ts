@@ -3,12 +3,14 @@
  * owns every rule; this file only sends intents and routes the answers to the chat,
  * the feed, the world view and the voices.
  */
-import { findPath, tileDistance, type CreatureView, type GameEvent, type NpcView, type Snapshot, type StreamEvent, type Tile } from "@millbrook/shared";
+import { STEPS_PER_SECOND, cumulative, project, resample, shortestWay, findPath, tileDistance, type CreatureView, type GameEvent, type NpcView, type Snapshot, type StreamEvent, type Tile } from "@millbrook/shared";
 import { fetchState, postMove, postNew, streamAct } from "./api";
 import { $ } from "./dom";
 import { game, store, world } from "./store";
 import { crowd, folkAt, nearestFolk, person } from "./crowd";
 import { speaker } from "./voice/speaker";
+import { land, solidAt } from "./roadData";
+import { travellerNear, travellers } from "./travellers";
 
 // ---------- rendering hooks (set by main.ts) ----------
 
@@ -26,6 +28,7 @@ export const chatHooks = { render: (_rebuild: boolean) => {}, onClose: () => {},
 export const npcById = (id: string | null): NpcView | undefined => (id ? store.state?.npcs.find((n) => n.id === id) : undefined);
 export const dist = tileDistance;
 export const solid = (x: number, y: number) => {
+  if (store.state?.road) return solidAt(x, y);
   const t = game().map.tiles[y]?.[x];
   return t === undefined || t === "tree" || t === "wall" || t === "water";
 };
@@ -47,6 +50,10 @@ export const nearest = (): NpcView | undefined => {
  */
 export const nearestTalker = (): { id: string; x: number; y: number } | undefined => {
   const s = game();
+  if (s.road) {
+    const t = travellerNear(s, s.map.talkRange);
+    return t ? { id: t.id, x: t.x, y: t.y } : undefined;
+  }
   const n = nearest();
   const f = nearestFolk(s);
   const nd = n ? dist(s.position, n) : Infinity;
@@ -160,6 +167,8 @@ export async function act(body: Record<string, unknown>): Promise<void> {
       bubble = handleEvent(ev, talksTo, bubble);
     });
     if (result === "busy") addNote("system", "The village is busy. Try again in a moment.");
+    // Bound for somewhere (N26): the player is on the road now; walk it for them until something happens.
+    if (body.action === "travel" && store.state?.road?.dest) setTimeout(() => void autoWalk(), 150);
   } catch (err) {
     addNote("fail", `Connection problem: ${(err as Error).message}`);
   } finally {
@@ -381,6 +390,19 @@ export function clickTile(x: number, y: number): void {
   if (!store.state || store.working) return;
   const s = store.state;
   const range = s.map.talkRange;
+  // On the open road (N26): walk to the tile if it is within a short walk; far places are reached with the Walk button.
+  if (s.road) {
+    // Someone there: walk up and talk.
+    const who = travellers.people.find((t) => Math.abs(t.x - x) <= 1 && Math.abs(t.y - y) <= 1);
+    if (who) {
+      if (dist(s.position, who) <= range) return void openChat(who.id);
+      const path = findPath(s.position, (c) => dist(c, who) <= range, solid, 3000);
+      return path ? void walk(path, () => void openChat(who.id)) : feed("You can't find a way there.");
+    }
+    if (solid(x, y)) return;
+    const path = findPath(s.position, (c) => c.x === x && c.y === y, solid, 3000);
+    return path ? void walk(path) : feed("You can't find a way there from here.");
+  }
   const beast = creatureAt(x, y);
   if (beast) {
     if (dist(s.position, beast) <= range) return void fightCreature(beast);
@@ -410,4 +432,82 @@ export function clickTile(x: number, y: number): void {
   if (solid(x, y)) return;
   const path = playerPath((c) => c.x === x && c.y === y);
   if (path) void walk(path);
+}
+
+
+// ---------- walking the road to a destination (N26) ----------
+
+/** The line to follow from where the player stands to the gate of `dest`: along their road to the end that's on the shortest way, then on. */
+function routeTo(dest: string): Array<{ x: number; y: number }> | null {
+  const s = store.state;
+  const data = land.data;
+  if (!s || !data || !s.road) return null;
+  const at = s.position;
+  let near: { road: (typeof data.roads)[number]; t: number; d: number } | null = null;
+  for (const r of data.roads) {
+    const pr = project(r.pts, cumulative(r.pts), at);
+    if (pr.d < 400 && (!near || pr.d < near.d)) near = { road: r, t: pr.t, d: pr.d };
+  }
+  if (!near) return null;
+  const r = near.road;
+  const cum = cumulative(r.pts);
+  const tail = (reverse: boolean) => {
+    const pts = r.pts.filter((_, i) => (reverse ? cum[i]! < near!.t : cum[i]! > near!.t));
+    return reverse ? pts.reverse() : pts;
+  };
+  if (r.id.startsWith("spur:")) return resample([...r.pts].reverse(), 10);
+  // Whichever end is on the shortest way to the destination.
+  let best: { out: Array<{ x: number; y: number }>; cost: number } | null = null;
+  for (const [end, reverse, along] of [[r.b, false, r.length - near.t], [r.a, true, near.t]] as const) {
+    const w = end === dest ? { path: [end], roads: [], tiles: 0 } : shortestWay(data, end, dest, (id) => id === (reverse ? r.b : r.a));
+    if (!w || (best && best.cost <= along + w.tiles)) continue;
+    const out = [at, ...tail(reverse)];
+    for (const jr of w.roads) {
+      const rr = data.roads.find((x) => x.id === jr.id)!;
+      out.push(...(jr.rev ? [...rr.pts].reverse() : rr.pts));
+    }
+    best = { out, cost: along + w.tiles };
+  }
+  return best ? resample(best.out, 10) : null;
+}
+
+/** Walk the road toward the destination, stopping when something happens: a problem, a person, a choice, a fight, arriving. */
+export async function autoWalk(): Promise<void> {
+  const s0 = store.state;
+  if (!s0?.road) return;
+  const dest = s0.road.dest?.id;
+  if (!dest) return void feed("Choose where you're going first (the Realm tab, Travel here).");
+  const line = routeTo(dest);
+  if (!line) return void feed("You can't see the way from here. Get back to the road.");
+  const token = ++walkToken;
+  let i = 0;
+  let hp = s0.player.hp;
+  let stuck = 0;
+  const startMap = s0.map.id;
+  feed("You set out along the road. (Press a key or click to stop.)");
+  while (token === walkToken) {
+    const s = game();
+    if (s.map.id !== startMap || !s.road || store.talking || s.fight || s.road.pending || s.player.hp < hp) break;
+    hp = s.player.hp;
+    const p = s.position;
+    while (i < line.length - 1 && Math.hypot(line[i]!.x - p.x, line[i]!.y - p.y) < 3) i++;
+    const target = line[i]!;
+    const dx = target.x - p.x;
+    const dy = target.y - p.y;
+    if (dx === 0 && dy === 0) break;
+    // A short route round trees, water and the like to the next point of the road.
+    const path = findPath(p, (c) => (i === line.length - 1 ? c.x === target.x && c.y === target.y : Math.hypot(c.x - target.x, c.y - target.y) < 1.5), solid, 1500);
+    const pick: [number, number] | undefined = path?.[0] ? [path[0].x - p.x, path[0].y - p.y] : Math.abs(dx) >= Math.abs(dy) ? [Math.sign(dx), 0] : [0, Math.sign(dy)];
+    if (!pick) break;
+    while (store.moving || store.working) await new Promise((r) => setTimeout(r, 20));
+    if (token !== walkToken) break;
+    const before = { ...p };
+    const began = performance.now();
+    const ok = await step(pick[0], pick[1]);
+    stuck = ok && (game().position.x !== before.x || game().position.y !== before.y) ? 0 : stuck + 1;
+    if (stuck > 4) break;
+    // The walking rate the road's scale was worked out for (STEPS_PER_SECOND).
+    await new Promise((r) => setTimeout(r, Math.max(0, 1000 / STEPS_PER_SECOND - (performance.now() - began))));
+  }
+  if (token === walkToken) cancelWalk();
 }

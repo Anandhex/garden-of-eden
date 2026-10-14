@@ -8,6 +8,7 @@
  *   SEEDS=30 npm run check-npcs
  */
 import { lintCast } from "../src/npc/lint.js";
+import { loadSituations } from "../src/game/road/situations.js";
 import { loadTemplates } from "../src/npc/templates.js";
 import { generatedCast } from "./generated.js";
 
@@ -15,6 +16,12 @@ let failed = false;
 try {
   const templates = loadTemplates();
   console.log(`Templates: ${Object.keys(templates).join(", ")}`);
+} catch (err) {
+  failed = true;
+  console.error((err as Error).message);
+}
+try {
+  console.log(`Road situations: ${loadSituations().map((s) => s.id).join(", ")}`);
 } catch (err) {
   failed = true;
   console.error((err as Error).message);

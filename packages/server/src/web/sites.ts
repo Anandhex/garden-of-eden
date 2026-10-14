@@ -26,7 +26,7 @@ export interface Exit {
   /** The edge tile you step onto to leave. */
   x: number;
   y: number;
-  to: AreaId;
+  to: AreaId | "realm";
   /** "To the mine road". */
   label: string;
   /** Where you stand on this map when you come in from `to`. */
@@ -168,7 +168,7 @@ export function siteMap(s: SiteInfo, area: AreaId = "village", realm?: Realm | n
   const areas = areasOf(realm, s.id);
   const at: AreaId = areas.includes(area) ? area : "village";
   const extra = at === "camp" ? (realm ? gangAt(realm, s.id)?.name : "") : at === "mine" ? (realm ? dungeonAt(realm, s.id)?.name : "") : "";
-  const key = `${s.id}:${at}:${s.kind}:${JSON.stringify(s.buildings)}:${areas.join(",")}:${extra ?? ""}:${s.houses ?? ""}`;
+  const key = `${s.id}:${at}:${s.kind}:${JSON.stringify(s.buildings)}:${areas.join(",")}:${extra ?? ""}:${s.houses ?? ""}:${realm?.settlements[s.id] ? "r" : ""}`;
   const hit = cache.get(key);
   if (hit) return hit;
   const rng = seededRng(seedFrom(`${s.id}:${at}`));
@@ -237,7 +237,7 @@ function put(tiles: Tile[][], buildings: Building[], b: Building, door?: { x: nu
 }
 
 /** An exit on a map's edge: the edge tile is path, and so is the tile in from it. */
-function exitAt(tiles: Tile[][], x: number, y: number, to: AreaId, label: string): Exit {
+function exitAt(tiles: Tile[][], x: number, y: number, to: AreaId | "realm", label: string): Exit {
   const { W, H } = dims(tiles);
   const inward = { x: x === 0 ? 1 : x === W - 1 ? W - 2 : x, y: y === 0 ? 1 : y === H - 1 ? H - 2 : y };
   const set = setter(tiles);
@@ -369,6 +369,8 @@ function village(s: SiteInfo, areas: AreaId[], realm: Realm | null | undefined, 
   }
   // The ways out: north up the road, east into the woods. The west road leads to the realm (travel).
   const exits: Exit[] = [];
+  // The west road leads out into the realm (N26): walk off the edge and you're on the open road.
+  if (realm?.settlements[s.id]) exits.push(exitAt(tiles, 0, my, "realm", "To the open road"));
   if (areas.includes("road")) {
     exits.push(exitAt(tiles, mx, 0, "road", exitLabel(realm, s, "road")));
     zone("exit_road", "exit_road", mx - 1, 1, mx + 1, 2);

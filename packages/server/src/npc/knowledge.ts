@@ -343,7 +343,8 @@ export function unknownNames(text: string, known: Set<string>): string[] {
     const word = raw.replace(/^[^A-Za-z]+|[^A-Za-z'’]+$/g, "").replace(/['’]s?$/, "");
     const opens = sentenceStart;
     sentenceStart = /[.!?:]["')]*$/.test(raw);
-    if (!/^[A-Z][a-z]/.test(word) || COMMON.has(word) || known.has(word)) return;
+    // A hyphenated name (Torn-Ear) is known when each of its parts is.
+    if (!/^[A-Z][a-z]/.test(word) || COMMON.has(word) || known.has(word) || (word.includes("-") && word.split("-").every((w) => known.has(w) || COMMON.has(w)))) return;
     if (opens) return;
     if (!found.includes(word)) found.push(word);
   });

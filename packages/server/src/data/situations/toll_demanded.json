@@ -1,0 +1,86 @@
+{
+ "id": "toll_demanded",
+ "title": "A toll on a lane",
+ "where": [
+  "road",
+  "forest",
+  "hills",
+  "marsh"
+ ],
+ "chance": 0.09,
+ "actors": [
+  {
+   "role": "guard"
+  },
+  {
+   "role": "guard"
+  }
+ ],
+ "text": "{a} and {b} have strung a rope across the road. \"Toll,\" says {a}, and does not say whose. \"Ten copper a head, and no trouble.\"",
+ "choices": [
+  {
+   "id": "pay",
+   "label": "Pay the ten copper",
+   "requires": {
+    "money": 10
+   },
+   "effects": [
+    {
+     "type": "money",
+     "amount": -10
+    }
+   ]
+  },
+  {
+   "id": "bluff",
+   "label": "Say you're on the crown's business",
+   "effects": [
+    {
+     "type": "check",
+     "attr": "charisma",
+     "target": 13,
+     "success": [
+      {
+       "type": "say",
+       "text": "They look at each other and lift the rope.",
+       "reputation": {
+        "respect": 1
+       }
+      }
+     ],
+     "fail": [
+      {
+       "type": "say",
+       "text": "They laugh, and take twenty copper for the insult.",
+       "money": -20
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "fight",
+   "label": "Push through the rope",
+   "effects": [
+    {
+     "type": "fight",
+     "species": "bandit"
+    }
+   ]
+  },
+  {
+   "id": "back",
+   "label": "Go round through the field",
+   "effects": [
+    {
+     "type": "time",
+     "minutes": 25
+    },
+    {
+     "type": "needs",
+     "rest": -4
+    }
+   ]
+  }
+ ]
+}

@@ -129,6 +129,11 @@ describe("N15.2 localities around a place", () => {
       const m = map(area);
       expect(m.id).toBe(area === "village" ? s.id : `${s.id}:${area}`);
       for (const e of m.exits) {
+        // The west gate leads out onto the open road (N26): that is the realm's map, not another area's.
+        if (e.to === "realm") {
+          expect(e.x).toBe(0);
+          continue;
+        }
         const next = map(e.to);
         const back = exitTo(next, area);
         expect(back, `${area} → ${e.to}`).toBeDefined();
@@ -140,7 +145,7 @@ describe("N15.2 localities around a place", () => {
         for (const key of Object.keys(m.dens)) expect(inDen(m, key).some((t) => reachable(m, e.inward, t)), `${area}:${key}`).toBe(true);
       }
     }
-    expect(map("village").exits.map((e) => e.to).sort()).toEqual(["road", "woods"]);
+    expect(map("village").exits.map((e) => e.to).sort()).toEqual(["realm", "road", "woods"]);
     expect(map("road").exits.map((e) => e.to).sort()).toEqual(["camp", "mine", "village"]);
   });
 
@@ -159,7 +164,7 @@ describe("N15.2 localities around a place", () => {
       for (const a of areas) {
         const m = siteMap(s, a, realm);
         expect(m.site).toBe(s.id);
-        for (const e of m.exits) expect(areas).toContain(e.to);
+        for (const e of m.exits) if (e.to !== "realm") expect(areas).toContain(e.to);
       }
     }
     const d = Object.values(realm.dungeons)[0]!;
