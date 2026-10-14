@@ -91,7 +91,7 @@ SQLite: `stories(id PRIMARY KEY, sink, score, data JSON, first_day, last_day, op
   - grudges (weight vs the revenge threshold in `director/revenge.ts`),
   - packs (`count` vs `cap`, the attack rule in `wilds.ts`),
   - dungeons (`danger` vs `DANGER_SPILL`),
-  - caravans and journeys (from N26; adapter returns nothing until then),
+  - caravans and journeys (from N26; after N26 Part E each is a party of real people on a journey, with an arrival day in its timeline; adapter returns nothing until then),
   - (N38 adds NPC plans; N56 adds grievances).
 - Each game day: if the player's site has had more than `QUIET_DAYS` (e.g. 2) days without an event of importance ≥ 5 within a day's travel, pick the thread with the smallest remaining gap whose site is within reach, and apply **one** nudge: `progress += min(gap, NUDGE_MAX)` or, when the thread chooses a target, prefer the allowed target nearest the player. Each adapter implements its own `hurry(thread, amount)` and `preferTarget(thread, site)` in terms of the system's existing state (e.g. a pack's `count` +1; a grudge's weight +5), so the system then acts by its own rules.
 - Cap: at most one nudge per `DRAMA_EVERY_DAYS` (e.g. 3); log every nudge (and every considered-and-skipped one at debug level) to `drama_log` with its reason ("quiet for 3 days near Millbrook; the wolf pack of the Ashwood is 2 short of raiding"), and give the nudge a ref (`d:`) so what follows is caused by it.

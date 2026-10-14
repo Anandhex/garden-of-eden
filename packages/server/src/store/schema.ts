@@ -11,7 +11,7 @@ import type { DatabaseSync } from "node:sqlite";
 
 /** Columns of each state table, in order: what export and the world hash read, and what import checks. */
 export const TABLES = {
-  people: ["id", "site", "n", "name", "gender", "species", "born_day", "cls", "job", "home", "work", "master", "master_id", "faction", "mother", "father", "spouse", "figure", "persona", "traits", "death", "expecting", "last_birth", "stepped_day", "outlook", "rev"],
+  people: ["id", "site", "n", "name", "gender", "species", "born_day", "cls", "job", "home", "work", "master", "master_id", "faction", "mother", "father", "spouse", "figure", "persona", "traits", "death", "expecting", "last_birth", "stepped_day", "outlook", "away", "rev"],
   relationships: ["a", "b", "trust", "affection", "respect", "fear", "since"],
   knowledge: ["who", "ref", "learned_day", "source", "accuracy"],
   grievances: ["id", "who", "against", "cause_ref", "weight", "since", "settled"],
@@ -137,6 +137,13 @@ const MIGRATIONS: Array<(db: DatabaseSync) => void> = [
       );
       CREATE INDEX IF NOT EXISTS life_reviews_who ON life_reviews(who, day);
     `);
+  },
+  // 5 (N26 Part E): `people.away`, JSON { journey, since, purpose, returns } while someone is on a journey (their `site` stays their home,
+  // or their old home until a migration arrives).
+  (db) => {
+    const have = new Set((db.prepare("PRAGMA table_info(people)").all() as Array<{ name: string }>).map((c) => c.name));
+    if (!have.has("away")) db.exec("ALTER TABLE people ADD COLUMN away TEXT");
+    db.exec("CREATE INDEX IF NOT EXISTS people_away ON people(site) WHERE away IS NOT NULL");
   },
 ];
 

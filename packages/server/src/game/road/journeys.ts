@@ -1,18 +1,21 @@
-import { DAY_ENDS, DAY_STARTS, WALK_PACE, buildTimeline, graphOf, isOnTheRoad, journeyLine, positionAt, type Journey, type JourneyKind, type JourneyPosition, type JourneyRoad, type RoadData, type Traveller } from "@millbrook/shared";
-import type { SavedWorld } from "../save.js";
+import { DAY_ENDS, DAY_STARTS, WALK_PACE, buildRoundTimeline, buildTimeline, graphOf, isOnTheRoad, journeyLine, placeAt, positionAt, type Away, type Carry, type Journey, type JourneyKind, type JourneyPosition, type JourneyRoad, type RoadData, type Traveller } from "@millbrook/shared";
+import type { PeopleStore } from "../../store/peopleStore.js";
+import type { Realm } from "../realm/types.js";
 
 /**
- * The journeys (N26 decision 6). They are kept in the save (`world.journeys`): a few hundred at most, each a small
- * record whose position at any minute is a formula (shared/road/journey.ts). Made by the realm's day from what the
- * realm is doing (sources.ts), pruned a day after they finish.
+ * The journeys (N26 decision 6, Part E). They are kept in the realm (`realm.journeys`): a few hundred at most, each a
+ * small record whose position at any minute is a formula (shared/road/journey.ts). Every member of a party is a row of
+ * the `people` table, marked `away` while the journey lasts; made by the day's trips (road/trips/), closed when they
+ * arrive (road/day.ts), pruned a day after.
  */
 
-/** Most journeys on the road at once. */
-export const MAX_JOURNEYS = 320;
-/** A finished journey is kept this many minutes (so a place's news can still point at it), then dropped. */
+/** Most journeys at once. */
+export const MAX_JOURNEYS = 500;
+/** A finished journey is kept this many minutes (so the road can still point at it), then dropped. */
 const KEEP_AFTER = 1440;
 
-export const journeysOf = (world: Pick<SavedWorld, "journeys">): Journey[] => (world.journeys ??= []);
+export const journeysOf = (realm: Pick<Realm, "journeys">): Journey[] => realm.journeys as unknown as Journey[];
+export const journeyOf = (realm: Pick<Realm, "journeys">, id: string): Journey | undefined => journeysOf(realm).find((j) => j.id === id);
 
 /** The minute a day starts. */
 export const dayStartMinute = (day: number): number => (day - 1) * 1440;
@@ -34,28 +37,47 @@ export function roadsAlong(data: RoadData, path: string[]): JourneyRoad[] | null
 export interface Launch {
   kind: JourneyKind;
   party: Traveller[];
+  /** Settlement ids from where they set out to where they are going. For a round trip, out and back: [home, ..., there, ..., home]. */
   path: string[];
   depart: number;
   pace?: number;
   purpose: string;
   cargo?: Record<string, number>;
-  carries?: string[];
+  carries?: Carry[];
   guards?: number;
   stay?: number;
+  /** A round trip: the index in `path` of the place they turn round at, and the minutes they stay there at least. */
+  turn?: { index: number; stay: number };
+  visit?: string;
+  move?: { from: string; to: string; everyone: boolean };
+  dungeon?: string;
 }
 
-/** Start a journey: its roads, its timeline, an id. Null if the roads don't join the places. */
-export function launch(world: SavedWorld, data: RoadData, o: Launch): Journey | null {
+/** Start a journey: its roads, its timeline, an id, and its people away. Null if the roads don't join the places or the party is empty. */
+export function launch(realm: Realm, data: RoadData, o: Launch, people?: PeopleStore): Journey | null {
   const roads = roadsAlong(data, o.path);
-  if (!roads || roads.length === 0) return null;
-  const list = journeysOf(world);
+  if (!roads || roads.length === 0 || o.party.length === 0) return null;
+  const list = journeysOf(realm);
   if (list.length >= MAX_JOURNEYS) return null;
   const pace = o.pace ?? WALK_PACE;
   const line = journeyLine(data, roads, o.path);
-  const { timeline, arrive } = buildTimeline(o.depart, line, pace, { stay: o.stay ?? 20 });
-  world.nextJourney = (world.nextJourney ?? 0) + 1;
+  let timeline;
+  let arrive: number;
+  let turn: Journey["turn"];
+  if (o.turn) {
+    const turnD = roads.slice(0, o.turn.index).reduce((a, r) => a + (data.roads.find((x) => x.id === r.id)?.length ?? 0), 0);
+    const built = buildRoundTimeline(o.depart, line, pace, turnD, o.turn.stay, { stay: o.stay ?? 20 });
+    timeline = built.timeline;
+    arrive = built.arrive;
+    turn = { d: turnD, site: o.path[o.turn.index]!, arrive: built.turn.arrive, leave: built.turn.leave };
+  } else {
+    const built = buildTimeline(o.depart, line, pace, { stay: o.stay ?? 20 });
+    timeline = built.timeline;
+    arrive = built.arrive;
+  }
+  realm.nextJourney += 1;
   const j: Journey = {
-    id: `j${world.nextJourney}`,
+    id: `j${realm.nextJourney}`,
     kind: o.kind,
     party: o.party,
     path: o.path,
@@ -65,19 +87,28 @@ export function launch(world: SavedWorld, data: RoadData, o: Launch): Journey | 
     timeline,
     pace,
     purpose: o.purpose,
+    returns: !!o.turn,
+    ...(turn ? { turn } : {}),
     ...(o.cargo ? { cargo: o.cargo } : {}),
     ...(o.carries ? { carries: o.carries } : {}),
     ...(o.guards ? { guards: o.guards } : {}),
+    ...(o.visit ? { visit: o.visit } : {}),
+    ...(o.move ? { move: o.move } : {}),
+    ...(o.dungeon ? { dungeon: o.dungeon } : {}),
   };
   list.push(j);
+  if (people) people.depart(o.party.map((t) => t.person), awayFor(j));
   return j;
 }
 
-/** Drop the journeys that finished a day ago. */
-export function pruneJourneys(world: SavedWorld, minute: number): void {
-  const list = journeysOf(world);
-  const keep = list.filter((j) => minute < (j.ended ? Math.min(j.ended.minute, j.arrive) : j.arrive) + KEEP_AFTER);
-  if (keep.length !== list.length) world.journeys = keep;
+/** What `people.away` says of the members of a journey. */
+export const awayFor = (j: Journey): Away => ({ journey: j.id, since: j.depart, purpose: j.purpose, returns: j.returns || !j.move });
+
+/** Drop the journeys that finished a day ago and were dealt with. */
+export function pruneJourneys(realm: Realm, minute: number): void {
+  const list = journeysOf(realm);
+  const keep = list.filter((j) => !j.closed || minute < (j.ended ? Math.min(j.ended.minute, j.arrive) : j.arrive) + KEEP_AFTER);
+  if (keep.length !== list.length) realm.journeys = keep as unknown as Realm["journeys"];
 }
 
 export const lineOf = (data: RoadData, j: Journey) => journeyLine(data, j.roads, j.path);
@@ -88,9 +119,9 @@ export interface Seen {
 }
 
 /** The journeys on the road at `minute` within `radius` tiles of a point. */
-export function journeysNear(world: SavedWorld, data: RoadData, p: { x: number; y: number }, radius: number, minute: number): Seen[] {
+export function journeysNear(realm: Realm, data: RoadData, p: { x: number; y: number }, radius: number, minute: number): Seen[] {
   const out: Seen[] = [];
-  for (const journey of journeysOf(world)) {
+  for (const journey of journeysOf(realm)) {
     if (!isOnTheRoad(journey, minute)) continue;
     const at = positionAt(journey, lineOf(data, journey), minute);
     if (Math.abs(at.x - p.x) <= radius && Math.abs(at.y - p.y) <= radius && Math.hypot(at.x - p.x, at.y - p.y) <= radius) out.push({ journey, at });
@@ -100,26 +131,41 @@ export function journeysNear(world: SavedWorld, data: RoadData, p: { x: number; 
 
 /** "Merchant caravan of the Gold Road, to Ashcross": what to say about a party. */
 export function describeJourney(j: Journey, name: (id: string) => string): string {
-  const to = name(j.path.at(-1)!);
+  const turnTo = j.turn ? name(j.turn.site) : name(j.path.at(-1)!);
   const from = name(j.path[0]!);
   const lead = j.party[0]?.name ?? "someone";
+  const more = j.party.length > 1 ? `${j.party.length - 1} more` : "family";
   switch (j.kind) {
+    case "market":
+      return `${lead}${j.party.length > 1 ? ` and ${j.party.length - 1} more` : ""} of ${from}, going to market in ${turnTo}`;
     case "caravan":
-      return `${lead}'s caravan from ${from}, bound for ${to}`;
-    case "messenger":
-      return `${lead}, a messenger from ${from} to ${to}`;
+      return `${lead}'s caravan from ${from}, bound for ${turnTo}`;
+    case "kin":
+      return `${lead} of ${from}, going to see family in ${turnTo}`;
+    case "work":
+      return `${lead} of ${from}, looking for work in ${turnTo}`;
+    case "courier":
+      return `${lead}, a crown courier from ${from} to ${turnTo}`;
+    case "officials":
+      return `${lead} of ${from}, on the lord's business in ${turnTo}`;
     case "patrol":
       return `a patrol of ${from}, under ${lead}`;
     case "pilgrims":
-      return `pilgrims from ${from} bound for ${to}`;
+      return `pilgrims from ${from} bound for ${turnTo}`;
     case "adventurers":
-      return `${lead}'s band of adventurers, from ${from} toward ${to}`;
+      return `${lead}'s band of adventurers, from ${from} toward ${turnTo}`;
     case "refugees":
     case "migrants":
-      return `${lead} and ${j.party.length > 1 ? `${j.party.length - 1} more` : "family"}, leaving ${from} for ${to}`;
+      return `${lead} and ${more}, leaving ${from} for ${turnTo}`;
     case "coach":
-      return `the coach from ${from} to ${to}`;
+      return `the coach from ${from} to ${turnTo}`;
   }
 }
 
 export { DAY_ENDS };
+
+/** Where a journey has its people at noon of a day: a town or an inn, or null on the open road (or once the journey is gone). */
+export function awaySite(realm: Realm, journeyId: string, day: number): string | null {
+  const j = journeyOf(realm, journeyId);
+  return j ? placeAt(j, dayStartMinute(day) + 720).site : null;
+}

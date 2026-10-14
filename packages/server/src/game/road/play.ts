@@ -11,12 +11,11 @@ import { quoteCoach, takeCoach } from "./coach.js";
 import { canFast, fastTravel } from "./fast.js";
 import { groundAt, landOf, nearestRoad, placesNear } from "./ground.js";
 import { hudOf } from "./hud.js";
-import { journeysNear, journeysOf, lineOf } from "./journeys.js";
+import { journeyOf, journeysNear, lineOf } from "./journeys.js";
 import { buyMount, feedMount, mountStep, mountView, sellMount, tickMount, treatMount } from "./mounts.js";
 import { consume, drink, needsOf, needsWords, stepPenalty, tickNeeds, topUp } from "./needs.js";
 import { meet, resolve, viewOf } from "./situations.js";
 import { meetThreats } from "./threats.js";
-import { parseTravellerId, travellerId } from "./travellers.js";
 import { stepOnRoad } from "./walk.js";
 import type { MountKind } from "./state.js";
 
@@ -120,26 +119,31 @@ export class RoadPlay {
     return { ok: true, lines };
   }
 
-  /** Where one of a journey's party stands now (whole tiles), or null if the journey is over or isn't on the road. */
+  /** Where one of a journey's party stands now (whole tiles), or null if they aren't on the road (home, or in a town visiting). */
   travellerPos(id: string): { x: number; y: number } | null {
     const realm = this.world.realm;
-    const parsed = parseTravellerId(id);
-    if (!realm || !parsed) return null;
-    const j = journeysOf(this.world).find((x) => x.id === parsed.journey);
-    if (!j) return null;
+    const at = this.town.whereNow(id);
+    if (!realm || !at) return null;
+    const j = journeyOf(realm, at.journey);
+    if (!j || !this.visibleOnRoad(j, at.site)) return null;
     const m = this.minute();
     if (m < j.depart || m >= (j.ended ? Math.min(j.ended.minute, j.arrive) : j.arrive)) return null;
-    const p = partyAt(j, lineOf(landOf(realm).data, j), m)[parsed.k];
+    const p = partyAt(j, lineOf(landOf(realm).data, j), m)[j.party.findIndex((t) => t.person === id)];
     return p ? { x: p.x, y: p.y } : null;
   }
 
-  /** The people of the journeys near the player (within `radius` tiles): ids, to talk to. */
+  /** On the road, or resting at an inn beside it: seen from the road. (In a town, they are in its crowd.) */
+  private visibleOnRoad(_j: unknown, site: string | null): boolean {
+    return site === null || !!this.world.realm?.settlements[site]?.way;
+  }
+
+  /** The people of the journeys near the player (within `radius` tiles): ids of the `people` table, to talk to. */
   travellersNear(radius = 40): string[] {
     const realm = this.world.realm;
     const road = this.world.player.road;
     if (!realm || !road) return [];
     const out: string[] = [];
-    for (const { journey } of journeysNear(this.world, landOf(realm).data, road, radius + 10, this.minute())) for (let k = 0; k < journey.party.length; k++) out.push(travellerId(journey.id, k));
+    for (const { journey } of journeysNear(realm, landOf(realm).data, road, radius + 10, this.minute())) for (const t of journey.party) if (this.travellerPos(t.person)) out.push(t.person);
     return out;
   }
 
@@ -150,7 +154,7 @@ export class RoadPlay {
     if (!realm || !road) return { minute: this.minute(), journeys: [] };
     const m = this.minute();
     // On the road now, or setting out within the hour.
-    const near = journeysNear(this.world, landOf(realm).data, road, radius, m + 60).map((x) => x.journey);
+    const near = journeysNear(realm, landOf(realm).data, road, radius, m + 60).map((x) => x.journey);
     return { minute: m, journeys: near };
   }
 

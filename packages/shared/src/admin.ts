@@ -181,6 +181,44 @@ export interface AdminCard {
   rolledOn?: number;
   /** Where to draw them: their settlement's map, with this townsperson picked out (`id` is empty for the talking cast, whose spots are the live game's). */
   follow?: { site: string; id: string };
+  /** On a journey (N26 Part E): where they are on the realm map now (map units), and which journey. */
+  road?: { journey: string; x: number; y: number; state: string };
+}
+
+/** A journey on the roads, for the Roads panel (N26 Part E). */
+export interface AdminJourney {
+  id: string;
+  kind: string;
+  /** "Maud Reed of Ashby, going to market in Highdale". */
+  text: string;
+  /** "on the road near the Willow Ford inn", "resting at Highdale", "arriving day 14". */
+  where: string;
+  from: string;
+  to: string;
+  depart: number;
+  arrive: number;
+  /** Realm map units, where the party leads now. */
+  x: number;
+  y: number;
+  state: string;
+  carries: Array<{ news: string; text: string; from: string }>;
+  party: Array<{ ref: string; name: string; role: string }>;
+  cargo?: Record<string, number>;
+}
+
+export interface AdminRoads {
+  day: number;
+  /** Journeys not yet closed, by kind. */
+  journeys: AdminJourney[];
+  /** Counts by kind of those on the road at this minute. */
+  onTheRoad: Record<string, number>;
+}
+
+/** Who carried a piece of news where, back to where it happened. */
+export interface AdminNewsChain {
+  news: string;
+  text: string;
+  steps: Array<{ site: string; name: string; day: number; via: string; viaText: string | null }>;
 }
 
 export interface AdminSearchHit {

@@ -21,6 +21,19 @@ export const TAX_DAYS = 7;
 /** Extra share the crown asks while at war. */
 export const WAR_TAX = 0.06;
 
+/** Hand over coin nobody carried (no clerk to send, or a road that doesn't join): the day after it was taken. */
+export function settleTransit(realm: Realm, day: number): void {
+  const keep: Realm["transit"] = [];
+  for (const t of realm.transit) {
+    if (t.journey || t.day >= day) keep.push(t);
+    else {
+      const to = realm.settlements[t.to];
+      if (to) to.treasury += t.amount;
+    }
+  }
+  realm.transit = keep;
+}
+
 /** Is today a tax day? */
 export const isTaxDay = (day: number) => day % TAX_DAYS === 0;
 
@@ -48,7 +61,8 @@ export function taxDay(realm: Realm, day: number, rng: Rng): void {
     }
     const due = Math.round(s.treasury * (s.taxRate + war));
     s.treasury -= due;
-    liege.treasury += due;
+    // The coin goes up the road with the lord's clerk (N26 Part E): it is in the liege's coffers when he arrives.
+    realm.transit.push({ from: s.id, to: liege.id, amount: due, day });
     s.arrears = 0;
     tally(realm, "taxes", due);
     realmNews(realm, day, s.id, "tax", `${s.name} paid ${Math.max(1, Math.round(due / 100))} gold in taxes to ${liege.name}${war ? ", more than usual for the war" : ""}.`, 2, [s.name, liege.name]);

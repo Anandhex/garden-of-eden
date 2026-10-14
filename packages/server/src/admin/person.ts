@@ -11,7 +11,8 @@ import { deathWords, parseDeath } from "../game/people/death.js";
 import { outlookOf } from "../game/people/outlook.js";
 import { ageFrom } from "../game/people/rules.js";
 import { traitsOfRow } from "../game/people/traits.js";
-import type { PersonRow } from "../store/peopleStore.js";
+import { parseAway, type PersonRow } from "../store/peopleStore.js";
+import { awayAndVisiting, journeyOfPerson } from "./roads.js";
 import { parseTownsfolkId } from "../game/realm/townsfolk.js";
 import type { Figure, Settlement } from "../game/realm/types.js";
 import { realmView } from "../game/realm/view.js";
@@ -288,6 +289,49 @@ function outlookSection(row: PersonRow, head: { name: string } | undefined): Adm
   return { title: "Outlook", rows };
 }
 
+/** What a journey says of someone on it (N26 Part E): where, why, when they arrive, what news they carry, who they travel with. */
+function roadSection(ctx: AdminContext, row: PersonRow): AdminSection | null {
+  const j = journeyOfPerson(ctx, row);
+  const away = parseAway(row.away);
+  if (!j || !away) return null;
+  const realm = ctx.world().realm!;
+  const day = (m: number) => Math.floor(m / 1440) + 1;
+  return {
+    title: "On the road",
+    rows: [
+      ["Journey", j.text],
+      ["Now", j.where],
+      ["Why", away.purpose],
+      ["From and to", `${j.from} to ${j.to}${away.returns ? ", and home again" : ", to stay"}`],
+      ["Set out", `day ${day(j.depart)}`],
+      ["Home again / arriving", `day ${day(j.arrive)}`],
+      ["Carrying", j.carries.length > 0 ? `${j.carries.length} piece${j.carries.length === 1 ? "" : "s"} of news` : "no news"],
+      ...j.carries.map((c): [string, string] => ["  news", `${c.text} (heard at ${c.from})`]),
+      ...j.party.filter((p) => p.ref !== `town:${row.id}`).map((p): [string, string, string] => ["With", `${p.name}, ${p.role}`, p.ref]),
+      ...(j.cargo ? ([["Cargo", Object.entries(j.cargo).map(([k, v]) => `${v} ${k}`).join(", ")]] as Array<[string, string]>) : []),
+      ["Home", realm.settlements[row.site]?.name ?? row.site, `place:${row.site}`],
+    ],
+  };
+}
+
+/** The card of someone on a journey: they are not in any crowd, so their card is their life and their road. */
+function awayCard(ctx: AdminContext, row: PersonRow): AdminCard {
+  const place = ctx.world().realm?.settlements[row.site];
+  const j = journeyOfPerson(ctx, row);
+  return {
+    ref: `town:${row.id}`,
+    kind: "townsperson",
+    name: row.name,
+    subtitle: `${CLASS_WORDS[row.cls as keyof typeof CLASS_WORDS] ?? row.cls} ${JOB_INFO[row.job as keyof typeof JOB_INFO]?.words ?? row.job}${place ? ` of ${place.name}` : ""}`,
+    alive: true,
+    site: row.site,
+    siteName: place?.name ?? null,
+    doing: j ? `${j.where} (${parseAway(row.away)?.purpose ?? "on a journey"})` : "away",
+    sections: [...(roadSection(ctx, row) ? [roadSection(ctx, row)!] : []), ...lifeSections(ctx, row)],
+    ...(j ? { road: { journey: j.id, x: j.x, y: j.y, state: j.state } } : {}),
+  };
+}
+
 function townspersonCard(ctx: AdminContext, id: string): AdminCard | null {
   const t = parseTownsfolkId(id);
   if (!t) return null;
@@ -298,7 +342,10 @@ function townspersonCard(ctx: AdminContext, id: string): AdminCard | null {
     const place = ctx.world().realm?.settlements[gone.site];
     return { ref: `town:${id}`, kind: "townsperson", name: gone.name, subtitle: `${gone.cls} ${gone.job}${place ? ` of ${place.name}` : ""} (dead)`, alive: false, site: gone.site, siteName: place?.name ?? null, doing: "dead", sections: lifeSections(ctx, gone), follow: { site: gone.site, id: "" } };
   }
+  // On a journey: out of their town's crowd, so the card is their road (unless they are visiting the town whose crowd they are in).
+  if (row && row.away !== null && !ctx.town().whereNow(id)?.site) return awayCard(ctx, row);
   const found = townsperson(ctx, ctx.town().homeSiteOf(id) ?? t.site, id);
+  if (!found && row && row.away !== null) return awayCard(ctx, row);
   const world = ctx.world();
   const persona = ctx.town().personas[id];
   const state = ctx.town().agents[id]?.state ?? world.npcStates[id];
@@ -336,6 +383,7 @@ function townspersonCard(ctx: AdminContext, id: string): AdminCard | null {
         ...(person.master ? ([["Belongs to / serves", person.master, person.masterId ? `town:${person.masterId}` : undefined]] as Array<[string, string, string?]>) : []),
       ],
     },
+    ...(row && row.away !== null && roadSection(ctx, row) ? [roadSection(ctx, row)!] : []),
     ...(row ? lifeSections(ctx, row) : []),
     ...(row && !row.persona ? [outlookSection(row, world.realm!.settlements[row.site]?.leader ? world.realm!.figures[world.realm!.settlements[row.site]!.leader!] : undefined)] : []),
     ...(row && row.persona ? [] : [{ title: "Needs, emotions, goals", unavailable: "N25: townsfolk's needs and feelings are worked out by code (their outlook is above); they get a full set of their own once they talk to the player" } as AdminSection]),
@@ -421,6 +469,7 @@ function placeCard(ctx: AdminContext, id: string): AdminCard | null {
     .sort((a, b) => b.renown - a.renown)
     .slice(0, 12);
   const factions = Object.values(realm.factions).filter((f) => !f.dissolved && (f.seat === id || f.branches.includes(id)));
+  const trips = awayAndVisiting(ctx, id);
   return {
     ref: `place:${id}`,
     kind: "place",
@@ -434,6 +483,8 @@ function placeCard(ctx: AdminContext, id: string): AdminCard | null {
       { title: "The place", rows: settlementRows(ctx, s) },
       { title: "People by class", rows: Object.entries(classes ?? {}).map(([c, n]): [string, string] => [c, String(n)]) },
       { title: "Notable people", rows: residents.map((f): [string, string, string] => [titled(f), `${f.role}, rank ${f.life.tier}, renown ${f.renown}`, `figure:${f.id}`]) },
+      { title: "Away from here", rows: trips.away.slice(0, 25).map((x): [string, string, string] => [x.row.name, `${x.journey.where}: ${x.journey.text}`, `town:${x.row.id}`]) },
+      { title: "Visiting", rows: trips.visiting.slice(0, 25).map((x): [string, string, string] => [`${x.row.name} (of ${realm.settlements[x.row.site]?.name ?? x.row.site})`, x.journey.text, `town:${x.row.id}`]) },
       { title: "Factions here", rows: factions.map((f): [string, string] => [f.name, `${f.kind}${f.seat === id ? ", seated here" : ", a branch"}`]) },
       { title: "Lately", rows: events(ctx, { site: id, limit: 15 }).events.map((e): [string, string] => [`Day ${e.day}`, `${e.text}${e.why ? ` (why: ${e.why})` : ""}`]) },
     ],

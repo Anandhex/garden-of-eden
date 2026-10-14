@@ -6,6 +6,7 @@ import { eventByRef, events } from "../../admin/events.js";
 import { health } from "../../admin/health.js";
 import { clockOf, overview } from "../../admin/overview.js";
 import { playerView } from "../../admin/player.js";
+import { newsChainOf, roadsOf } from "../../admin/roads.js";
 import { search } from "../../admin/search.js";
 import { timeControl } from "../../admin/time.js";
 import { config } from "../../config.js";
@@ -117,6 +118,12 @@ export async function handleAdmin(req: IncomingMessage, res: ServerResponse, ctx
     }
     case "player":
       return send(res, 200, playerView(ctx));
+    case "roads":
+      return send(res, 200, roadsOf(ctx));
+    case "chain": {
+      const c = newsChainOf(ctx, q.get("news") ?? "", q.get("site") ?? "");
+      return c ? send(res, 200, c) : send(res, 404, { error: "No such news." });
+    }
     case "export": {
       // The whole world as one file (N18): read-only, like every other GET here.
       if (!ctx.store) return send(res, 404, { error: "This world has no database to export." });

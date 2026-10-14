@@ -121,6 +121,8 @@ export const FigureSchema = z.object({
   talks: z.string().optional(),
   /** Day they came into the realm's record. */
   since: z.number().int(),
+  /** The journey they are on (N26 Part E): an adventurer bound for a dungeon is not at home to be picked again. */
+  away: z.string().optional(),
 });
 export type Figure = z.infer<typeof FigureSchema>;
 
@@ -349,6 +351,18 @@ export const RealmSchema = z.object({
   casualties: z.array(CasualtyOrderSchema).default([]),
   /** The director's cooldowns: "kind:target" → the day it may push that again. */
   cooldowns: z.record(z.string(), z.number().int()).default({}),
+  /** Everyone on a journey on the open road (N26, game/road/journeys.ts): real people of the `people` table, a formula of time each. */
+  journeys: z.array(z.record(z.string(), z.unknown())).default([]),
+  /** The counter for journey ids. */
+  nextJourney: z.number().int().default(0),
+  /**
+   * What each place knows of the realm's news (N26 Part E): place → news id → [the day it first heard, the place it was
+   * told from, the journey that brought it ("" where it happened)]. Realm-wide, so places the player has never seen hear
+   * and pass news on all the same (game/road/exchange.ts).
+   */
+  heard: z.record(z.string(), z.record(z.string(), z.tuple([z.number().int(), z.string(), z.string()]))).default({}),
+  /** Tax coin on its way up the chain (N26 Part E): taken from the payer on tax day, handed over when the lord's clerk arrives (game/road/trips/officials.ts) or, with nobody to carry it, a day later. */
+  transit: z.array(z.object({ from: z.string(), to: z.string(), amount: z.number().int(), day: z.number().int(), journey: z.string().optional() })).default([]),
 });
 export type Realm = z.infer<typeof RealmSchema>;
 

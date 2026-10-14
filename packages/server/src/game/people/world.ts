@@ -7,6 +7,7 @@ import { reviewDay } from "./outlook.js";
 import { lazySites, liveSites } from "./live.js";
 import { riseDay, syncRisen } from "./rising.js";
 import { migrationDay } from "./migration.js";
+import { roadArrivals, roadTrips } from "../road/day.js";
 import { stepSite, type LifeCtx, type SiteStep } from "./step.js";
 
 /**
@@ -14,7 +15,8 @@ import { stepSite, type LifeCtx, type SiteStep } from "./step.js";
  *
  * 1. The conditions of every place are written for the day (`site_days`), and the day's casualty orders
  *    (raids, battles, beasts) go into them.
- * 2. Moves between places, by household (people/migration.ts).
+ * 2. The road (road/day.ts): journeys that ended are dealt with; moves between places, by household (people/migration.ts), set out as
+ *    journeys and arrive days later; the day's trips go out and swap news.
  * 3. Each live place's people live the day (people/step.ts) — all of them in a batch (coarse), with the
  *    ones the player is watching at full detail (their events keep their hours to be shown), except places
  *    marked lazy, which are only worked out when something needs them (`catchUp`): the same function over the
@@ -94,7 +96,10 @@ export function lifeDay(ctx: LifeCtx, day: number, opts: LifeOptions = {}): DayL
     const ensureCurrent = (site: string, toDay: number) => void catchUp(ctx, site, toDay);
     // A place that has never been worked out starts yesterday, so that today is its first day.
     for (const id of live) if (store.people.seq(id).stepped === 0) store.people.setSeq(id, { stepped: day - 1 });
+    // The road (N26 Part E): yesterday's journeys end, then households set out, then the day's trips go and swap news.
+    timed("road.arrivals", () => roadArrivals(ctx, day, ensureCurrent));
     result.moved = timed("people.moves", () => migrationDay(ctx, day, live, ensureCurrent));
+    roadTrips(ctx, day, live, ensureCurrent);
     const sites = [...live].filter((id) => realm.settlements[id]).sort((a, b) => Number(watched.has(b)) - Number(watched.has(a)) || a.localeCompare(b));
     for (const id of sites) {
       if (lazy.has(id) && !watched.has(id)) continue;

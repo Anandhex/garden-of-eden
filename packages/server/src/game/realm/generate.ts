@@ -32,7 +32,7 @@ const START_BUILDINGS: Record<SettlementKind, Partial<Record<BuildingId, number>
 const TAX: Record<SettlementKind, number> = { capital: 0, city: 0.15, town: 0.15, village: 0.12, hamlet: 0.1 };
 
 export function emptyRealm(seed: number, day: number): Realm {
-  return { seed, day, kingdoms: {}, settlements: {}, figures: {}, factions: {}, treaties: [], wars: [], dungeons: {}, packs: {}, news: [], director: [], arrivals: {}, next: 1, stats: {}, casualties: [], cooldowns: {} };
+  return { seed, day, kingdoms: {}, settlements: {}, figures: {}, factions: {}, treaties: [], wars: [], dungeons: {}, packs: {}, news: [], director: [], arrivals: {}, next: 1, stats: {}, casualties: [], cooldowns: {}, journeys: [], nextJourney: 0, heard: {}, transit: [] };
 }
 
 const between = (rng: Rng, [lo, hi]: [number, number]) => Math.round(lo + rng() * (hi - lo));

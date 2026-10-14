@@ -75,7 +75,7 @@ SQLite: `pois(id PRIMARY KEY, kind, cx, cy, x, y, ref, name, since, until)` with
 - Test: in the marsh at night without a guide, the player becomes lost within a few hours (seeded); with a guide, never.
 
 ### Step 7: living wilds and people out there
-- People in the wilds are real: hunters and herb gatherers from nearby settlements go out by day (N16's crowd already sends hunters and miners out through exits: give them **wild journeys** to real spots: N26's journey type with a wild destination), prospectors, hermits (a person row living at a hermit's hut POI: `site = "p:<id>"`), outlaws at camps (gang members, positions from the camp), explorers on N63 trips later.
+- People in the wilds are real: hunters and herb gatherers from nearby settlements go out by day (N16's crowd already sends hunters and miners out through exits: give them **wild journeys** to real spots: N26's journey type with a wild destination; after N26 Part E these are people marked `away` like any traveller, skipped by their town's crowd while out and back the same day), prospectors, hermits (a person row living at a hermit's hut POI: `site = "p:<id>"`), outlaws at camps (gang members, positions from the camp), explorers on N63 trips later.
 - Beasts move in their range by day/night (N28 adds the light wildlife; N27 handles packs as today).
 - Harsher weather off-road (needs fall faster); nights are dangerous (more beast encounters near lairs).
 

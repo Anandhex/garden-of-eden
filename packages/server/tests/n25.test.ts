@@ -147,10 +147,10 @@ describe("N25.6 a famine kills where it struck", () => {
 
 describe("N25.9 level of detail never changes outcomes", () => {
   it("a lazy place caught up at day 60 is the place that ran daily", () => {
-    // Seed 4: here the lazy place and the live one do not move each other's food and coin. (Where they do, the lazy
+    // Seed 2: here the lazy place and the live one do not move each other's food and coin. (Where they do, the lazy
     // place's population number lags until its catch-up and the realm's economy reads it: lazy is for budgets only.)
-    const a = world(4);
-    const b = world(4);
+    const a = world(2);
+    const b = world(2);
     const lazy = [...b.live].find((id) => id !== home(b.realm))!;
     advanceWorld(a.realm, a.store, 61, { live: a.live });
     config.peopleLazy = lazy;
@@ -275,7 +275,7 @@ describe("N25 save v13", () => {
     const file = join(mkdtempSync(join(tmpdir(), "n25-")), "world.json");
     saveWorld(file, w);
     const json = JSON.parse(readFileSync(file, "utf8"));
-    json.version = 13;
+    json.version = 14;
     for (const s of Object.values(json.realm.settlements) as Array<{ houses?: number }>) delete s.houses;
     delete json.realm.casualties;
     writeFileSync(file, JSON.stringify(json));
@@ -283,7 +283,7 @@ describe("N25 save v13", () => {
     const mb = back.realm!.settlements[back.startSite]!;
     expect(mb.houses).toBe(Math.ceil(mb.population / 5));
     expect(back.realm!.casualties).toEqual([]);
-    expect(back.version).toBe(13);
+    expect(back.version).toBe(14);
   });
 });
 

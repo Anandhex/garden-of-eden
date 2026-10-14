@@ -6,7 +6,7 @@ import { journeyLine, partyAt, type Journey, type Snapshot } from "@millbrook/sh
 import { land } from "./roadData";
 
 export interface Traveller {
-  /** The id to talk to: `v_<journey>_<n>`. */
+  /** The id to talk to: the person's row in the `people` table. */
   id: string;
   x: number;
   y: number;
@@ -51,9 +51,10 @@ export function placeTravellers(s: Snapshot, name: (id: string) => string): Trav
   for (const j of travellers.journeys) {
     if (m < j.depart || m >= (j.ended ? Math.min(j.ended.minute, j.arrive) : j.arrive)) continue;
     const line = journeyLine(data, j.roads, j.path);
+    // Resting at a town they are visiting, they are in its crowd, not on the road.
     partyAt(j, line, m).forEach((p, k) => {
       const who = j.party[k]!;
-      out.push({ id: `v_${j.id}_${k}`, x: p.x, y: p.y, name: who.name, role: who.role, kind: j.kind, purpose: j.purpose, from: name(j.path[0]!), to: name(j.path.at(-1)!), walking: p.state === "walking" });
+      out.push({ id: who.person, x: p.x, y: p.y, name: who.name, role: who.role, kind: j.kind, purpose: j.purpose, from: name(j.path[0]!), to: name(j.path.at(-1)!), walking: p.state === "walking" });
     });
   }
   return (travellers.people = out);
@@ -62,4 +63,4 @@ export function placeTravellers(s: Snapshot, name: (id: string) => string): Trav
 export const travellerNear = (s: Snapshot, range: number): Traveller | undefined =>
   travellers.people.filter((t) => Math.hypot(t.x - s.position.x, t.y - s.position.y) <= range).sort((a, b) => Math.hypot(a.x - s.position.x, a.y - s.position.y) - Math.hypot(b.x - s.position.x, b.y - s.position.y))[0];
 
-export const KIND_COLOR: Record<string, string> = { caravan: "#b5763f", messenger: "#d9a441", patrol: "#4f6fa0", pilgrims: "#c9c3b0", adventurers: "#b5503f", refugees: "#8a7a5f", migrants: "#8a7a5f", coach: "#7a9b57" };
+export const KIND_COLOR: Record<string, string> = { caravan: "#b5763f", courier: "#d9a441", market: "#9aa86a", kin: "#b58aa0", work: "#a08a6a", officials: "#6a7fa8", patrol: "#4f6fa0", pilgrims: "#c9c3b0", adventurers: "#b5503f", refugees: "#8a7a5f", migrants: "#8a7a5f", coach: "#7a9b57" };

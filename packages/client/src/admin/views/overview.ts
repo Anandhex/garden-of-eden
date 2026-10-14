@@ -14,10 +14,11 @@ export class OverviewView implements View {
   private data: AdminOverview | null = null;
   private selected: string | null = null;
   private lastKey = "";
+  private markers: Array<{ x: number; y: number; label: string }> = [];
   private busy = false;
 
   constructor() {
-    pins.onChange(() => this.draw());
+    pins.onChange(() => void this.loadMarkers().then(() => this.draw()));
   }
 
   async refresh(clock: AdminClock): Promise<void> {
@@ -31,6 +32,7 @@ export class OverviewView implements View {
       if (this.lastKey !== key) forgetCrowds();
       this.lastKey = key;
       this.data = next;
+      await this.loadMarkers();
       this.draw();
       // Class counts come a few places at a time: ask again soon rather than wait for the next poll.
       if (next.classesPending > 0) setTimeout(() => void this.refresh(clock), 300);
@@ -38,6 +40,21 @@ export class OverviewView implements View {
       this.el.replaceChildren(emptyP(`Couldn't load the realm: ${(err as Error).message}`));
     } finally {
       this.busy = false;
+    }
+  }
+
+  /** Pinned people who are on a journey are marked on the map where their journey has them. */
+  private async loadMarkers(): Promise<void> {
+    const people = new Set(pins.list().filter((p) => p.startsWith("town:")));
+    if (people.size === 0) {
+      this.markers = [];
+      return;
+    }
+    try {
+      const roads = await api.roads();
+      this.markers = roads.journeys.flatMap((j) => j.party.filter((p) => people.has(p.ref)).map((p) => ({ x: j.x, y: j.y, label: `${p.name}: ${j.where}` })));
+    } catch {
+      this.markers = [];
     }
   }
 
@@ -57,6 +74,7 @@ export class OverviewView implements View {
         selected: this.selected,
         layer: o.layer,
         pinned: pinnedPlaces,
+        markers: this.markers,
         onPick: (id) => {
           this.selected = id;
           this.draw();

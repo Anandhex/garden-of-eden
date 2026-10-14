@@ -16,6 +16,7 @@ import { health } from "../src/admin/health.js";
 import { overview } from "../src/admin/overview.js";
 import { card, crowdOf, pinned } from "../src/admin/person.js";
 import { playerView } from "../src/admin/player.js";
+import { awayAndVisiting, roadsOf } from "../src/admin/roads.js";
 import { resetSearchIndex, search } from "../src/admin/search.js";
 import { timeControl } from "../src/admin/time.js";
 import { config } from "../src/config.js";
@@ -82,6 +83,8 @@ beforeAll(async () => {
     out.push(search(ctx, "brena"), search(ctx, person.name), search(ctx, "farmer"), search(ctx, "wolf"), search(ctx, ""));
     for (const ref of refs) out.push(card(ctx, ref));
     out.push(pinned(ctx, refs), crowdOf(ctx, town1.id), classCounts(ctx, town1.id));
+    // The roads (N26 Part E): every journey, and who of a place is away.
+    out.push(roadsOf(ctx), awayAndVisiting(ctx, town1.id));
     return out;
   };
 }, 120_000);

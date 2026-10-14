@@ -18,10 +18,10 @@ import { applyArrivals, sendArrival } from "../src/game/realm/arrivals.js";
 import { postNeedQuests } from "../src/game/realm/needs.js";
 import { syncTalkers } from "../src/game/realm/sync.js";
 import { pickStartSite } from "../src/game/realm/start.js";
-import { realmNews, reachesAt } from "../src/game/realm/log.js";
+import { hear, realmNews, reachesAt } from "../src/game/realm/log.js";
 import { settlementSide } from "../src/game/realm/military.js";
 import { deliverNews, realmNewsId } from "../src/game/realm/news.js";
-import { breakAway, isTaxDay, successionDay, taxDay, TAX_DAYS } from "../src/game/realm/politics.js";
+import { breakAway, isTaxDay, settleTransit, successionDay, taxDay, TAX_DAYS } from "../src/game/realm/politics.js";
 import { breedCreatures, castCrowd, nameRisers, personaFor, readyToTalk, TALKER_RENOWN } from "../src/game/realm/rise.js";
 import { RealmSchema, type Realm } from "../src/game/realm/types.js";
 import { describeRealm, realmView } from "../src/game/realm/view.js";
@@ -183,6 +183,8 @@ describe("N13.3 hierarchy and taxes", () => {
     const before = { mb: mb.treasury, crown: crown.treasury };
     taxDay(r, TAX_DAYS, seededRng(1));
     expect(mb.treasury).toBeLessThan(before.mb);
+    // The coin goes up the road with a clerk; with none to send it is handed over a day later.
+    settleTransit(r, TAX_DAYS + 1);
     // The capital pays no one: it ends up with what came up the chain.
     expect(crown.treasury).toBeGreaterThan(before.crown);
     expect(r.stats.taxes).toBeGreaterThan(0);
@@ -457,7 +459,7 @@ describe("N13.8 an active director", () => {
     expect(postNeedQuests(realm, town.world, site, town.members())).toEqual([]);
   });
 
-  it("realm news reaches a place after the days a traveller takes; the innkeeper hears it first, as a rumour", () => {
+  it("realm news reaches a place only when a traveller brings it; the innkeeper hears it first, as a rumour", () => {
     const town = makeTown();
     const realm = town.world.realm!;
     const site = town.site();
@@ -465,9 +467,12 @@ describe("N13.8 an active director", () => {
     town.world.hour = 10;
     realmNews(realm, town.world.day, far.id, "war", `War has come to ${far.name}.`, 9);
     const n = realm.news.at(-1)!;
-    expect(reachesAt(realm, n, site)).toBeGreaterThan(town.world.day);
+    // Where it happened it is known at once; nowhere else yet (N26 Part E: nothing predicts the future).
+    expect(reachesAt(realm, n, far.id)).toBe(town.world.day);
+    expect(reachesAt(realm, n, site)).toBeNull();
     expect(deliverNews(realm, town.world, site, town.members())).toEqual([]);
-    town.world.day = reachesAt(realm, n, site);
+    // A traveller arrives with it.
+    hear(realm, site, n.id, town.world.day, far.id, "j1");
     const lines = deliverNews(realm, town.world, site, town.members());
     expect(lines.join(" ")).toMatch(/Travellers bring news/);
     const id = realmNewsId(n);
@@ -475,9 +480,9 @@ describe("N13.8 an active director", () => {
     expect(town.agents.brena!.state.learned[id]).toBeUndefined();
     // Hale hears of wars.
     expect(town.agents.hale!.state.learned[id]).toBe("rumour");
-    // Another place hears it on its own clock.
-    const elsewhere = Object.values(realm.settlements).find((x) => x.id !== site && reachesAt(realm, n, x.id) !== reachesAt(realm, n, site))!;
-    expect(reachesAt(realm, n, elsewhere.id)).not.toBe(reachesAt(realm, n, site));
+    // Another place hasn't heard it until someone brings it.
+    const elsewhere = Object.values(realm.settlements).find((x) => x.id !== site && x.id !== far.id)!;
+    expect(reachesAt(realm, n, elsewhere.id)).toBeNull();
   });
 
   it("what the realm sends a place turns up on its map", () => {
@@ -560,7 +565,7 @@ describe("N13 closing the gaps", () => {
     const far = Object.values(realm.settlements).find((x) => travelDays(realm, x.id, site) >= 2)!;
     realmNews(realm, town.world.day, far.id, "war", `War has come to ${far.name}.`, 9);
     const n = realm.news.at(-1)!;
-    town.world.day = reachesAt(realm, n, site);
+    hear(realm, site, n.id, town.world.day, far.id, "j1");
     deliverNews(realm, town.world, site, town.members());
     const id = realmNewsId(n);
     const bad = new FakeProvider([say('{"text":"Lord Vexmoor burned the whole of the place down, they say."}'), say('{"text":"Lord Vexmoor burned it all."}')]);

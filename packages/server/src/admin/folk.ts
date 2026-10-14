@@ -68,7 +68,10 @@ export function classCounts(ctx: AdminContext, site: string, cached = false): Cl
   if (cached) return null;
   const folk = folkOf(ctx, site);
   const out: ClassCounts = {};
-  for (const p of folk?.roster.people ?? []) out[p.cls] = (out[p.cls] ?? 0) + 1;
+  // Visitors (N26 Part E) are not the place's people; those of its own away on a journey are not about, but still its people.
+  const own = ctx.store ? new Set((ctx.store.people.loadSite(site, "coarse") as Array<{ id: string }>).map((r) => r.id)) : null;
+  for (const p of folk?.roster.people ?? []) if (!own || own.has(p.id)) out[p.cls] = (out[p.cls] ?? 0) + 1;
+  if (ctx.store) for (const r of ctx.store.people.loadSite(site, "coarse") as Array<{ id: string; cls: string; away: string | null }>) if (r.away !== null) out[r.cls as keyof ClassCounts] = (out[r.cls as keyof ClassCounts] ?? 0) + 1;
   for (const f of Object.values(realm.figures)) if (f.alive && f.home === site && f.role !== "beast") out[figureClass(f.role)] = (out[figureClass(f.role)] ?? 0) + 1;
   counts.set(site, { key, counts: out });
   return out;

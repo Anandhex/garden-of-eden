@@ -1,8 +1,11 @@
 import { plural } from "./names.js";
+import { launch, departureOn, journeysOf } from "../road/journeys.js";
+import { roadDataOf } from "../road/generateRoads.js";
+import { shortest } from "../road/paths.js";
 import type { PlayerState } from "../../npc/types.js";
 import { skillLevel } from "../../npc/skills.js";
 import type { Rng } from "../dice.js";
-import { modifier } from "../dice.js";
+import { modifier, streamFor } from "../dice.js";
 import { armorValue, equippedWeapon } from "../gear.js";
 import { tierDamageBonus, ITEM_TIERS } from "../items.js";
 import { tierIndex, type Tier } from "../life.js";
@@ -114,6 +117,7 @@ function attackFrom(realm: Realm, p: Pack, day: number, rng: Rng): void {
 
 /** One day for every dungeon: things breed inside, spill out, and adventurers go in. */
 export function dungeonsDay(realm: Realm, day: number, rng: Rng): void {
+  expeditionsArrive(realm, day);
   for (const d of Object.values(realm.dungeons)) {
     if (d.clearedUntil !== undefined) {
       if (day < d.clearedUntil) continue;
@@ -129,7 +133,8 @@ export function dungeonsDay(realm: Realm, day: number, rng: Rng): void {
     if (d.danger >= DANGER_SPILL && rng() < 0.2) spill(realm, d, day, rng);
     if (rng() < DELVE_CHANCE + (d.bounty > 0 ? 0.2 : 0)) {
       const party = partyFor(realm, d, rng);
-      if (party.length > 0) delve(realm, d, party, day, rng);
+      // They set out, and the delve is fought when they get there (N26 Part E); a party already at the mouth goes in at once.
+      if (party.length > 0 && !sendExpedition(realm, d, party, day, rng)) delve(realm, d, party, day, rng);
     }
   }
 }
@@ -153,9 +158,43 @@ function spill(realm: Realm, d: Dungeon, day: number, rng: Rng): void {
   realmNews(realm, day, s.id, "dungeon", `Things crawled out of ${d.name} and fell on ${s.name}${r.attackerWon ? "" : ", but were driven back"}.`, 6, [d.name, s.name]);
 }
 
+/** Parties that reached a dungeon's mouth yesterday go in now: the survivors are home again (their journey closes). */
+function expeditionsArrive(realm: Realm, day: number): void {
+  const today = (day - 1) * 1440;
+  for (const j of journeysOf(realm)) {
+    if (!j.dungeon || j.closed || (j.ended ? Math.min(j.ended.minute, j.arrive) : j.arrive) >= today) continue;
+    j.closed = true;
+    const party = j.party.map((t) => realm.figures[t.person]).filter((f): f is Figure => !!f);
+    for (const f of party) if (f.away === j.id) delete f.away;
+    const d = realm.dungeons[j.dungeon];
+    const alive = party.filter((f) => f.alive);
+    if (d && !j.ended && alive.length > 0 && (d.clearedUntil === undefined || day >= d.clearedUntil)) delve(realm, d, alive, day, streamFor(realm.seed, "delve", j.id));
+  }
+}
+
+/** The party walks to the dungeon's mouth: true if a journey was made. */
+function sendExpedition(realm: Realm, d: Dungeon, party: Figure[], day: number, rng: Rng): boolean {
+  const from = party[0]!.home;
+  if (!from || from === d.near) return false;
+  const way = shortest(roadDataOf(realm), from, d.near);
+  if (!way) return false;
+  const j = launch(realm, roadDataOf(realm), {
+    kind: "adventurers",
+    party: party.map((f) => ({ person: f.id, name: f.name, role: "adventurer", gender: f.gender })),
+    path: way,
+    depart: departureOn(day, rng()),
+    purpose: `going to delve ${d.name}`,
+    guards: party.length,
+    dungeon: d.id,
+  });
+  if (!j) return false;
+  for (const f of party) f.away = j.id;
+  return true;
+}
+
 /** Adventurers within two days of a dungeon who'd go: a guild's own first. Two to four. */
 function partyFor(realm: Realm, d: Dungeon, rng: Rng): Figure[] {
-  const pool = Object.values(realm.figures).filter((f) => f.alive && !f.talks && f.role === "adventurer" && f.home && travelDays(realm, f.home, d.near) <= 2 && f.life.stage !== "venerable");
+  const pool = Object.values(realm.figures).filter((f) => f.alive && !f.talks && !f.away && f.role === "adventurer" && f.home && travelDays(realm, f.home, d.near) <= 2 && f.life.stage !== "venerable");
   if (pool.length === 0) return [];
   pool.sort((a, b) => (b.faction === a.faction ? 0 : b.faction ? 1 : -1) || figurePower(b) - figurePower(a));
   const size = Math.min(pool.length, 2 + Math.floor(rng() * 3));

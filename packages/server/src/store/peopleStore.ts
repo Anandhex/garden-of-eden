@@ -1,4 +1,5 @@
 import type { DatabaseSync, StatementSync } from "node:sqlite";
+import type { Away } from "@millbrook/shared";
 import { TABLES } from "./schema.js";
 
 /**
@@ -53,6 +54,8 @@ export interface PersonRow {
   stepped_day: number;
   /** JSON, small (N25b): how they feel about their lord and their town, their mood, goal and grudge, as code's reviews leave it. Null until their first review. */
   outlook: string | null;
+  /** JSON { journey, since, purpose, returns } while they are on a journey (N26 Part E): `site` stays where they live, the road says where they are. */
+  away: string | null;
   /** Bumped by every flush that writes the row. */
   rev: number;
 }
@@ -66,8 +69,18 @@ export interface SiteSeq {
 }
 
 /** What daily rules need of a person, without traits and the rest. */
-export type CoarsePerson = Pick<PersonRow, "id" | "site" | "n" | "name" | "gender" | "born_day" | "cls" | "job" | "home" | "work" | "master" | "master_id" | "faction" | "persona" | "rev">;
-const COARSE = "id, site, n, name, gender, born_day, cls, job, home, work, master, master_id, faction, persona, rev";
+export type CoarsePerson = Pick<PersonRow, "id" | "site" | "n" | "name" | "gender" | "born_day" | "cls" | "job" | "home" | "work" | "master" | "master_id" | "faction" | "persona" | "away" | "rev">;
+const COARSE = "id, site, n, name, gender, born_day, cls, job, home, work, master, master_id, faction, persona, away, rev";
+
+/** What a row's `away` cell says, or null for someone at home. */
+export function parseAway(cell: string | null | undefined): Away | null {
+  if (!cell) return null;
+  try {
+    return JSON.parse(cell) as Away;
+  } catch {
+    return null;
+  }
+}
 
 const COLUMNS = TABLES.people;
 const INSERT = `INSERT OR REPLACE INTO people (${COLUMNS.join(", ")}) VALUES (${COLUMNS.map(() => "?").join(", ")})`;
@@ -186,6 +199,32 @@ export class PeopleStore {
       if (r.mother === parent || r.father === parent) out.set(id, r);
     }
     return [...out.values()].sort((a, b) => a.born_day - b.born_day || (a.id < b.id ? -1 : 1));
+  }
+
+  /** Send people out on a journey (N26 Part E): they stay their place's people, and its crowd skips them until they are back. Returns how many went. */
+  depart(ids: string[], away: Away): number {
+    const cell = JSON.stringify(away);
+    let n = 0;
+    for (const id of ids) if (this.update(id, { away: cell })) n++;
+    return n;
+  }
+
+  /** The people are back (or settled where they were going): they are at home again. */
+  returnHome(ids: string[]): number {
+    let n = 0;
+    for (const id of ids) {
+      const r = this.get(id);
+      if (r && r.away !== null && this.update(id, { away: null })) n++;
+    }
+    return n;
+  }
+
+  /** Everyone alive and on a journey now, in id order. */
+  awayRows(): PersonRow[] {
+    const rows = this.sql("SELECT * FROM people WHERE away IS NOT NULL AND death IS NULL ORDER BY id").all() as unknown as PersonRow[];
+    const out = new Map(rows.map((r) => [r.id, this.dirty.get(r.id) ?? r]));
+    for (const r of this.dirty.values()) if (!out.has(r.id)) out.set(r.id, r);
+    return [...out.values()].filter((r) => r.away !== null && r.death === null).sort((a, b) => (a.id < b.id ? -1 : 1));
   }
 
   /** A person who isn't in the file yet (a birth): held with the other changes and written by `flush`. */
