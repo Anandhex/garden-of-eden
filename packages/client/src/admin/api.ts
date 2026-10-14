@@ -7,7 +7,9 @@ import type {
   AdminEventsPage,
   AdminHealth,
   AdminOverview,
+  AdminNewsChain,
   AdminPinned,
+  AdminRoads,
   AdminPlayerView,
   AdminSearchResult,
   AdminTimeRequest,
@@ -42,6 +44,8 @@ export const api = {
   card: (ref: string) => get<AdminCard>(`card${params({ ref })}`),
   pinned: (refs: string[]) => get<AdminPinned>(`pinned${params({ refs: refs.join(",") })}`),
   player: () => get<AdminPlayerView>("player"),
+  roads: () => get<AdminRoads>("roads"),
+  chain: (news: string, site: string) => get<AdminNewsChain>(`chain${params({ news, site })}`),
   crowd: (site: string) => get<AdminCrowd>(`crowd${params({ site })}`),
   async time(req: AdminTimeRequest): Promise<AdminTimeResponse> {
     const res = await fetch("/api/admin/time", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(req) });

@@ -12,6 +12,7 @@ import { EventsView } from "./views/events";
 import { HealthView } from "./views/health";
 import { OverviewView } from "./views/overview";
 import { PinnedView } from "./views/pinned";
+import { RoadsView } from "./views/roads";
 import { SearchView } from "./views/search";
 import type { View } from "./views/types";
 
@@ -22,6 +23,7 @@ const views: Record<string, View> = {
   events: new EventsView(),
   search: new SearchView(),
   pinned: new PinnedView(),
+  roads: new RoadsView(),
   health: new HealthView(),
 };
 let tab = "overview";

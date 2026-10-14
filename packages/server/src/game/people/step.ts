@@ -1,6 +1,7 @@
 import { CLASS_RANK, type SocialClass } from "@millbrook/shared";
 import { config } from "../../config.js";
-import type { PersonRow } from "../../store/peopleStore.js";
+import { parseAway, type PersonRow } from "../../store/peopleStore.js";
+import { awaySite } from "../road/journeys.js";
 import { speciesOf } from "../../world/species.js";
 import type { WorldStore } from "../db.js";
 import { streamFor } from "../dice.js";
@@ -102,8 +103,10 @@ export function stepSite(ctx: LifeCtx, site: string, day: number): SiteStep {
   const die = (r: PersonRow, rec: Omit<DeathRecord, "day" | "site" | "hour">): void => {
     if (!alive.has(r.id)) return;
     const hour = Math.floor(streamFor(seed, "life-hour", r.id, day, "death")() * 24);
-    const record: DeathRecord = { ...rec, day, hour, site };
-    patch(r.id, { death: JSON.stringify(record), expecting: null });
+    // Someone who dies on a journey dies where the journey has them: an inn, a town they were visiting, or the open road (N26 Part E).
+    const away = parseAway(r.away);
+    const record: DeathRecord = { ...rec, day, hour, site: away ? awaySite(realm, away.journey, day) : site };
+    patch(r.id, { death: JSON.stringify(record), expecting: null, away: null });
     alive.delete(r.id);
     const spouse = r.spouse ? cur.get(r.spouse) : undefined;
     if (spouse && alive.has(spouse.id)) patch(spouse.id, { spouse: null });
@@ -279,6 +282,7 @@ export function stepSite(ctx: LifeCtx, site: string, day: number): SiteStep {
       last_birth: null,
       stepped_day: day,
       outlook: null,
+      away: null,
       rev: 0,
     };
     people.setSeq(site, { next_id: seq.next_id + 1, next_n: seq.next_n + 1 });

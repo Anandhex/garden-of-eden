@@ -168,7 +168,7 @@ export function fastTravel(town: Town, minute: number): FastResult {
   for (let d = SAMPLE; d < total; d += SAMPLE) {
     const eta = etaAt(timeline, d);
     const at = pointAt(route.line.pts, route.line.cum, d);
-    for (const { journey } of journeysNear(world, data, at, 45, eta)) {
+    for (const { journey } of journeysNear(realm, data, at, 45, eta)) {
       const key = `ft:${journey.id}`;
       if (state.seen[key] === world.day) continue;
       noted.add(key);
@@ -183,7 +183,7 @@ export function fastTravel(town: Town, minute: number): FastResult {
   for (const s of route.segs) {
     if (s.d0 >= total) break;
     const eta = etaAt(timeline, Math.min(total, (s.d0 + s.d1) / 2));
-    const rolled = rollSegment(realm, data, s.road, s.index, day(eta));
+    const rolled = rollSegment(realm, data, s.road, s.index, day(eta), town.store?.people);
     if (!rolled) continue;
     const t = s.d0 + (rolled.t - s.t0);
     if (t > 1 && t < total && state.seen[rolled.key] !== day(eta)) consider({ d: Math.max(1, t - 25), why: `You stop: there's something on the road ahead (${rolled.def.title.toLowerCase()}).` });

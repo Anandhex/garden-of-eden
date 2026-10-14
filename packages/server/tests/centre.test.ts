@@ -36,6 +36,10 @@ const PATTERNS: Array<{ name: string; re: RegExp; ceiling: number }> = [
   { name: "realm.home", re: /\brealm\.home\b/, ceiling: 0 },
   { name: "s.home", re: /\bs\.home\b/, ceiling: 0 },
   { name: "tests/fixtures", re: /tests\/fixtures/, ceiling: 0 },
+  // N26 Part E: nobody is made up for a journey, and news is not predicted.
+  { name: "hand( (a made-up traveller)", re: /\bhand\(/, ceiling: 0 },
+  { name: "personaOnRoad / ROAD_SITE / meetRoadPerson", re: /personaOnRoad|ROAD_SITE|meetRoadPerson|travellerId/, ceiling: 0 },
+  { name: "relayOf / relayDay (the computed news relay)", re: /relayOf|relayDay/, ceiling: 0 },
 ];
 
 describe("N25a the centre lint", () => {

@@ -3,6 +3,7 @@ import { parsePersona } from "../../npc/personaSchema.js";
 import { assemblePersona, fallbackIdentity, rollTemplate, type NpcTemplate, type Where } from "../../npc/templates.js";
 import type { NpcPersona } from "../../npc/types.js";
 import { config } from "../../config.js";
+import { visitorsAt } from "../road/presence.js";
 import type { PeopleStore, PersonRow } from "../../store/peopleStore.js";
 import type { Rng } from "../dice.js";
 import type { Tier } from "../life.js";
@@ -128,6 +129,12 @@ interface Shell {
   roster: Omit<CrowdRoster, "people">;
 }
 
+/** A place's crowd without its people: the words a townsperson's file is written with (a visitor's file is of their own place). */
+export function homeRoster(realm: Realm, site: string, day: number): CrowdRoster | null {
+  const shell = shellOf(realm, site, { id: "road" }, day);
+  return shell ? { ...shell.roster, people: [] } : null;
+}
+
 function shellOf(realm: Realm, site: string, map: { id: string }, day: number): Shell | null {
   const s = realm.settlements[site];
   if (!s || s.abandoned) return null;
@@ -198,6 +205,7 @@ export function rowOfTownsperson(p: Townsperson, site: string, day: number): Per
     last_birth: null,
     stepped_day: 0,
     outlook: null,
+    away: null,
     rev: 0,
   };
 }
@@ -241,19 +249,30 @@ export function ensurePeople(store: PeopleStore, realm: Realm, site: string, map
  * the place changes (or a year has passed, for their ages), so the crowd simulation built on it
  * isn't rebuilt every call.
  */
-export function rosterFromStore(store: PeopleStore, realm: Realm, site: string, map: MapLike, day: number): CrowdRoster | null {
+export function rosterFromStore(store: PeopleStore, realm: Realm, site: string, map: MapLike, day: number, minute = (day - 1) * 1440 + 12 * 60): CrowdRoster | null {
   const shell = shellOf(realm, site, map, day);
   if (!shell) return null;
   ensurePeople(store, realm, site, map, day);
-  const key = `${store.revOf(site)}|${map.id}|${map.buildings.length}`;
+  // People on journeys (N26 Part E) are not in their own town's crowd; the ones visiting this town now are in it.
+  const visitors = visitorsAt(store, realm, site, minute);
+  const key = `${store.revOf(site)}|${map.id}|${map.buildings.length}|${visitors.map((v) => v.row.id).join(",")}`;
   const per = fromStore.get(store) ?? new Map();
   fromStore.set(store, per);
   const hit = per.get(site);
   if (hit && hit.key === key && day - hit.builtDay < config.daysPerYear) return { ...shell.roster, people: hit.people };
   const houses = map.buildings.map((b, i) => ({ b, i })).filter((x) => x.b.kind === "house" && x.b.front).map((x) => x.i);
   const fallbackHome = houses[0] ?? 0;
-  const rows = store.loadSite(site, "full") as PersonRow[];
+  const rows = (store.loadSite(site, "full") as PersonRow[]).filter((r) => r.away === null);
   const people = rows.map((r) => townspersonOfRow(r, realm, day, fallbackHome, map.buildings.length));
+  // Visitors sleep at the inn and spend the day at the market, or with the person they came to see.
+  const inn = map.buildings.findIndex((b) => b.kind === "inn" && b.front);
+  const hasMarket = map.zones.some((z) => z.id === "market");
+  for (const v of visitors) {
+    const p = townspersonOfRow(v.row, realm, day, fallbackHome, map.buildings.length);
+    const kin = v.visit ? store.get(v.visit) : null;
+    const door = kin && kin.site === site && kin.home !== null && kin.home < map.buildings.length ? kin.home : null;
+    people.push({ ...p, home: inn >= 0 ? inn : fallbackHome, work: door !== null ? `front:${door}` : hasMarket ? "zone:market" : "streets" });
+  }
   per.set(site, { key, builtDay: day, people });
   return { ...shell.roster, people };
 }
@@ -293,6 +312,8 @@ function rollPeople(realm: Realm, site: Site, facs: RealmFaction[], laws: { slav
   inns.forEach((i, k) => posts.push(...(k === 0 && innHeld ? [] : [{ cls: "merchant" as const, job: "innkeeper" as const, work: `front:${i}`, home: i }]), { cls: "commoner", job: "server", work: `front:${i}`, home: i }));
   smithies.forEach((i, k) => posts.push(...(k === 0 && smithHeld ? [] : [{ cls: "artisan" as const, job: "smith" as const, work: `front:${i}` }]), { cls: "artisan", job: "apprentice", work: `front:${i}` }));
   for (const i of temples) posts.push({ cls: "clergy", job: "priest", work: `front:${i}`, home: i });
+  // Crown couriers carry great news along the kingdom's roads (N26 Part E): posts in capitals and cities, like innkeepers.
+  if (s.kind === "capital" || s.kind === "city") for (let r = 0; r < 2; r++) posts.push({ cls: "commoner", job: "courier", work: "zone:gate" });
   if (s.kind === "capital") for (let r = 0; r < 4; r++) posts.push({ cls: "royal", job: "royal", work: "home", home: halls[0] });
 
   const taken = new Set<string>();

@@ -7,7 +7,7 @@ import { fightOnRoad } from "../realm/travel.js";
 import type { Town } from "../town.js";
 import { tickNeeds } from "./needs.js";
 import { landOf } from "./ground.js";
-import { describeJourney, journeysOf, lineOf } from "./journeys.js";
+import { describeJourney, journeyOf, lineOf } from "./journeys.js";
 import { threatsOf } from "./threats.js";
 import { streamFor } from "../dice.js";
 import { weatherOn } from "../weather.js";
@@ -26,7 +26,7 @@ const REACH = 6;
 function nearParty(town: Town, id: string): { j: Journey; lead: { x: number; y: number } } | null {
   const realm = town.world.realm;
   const road = town.world.player.road;
-  const j = journeysOf(town.world).find((x) => x.id === id);
+  const j = realm ? journeyOf(realm, id) : undefined;
   if (!realm || !road || !j) return null;
   const m = town.road.minute();
   if (!isOnTheRoad(j, m)) return null;
@@ -46,14 +46,16 @@ export function travelWith(town: Town, journeyId: string): { ok: boolean; lines:
   const near = nearParty(town, journeyId);
   if (!near) return { ok: false, lines: ["They're out of reach."] };
   const { j } = near;
-  if (!["caravan", "pilgrims", "adventurers", "patrol", "migrants", "refugees"].includes(j.kind)) return { ok: false, lines: ["They're not going to wait for you."] };
+  if (!["caravan", "pilgrims", "adventurers", "patrol", "migrants", "refugees", "market", "kin", "work", "officials"].includes(j.kind)) return { ok: false, lines: ["They're not going to wait for you."] };
   if (p.road!.pending) return { ok: false, lines: ["Deal with what's in front of you first."] };
   const data = landOf(realm).data;
   const line = lineOf(data, j);
   const m = town.road.minute();
   const here = positionAt(j, line, m);
-  const dest = j.path.at(-1)!;
-  const total = line.length;
+  // A round trip is walked to the place they turn at, or, once they have turned, home.
+  const outward = !!j.turn && here.d <= j.turn.d;
+  const dest = outward ? j.turn!.site : j.path.at(-1)!;
+  const total = outward ? j.turn!.d : line.length;
   const remaining = total - here.d;
   const lines = [`You fall in with ${describeJourney(j, (id) => realm.settlements[id]?.name ?? id)}.`];
   // The ambushes and hunting grounds on the stretch: the party's guards fight beside you.
@@ -69,7 +71,7 @@ export function travelWith(town: Town, journeyId: string): { ok: boolean; lines:
     lines.push(...fightOnRoad(realm, p, { name: t.kind === "pack" ? `beasts near ${realm.settlements[t.near]?.name ?? "the road"}` : "outlaws at a bend in the road", power: t.kind === "pack" ? 14 : 18, tier: "E", kind: t.kind, id }, realm.settlements[t.near]?.name ?? "the road", world.day, rng, town.companionPower() + power));
   }
   // The days go by at the party's pace; the player is fed from the party's pot.
-  const arrive = j.arrive;
+  const arrive = outward ? j.turn!.arrive : j.arrive;
   const minutes = Math.max(1, Math.round(arrive - m));
   lines.push(...tickNeeds(p, Math.round(minutes * 0.4), m, { weather: weatherOn(world.day) }), ...tickNeeds(p, Math.round(minutes * 0.6), m, { resting: true }));
   if (p.roadNeeds) {

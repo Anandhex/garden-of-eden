@@ -12,7 +12,10 @@ import { ageFrom } from "./rules.js";
 import type { LifeCtx } from "./step.js";
 import { sendArrival } from "../realm/arrivals.js";
 import { outlookOf } from "./outlook.js";
-import { recordMove } from "../road/moves.js";
+import { WALK_PACE, type Journey, type Traveller } from "@millbrook/shared";
+import { roadDataOf } from "../road/generateRoads.js";
+import { departureOn, launch } from "../road/journeys.js";
+import { shortest } from "../road/paths.js";
 
 /**
  * People moving between places (N25). Decided once a day for the whole realm, by household, before
@@ -76,59 +79,101 @@ function roomiestHome(occupancy: Map<number, number>): number {
 }
 
 /**
- * Move households from one place to another until about `count` people have gone. Both places must be
- * current (see `ensureCurrent`). Returns how many moved.
+ * Households set out from one place for another until about `count` people have gone (N26 Part E). They are marked `away` and
+ * walk the road for the days it takes, still their old place's people (and counted there); on the day they arrive
+ * (`arriveHouseholds`) the move is applied to both places. If no road joins the places, or the roads are full, the
+ * move is made at once, as it always was. Both places must be current (see `ensureCurrent`). Returns how many people set out.
  */
-export function moveHouseholds(ctx: LifeCtx, from: Settlement, to: Settlement, count: number, rng: Rng, day: number, opts: { everyone?: boolean } = {}): number {
+export function departHouseholds(ctx: LifeCtx, from: Settlement, to: Settlement, count: number, rng: Rng, day: number, opts: { everyone?: boolean } = {}): number {
   const { realm, store } = ctx;
   const people = store.people;
-  const homes = householdsOf(people.loadSite(from.id, "full") as PersonRow[], day, !!opts.everyone);
+  const homes = householdsOf((people.loadSite(from.id, "full") as PersonRow[]).filter((r) => r.away === null), day, !!opts.everyone);
   if (homes.length === 0) return 0;
   // Who goes: households in an order of the day's dice, while the count isn't reached.
   // A household with someone who has come to want to leave (a review's outcome, N25b) goes before the others: the same one die each, the order shifts.
   const wantsOut = (h: Household) => h.members.some((m) => outlookOf(m).goal?.kind === "move");
   const ordered = homes.map((h) => ({ h, k: rng() - (wantsOut(h) ? 0.6 : 0) })).sort((a, b) => a.k - b.k || (a.h.key < b.h.key ? -1 : 1)).map((x) => x.h);
-  const occupancy = new Map<number, number>();
-  for (const r of people.loadSite(to.id, "full") as PersonRow[]) if (r.home !== null) occupancy.set(r.home, (occupancy.get(r.home) ?? 0) + 1);
-  const seq = people.seq(to.id);
-  let nextN = seq.next_n;
+  const data = roadDataOf(realm);
+  const way = shortest(data, from.id, to.id);
+  const kind = opts.everyone || from.food < FAMINE ? "refugees" : "migrants";
   let moved = 0;
   for (const h of ordered) {
     if (!opts.everyone && moved >= count) break;
     if (!opts.everyone && moved + h.members.length > count + 2) continue;
-    const home = roomiestHome(occupancy);
-    for (const m of h.members.sort((a, b) => (a.id < b.id ? -1 : 1))) {
-      const servant = m.cls === "commoner" && m.master_id !== null;
-      people.update(m.id, {
-        site: to.id,
-        n: nextN++,
-        home,
-        // The doors of the old place's map mean nothing in the new one.
-        work: m.work && m.work.startsWith("front:") ? "streets" : m.work,
-        ...(servant ? { master: null, master_id: null, job: "labourer" } : {}),
-        // They were stepped at home through yesterday: they take part in today's step where they are now.
-        stepped_day: day - 1,
-        // What they wanted was to go; they have gone.
-        ...(outlookOf(m).goal?.kind === "move" ? { outlook: JSON.stringify({ ...outlookOf(m), goal: undefined }) } : {}),
-      });
-      occupancy.set(home, (occupancy.get(home) ?? 0) + 1);
-      moved++;
-    }
-    const head = h.members.find((m) => ageFrom(m.born_day, day) >= speciesOf(m.species).adultAge) ?? h.members[0]!;
-    // On the road they walk the days between (N26): the same people.
-    recordMove(realm, { day, from: from.id, to: to.id, kind: opts.everyone || from.food < FAMINE ? "refugees" : "migrants", party: h.members.map((m) => ({ name: m.name, role: m.cls === "child" || ageFrom(m.born_day, day) < speciesOf(m.species).adultAge ? "child" : "commoner", gender: m.gender === "female" ? ("female" as const) : ("male" as const), person: m.id })) });
+    const members = h.members.sort((a, b) => (a.id < b.id ? -1 : 1));
+    const head = members.find((m) => ageFrom(m.born_day, day) >= speciesOf(m.species).adultAge) ?? members[0]!;
+    const party: Traveller[] = members.map((m) => ({ person: m.id, name: m.name, role: ageFrom(m.born_day, day) < speciesOf(m.species).adultAge ? "child" : m.job, gender: m.gender === "female" ? ("female" as const) : ("male" as const) }));
+    const j = way ? launch(realm, data, { kind, party, path: way, depart: departureOn(day, rng()), pace: WALK_PACE * 0.8, move: { from: from.id, to: to.id, everyone: !!opts.everyone }, purpose: `leaving ${from.name} for ${to.name}` }, people) : null;
+    if (!j) applyMove(ctx, members, from, to, day, !!opts.everyone);
+    moved += members.length;
     recordLifeEvent(realm, store, {
       kind: "migration",
       actor: head.id,
       target: to.id,
       site: from.id,
       day,
-      details: `${head.name}${h.members.length > 1 ? ` and ${h.members.length - 1} of their household` : ""} left ${from.name} for ${to.name}`,
-      importance: Math.min(5, 1 + h.members.length),
+      details: `${head.name}${members.length > 1 ? ` and ${members.length - 1} of their household` : ""} left ${from.name} for ${to.name}`,
+      importance: Math.min(5, 1 + members.length),
     });
   }
-  people.setSeq(to.id, { next_n: nextN });
   return moved;
+}
+
+/** The household's move, applied to the rows of both places: they live in `to` from today, in a free house, and take part in today's step there. */
+function applyMove(ctx: LifeCtx, members: PersonRow[], from: Settlement, to: Settlement, day: number, everyone: boolean): void {
+  const { realm, store } = ctx;
+  const people = store.people;
+  void from;
+  void everyone;
+  void realm;
+  const occupancy = new Map<number, number>();
+  for (const r of people.loadSite(to.id, "full") as PersonRow[]) if (r.home !== null) occupancy.set(r.home, (occupancy.get(r.home) ?? 0) + 1);
+  const seq = people.seq(to.id);
+  let nextN = seq.next_n;
+  const home = roomiestHome(occupancy);
+  for (const m0 of members) {
+    const m = people.get(m0.id) ?? m0;
+    if (m.death !== null) continue;
+    const servant = m.cls === "commoner" && m.master_id !== null;
+    people.update(m.id, {
+      site: to.id,
+      n: nextN++,
+      home,
+      away: null,
+      // The doors of the old place's map mean nothing in the new one.
+      work: m.work && m.work.startsWith("front:") ? "streets" : m.work,
+      ...(servant ? { master: null, master_id: null, job: "labourer" } : {}),
+      // They were stepped at home through yesterday: they take part in today's step where they are now.
+      stepped_day: day - 1,
+      // What they wanted was to go; they have gone.
+      ...(outlookOf(m).goal?.kind === "move" ? { outlook: JSON.stringify({ ...outlookOf(m), goal: undefined }) } : {}),
+    });
+    occupancy.set(home, (occupancy.get(home) ?? 0) + 1);
+  }
+  people.setSeq(to.id, { next_n: nextN });
+}
+
+/**
+ * Households (or workers who found a place) arrive: the move is applied to both places' rows, which are brought up to date first.
+ * Called on the day after their journey ended (road/day.ts). Returns how many people arrived.
+ */
+export function arriveHouseholds(ctx: LifeCtx, j: Journey, day: number, ensureCurrent: Catcher): number {
+  const { realm, store } = ctx;
+  const mv = j.move;
+  const from = mv && realm.settlements[mv.from];
+  const to = mv && realm.settlements[mv.to];
+  if (!mv || !from || !to) return 0;
+  const rows = j.party.map((t) => store.people.get(t.person)).filter((r): r is PersonRow => !!r && r.death === null);
+  if (rows.length === 0) return 0;
+  ensureCurrent(from.id, day - 1);
+  ensureCurrent(to.id, day - 1);
+  applyMove(ctx, rows, from, to, day, mv.everyone);
+  from.population = store.people.livingCount(from.id);
+  to.population = store.people.livingCount(to.id);
+  tally(realm, "migrants", rows.length);
+  tally(realm, to.prosperity + to.food >= from.prosperity + from.food ? "migrants_up" : "migrants_down", rows.length);
+  if (rows.length >= 3) sendArrival(realm, to.id, { day, kind: "refugees", count: Math.min(4, Math.ceil(rows.length / 3)), by: from.name });
+  return rows.length;
 }
 
 /** Bring a place's people up to `day` (a lazy place, before it gives or takes anyone). */
@@ -152,7 +197,7 @@ export function migrationDay(ctx: LifeCtx, day: number, live: ReadonlySet<string
       const to = near[0]!;
       ensureCurrent(s.id, day - 1);
       ensureCurrent(to.id, day - 1);
-      const moved = moveHouseholds(ctx, s, to, Infinity, rng, day, { everyone: true });
+      const moved = departHouseholds(ctx, s, to, Infinity, rng, day, { everyone: true });
       total += moved;
       s.population = people.livingCount(s.id);
       to.population = people.livingCount(to.id);
@@ -173,13 +218,11 @@ export function migrationDay(ctx: LifeCtx, day: number, live: ReadonlySet<string
     if (moving <= 0) continue;
     ensureCurrent(s.id, day - 1);
     ensureCurrent(to.id, day - 1);
-    const moved = moveHouseholds(ctx, s, to, moving, rng, day);
+    const moved = departHouseholds(ctx, s, to, moving, rng, day);
     if (moved <= 0) continue;
     total += moved;
     s.population = people.livingCount(s.id);
     to.population = people.livingCount(to.id);
-    tally(realm, "migrants", moved);
-    if (moved >= 3) sendArrival(realm, to.id, { day, kind: "refugees", count: Math.min(4, Math.ceil(moved / 3)), by: s.name });
     if (fleeing && moved >= 5 && rng() < 0.3) realmNews(realm, day, s.id, "refugees", `Folk are leaving ${s.name} for ${to.name}: ${moved} gone this week.`, 3, [s.name, to.name]);
   }
   total += homestead(ctx, day, live, ensureCurrent, sites);
@@ -216,7 +259,7 @@ function homestead(ctx: LifeCtx, day: number, live: ReadonlySet<string>, ensureC
     if (want <= 0) continue;
     ensureCurrent(from.id, day - 1);
     ensureCurrent(to.id, day - 1);
-    const moved = moveHouseholds(ctx, from, to, want, rng, day);
+    const moved = departHouseholds(ctx, from, to, want, rng, day);
     if (moved <= 0) continue;
     total += moved;
     from.population = people.livingCount(from.id);

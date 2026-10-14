@@ -5,9 +5,10 @@ import { raidsDay, warsDay } from "./diplomacy.js";
 import { economyDay } from "./economy.js";
 import { factionsDay } from "./factions.js";
 import { ageFigures, titled } from "./figures.js";
+import { roadDataOf } from "../road/generateRoads.js";
 import { realmNews } from "./log.js";
 import { withLivePlaces } from "./military.js";
-import { isTaxDay, refreshHierarchy, successionDay, taxDay } from "./politics.js";
+import { isTaxDay, refreshHierarchy, settleTransit, successionDay, taxDay } from "./politics.js";
 import type { Realm } from "./types.js";
 import { dungeonsDay, packsDay } from "./wilds.js";
 
@@ -23,6 +24,8 @@ import { dungeonsDay, packsDay } from "./wilds.js";
  */
 export function realmDay(realm: Realm, day: number, only?: Rng, opts: { live?: ReadonlySet<string> } = {}): void {
   const rng = (step: string): Rng => only ?? streamFor(realm.seed, "realm", day, step);
+  // Adventurers walk to their dungeon (N26 Part E): the roads are made once, here, not inside a timed step.
+  if (Object.keys(realm.dungeons).length > 0) roadDataOf(realm);
   timed("realm.day", () => withLivePlaces(opts.live ?? new Set(), () => {
     timed("realm.ageing", () => {
       for (const f of ageFigures(realm, day, rng("ageing"))) {
@@ -31,6 +34,7 @@ export function realmDay(realm: Realm, day: number, only?: Rng, opts: { live?: R
         }
       }
     });
+    settleTransit(realm, day);
     timed("realm.succession", () => successionDay(realm, day, rng("succession")));
     timed("realm.economy", () => economyDay(realm, day, rng("economy"), opts.live));
     if (isTaxDay(day)) timed("realm.taxes", () => taxDay(realm, day, rng("taxes")));

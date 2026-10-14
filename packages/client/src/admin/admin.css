@@ -35,6 +35,8 @@ table.grid th { color: var(--muted); font-weight: 600; position: sticky; top: 0;
 table.grid tr.sel td { background: var(--panel2); }
 table.grid caption { caption-side: bottom; padding: 6px; text-align: left; }
 .realm-map .front { stroke: var(--bad); stroke-width: 4; stroke-dasharray: 10 6; opacity: .8; }
+.realm-map .traveller circle { fill: var(--accent); stroke: #fff; stroke-width: 2; }
+.realm-map .traveller text { fill: var(--text); font-size: 26px; paint-order: stroke; stroke: var(--panel2); stroke-width: 5px; pointer-events: none; }
 .realm-map .pack circle { fill: #c9a26b; stroke: #5b3d12; stroke-width: 1.5; opacity: .9; }
 .realm-map .place.pinned circle:last-of-type { stroke: var(--accent); stroke-width: 4; }
 

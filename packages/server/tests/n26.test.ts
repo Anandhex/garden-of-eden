@@ -12,10 +12,9 @@ import { landOf, walkableAt } from "../src/game/road/ground.js";
 import { newWorld } from "../src/game/save.js";
 import { Town } from "../src/game/town.js";
 import { journeysOf, roadsAlong } from "../src/game/road/journeys.js";
-import { reachesAt } from "../src/game/realm/log.js";
-import { realmNewsId } from "../src/game/realm/news.js";
-import { siteState } from "../src/game/site.js";
-import { travellerId } from "../src/game/road/travellers.js";
+import { WorldStore } from "../src/game/db.js";
+import { ensureLivePeople } from "../src/store/materialise.js";
+import { liveSites } from "../src/game/people/live.js";
 import { itemKey } from "../src/game/items.js";
 import { loadSituations, rollSegment, dueLater, type Rolled } from "../src/game/road/situations.js";
 import { meetThreats, threatsOf } from "../src/game/road/threats.js";
@@ -34,6 +33,12 @@ beforeEach(() => {
   config.realm = true;
   config.realmSeed = undefined;
 });
+
+/** A town with the people table (N26 Part E: the road's people are rows, so the road has traffic only where there is a table). */
+const peopleTown = (seed: number): Town => {
+  const templates = loadCreatureTemplates();
+  return new Town({ personas: {}, creatureTemplates: templates, world: newWorld({}, templates, always(0.5), seed), llm: new FakeProvider(), store: new WorldStore(":memory:") });
+};
 
 const townOf = (seed: number): Town => {
   const templates = loadCreatureTemplates();
@@ -217,17 +222,17 @@ describe("N26 A3 walking from a place to its liege town", () => {
 describe("N26 B journeys: real people on real journeys", () => {
   /** A town after some days of the realm, with the road's journeys made. */
   const aged = (days = 14) => {
-    const town = townOf(1);
+    const town = peopleTown(1);
     town.passHours(24 * days);
     return town;
   };
 
-  it("the realm sends caravans, messengers, patrols and pilgrims, each on a road that joins its places", () => {
+  it("the realm sends market-goers, caravans, kin, patrols and pilgrims, each on a road that joins its places", () => {
     const town = aged();
-    const js = journeysOf(town.world);
+    const js = journeysOf(town.world.realm!);
     const kinds = new Set(js.map((j) => j.kind));
-    expect(kinds.has("caravan")).toBe(true);
-    expect(kinds.has("messenger")).toBe(true);
+    expect(kinds.has("market")).toBe(true);
+    expect(kinds.size).toBeGreaterThanOrEqual(3);
     const data = roadDataOf(town.world.realm!);
     for (const j of js) {
       expect(roadsAlong(data, j.path)).toEqual(j.roads);
@@ -239,7 +244,7 @@ describe("N26 B journeys: real people on real journeys", () => {
   it("a party's position is a formula: on its road at any minute, resting at night and not before it sets out", () => {
     const town = aged();
     const data = roadDataOf(town.world.realm!);
-    const j = journeysOf(town.world).find((x) => x.kind === "caravan" && x.arrive - x.depart > 1500)!;
+    const j = journeysOf(town.world.realm!).find((x) => x.arrive - x.depart > 1500)!;
     expect(j).toBeDefined();
     const line = journeyLine(data, j.roads, j.path);
     expect(positionAt(j, line, j.depart - 100).state).toBe("waiting");
@@ -262,41 +267,6 @@ describe("N26 B journeys: real people on real journeys", () => {
     expect(resting).toBeGreaterThan(0);
     // The same on the other side of the wire.
     expect(positionAt(JSON.parse(JSON.stringify(j)), line, j.depart + 300)).toEqual(positionAt(j, line, j.depart + 300));
-  });
-
-  it("news reaches a place on the day its messenger does", () => {
-    const town = aged();
-    const realm = town.world.realm!;
-    const carried = journeysOf(town.world).filter((j) => j.kind === "messenger" && j.carries?.length);
-    expect(carried.length).toBeGreaterThan(0);
-    for (const j of carried) {
-      const n = realm.news.find((x) => x.id === j.carries![0])!;
-      expect(reachesAt(realm, n, j.path[1]!)).toBe(Math.floor(j.arrive / 1440) + 1);
-    }
-  });
-
-  it("a messenger met on the road knows news the player hasn't heard, and the place hears it later", () => {
-    const town = aged();
-    const world = town.world;
-    const realm = world.realm!;
-    const now = (world.day - 1) * 1440 + world.hour * 60 + (world.minute ?? 0);
-    const data = roadDataOf(realm);
-    // Put the player on the road beside a messenger who is walking right now (or the first one to set out).
-    const live = journeysOf(world).filter((j) => j.kind === "messenger" && j.carries?.length && j.arrive > now);
-    const j = live[0]!;
-    const line = journeyLine(data, j.roads, j.path);
-    const at = positionAt(j, line, Math.max(now, j.depart + 60));
-    const news = realm.news.find((x) => x.id === j.carries![0])!;
-    const heardHere = siteState(world, town.site()).newsSeen.includes(news.id);
-    const id = travellerId(j.id, 0);
-    expect(town.meetTraveller(id)).toBe(id);
-    expect(world.talkers![id]!.site).toBe("road");
-    const state = town.agents[id]!.state;
-    expect(Object.keys(state.learned)).toContain(realmNewsId(news));
-    // Not yet heard where the player stands, unless it began there.
-    if (news.at !== town.site()) expect(heardHere).toBe(false);
-    void at;
-    expect(town.personas[id]!.role).toContain("messenger");
   });
 });
 
@@ -330,14 +300,15 @@ describe("N26 C roadside places, situations and nights", () => {
 
   /** A town whose player stands on a road where `id` is rolled for a day, with it pending. */
   function withSituation(id: string): { town: Town; rolled: Rolled } {
-    const town = townOf(1);
+    const town = peopleTown(1);
     const realm = town.world.realm!;
+    ensureLivePeople(realm, town.store!.people, liveSites(realm), 1);
     const data = roadDataOf(realm);
     for (let day = 1; day < 200; day++) {
       for (const road of data.roads) {
         if (road.id.startsWith("spur:")) continue;
         for (let seg = 0; seg < 4; seg++) {
-          const rolled = rollSegment(realm, data, road, seg, day);
+          const rolled = rollSegment(realm, data, road, seg, day, town.store!.people);
           if (rolled?.def.id === id) {
             town.world.day = day;
             const at = pointAt(road.pts, cumulative(road.pts), rolled.t);
@@ -363,7 +334,7 @@ describe("N26 C roadside places, situations and nights", () => {
   });
 
   it("helping someone hurt records an event, raises their trust, and what came of it later is linked to the choice", () => {
-    const { town } = withSituation("injured_traveller");
+    const { town, rolled } = withSituation("injured_traveller");
     const world = town.world;
     const view = town.road.view()!.pending!;
     expect(view.title).toMatch(/hurt/i);
@@ -374,7 +345,10 @@ describe("N26 C roadside places, situations and nights", () => {
     expect(ev.details).toMatch(/Bind the leg/);
     expect(world.player.reputation!.trust).toBeGreaterThan(before);
     // The one they helped is someone who talks now, and trusts the player.
-    const id = Object.keys(world.talkers!).find((x) => x.startsWith("x_"))!;
+    // They are a real person of the table, not made up for the occasion (N26 Part E).
+    const id = rolled.actors[0]!.person;
+    expect(town.store!.people.get(id)).not.toBeNull();
+    expect(world.talkers![id]).toBeDefined();
     expect(town.agents[id]!.state.relationship).toBeGreaterThan(0);
     // Days later: what came of it, linked to the choice.
     const later = world.roadLater!.find((x) => x.cause === ev.id)!;
@@ -540,12 +514,12 @@ describe("N26 D supplies, mounts and fast travel", () => {
 describe("N26 B3 meeting a caravan", () => {
   /** A town with the player standing beside a caravan that is on the road now. */
   function besideCaravan(): { town: Town; j: Journey } {
-    const town = townOf(1);
+    const town = peopleTown(1);
     town.passHours(24 * 12);
     let j: Journey | undefined;
-    for (let i = 0; i < 30 && !j; i++) {
+    for (let i = 0; i < 60 && !j; i++) {
       const now = town.road.minute();
-      j = journeysOf(town.world).find((x) => x.kind === "caravan" && now >= x.depart && now < x.arrive && x.cargo && x.path.length >= 2);
+      j = journeysOf(town.world.realm!).find((x) => x.kind === "caravan" && now >= x.depart && now < x.arrive && x.cargo && x.path.length >= 2);
       if (!j) town.passHours(4);
     }
     const data = roadDataOf(town.world.realm!);
@@ -583,8 +557,8 @@ describe("N26 B3 meeting a caravan", () => {
   });
 
   it("the road stays inside its bounds after weeks", () => {
-    const town = townOf(2);
+    const town = peopleTown(2);
     town.passHours(24 * 30);
-    for (const b of checkRoadBounds(town.world)) expect(b.ok, `${b.name}: ${b.detail}`).toBe(true);
+    for (const b of checkRoadBounds(town.world.realm!, town.store!.people, town.world.day)) expect(b.ok, `${b.name}: ${b.detail}`).toBe(true);
   });
 });

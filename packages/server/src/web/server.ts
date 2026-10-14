@@ -85,7 +85,6 @@ import { forage, playerCraft } from "../game/gathering.js";
 import { destinations } from "../game/realm/travel.js";
 import { roadDataOf } from "../game/road/generateRoads.js";
 import { shortestWay, WALK_PACE } from "@millbrook/shared";
-import { parseTravellerId } from "../game/road/travellers.js";
 import { topUp } from "../game/road/needs.js";
 import { areaWords, DEN_COLORS, exitTo, exitUnder, PLAIN_VILLAGE, siteMap, type SiteMap } from "./sites.js";
 import { ongoing } from "../game/realm/diplomacy.js";
@@ -370,7 +369,7 @@ function npcPlace(id: string): PlaceId | null {
  */
 function npcPos(id: string): { x: number; y: number } | null {
   // On the road (N26): a traveller is where their journey has them, and the dead lie where they fell.
-  if (parseTravellerId(id)) return town.road.onRoad() ? town.road.travellerPos(id) : null;
+  if (parseTownsfolkId(id) && town.road.onRoad()) return town.whereNow(id) ? town.road.travellerPos(id) : null;
   if (agents[id]!.state.dormant || !local().includes(id)) return null;
   // The townsfolk (N16) are where the crowd's day has them; the fallen lie where they fell.
   if (parseTownsfolkId(id)) {
@@ -417,11 +416,14 @@ function placeName(place: PlaceId): string {
 function absence(id: string): string | null {
   const a = agents[id]!;
   if (a.isDead || a.state.outcome === "unconscious") return null;
-  if (parseTravellerId(id)) return town.road.onRoad() && town.road.travellerPos(id) ? null : `${personas[id]!.name} has gone on their way.`;
   const folk = parseTownsfolkId(id);
   if (folk) {
     const name = personas[id]!.name;
-    const home = town.homeSiteOf(id) ?? folk.site;
+    // Someone on a journey is on the road, or at an inn or a town they are visiting (N26 Part E).
+    const trip = town.whereNow(id);
+    if (trip && town.road.onRoad()) return town.road.travellerPos(id) ? null : `${name} has gone on their way.`;
+    if (trip && trip.site !== town.site()) return `${name} is ${trip.site ? `in ${world.realm?.settlements[trip.site]?.name ?? "another place"}` : "on the road"}, away from home.`;
+    const home = trip ? town.site() : (town.homeSiteOf(id) ?? folk.site);
     const place = world.realm?.settlements[home]?.name ?? "another place";
     if (home !== town.site()) return `${name} is in ${place}, not here.`;
     if (town.area() !== "village") return `${name} is back in ${place}.`;
@@ -490,7 +492,7 @@ function npcView(id: string): NpcView {
     y: spot?.y ?? -1,
     color: npcColor(id),
     place: dead ? null : plan.place,
-    doing: dead ? "dead" : parseTravellerId(id) ? "on the road" : describePlan(plan),
+    doing: dead ? "dead" : town.road.onRoad() && town.whereNow(id) ? "on the road" : describePlan(plan),
     absent: absence(id),
     look: describeNpcAppearance(persona, s, world),
     friendship: friendshipOf(s),
@@ -749,7 +751,7 @@ function npcInRange(id: string): string | null {
 
 /** The conversation happens where the NPC is: that place's description, and who else is there. */
 function setScene(id: string): void {
-  if (parseTravellerId(id)) {
+  if (town.road.onRoad() && parseTownsfolkId(id)) {
     world.location = `the open road: ${personas[id]!.role}`;
     world.nearby = ["the road", "a milestone"];
     world.present = [];
@@ -940,8 +942,8 @@ async function act(body: Record<string, unknown>, emit: Emit): Promise<void> {
     const i = sim?.index.get(id);
     if (sim && i !== undefined) town.meetTownsperson(sim.roster, sim.roster.people[i]!);
   }
-  // Someone on the road (N26): they become a talking NPC the first time the player speaks to them.
-  if (!agents[id] && parseTravellerId(id)) town.meetTraveller(id);
+  // Someone on the road (N26 Part E): a person of the table, they become a talking NPC the first time the player speaks to them.
+  if (!agents[id] && town.road.onRoad() && parseTownsfolkId(id)) town.meetPerson(id);
   const agent = agents[id];
   if (!agent) return void emit({ t: "error", text: "Unknown character." });
   const name = personas[id]!.name;

@@ -26,6 +26,8 @@ export interface RealmMapOptions {
   layer?: AdminMapLayer;
   /** Settlements with a pinned card (admin). */
   pinned?: ReadonlySet<string>;
+  /** People on the road to mark (admin: the pinned travellers, placed by their journey's formula), in map units. */
+  markers?: Array<{ x: number; y: number; label: string }>;
 }
 
 export function drawRealmMap(r: RealmView, o: RealmMapOptions = {}): SVGSVGElement {
@@ -87,6 +89,17 @@ export function drawRealmMap(r: RealmView, o: RealmMapOptions = {}): SVGSVGEleme
     g.append(t);
     map.append(g);
   });
+  for (const m of o.markers ?? []) {
+    const g = svg("g", { class: "traveller" });
+    g.append(svg("circle", { cx: m.x, cy: m.y, r: 6 }));
+    const label = svg("text", { x: m.x, y: m.y - 10, "text-anchor": "middle" });
+    label.textContent = m.label;
+    g.append(label);
+    const t = svg("title", {});
+    t.textContent = m.label;
+    g.append(t);
+    map.append(g);
+  }
   return map;
 }
 

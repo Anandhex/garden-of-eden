@@ -1,16 +1,22 @@
-import { relayDay } from "../road/relay.js";
-import { travelDays } from "./generate.js";
 import type { DirectorPush, Realm, RealmNews } from "./types.js";
 
 /**
- * The day a piece of news reaches a place: where it happened, or when the messengers who carry it along the roads
- * arrive (N26: the same relay the carriers on the road are made from, game/road/relay.ts). Without a road the old
- * straight-line walk.
+ * The day a place first heard a piece of news, or null while it has not (N26 Part E): where it happened it is known at once;
+ * everywhere else it is known when a traveller or a courier brought it (game/road/exchange.ts). Nothing predicts the future.
+ * News that happened nowhere in particular (`at` null) is known everywhere on the day it happened.
  */
-export const reachesAt = (realm: Realm, n: Pick<RealmNews, "id" | "day" | "at">, site: string): number => {
-  if (n.at === site) return n.day;
-  return relayDay(realm, n, site) ?? n.day + travelDays(realm, n.at, site);
+export const reachesAt = (realm: Realm, n: Pick<RealmNews, "id" | "day" | "at">, site: string): number | null => {
+  if (!n.at) return n.day;
+  return realm.heard[site]?.[n.id]?.[0] ?? null;
 };
+
+/** The place hears of something at once (it happened there, or a traveller just told it). */
+export function hear(realm: Realm, site: string, newsId: string, day: number, from = "", via = ""): boolean {
+  const here = (realm.heard[site] ??= {});
+  if (here[newsId]) return false;
+  here[newsId] = [day, from, via];
+  return true;
+}
 
 /** Realm news kept (oldest go first). */
 export const MAX_NEWS = 200;
@@ -19,14 +25,16 @@ export const MAX_PUSHES = 80;
 
 /**
  * Something happened in the realm: a line of news, dated, with where it happened,
- * so it reaches each place after the days a traveller takes (`reachesAt`, game/realm/news.ts).
+ * so each place hears it when a traveller brings it (`reachesAt`, game/road/exchange.ts).
  * `names`: proper names in it, for the lore's invented-name check.
  */
 export function realmNews(realm: Realm, day: number, at: string | null, kind: string, text: string, importance: number, names: string[] = [], extra: { why?: string; people?: string[] } = {}): void {
   const all = [...new Set([...names, ...namesIn(realm, text)])];
   const people = [...new Set([...(extra.people ?? []), ...peopleNamed(realm, all)])];
+  const id = `rn${realm.next++}`;
+  if (at && realm.settlements[at]) hear(realm, at, id, day);
   realm.news.push({
-    id: `rn${realm.next++}`,
+    id,
     day,
     text,
     at,

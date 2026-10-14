@@ -5,7 +5,11 @@ import { check, streamFor, type Rng } from "../dice.js";
 import { recordEvent } from "../events.js";
 import { itemKey } from "../items.js";
 import { formatMoney } from "../money.js";
-import { personName, pick } from "../realm/names.js";
+import { pick } from "../realm/names.js";
+import { ageFrom } from "../people/rules.js";
+import { speciesOf } from "../../world/species.js";
+import type { PeopleStore, PersonRow } from "../../store/peopleStore.js";
+import { journeysNear } from "./journeys.js";
 import { fightOnRoad, type Foe } from "../realm/travel.js";
 import { weatherOn } from "../weather.js";
 import type { Realm } from "../realm/types.js";
@@ -170,16 +174,17 @@ function country(realm: Realm, p: { x: number; y: number }): string[] {
 const rained = (day: number) => ["rain", "storm"].includes(weatherOn(day)) || ["rain", "storm"].includes(weatherOn(day - 1));
 
 /** What the stretch of `road` between waypoints `seg` and `seg + 1` has on it on `day`, or null. The same for everyone. */
-export function rollSegment(realm: Realm, data: RoadData, road: RoadPath & { cum?: number[] }, seg: number, day: number): Rolled | null {
+export function rollSegment(realm: Realm, data: RoadData, road: RoadPath & { cum?: number[] }, seg: number, day: number, people?: PeopleStore): Rolled | null {
   const key = `${road.id}#${seg}:${day}`;
   if (rolls.has(key)) return rolls.get(key)!;
-  const out = rollNow(realm, data, road, seg, day, key);
-  rolls.set(key, out);
+  const out = rollNow(realm, data, road, seg, day, key, people);
+  // Without the people table nobody can be found for a situation: that isn't a roll, so it isn't remembered.
+  if (people) rolls.set(key, out);
   if (rolls.size > 400) rolls.delete(rolls.keys().next().value!);
   return out;
 }
 
-function rollNow(realm: Realm, data: RoadData, road: RoadPath & { cum?: number[] }, seg: number, day: number, key: string): Rolled | null {
+function rollNow(realm: Realm, data: RoadData, road: RoadPath & { cum?: number[] }, seg: number, day: number, key: string, people?: PeopleStore): Rolled | null {
   const wp = waypointsOf(data, road);
   const lo = wp[seg];
   const hi = wp[seg + 1];
@@ -200,12 +205,43 @@ function rollNow(realm: Realm, data: RoadData, road: RoadPath & { cum?: number[]
   if (total <= 0) return null;
   let r = rng() * total;
   const def = pool.find((d) => (r -= d.chance) < 0) ?? pool[0]!;
-  const taken = new Set<string>();
-  const actors = def.actors.map((a) => {
-    const gender = rng() < 0.5 ? "female" : "male";
-    return { name: personName(rng, gender, taken), role: a.role, gender } as Traveller;
-  });
+  // The people in it are really there (N26 Part E decision 8): travellers whose journeys are near this stretch today, else the people of
+  // the nearest roadside inn. If nobody suitable is near, nothing happens here today.
+  const actors = actorsFor(realm, data, road, at, t, day, def.actors.map((a) => a.role), rng, people);
+  if (!actors) return null;
   return { key, def, t, actors, road: road.id };
+}
+
+const TRADERS = ["merchant", "stallholder", "innkeeper", "baker", "weaver", "potter", "cobbler", "tailor", "smith"];
+const ROLE_JOBS: Record<string, string[]> = { carter: ["porter", "labourer", "farmer", "hunter"], merchant: TRADERS, guard: ["guard"], captain: ["guard"] };
+
+/** Real people for a situation's roles, or null if any can't be found. */
+function actorsFor(realm: Realm, data: RoadData, road: RoadPath, at: { x: number; y: number }, t: number, day: number, roles: string[], rng: Rng, people?: PeopleStore): Traveller[] | null {
+  if (roles.length === 0) return [];
+  if (!people) return null;
+  const noon = (day - 1) * 1440 + 720;
+  const pool: PersonRow[] = [];
+  for (const { journey } of journeysNear(realm, data, at, 90, noon)) for (const m of journey.party) {
+    const r = people.get(m.person);
+    if (r && r.death === null) pool.push(r);
+  }
+  // Else the nearest roadside inn's people.
+  const inn = data.places.filter((p) => p.kind === "waystation" && p.road === road.id && p.site).sort((a, b) => Math.abs(a.t - t) - Math.abs(b.t - t))[0];
+  const local = inn?.site ? (people.loadSite(inn.site, "full") as PersonRow[]).filter((r) => r.away === null) : [];
+  const grown = (r: PersonRow) => ageFrom(r.born_day, day) >= speciesOf(r.species).adultAge;
+  const used = new Set<string>();
+  const out: Traveller[] = [];
+  for (const role of roles) {
+    const jobs = ROLE_JOBS[role];
+    const fits = (r: PersonRow) => !used.has(r.id) && (role === "child" ? !grown(r) : grown(r) && (!jobs || jobs.includes(r.job)));
+    const any = (r: PersonRow) => !used.has(r.id) && (role === "child" ? !grown(r) : grown(r));
+    const choose = (xs: PersonRow[]) => xs.length > 0 ? xs.sort((a, b) => (a.id < b.id ? -1 : 1))[Math.floor(rng() * xs.length)]! : undefined;
+    const pick1 = choose(pool.filter(fits)) ?? choose(local.filter(fits)) ?? (jobs ? undefined : choose([...pool, ...local].filter(any)));
+    if (!pick1) return null;
+    used.add(pick1.id);
+    out.push({ person: pick1.id, name: pick1.name, role: role === "child" ? "child" : pick1.job, gender: pick1.gender === "female" ? "female" : "male" });
+  }
+  return out;
 }
 
 // ---- Putting one in front of the player ----
@@ -216,7 +252,7 @@ const fill = (text: string, actors: Traveller[]) => text.replace(/\{a\}/g, actor
 export function viewOf(realm: Realm, data: RoadData, town: Town): SituationView | null {
   const pend = town.world.player.road?.pending;
   if (!pend) return null;
-  const rolled = findRolled(realm, data, pend.key);
+  const rolled = findRolled(realm, data, pend.key, town.store?.people);
   if (!rolled) return null;
   const p = town.world.player;
   return {
@@ -237,12 +273,12 @@ function unmet(req: { money?: number | undefined; item?: string | undefined } | 
   return null;
 }
 
-function findRolled(realm: Realm, data: RoadData, key: string): Rolled | null {
+function findRolled(realm: Realm, data: RoadData, key: string, people?: PeopleStore): Rolled | null {
   const hit = rolls.get(key);
   if (hit) return hit;
   const m = /^(.+)#(\d+):(\d+)$/.exec(key);
   const road = m ? data.roads.find((r) => r.id === m[1]) : undefined;
-  return m && road ? rollSegment(realm, data, road, Number(m[2]), Number(m[3])) : null;
+  return m && road ? rollSegment(realm, data, road, Number(m[2]), Number(m[3]), people) : null;
 }
 
 /** Does the player's step bring them to something? Sets it pending, and says so. */
@@ -253,7 +289,7 @@ export function meet(town: Town, data: RoadData, road: RoadPath & { cum: number[
   const wp = waypointsOf(data, road);
   let seg = 0;
   while (seg + 2 < wp.length && t > wp[seg + 1]!) seg++;
-  const rolled = rollSegment(realm, data, road, seg, day);
+  const rolled = rollSegment(realm, data, road, seg, day, town.store?.people);
   if (!rolled || Math.abs(t - rolled.t) > 12 || state.seen[rolled.key] === day || state.pending) return [];
   const night = town.world.hour >= 20 || town.world.hour < 5;
   if (rolled.def.when.night !== undefined && rolled.def.when.night !== night) return [];
@@ -278,7 +314,7 @@ export function resolve(town: Town, choiceId: string, now: number): Resolved {
   const pend = p.road?.pending;
   if (!realm || !pend) return { ok: false, lines: ["There's nothing to decide."] };
   const data = landOf(realm).data;
-  const rolled = findRolled(realm, data, pend.key);
+  const rolled = findRolled(realm, data, pend.key, town.store?.people);
   const choice = rolled?.def.choices.find((c) => c.id === choiceId);
   if (!rolled || !choice) return { ok: false, lines: ["That isn't a choice here."] };
   const miss = unmet(choice.requires, p);
@@ -286,7 +322,7 @@ export function resolve(town: Town, choiceId: string, now: number): Resolved {
   delete p.road!.pending;
   const ctx: Ctx = { town, rolled, lines: [], rng: town.actionRng(), now, cause: "" };
   const from = realm.settlements[p.road!.from];
-  const ev = recordEvent(world as never, { kind: "road", actor: "player", target: rolled.actors[0] ? `${rolled.actors[0].name}` : "road", details: `${rolled.def.title}: ${fill(choice.label, rolled.actors)}`, importance: 3, why: rolled.def.title, ...(from ? { site: from.id } : {}), witnesses: [] });
+  const ev = recordEvent(world as never, { kind: "road", actor: "player", target: rolled.actors[0]?.person ?? "road", details: `${rolled.def.title}: ${fill(choice.label, rolled.actors)}`, importance: 3, why: rolled.def.title, ...(from ? { site: from.id } : {}), witnesses: [] });
   ctx.cause = ev.id;
   for (const e of choice.effects) apply(ctx, e);
   return { ok: true, lines: ctx.lines };
@@ -430,7 +466,7 @@ function loseOne(c: Ctx): void {
 function trust(c: Ctx, amount: number): void {
   const actor = c.rolled.actors[0];
   if (!actor || !amount) return;
-  const id = c.town.meetRoadPerson(c.rolled.key, 0, actor, c.town.world.player.road!.from, c.rolled.road.split("~")[1] ?? c.town.world.player.road!.from, c.rolled.def.title.toLowerCase());
+  const id = c.town.meetPerson(actor.person);
   const agent = id ? c.town.agents[id] : undefined;
   if (!agent) return;
   agent.state.relationship = clamp(agent.state.relationship + amount);

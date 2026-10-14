@@ -55,7 +55,7 @@ export function deliverNews(realm: Realm, world: WorldSnapshot & SiteWorld, site
   const state = siteState(world, site);
   const seen = new Set(state.newsSeen);
   const place = realm.settlements[site]?.name;
-  const due = realm.news.filter((n) => !seen.has(n.id) && reachesAt(realm, n, site) <= world.day);
+  const due = realm.news.filter((n) => !seen.has(n.id) && (reachesAt(realm, n, site) ?? Infinity) <= world.day);
   for (const n of due) if (n.importance < DELIVER_IMPORTANCE) state.newsSeen.push(n.id);
   const worth = due.filter((n) => n.importance >= DELIVER_IMPORTANCE).sort((a, b) => b.importance - a.importance);
   const lines: string[] = [];

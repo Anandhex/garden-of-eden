@@ -118,6 +118,8 @@
 
 ## Part E: everyone on the road is someone (rework, asked for 2026-10-14)
 
+**Status: built 2026-10-14** (save v14, a clean break as the user chose). What differs from this plan is in the stage file's **What differs**, item 5.
+
 **The user's words:** "I don't want random travellers in the world … everyone should be present via the database and can be tracked; the news spreads from the inns along the road; people travel to nearby villages, cities, hamlets and kingdoms; some migrate based on prosperity or their needs."
 
 ### What N26 built that this changes

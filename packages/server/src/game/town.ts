@@ -61,19 +61,18 @@ import { atWar } from "./realm/economy.js";
 import { breedCreatures, castCrowd, nameRisers, personaFor, readyToTalk } from "./realm/rise.js";
 import { arrive, setOut, type Trip } from "./realm/travel.js";
 import { RoadPlay } from "./road/play.js";
-import { journeysOf, pruneJourneys } from "./road/journeys.js";
-import { parseTravellerId, personaOnRoad, ROAD_SITE, travellerPersona } from "./road/travellers.js";
+import { parseAway } from "../store/peopleStore.js";
+import { journeyOf, pruneJourneys } from "./road/journeys.js";
+import { visitorsAt, whereNow } from "./road/presence.js";
 import { dueLater } from "./road/situations.js";
-import { launchDay } from "./road/sources.js";
 import { commitTrack, startRoad } from "./road/walk.js";
 import { figureTalkerId, notablePersona, notablesOf } from "./realm/notables.js";
-import { parseTownsfolkId, rosterFor, rosterFromStore, townsfolkPersona } from "./realm/townsfolk.js";
+import { homeRoster, parseTownsfolkId, rosterFor, rosterFromStore, townsfolkPersona, townspersonOfRow } from "./realm/townsfolk.js";
 import type { CrowdRoster, Townsperson } from "@millbrook/shared";
 import { settleHaunts, stockHaunts } from "./realm/haunts.js";
 import { killFigure, titled } from "./realm/figures.js";
 import { realmNews } from "./realm/log.js";
 import type { Figure, RealmNews } from "./realm/types.js";
-import type { Traveller } from "@millbrook/shared";
 import { ITEM_TIERS } from "./items.js";
 
 const HEAD = new Set(["ruler", "lord", "mayor", "village head", "elder"]);
@@ -433,7 +432,7 @@ export class Town {
   localIds(): string[] {
     const site = this.site();
     const village = this.area() === "village";
-    const here = this.talkersAt(site).filter((id) => village || !parseTownsfolkId(id));
+    const here = [...this.talkersAt(site).filter((id) => (village || !parseTownsfolkId(id)) && !this.whereNow(id)), ...(village ? this.visitingTalkers(site) : [])];
     const companions = this.companions().map((a) => a.persona.id);
     return [...new Set([...here, ...companions])];
   }
@@ -443,7 +442,7 @@ export class Town {
     const realm = this.world.realm;
     if (!realm) return null;
     // The admin view only looks: a place with no rows yet is shown as the generator would roll it, and nothing is written.
-    if (this.store && !(opts.readOnly && this.store.people.count(site) === 0)) return rosterFromStore(this.store.people, realm, site, map, day);
+    if (this.store && !(opts.readOnly && this.store.people.count(site) === 0)) return rosterFromStore(this.store.people, realm, site, map, day, (day - 1) * 1440 + this.world.hour * 60 + (this.world.minute ?? 0));
     return rosterFor(realm, site, map, day);
   }
 
@@ -460,6 +459,9 @@ export class Town {
    */
   meetTownsperson(roster: CrowdRoster, p: Townsperson): string | null {
     if (this.personas[p.id] && this.agents[p.id]) return p.id;
+    // A visitor's file is of their own place, not the one they are visiting.
+    const home = this.store?.people.get(p.id)?.site;
+    if (home && home !== roster.site && this.world.realm) roster = homeRoster(this.world.realm, home, this.world.day) ?? roster;
     let templates: Record<string, NpcTemplate>;
     try {
       templates = loadTemplates();
@@ -542,35 +544,45 @@ export class Town {
   }
 
   /**
-   * Someone on the road becomes a talking NPC (N26): the player spoke to one of a journey's party. Their file is kept in the
-   * registry (under the place "road") so they remember the player. Returns their id, or null if they are not on a journey
-   * any more or no file could be made.
+   * Someone on the road is a person of the `people` table (N26 Part E): when the player speaks to one they become a talker like any
+   * townsperson (the same file, kept in the registry under their home place), who remembers the player. What their journey carries,
+   * they know. Returns their id, or null if they are nobody's or no file could be made.
    */
-  meetTraveller(id: string): string | null {
+  meetPerson(id: string): string | null {
     if (this.personas[id] && this.agents[id]) return id;
     const realm = this.world.realm;
-    const parsed = parseTravellerId(id);
-    const j = parsed ? journeysOf(this.world).find((x) => x.id === parsed.journey) : undefined;
-    if (!realm || !parsed || !j) return null;
-    const persona = travellerPersona(realm, j, parsed.k, this.world.day);
-    if (!persona) return null;
-    const agent = this.enrol(persona, ROAD_SITE);
-    // What they carry, they know.
-    for (const nid of j.carries ?? []) {
-      const n = realm.news.find((x) => x.id === nid);
+    const row = this.store?.people.get(id);
+    if (!realm || !row || row.death !== null) return null;
+    const roster = homeRoster(realm, row.site, this.world.day);
+    if (!roster) return null;
+    const got = this.meetTownsperson(roster, townspersonOfRow(row, realm, this.world.day, 0, 0));
+    const agent = got ? this.agents[got] : undefined;
+    const away = parseAway(row.away);
+    const j = away ? journeyOf(realm, away.journey) : undefined;
+    if (agent) for (const c of j?.carries ?? []) {
+      const n = realm.news.find((x) => x.id === c.id);
       if (n) this.learnNews(agent.state, n);
     }
-    return persona.id;
+    return got;
   }
 
-  /** Someone met in a situation on the road becomes a talker who remembers the player (the first time a choice touches them). */
-  meetRoadPerson(key: string, n: number, who: Traveller, from: string, to: string, purpose: string): string | null {
-    const id = `x_${key.toLowerCase().replace(/[^a-z0-9]+/g, "_")}_${n}`;
-    if (this.agents[id]) return id;
+  /** Where someone on a journey is now: a place (a town they visit, an inn), or the open road; null for someone at home. */
+  whereNow(id: string): { site: string | null; journey: string; state: string } | null {
     const realm = this.world.realm;
-    const persona = realm ? personaOnRoad(realm, id, who, from, to, purpose, this.world.day) : null;
-    return persona ? this.enrol(persona, ROAD_SITE).persona.id : null;
+    return realm && this.store ? whereNow(this.store.people, realm, id, this.road.minute()) : null;
   }
+
+  /** Talkers of other places who are visiting this one now (the crowd has them too). */
+  visitingTalkers(site: string): string[] {
+    const realm = this.world.realm;
+    if (!realm || !this.store) return [];
+    const minute = this.road.minute();
+    if (this.visitMemo && this.visitMemo.site === site && this.visitMemo.minute === minute && this.visitMemo.rev === this.store.people.pending) return this.visitMemo.ids;
+    const ids = visitorsAt(this.store.people, realm, site, minute).filter((v) => !v.home && this.agents[v.row.id]).map((v) => v.row.id);
+    this.visitMemo = { site, minute, rev: this.store.people.pending, ids };
+    return ids;
+  }
+  private visitMemo: { site: string; minute: number; rev: number; ids: string[] } | null = null;
 
   /** A line for the player's feed, from something that happened away from the screen. */
   tell(line: string): void {
@@ -727,9 +739,8 @@ export class Town {
       const live = this.store ? liveSites(realm, this.world.startSite) : new Set<string>();
       advanceRealm(realm, d, this.fixedRng, { live });
       if (this.store && live.size > 0) this.livesDay(d, live);
-      // The road (N26): the day's departures, and the finished journeys dropped.
-      launchDay(this.world, d);
-      pruneJourneys(this.world, d * 1440);
+      // The road (N26): journeys, trips and news are part of everyone's day (people/world.ts); the ones that are done are dropped.
+      pruneJourneys(realm, d * 1440);
       for (const line of dueLater(this, d)) this.tell(line);
       this.world.atWar = atWar(realm, realm.settlements[site]!);
       log.push(...applyArrivals(realm, this.world, site, this.members(), Object.keys(this.templates)));

@@ -86,7 +86,7 @@ Start each band from what the current game does (run 10 seeds, take the observed
 - `.github/workflows/nightly.yml`: `schedule: cron "0 3 * * *"` plus `workflow_dispatch`; runs `YEARS=10 SEEDS=1..10 npm run sim:years`, uploads `saves/balance-report.json` as an artifact. Failures show on the Actions tab.
 
 ### Step 5: the habit
-- Add to the plans README's "how to work" checklist and each later stage file's phase template: **"Bounds: what this phase adds to `balance/bounds.ts`"**. N25 adds births/deaths bounds (see its plan); N26 adds journey bounds; N28 adds wildlife bounds.
+- Add to the plans README's "how to work" checklist and each later stage file's phase template: **"Bounds: what this phase adds to `balance/bounds.ts`"**. N25 adds births/deaths bounds (see its plan); N26 adds journey bounds (Part E adds `roads-not-empty`, `roads-not-clogged`, `news-reaches`, `nobody-twice`, `trips-return` and `migration-follows-need`; `sim:years` must run journeys, exchanges and arrivals so they can be checked); N28 adds wildlife bounds.
 - README: `sim:years`, bounds, break switches.
 
 ## Edge cases and traps
