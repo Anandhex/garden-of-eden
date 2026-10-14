@@ -8,6 +8,7 @@ import type { DirectorLogEntry } from "../director/validator.js";
 import type { GameEvent } from "./events.js";
 import { cosine, hashedEmbedder } from "./embeddings.js";
 import { timed } from "../metrics/timing.js";
+import { KnowledgeStore } from "../store/knowledgeStore.js";
 import { PeopleStore } from "../store/peopleStore.js";
 import { applySchema, ORDER_BY, type TableName } from "../store/schema.js";
 
@@ -63,6 +64,8 @@ export class WorldStore {
   embedder: Embedder;
   /** Every person of every place (N18). */
   readonly people: PeopleStore;
+  /** What each person knows (N33). */
+  readonly knowledge: KnowledgeStore;
 
   constructor(file = ":memory:", embedder: Embedder = hashedEmbedder) {
     if (file !== ":memory:") mkdirSync(dirname(file), { recursive: true });
@@ -71,6 +74,7 @@ export class WorldStore {
     this.embedder = embedder;
     applySchema(this.db, file !== ":memory:");
     this.people = new PeopleStore(this.db);
+    this.knowledge = new KnowledgeStore(this.db, this.people);
   }
 
   close(): void {
@@ -80,6 +84,7 @@ export class WorldStore {
   /** A new world: forget the old one's history and people. */
   reset(): void {
     this.people.clear();
+    this.knowledge.dropCache();
     this.db.exec("DELETE FROM events; DELETE FROM memories; DELETE FROM director_log; DELETE FROM relationships; DELETE FROM knowledge; DELETE FROM grievances; DELETE FROM ambitions; DELETE FROM jobs_held; DELETE FROM site_days; DELETE FROM site_seq; DELETE FROM model_calls; DELETE FROM meta;");
   }
 
@@ -126,6 +131,7 @@ export class WorldStore {
       for (const r of rows) st.run(...(columns.map((c) => r[c] ?? null) as Array<string | number | null>));
     });
     if (table === "people") this.people.dropCache();
+    if (table === "knowledge") this.knowledge.dropCache();
   }
 
   /** Set a `meta` value. */
@@ -182,6 +188,12 @@ export class WorldStore {
   eventsAbout(who: string, limit = 100): GameEvent[] {
     const rows = this.db.prepare(`SELECT * FROM events WHERE actor = ? OR target = ? ORDER BY day, hour, seq, rowid LIMIT ?`).all(who, who, limit) as Array<Record<string, unknown>>;
     return rows.map(rowToEvent);
+  }
+
+  /** One event from the archive. */
+  eventById(id: string): GameEvent | null {
+    const row = this.db.prepare("SELECT * FROM events WHERE id = ?").get(id) as Record<string, unknown> | undefined;
+    return row ? rowToEvent(row) : null;
   }
 
   eventCount(): number {

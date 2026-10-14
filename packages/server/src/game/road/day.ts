@@ -71,7 +71,7 @@ export function roadTrips(ctx: LifeCtx, day: number, live: ReadonlySet<string>, 
     courierTrips(tc);
   });
   timed("road.encounters", () => encountersDay(realm, store, tc.data, day, tc.ensure));
-  timed("road.news", () => exchangeNews(realm, day));
+  timed("road.news", () => exchangeNews(realm, day, store, (site) => void (live.has(site) && tc.ensure(site))));
   pruneJourneys(realm, dayStartMinute(day) + 1440);
 }
 

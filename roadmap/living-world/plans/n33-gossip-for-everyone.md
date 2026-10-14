@@ -2,6 +2,8 @@
 
 # N33 plan: Gossip for everyone
 
+> **Built 2026-10-14.** What differs from this plan is in the [stage file](../stage-2-everyone-lives.md#n33-gossip-for-everyone) (**What differs from the plan**). The plan below is as it was written.
+
 **In one line:** every person keeps a short list of what they know (a row per item in the `knowledge` table, with how accurate their version is and who told them); people who are together (a workshop, a household, the inn in the evening, the market) pass items on by sampled pairs, losing accuracy; news enters a place only by someone arriving with it (N26's messengers, caravans, migrants, any traveller); and a townsperson who becomes a talker starts with what they knew.
 
 **Read first:** [plans README](README.md) sections 2, 3 (truth and knowledge), 9 (performance), 15 (the `knowledge` table is this phase's), 17 (grains). Needs N18 (tables), N25 (people who live by day, lazy catch-up), N26 with **Part E** (real people on journeys, `people.away`, news carried by travellers and swapped at inns: `journey.carries`, `newsSeen` days, `exchangeNews`). **Step 0:** N24 steps 1–3 (`player.known`, `playerKnows`, `playerLearns`) if not built, because the done-when has the player hearing a rumour from a stranger.

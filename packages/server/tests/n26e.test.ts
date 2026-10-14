@@ -26,7 +26,7 @@ import { roadDataOf } from "../src/game/road/generateRoads.js";
 import { awaySite, journeyOf, journeysOf } from "../src/game/road/journeys.js";
 import { visitorsAt } from "../src/game/road/presence.js";
 import { rollSegment } from "../src/game/road/situations.js";
-import { loadWorld, newWorld, saveWorld } from "../src/game/save.js";
+import { loadWorld, newWorld, SAVE_VERSION, saveWorld } from "../src/game/save.js";
 import { loadCreatureTemplates } from "../src/game/creatures.js";
 import { seededRng } from "../src/game/dice.js";
 import { siteMap } from "../src/web/sites.js";
@@ -390,7 +390,7 @@ describe("N26 Part E: off-screen meetings and situations", () => {
   });
 });
 
-describe("N26 Part E: the save is v14", () => {
+describe("N26 Part E: journeys are saved", () => {
   it("journeys, what places have heard, and coin in transit survive a save and a load", () => {
     const templates = loadCreatureTemplates();
     const w = newWorld(allPersonas(), templates);
@@ -402,7 +402,7 @@ describe("N26 Part E: the save is v14", () => {
     const file = join(mkdtempSync(join(tmpdir(), "n26e-")), "world.json");
     saveWorld(file, w);
     const back = loadWorld(file, allPersonas(), templates);
-    expect(back.version).toBe(14);
+    expect(back.version).toBe(SAVE_VERSION);
     expect(back.realm!.journeys).toEqual(realm.journeys);
     expect(back.realm!.heard).toEqual(realm.heard);
     expect(back.realm!.transit).toEqual(realm.transit);

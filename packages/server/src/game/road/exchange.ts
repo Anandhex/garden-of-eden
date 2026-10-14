@@ -1,4 +1,8 @@
 import { stopsOf, type Carry } from "@millbrook/shared";
+import { config } from "../../config.js";
+import { timed } from "../../metrics/timing.js";
+import type { LifeCtx } from "../people/step.js";
+import { meetAtStop } from "../gossip/meet.js";
 import { hear } from "../realm/log.js";
 import { tally } from "../realm/log.js";
 import type { Realm } from "../realm/types.js";
@@ -37,7 +41,7 @@ export function stopsOn(realm: Realm, day: number): Exchange[] {
 }
 
 /** Apply the day's stops. Returns how many places heard something new. */
-export function exchangeNews(realm: Realm, day: number): number {
+export function exchangeNews(realm: Realm, day: number, store?: LifeCtx["store"], ensure?: (site: string) => void): number {
   const byId = new Map(realm.news.map((n) => [n.id, n]));
   // News that has dropped out of the record is forgotten by the places too.
   if (day % 5 === 0) for (const known of Object.values(realm.heard)) for (const id of Object.keys(known)) if (!byId.has(id)) delete known[id];
@@ -63,6 +67,10 @@ export function exchangeNews(realm: Realm, day: number): number {
       pool.sort((a, b) => byId.get(b.id)!.importance - byId.get(a.id)!.importance || (here[b.id]?.[0] ?? 0) - (here[a.id]?.[0] ?? 0) || (a.id < b.id ? -1 : 1));
       j.carries = pool.slice(0, CARRY_MAX);
     }
+    // And the people: the party talks with some of the place's people (N33), who then know what they were told.
+    // A place that has not lived its days yet lives them first, so that the people who meet the party are the same whenever it is worked out.
+    if (store && config.gossip) ensure?.(e.site);
+    if (store && config.gossip) timed("gossip.meet", () => meetAtStop({ realm, store }, j, e.site, e.minute, day));
   }
   if (learned > 0) tally(realm, "news_carried", learned);
   return learned;

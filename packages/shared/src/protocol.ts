@@ -282,6 +282,15 @@ export interface RoadView {
   lightLeft: number | null;
 }
 
+/** Something a townsperson of the player's place just passed on (N33): a bubble over their head, once (`seq` never repeats). */
+export interface GossipTold {
+  seq: number;
+  /** The speaker's person id (a roster id). */
+  who: string;
+  /** What they said, in words: "Wenna Tanner died of an illness". */
+  text: string;
+}
+
 export interface Snapshot {
   llm: { ready: boolean; error: string };
   /** The map the player is on: a village, or one of the localities around it (N15). Walk onto an exit to go there. */
@@ -291,7 +300,7 @@ export interface Snapshot {
    * without a realm). Who they are is GET /api/crowd (CrowdRoster, fetched once per map);
    * where they are is worked out from it and the clock (crowd.ts), with today's conditions here.
    */
-  crowd: { map: string; count: number; day: CrowdDay } | null;
+  crowd: { map: string; count: number; day: CrowdDay; told?: GossipTold[] } | null;
   /** N16: real seconds per game minute while the player stands about (POST /api/tick), or 0 when time waits for the player. */
   timeFlowSeconds: number;
   /**

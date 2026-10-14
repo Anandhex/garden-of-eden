@@ -8,7 +8,10 @@ import spawnsJson from "./fixtures/spawns.json" with { type: "json" };
 import { loadCreatureTemplates } from "../src/game/creatures.js";
 import type { WorldStore } from "../src/game/db.js";
 import type { Rng } from "../src/game/dice.js";
+import type { Realm } from "../src/game/realm/types.js";
+import { pickStartSite } from "../src/game/realm/start.js";
 import { newWorld, type SavedWorld } from "../src/game/save.js";
+import type { PersonRow } from "../src/store/peopleStore.js";
 import { parseSpawnRules } from "../src/game/spawning.js";
 import { Town } from "../src/game/town.js";
 import type { ChatRequest, ChatResult, LLMProvider } from "../src/llm/provider.js";
@@ -116,4 +119,23 @@ export function talkerByJob(town: Town, job: string): NpcPersona | undefined {
   if (job === "head") return headId ? town.personas[headId] : undefined;
   const words = new RegExp(`\\b${job}\\b`, "i");
   return town.talkersAt(site).map((id) => town.personas[id]!).find((p) => p.template === job || words.test(p.role));
+}
+
+/**
+ * The places the done-whens name (plans README section 12): the start town, and its liege (the town it answers to, a day's walk
+ * away). Found, never looked up by name.
+ */
+export function pickTestPlaces(realm: Realm, startSite?: string): { start: string; liege: string } {
+  const start = startSite ?? pickStartSite(realm, realm.seed);
+  const s = realm.settlements[start]!;
+  const above = (id: string | null | undefined) => (id && realm.settlements[id] && !realm.settlements[id]!.abandoned ? id : null);
+  const liege = above(s.liege) ?? s.roads.filter((id) => realm.settlements[id] && !realm.settlements[id]!.way).sort()[0]!;
+  return { start, liege };
+}
+
+/** A living adult of a place picked by what they do, never by name (plans README section 12): the first by id. */
+export function pickTestPerson(store: WorldStore, site: string, want: { job?: string; cls?: string } = {}): PersonRow | undefined {
+  return (store.people.loadSite(site, "full") as PersonRow[])
+    .filter((r) => !r.away && r.persona === null && (!want.job || r.job === want.job) && (!want.cls || r.cls === want.cls))
+    .sort((a, b) => (a.id < b.id ? -1 : 1))[0];
 }

@@ -9,6 +9,7 @@ import { $ } from "../dom";
 import { api } from "./api";
 import { nav } from "./nav";
 import { EventsView } from "./views/events";
+import { GossipView } from "./views/gossip";
 import { HealthView } from "./views/health";
 import { OverviewView } from "./views/overview";
 import { PinnedView } from "./views/pinned";
@@ -24,6 +25,7 @@ const views: Record<string, View> = {
   search: new SearchView(),
   pinned: new PinnedView(),
   roads: new RoadsView(),
+  gossip: new GossipView(),
   health: new HealthView(),
 };
 let tab = "overview";

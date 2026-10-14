@@ -66,6 +66,7 @@ import { firstImpression } from "../game/reputation.js";
 import { deliverMessages, recordNpcDefeat } from "../game/quests.js";
 import { advanceArcs } from "./arcs.js";
 import { confrontRumour, rumourToShare, shareRumour } from "../game/rumours.js";
+import { playerLearns } from "../game/playerKnowledge.js";
 import { isNewsTalk, knowsOf, lookupLore } from "./knowledge.js";
 import { caughtStealing, isSneaking, steal as tryToSteal, type StealResult } from "../game/stealth.js";
 import { chooseDilemma, dilemmasFor, presentDilemma, type ChoiceResult } from "../game/dilemmas.js";
@@ -277,6 +278,9 @@ export class NpcAgent {
     // What the player learns from them is theirs now: facts for arcs and cover stories (N9.1).
     const knowing = { ...this.persona, knows: knowsOf(this.persona, s) };
     for (const { entry } of lookupLore(knowing, line, undefined, new Set(world.recentEvents)).known) {
+      // Realm news they tell is news the player now has, from them (N33).
+      const news = entry.kind === "news" ? /^realm\.(rn\d+)$/.exec(entry.id) : null;
+      if (news) playerLearns(player, `n:${news[1]}`, "told", world.day, { from: this.persona.id, accuracy: s.learned[entry.id] === "rumour" ? 0.7 : 1, text: entry.text });
       const fact = `lore:${entry.id}`;
       if ((player.facts ?? []).includes(fact)) continue;
       (player.facts ??= []).push(fact);

@@ -597,7 +597,9 @@ function snapshot(): Snapshot {
       : { id: here().id, name: here().name, w: here().w, h: here().h, tiles: here().tiles, buildings: here().buildings, talkRange: TALK_RANGE, exits: here().exits.map((e) => ({ x: e.x, y: e.y, label: e.label })), zones: here().zones },
     crowd: (() => {
       const sim = crowdHere();
-      return sim ? { map: sim.map.id, count: sim.roster.people.length, day: crowdDay() } : null;
+      if (!sim) return null;
+      const told = town.toldLately();
+      return { map: sim.map.id, count: sim.roster.people.length, day: crowdDay(), ...(told.length > 0 ? { told } : {}) };
     })(),
     timeFlowSeconds: config.timeFlowSeconds,
     site: siteView(),
@@ -958,6 +960,8 @@ async function act(body: Record<string, unknown>, emit: Emit): Promise<void> {
       agent.state.outcome = null;
     }
     setScene(id);
+    // What they know of the wider world, now (N33): the townsfolk they talked to, the travellers who passed.
+    town.syncTalker(id);
     emit({ t: "opened", npc: id });
     // They may speak first (N6.3): a job they gave you, a promise due, a greeting.
     if (!agent.state.inCombat && !agent.busyWith(world) && llmReady) {

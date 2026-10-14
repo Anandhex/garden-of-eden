@@ -8,6 +8,7 @@ import { chainOf, titled } from "../game/realm/figures.js";
 import { rankIn } from "../game/realm/factions.js";
 import { lineageOf } from "../game/people/index.js";
 import { deathWords, parseDeath } from "../game/people/death.js";
+import { describeKnown } from "../game/gossip/describe.js";
 import { outlookOf } from "../game/people/outlook.js";
 import { ageFrom } from "../game/people/rules.js";
 import { traitsOfRow } from "../game/people/traits.js";
@@ -275,6 +276,26 @@ function lifeSections(ctx: AdminContext, row: PersonRow): AdminSection[] {
   return out;
 }
 
+/** What a townsperson knows of the wider world (N33): each thing as they would tell it, how sure they are, who told them and when, and the truth beside it when their version differs. */
+function knowsSection(ctx: AdminContext, row: PersonRow): AdminSection {
+  const world = ctx.world();
+  if (!ctx.store || !world.realm) return { title: "Knows", unavailable: "no database" };
+  const life = { realm: world.realm, store: ctx.store };
+  const rows = ctx.store.knowledge.rowsOf(row.id);
+  if (rows.length === 0) return { title: "Knows", rows: [["Nothing yet", "has heard nothing worth repeating"]] };
+  return {
+    title: "Knows",
+    rows: [...rows]
+      .sort((a, b) => b.learned_day - a.learned_day || (a.ref < b.ref ? -1 : 1))
+      .map((r): [string, string] => {
+        const told = describeKnown(life, r.ref, r.accuracy, r.variant) ?? `${r.ref} (forgotten by the record)`;
+        const truth = r.variant !== 0 ? describeKnown(life, r.ref, 1, 0) : null;
+        const from = r.source === "saw" ? "saw it" : r.source.startsWith("carrier:") ? "a traveller" : (ctx.store!.people.get(r.source)?.name ?? r.source);
+        return [told, `${pct(r.accuracy)} sure, from ${from}, day ${r.learned_day}${truth ? `. The truth: ${truth}` : ""}`];
+      }),
+  };
+}
+
 /** A townsperson's outlook (N25b): how they see whoever rules, their mood, what they want and who they hold a grudge against, as code's reviews left it. */
 function outlookSection(row: PersonRow, head: { name: string } | undefined): AdminSection {
   const o = outlookOf(row);
@@ -327,7 +348,7 @@ function awayCard(ctx: AdminContext, row: PersonRow): AdminCard {
     site: row.site,
     siteName: place?.name ?? null,
     doing: j ? `${j.where} (${parseAway(row.away)?.purpose ?? "on a journey"})` : "away",
-    sections: [...(roadSection(ctx, row) ? [roadSection(ctx, row)!] : []), ...lifeSections(ctx, row)],
+    sections: [...(roadSection(ctx, row) ? [roadSection(ctx, row)!] : []), ...lifeSections(ctx, row), knowsSection(ctx, row)],
     ...(j ? { road: { journey: j.id, x: j.x, y: j.y, state: j.state } } : {}),
   };
 }
@@ -385,6 +406,7 @@ function townspersonCard(ctx: AdminContext, id: string): AdminCard | null {
     },
     ...(row && row.away !== null && roadSection(ctx, row) ? [roadSection(ctx, row)!] : []),
     ...(row ? lifeSections(ctx, row) : []),
+    ...(row ? [knowsSection(ctx, row)] : []),
     ...(row && !row.persona ? [outlookSection(row, world.realm!.settlements[row.site]?.leader ? world.realm!.figures[world.realm!.settlements[row.site]!.leader!] : undefined)] : []),
     ...(row && row.persona ? [] : [{ title: "Needs, emotions, goals", unavailable: "N25: townsfolk's needs and feelings are worked out by code (their outlook is above); they get a full set of their own once they talk to the player" } as AdminSection]),
   ];

@@ -7,7 +7,7 @@
  */
 import * as Phaser from "phaser";
 import { CLASS_RANK, type Snapshot } from "@millbrook/shared";
-import { crowd, crowdChats, person, promoted } from "../crowd";
+import { crowd, crowdChats, freshTold, person, promoted } from "../crowd";
 import { nearestShown, walkAt } from "./frame";
 import { hexColor, ORIGINS, TILE } from "./textures";
 
@@ -50,13 +50,15 @@ export class CrowdLayer {
   private moving = new Set<number>();
   private map: string | null = null;
   private lastMinute = -1;
+  /** The last gossip bubble shown (N33): each thing said is shown once. */
+  private lastTold = 0;
   /** The person the pointer is on. */
   hover: number | null = null;
 
   constructor(private readonly scene: Phaser.Scene) {
     const style = { fontFamily: "system-ui, sans-serif", fontSize: "10px", color: "#f3e9d2", stroke: "rgba(0,0,0,0.8)", strokeThickness: 3 };
     for (let i = 0; i < LABELS + 1; i++) this.labels.push(scene.add.text(0, 0, "", style).setOrigin(0.5, 1).setResolution(DPR).setDepth(900).setVisible(false));
-    for (let i = 0; i < BUBBLES * 2; i++) {
+    for (let i = 0; i < BUBBLES * 2 + 1; i++) {
       const bg = scene.add.graphics();
       const text = scene.add.text(0, 0, "", { fontFamily: "system-ui, sans-serif", fontSize: "11px", color: "#1d2026", wordWrap: { width: 150 } }).setOrigin(0.5, 1).setResolution(DPR);
       const c = scene.add.container(0, 0, [bg, text]).setDepth(950).setVisible(false);
@@ -130,6 +132,7 @@ export class CrowdLayer {
       }
     });
     this.talk(s);
+    this.gossip(s);
   }
 
   private place(sp: Sprite, x: number, y: number, bob: number): void {
@@ -180,6 +183,15 @@ export class CrowdLayer {
     });
   }
 
+  /** Someone of the place just passed something on (N33): a bubble over them, on a slot of its own, if they are on screen. */
+  private gossip(s: Snapshot): void {
+    const fresh = freshTold(s, this.lastTold);
+    if (fresh.length === 0) return;
+    this.lastTold = Math.max(...fresh.map((t) => t.seq));
+    // Many are indoors (a household, a workplace): the bubble goes over the first who is out on the map.
+    for (const t of fresh) if (this.say(BUBBLES * 2, t.who, t.line, 0, this.scene.time.now + 5200)) break;
+  }
+
   /** A new minute: a few of the conversations in view, nearest the player first. */
   private talk(s: Snapshot): void {
     const v = this.scene.cameras.main.worldView;
@@ -204,10 +216,10 @@ export class CrowdLayer {
     });
   }
 
-  private say(slot: number, who: number, line: string, lift: number, until: number): void {
+  private say(slot: number, who: number, line: string, lift: number, until: number): boolean {
     const say = this.says[slot];
     const sp = this.sprites[who];
-    if (!say || !sp?.shown) return;
+    if (!say || !sp?.shown) return false;
     const clean = line.length > 70 ? `${line.slice(0, 68)}…` : line;
     say.text.setText(clean).setFontStyle(line.startsWith("*") ? "italic" : "normal");
     const w = Math.max(24, say.text.width + 12);
@@ -220,6 +232,7 @@ export class CrowdLayer {
     say.until = until;
     say.lift = lift;
     say.c.setPosition(sp.body.x, sp.head.y - 12 - lift).setVisible(true);
+    return true;
   }
 
   private emote(who: number, symbol: string): void {

@@ -1,4 +1,5 @@
 import { note } from "./journal.js";
+import { playerLearns } from "./playerKnowledge.js";
 import type { NpcPersona, NpcState, PlayerState } from "../npc/types.js";
 
 /**
@@ -40,6 +41,9 @@ export interface HeardRumour {
   day: number;
   /** They've passed it on to the player. */
   toldPlayer?: boolean;
+  /** What townsfolk gossip knows it as (`d:<personId>`, `n:<newsId>`: game/gossip/refs.ts) and which detail was changed in the telling (N33). */
+  ref?: string;
+  variant?: number;
 }
 
 /** Accuracy lost each time a rumour is passed on. */
@@ -111,6 +115,8 @@ function hedge(r: HeardRumour): string {
  */
 export function shareRumour(persona: NpcPersona, state: NpcState, rumour: HeardRumour, player: PlayerState, names: Record<string, string>, day: number): string {
   rumour.toldPlayer = true;
+  // What the player now knows is the version they were told (N33).
+  if (rumour.ref) playerLearns(player, rumour.ref, "told", day, { from: persona.id, accuracy: rumour.accuracy, variant: rumour.variant ?? 0, text: rumour.text });
   note(player, { id: `rumour:${rumour.about}.${rumour.fact}`, day, npc: rumour.about, kind: "rumour", text: `${persona.name} says ${rumour.text}. (Unconfirmed)` });
   return `${hedge(rumour)} that ${rumour.text}. If the talk turns to ${names[rumour.about] ?? "it"}, pass it on in your own words.`;
 }

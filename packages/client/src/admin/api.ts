@@ -5,7 +5,9 @@ import type {
   AdminEvent,
   AdminEventQuery,
   AdminEventsPage,
+  AdminGossip,
   AdminHealth,
+  AdminKnowers,
   AdminOverview,
   AdminNewsChain,
   AdminPinned,
@@ -45,6 +47,8 @@ export const api = {
   pinned: (refs: string[]) => get<AdminPinned>(`pinned${params({ refs: refs.join(",") })}`),
   player: () => get<AdminPlayerView>("player"),
   roads: () => get<AdminRoads>("roads"),
+  gossip: () => get<AdminGossip>("gossip"),
+  knowers: (ref: string) => get<AdminKnowers>(`knowers${params({ ref })}`),
   chain: (news: string, site: string) => get<AdminNewsChain>(`chain${params({ news, site })}`),
   crowd: (site: string) => get<AdminCrowd>(`crowd${params({ site })}`),
   async time(req: AdminTimeRequest): Promise<AdminTimeResponse> {

@@ -269,7 +269,7 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 
 ## N33: Gossip for everyone
 
-**Status:** ⬜ Planned
+**Status:** ✅ Built (2026-10-14; save v15, database schema 6). The hourly bubbles are drawn over the speaker, not between a chatting pair (see **What differs**).
 
 **Implementation plan:** [plans/n33-gossip-for-everyone.md](plans/n33-gossip-for-everyone.md)
 
@@ -279,14 +279,27 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 - **Who meets:** people are grouped by where they actually are (workplace, inn, market, home, from N16's `CrowdSim`); pairs are sampled within a group, weighted by sociability and relationship.
 - **What they know:** each townsperson keeps a compact record (news id, accuracy, who told them, when), not full memories. Full memories start when they become a talking NPC, seeded from that record.
 
-- [ ] Group-based meeting and pair sampling for townsfolk, at the level of detail from N25
-- [ ] Compact knowledge per person; credence from trust and affection as in N7 (`credence`)
-- [ ] **Between places:** news travels with carriers (real travellers, caravans, migrants, adventurers, crown couriers: N26 Part E, swapped at inns and stops); it arrives late and can be distorted
-- [ ] Retelling loses accuracy (N7's rumours), now for everyone
-- [ ] Townsfolk's knowledge carries into their persona when the player first talks to them
-- [ ] Tests, README, this roadmap
+- [x] Group-based meeting and pair sampling for townsfolk, at the level of detail from N25
+- [x] Compact knowledge per person; credence from trust and affection as in N7 (`credence`)
+- [x] **Between places:** news travels with carriers (real travellers, caravans, migrants, adventurers, crown couriers: N26 Part E, swapped at inns and stops); it arrives late and can be distorted
+- [x] Retelling loses accuracy (N7's rumours), now for everyone
+- [x] Townsfolk's knowledge carries into their persona when the player first talks to them
+- [x] Tests, README, this roadmap
 
 - **Done when:** a death in Millbrook reaches a labourer in Highdale only after a caravan or traveller has gone between them; a townsperson the player has never met can tell the player a rumour, slightly wrong; 3,000 people in a capital gossip without dropping below 60 fps.
+
+**Built:** `packages/server/src/game/gossip/`: `refs.ts` (what can be known: `n:<newsId>`, `d:<personId>`, `e:<eventId>`), `describe.ts` (`describeKnown` and the variants: `field × 16 + alt`, 1 who / 2 where / 3 how many / 4 why), `knowledge.ts` (`learn` with the cap of 24 and what is forgotten, `tellable`, `retell`), `venues.ts` (household, workplace, the inn, the market on market days, the temple on rest days, with their hours), `spread.ts` (`spreadSite`: the day's talk, or one hour of it), `seed.ts` (who knows a death or a local event at once), `meet.ts` (a journey's party and the people they meet at a stop), `talkers.ts` (a talker's row and lore, both ways), `day.ts`, `bounds.ts`; `store/knowledgeStore.ts` (the `knowledge` table, with a write-through cache); `game/playerKnowledge.ts` (N24 step 1: `player.known`, `playerKnows`, `playerLearns`, `knownRefs`); `admin/gossip.ts`, the admin page's Gossip tab and a *Knows* section on a townsperson's card; `Town.syncTalker` / `gossipHours` / `toldLately`; the client's gossip bubbles (`crowd.ts` `freshTold`, `CrowdLayer.gossip`); `tests/n33.test.ts` (25 tests) and two in `client/tests/frame.test.ts`. Schema 6 adds `knowledge.variant`; save v15 adds `player.known` (a v14 save loads as it is).
+
+**What differs from the plan:**
+- **One daily step, not a pair loop.** Each day, for every live place (after its people's day, and in a lazy place's catch-up the same way), everyone who knows something (and feels like talking: a fixed sociability from who they are) tells it to a few others of each venue they are in; at most 24 speakers per venue per day, so a crowd's spread is slower and costs no more than a small place's. A place where nobody knows anything costs one pass over its people. Measured (seed 1, 24,000 people in 100 places): about 110 ms a game day for the whole realm, about a third of the people's own day.
+- **Each retelling loses 10%, not 20%** of accuracy (`GOSSIP_LOSS`), times how far the listener believes the teller (0.85 to 0.95 by venue: relationships are N37's, so there is no per-pair credence yet). The talkers' own rumours keep `RETELL_LOSS` (0.2). A thing is dropped below 30%. Whether a listener takes in a small matter is a roll against how much it is worth (`interestIn`); a stranger's news always is. Someone else's death is worth less to a listener in a big town (people know about 60 others: `ACQUAINTANCES`).
+- **Who knows at first.** A death is known to the family, the household, six workmates and 4% of the neighbours; news of a deed in a place is seen by 20% of its people (at most 30) on the day or, if the player did it after the place's day, the next. Deaths away from home are not seeded: word comes home with a traveller.
+- **News enters a place with a person.** `journey.carries` stays place-level news (so `reachesAt` and the news chain are as Part E built them); on top of it, at every stop the party's members hold what they carry as their own rows and talk with up to six of the place's people (the most sociable of a random dozen), each side telling the other its best two things in its own version. The news the party brought is told to someone who met them, so a place that heard has a person who knows. Migrants take their rows with them. A crown courier (a figure, with no row of their own) cries the news to the first four who gather.
+- **A retelling changes one detail with chance `1 − accuracy`, and keeps what the teller changed.** Which detail is chosen from what the thing has (the person, the place, a number, the cause); the admin view shows the version beside the truth.
+- **Talkers and townsfolk share rows.** A townsperson who becomes a talker (`meetTownsperson`), and every talker when the player opens a conversation or an hour passes, gets what their row knows (news told straight becomes lore; a death, or news told with a changed detail, becomes a rumour in the version they heard, with how sure they are); news a talker learned goes into their row. When the player asks for gossip, `shareRumour` records what they were told in `player.known` (version, accuracy, who told them), and the journal note says it.
+- **The player's place talks by the hour** (`Town.gossipHours`): each hour only the venues open then, each at its share of the day's talk, replacing the daily spread there (not the day's seeding). The client shows what was passed on in a bubble over the speaker (its roster person), not over a pair of chatting people, because the browser doesn't know who knows what.
+- **Balance bounds** (`gossip/bounds.ts`): `knowledge-bounded` (rows ≤ 24 per person) and `gossip-not-instant` (no row is dated before the thing happened). That a far event reaches a place only with a traveller is a test with journeys on and off, not a bound, because a teller who forgot something and heard it again would look like an early row.
+- **Not done:** the place's "talk of the town" (`recentEvents`, what its talkers talk about) is still made by `deliverNews`, not read from the knowledge rows; per-pair credence (N37), festivals as a venue, `r:` refs (talkers' rumours about each other are still `gossipTogether`'s), letters, the player's journal pane showing the told version beyond the existing note (N65), the rest of N24 (`deliverToPlayer`, the feed reading only knowledge).
 
 ## N34: Following people in the game
 

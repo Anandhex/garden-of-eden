@@ -70,6 +70,8 @@ export const config = {
   peopleLive: process.env.PEOPLE_LIVE ?? "all",
   // Settlements whose days are only worked out when something needs them (comma-separated ids): the result is the same as daily.
   peopleLazy: process.env.PEOPLE_LAZY ?? "",
+  /** Townsfolk pass what they know on to each other (N33). GOSSIP=off turns it off. */
+  gossip: (process.env.GOSSIP ?? "on") !== "off",
   // Lives that change (N25b, npc/review/): every person is reviewed every `everyDays` days (spread by a seeded offset), and the same
   // day when a big event hits their life (an impact of `shockImpact` or more). Talkers are reviewed by the model, `batch` to a call
   // (code checks every proposal); everyone else, and any talker the model can't serve, by code's rules. REVIEWS=off: no model
