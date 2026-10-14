@@ -163,6 +163,8 @@ See the world, keep it fast and stable, and know what the player knows. Everythi
 
 **Implementation plan:** [plans/n24-global-reporting.md](plans/n24-global-reporting.md)
 
+**Changed by N26 Part E (2026-10-14):** news reaches a place only when a real traveller brings it (swapped at the inns along the road; couriers for great news), not on a computed timetable; see [N26 Part E](plans/n26-the-open-road.md#part-e-everyone-on-the-road-is-someone-rework-asked-for-2026-10-14).
+
 **Goal:** the player's feed covers the whole realm, not just Millbrook, without spoiling what the player shouldn't know yet.
 
 **The rules:** the player's feed shows what **the player** knows: events they saw, and news once it has reached them (N13.0's death news, carried as in N33). The admin view (N17) shows the truth. These two stay separate.

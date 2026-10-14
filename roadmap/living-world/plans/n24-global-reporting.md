@@ -4,6 +4,8 @@
 
 **In one line:** the player has a knowledge record of their own; the feed shows only what's in it, in three scopes (here, my kingdom, everywhere); news reaches **every place** at the speed travellers carry it, so the player, and the talking people of every town, learn it when it reaches *their* place, not Millbrook; and the feed stops reporting Millbrook's trades when the player is somewhere else.
 
+> **Changed by [N26 Part E](n26-the-open-road.md#part-e-everyone-on-the-road-is-someone-rework-asked-for-2026-10-14) (2026-10-14):** news no longer follows a computed relay or a formula. A place hears a piece of news only when a real traveller brings it, and travellers swap news at the inns along the road (crown couriers carry great news). `reachesAt(news, site)` becomes "the day this place heard it, or not yet". The player learns news from the place they're in and from the travellers they meet. Where this plan computes arrival days in advance, Part E replaces it.
+
 **Read first:** [plans README](README.md) section 3 (truth vs knowledge). Needs N17 (admin view, the truth side) and N18 (events with `site`/`kingdom` columns).
 
 ## What exists

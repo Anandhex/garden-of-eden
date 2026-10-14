@@ -10,6 +10,8 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 
 **Implementation plan:** [plans/n25-townsfolk-lives.md](plans/n25-townsfolk-lives.md)
 
+**Changed by N26 Part E (2026-10-14):** migration becomes a journey (depart, walk, arrive); see [N26 Part E](plans/n26-the-open-road.md#part-e-everyone-on-the-road-is-someone-rework-asked-for-2026-10-14).
+
 **Goal:** ordinary townsfolk age, marry, have children and die, so a place's population is a count of real people, and a townsperson's child can grow up to become a named or talking NPC.
 
 **The rules:** levels of detail, all in code, no model calls:
@@ -99,7 +101,7 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 
 ## N26: The open road
 
-**Status:** ✅ Built (all four parts; see **What differs** below)
+**Status:** 🟡 Built (parts A–D; see **What differs** below); **Part E planned** (2026-10-14): everyone on the road is a real, trackable person, news travels by people through the inns, and people make real trips and migrate by need
 
 **Implementation plan:** [plans/n26-the-open-road.md](plans/n26-the-open-road.md)
 
@@ -120,8 +122,15 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 - [x] **Fast travel only as a choice:** only along roads the player has already walked, and it still stops for anything worth stopping for (N35); a paid coach or boat as the in-world way to skip a known stretch
 - [x] Performance: chunks streamed and simulated by level of detail (N25), inside N19's budgets
 - [x] Tests, README, this roadmap
+- [ ] **Part E: everyone on the road is someone** (user request 2026-10-14; [plan](plans/n26-the-open-road.md#part-e-everyone-on-the-road-is-someone-rework-asked-for-2026-10-14)): no traveller is made up for a journey; every party member is a person row (or a figure with one) the admin view can find, pin and follow; people can be `away` from home without leaving it, and nobody is in two places at once
+- [ ] **Real trips with real reasons:** farmers to market and back, caravans run by a town's own merchants, carters and guards, visits to kin in other places, labourers seeking work (some stay), pilgrims, patrols of a town's guards, tax collectors carrying the coin, crown couriers, adventurers who are the delving figures themselves (the delve happens when they arrive), refugees from war or famine
+- [ ] **Visitors in towns and inns:** travellers staying in a town or at an inn are in its crowd and can be talked to
+- [ ] **Migration as a journey:** households depart, walk the days between and only then become residents; destinations weigh food, prosperity, safety, crowding, kin already there, work and law, across kingdoms for the free
+- [ ] **News by people, through inns:** the computed relay goes; a place hears news only when a traveller brings it; travellers swap news at the inns along the road; couriers carry great news; the chain of who carried it is in the record
+- [ ] **Off-screen meetings:** journeys passing a gang's ambush or a hungry pack are resolved in code (robberies, injuries, deaths on real people, news of it); patrols make roads safer
+- [ ] **Situations with people who are really there:** actors are travellers near that stretch of road or residents of the nearest roadside place; no suitable person, no situation
 
-- **Done when:** walking from Millbrook to Highdale takes a set number of real minutes over several chunk maps; on the way the player meets real travellers (one carries news the player didn't have), stops at a roadside inn for the night, helps or ignores someone in trouble with consequences later, and sees the same road again on the way back; fast travel is offered only for the stretch already walked.
+- **Done when:** walking from Millbrook to Highdale takes a set number of real minutes over several chunk maps; on the way the player meets real travellers (one carries news the player didn't have), stops at a roadside inn for the night, helps or ignores someone in trouble with consequences later, and sees the same road again on the way back; fast travel is offered only for the stretch already walked. **Part E done when:** over 60 days every person on every road is a person row the admin view can find and follow, nobody is in two places at once, people go to market, visit kin, seek work, migrate toward better places and arrive days later, news reaches a town only when someone brings it (swapped at inns along the way, couriers for great news), and a caravan robbed off-screen changes the realm.
 
 **Built:** `packages/shared/src/road/` (scale, noise, types, geometry, graph, chunk, journey), `packages/server/src/game/road/` (generateRoads, waystations, ground, walk, hud, play, journeys, sources, moves, relay, travellers, situations, threats, needs, mounts, camp, fast, coach, caravans, bounds), 14 situation files in `data/situations/`, the client's `RoadLayer`, `travellers.ts`, `roadData.ts`, `ui/roadbar.ts`, and `tests/n26.test.ts` (30 tests, including each done-when).
 
@@ -182,6 +191,8 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 
 **Status:** ⬜ Planned
 
+**Implementation plan:** [plans/n29-a-soundscape.md](plans/n29-a-soundscape.md)
+
 **Goal:** the world sounds alive: places, times, weather, crowds and wildlife each have their own sound.
 
 **The rules:** ambient sound is chosen in the client from state the client already has (place, area, time, weather, N16's crowd nearby, N28's wildlife, N36's mood), so it costs no server time. Speech stays with the existing voices (Piper, T14).
@@ -201,6 +212,8 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 
 **Status:** ⬜ Planned
 
+**Implementation plan:** [plans/n30-seasons-and-the-farming-year.md](plans/n30-seasons-and-the-farming-year.md)
+
 **Goal:** the year has a rhythm that every system follows.
 
 **The rules:** the calendar decides the season; the season changes what code does: food made, prices, schedules, travel, beasts and festivals. Seeded weather (N6) is weighted by season.
@@ -219,6 +232,8 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 
 **Status:** ⬜ Planned
 
+**Implementation plan:** [plans/n31-visible-consequences.md](plans/n31-visible-consequences.md)
+
 **Goal:** what happened can be seen where it happened.
 
 **The rules:** a place's map is still generated from a seed (N15), and its **marks** (damage, works in progress, graves) are laid over it from the realm's state. Marks fade or are repaired over time in code.
@@ -236,6 +251,8 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 
 **Status:** ⬜ Planned
 
+**Implementation plan:** [plans/n32-interiors-and-homes.md](plans/n32-interiors-and-homes.md)
+
 **Goal:** buildings can be entered, and a home shows who lives there.
 
 **The rules:** every building gets an interior map, generated by seed from its kind and its owner's class, wealth and trade (N16's roster), so a serf's hovel, a merchant's house and a lord's hall differ and stay the same between visits. Belongings are kept per household, cheaply (N18), and become real items when touched.
@@ -252,6 +269,8 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 ## N33: Gossip for everyone
 
 **Status:** ⬜ Planned
+
+**Implementation plan:** [plans/n33-gossip-for-everyone.md](plans/n33-gossip-for-everyone.md)
 
 **Goal:** every person in the world takes part in gossip, not just the cast and the people the player has talked to, and news travels between places with real carriers.
 
@@ -272,6 +291,8 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 
 **Status:** ⬜ Planned
 
+**Implementation plan:** [plans/n34-following-people.md](plans/n34-following-people.md)
+
 **Goal:** the player can follow people they care about from inside the game, and hears about them as news reaches them.
 
 **The rules:** the in-game version of N17's pin, bound by what the player knows (N24): following someone means news of them is noticed and kept when it reaches the player, not that the player sees them.
@@ -288,6 +309,8 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 
 **Status:** ⬜ Planned
 
+**Implementation plan:** [plans/n35-moving-through-time.md](plans/n35-moving-through-time.md)
+
 **Goal:** the player gets past the slow parts of a big simulation without missing what matters.
 
 **The rules:** waiting and travelling run the world fast (N25's levels of detail and catch-up) and stop when something happens that the player would care about: to them, to people they follow (N34), or where they are.
@@ -302,6 +325,8 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 ## N36: The mood of a place
 
 **Status:** ⬜ Planned
+
+**Implementation plan:** [plans/n36-the-mood-of-a-place.md](plans/n36-the-mood-of-a-place.md)
 
 **Goal:** a place has a shared mood that people feel and act on.
 

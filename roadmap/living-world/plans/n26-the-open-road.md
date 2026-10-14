@@ -116,6 +116,87 @@
 - README: walking the realm, the time scale, fast travel rules.
 - Play it: walk Millbrook → liege town and back; write down what's fun and what's empty, and bring that to the slice's notes.
 
+## Part E: everyone on the road is someone (rework, asked for 2026-10-14)
+
+**The user's words:** "I don't want random travellers in the world … everyone should be present via the database and can be tracked; the news spreads from the inns along the road; people travel to nearby villages, cities, hamlets and kingdoms; some migrate based on prosperity or their needs."
+
+### What N26 built that this changes
+- **Travellers are made up for the journey.** `sources.ts` makes caravans, patrols, pilgrims, adventurers and messengers with `hand()`: a random name and role from the journey's stream (`personName`), not a person in the `people` table. Talking to one makes a talker `v_<journey>_<k>` under the pseudo-site `"road"` (`travellers.ts`, `personaOnRoad` builds a figure in a scratch realm and throws it away). Road situations make actors the same way (`x_<key>_<n>`, `Town.meetRoadPerson`).
+- **Migrants are real but in two places at once.** N25's `moveHouseholds` (people/migration.ts) changes their `site` to the new town **on the day they leave**; then `recordMove` → `walkers()` sets the same people walking the road for days. So they live in the new town (and are counted, stepped and drawn there) while also on the road.
+- **News follows a computed relay, not people.** `relay.ts` runs a shortest-time search from where news happened, with a "fresh messenger" per hop; `reachesAt` reads it; messenger journeys are drawn to match it. Whether anyone actually carried it doesn't matter.
+- **Adventurers on the road aren't the ones who delve.** `dungeonsDay` (realm/wilds.ts) delves with figures the same day, wherever they are; the adventurer journeys are other, invented people.
+- **Off-screen, travellers meet nothing.** Packs and gangs threaten only the player (`threats.ts`); a caravan walks through an ambush untouched.
+
+### Decisions
+1. **Every traveller is a person row (or a realm figure that has one).** A journey's party is a list of **person refs**, never made-up names. Nobody is created for a journey. The `Traveller` type keeps `name`/`role` only as a cache for drawing; `person` becomes required. `hand()`, `personaOnRoad`'s scratch figure, `travellerId` (`v_<journey>_<k>`), `ROAD_SITE` and `x_` actors are deleted.
+2. **Being away is state on the person, not a second copy.** New column `people.away` (JSON or null): `{ journey, since, purpose, returns: boolean }`. While away:
+   - their `site` stays their **home** (a round trip) or their **old home** (a migration, until they arrive);
+   - their home town's crowd, roster and hourly day **skip them** (`rosterAt` filters `away`), but they still count as its people;
+   - where they are right now is the journey's formula (`positionAt`): on a road, staying the night at an inn, or visiting a town;
+   - they still age, can die, marry nobody, and have a life review (N25b) like anyone; their death while away is a death **on the road** (`DeathRecord.site` = the road or the inn where it happened).
+   Talkers (`world.talkers`) keep their persona id and home `site`; `placeOf` reads `away` and the journey.
+3. **Visitors appear in the towns they visit.** A town's roster for the crowd = its people not away + **visitors**: people whose journey has them staying there now (a market day, a night at the inn, a visit to kin). Visitors get a short plan (`CrowdSim`): market or the person they came to see by day, the inn by night. They can be talked to (they're talkers or become talkers, as anyone). The inns along the road (waystation hamlets) host the travellers stopping for the night the same way.
+4. **Why people travel: real reasons from their row, their town and their kin.** Each source picks **real people** by job, class and circumstance, at their own seeded stream (`streamFor(seed, "trips", site, day, kind)`), and only free people go (serfs and slaves travel only with or for their masters; runaways are N59):
+   | Trip | Who goes (from the `people` table) | Where | Comes back? |
+   |---|---|---|---|
+   | **Market** | farmers, stallholders, weavers, potters of villages and hamlets | the liege town or the nearest town on its market day (N25a per-site market days) | yes, next day |
+   | **Caravan** | a merchant of the town + carters/porters of the same town + guards (job `guard`) hired from it | a town or city within a few days, by trade treaties and prices | yes, after selling |
+   | **Visiting kin** | anyone with a living spouse, parent, child or sibling in another place (N25 rows: migration splits families) | that place | yes, after a few days |
+   | **Seeking work** | grown labourers and porters without work, apprentices without a master, in a poor or crowded place | a richer town within reach | sometimes not: if they find work, it becomes a **migration** (decision 5) |
+   | **Pilgrimage** | clergy and devout commoners (traits; N50 later) | a place with a bigger temple | yes |
+   | **Patrol** | the town's guards (job `guard`) and their captain figure | the crown's roads within its kingdom | yes, a loop |
+   | **Officials** | the tax collector (a clerk of the liege) on tax days, carrying the coin `taxDay` moves; a lord's steward | the vassal places and back | yes |
+   | **Couriers** | crown couriers (a new job `courier` in capitals and cities, posts like innkeepers) for news of importance ≥ 7 | along the kingdom's roads to each town | yes |
+   | **Adventurers** | the guild's adventurers: the **same figures** `dungeonsDay` picks for a delve | the dungeon's mouth; the delve resolves **when they arrive**, not the day they're picked | the survivors |
+   | **Migration** | households (N25: food, raids, crowding, a poor place vs a richer one, a review's `move` goal, N25b) | the place they chose | **no**: they become residents on arrival (decision 5) |
+   | **Refugees** | everyone free who can walk from a place at war, besieged or starving | the nearest safe place, across a border if that's nearer | maybe, when it's safe |
+   Each source has a daily cap and a share of the population (config in one table), tuned by N22's bounds so roads are neither empty nor clogged.
+5. **Migration is a journey with an arrival.** N25's daily decision (who leaves, where to) stays in `migration.ts`, but `moveHouseholds` no longer changes `site` at departure. It **departs** them (sets `away` with `returns: false`) and launches the journey; on the **arrival day** (from the journey's timeline) the people step applies the move to both places (`ensureCurrent` both first, as now: house, `n`, work, servant ties). Population counts stay at the old place until arrival. The choice of destination is scored from needs: food, prosperity, safety (war, raids), crowding, **kin already there**, work demand (jobs the destination is short of), and law (a free person won't move into a slave kingdom's lower class; N59 later for runaways). Crossing into another kingdom is allowed for the free (a toll at the border, `tollGates`).
+6. **News spreads by people, through inns.** The relay goes. A piece of news is **known by places** (`SiteState.newsSeen` with the day) and **carried by travellers** (`journey.carries`):
+   - When news happens at a place, that place knows it at once.
+   - A traveller leaving a place carries what it knows that's recent enough and important enough (fresh news first, at most `CARRY_MAX`, e.g. 6 items; importance ≥ 3; at most `STALE_DAYS` old).
+   - **At every stop** (a night at a waystation inn, a visit, the destination) the place and the travellers there **exchange**: the place learns what they carry, and they pick up what it knows. Inns along the road are where news jumps from one traveller to another: a westbound carter tells an eastbound pilgrim at the Willow Ford inn, who carries it on.
+   - Crown couriers carry important news (decision 4) so a king's death reaches every town of the kingdom within days, even on quiet roads.
+   - The day a place hears a piece of news is simply when the first carrier arrives with it: `reachesAt(news, site)` becomes `site.newsSeen[id]?.day ?? null` (known or not yet). Nothing predicts the future.
+   - The exchange runs once a day, realm-wide, after the journeys of the day: collect every stop of every journey that day from their timelines, sort by minute (then journey id), and apply exchanges in order. Deterministic, realm-wide (so lazy places don't matter), and cheap (a few hundred journeys × a few stops).
+   - The player learns news the same way (N24): in a place, what it knows; on the road or at an inn, what the travellers they talk to or share a common room with carry.
+7. **Off-screen meetings on the road are resolved in code.** Each day, journeys that pass a gang's ambush or a hungry pack's ground (`threats.ts`) roll an encounter (weighted by party size, guards, and the gang's strength), resolved like realm fights: robbery (cargo and coin gone: the caravan's trade doesn't arrive; the tax collector's coin goes to the gang), injuries and deaths on real rows (death records with the gang or pack as killer), or the travellers turning back. Each is an event at that road, with news that spreads by decision 6. Patrols on a road lower the odds and can fight the gang.
+8. **Situations use people who are really there.** A situation is rolled only if someone suitable is near that stretch of road that day: a traveller whose journey is within range (a broken cart is a caravan's; an injured traveller is a real walker; a toll demanded is the toll keeper of that gate, a resident of the nearest waystation; a funeral is a real death of a nearby place), else a resident of the nearest roadside place. No suitable person → no situation that day. Outcomes act on those rows (injury, money, relationship, death), and on their journey (delayed, turned back).
+9. **Everyone can be tracked.** The admin view (N17): a traveller's card shows "on the road from A to B, near the Willow Ford inn, arriving day N, carrying 3 pieces of news; trip: visiting her brother in B"; search finds people on the road; pinning follows them along the road (the admin map draws pinned people's position from the journey formula); a **Roads** panel lists journeys by kind with their parties (each clickable). A place's card shows who of its people are away and who's visiting.
+10. **Save:** v14 as a clean break (journeys and people change shape; `away` is a new column, DB schema +1). Per the user's earlier choice, no migration from v13; say so at the top of the step and ask if that's still wanted.
+
+### Steps
+**E1. People can be away.** `people.away` (DB schema migration in `store/schema.ts`), `PeopleStore.depart(ids, away)` / `returnHome(ids)` (through the flush, N18 rule); `rosterAt` and the crowd skip the away; talkers' `placeOf` reads it; admin cards show it. Tests: an away person isn't on their town's map, still counts in its population, still ages and can die; a death while away has the road as its site.
+
+**E2. Journeys of real people.** `Traveller.person` required; `launch` takes person refs and calls `depart`; when a journey ends (arrival with `returns: false`, or back home) `returnHome` or the migration arrival runs. Delete `hand()`, `travellerId`, `ROAD_SITE`, `personaOnRoad`'s scratch figure, `x_` actors, `Town.meetRoadPerson`; talking to a traveller enrols the person as a talker (`Town.enrol`, the same path as a townsperson). Update the client's `travellers.ts` to the person refs. Tests: every party member of every journey over 30 days is a living person row or a figure with one; talking to a traveller twice is the same talker, who remembers.
+
+**E3. Trip sources (decision 4).** Rewrite `sources.ts` as one module per trip kind under `road/trips/` (`market.ts`, `caravan.ts`, `kin.ts`, `work.ts`, `pilgrimage.ts`, `patrol.ts`, `officials.ts`, `couriers.ts`, `adventurers.ts`, `refugees.ts`), each picking real people from the `people` table with its own stream, with caps in `road/trips/config.ts`. Add the `courier` job (posts in capitals and cities, `realm/townsfolk.ts`). Tax collectors carry the coin (`politics.ts` `taxDay` moves it when they arrive, not at once). Adventurers: `dungeonsDay` schedules an **expedition** (the party figures depart), and the delve resolves on arrival. Tests: market-day traffic into a town with farmers of its villages, who are home the next day; a person with kin in another town visits them; a caravan's merchant is a merchant of its origin; a delve happens on the day its party reaches the dungeon.
+
+**E4. Visitors in towns and inns (decision 3).** `rosterAt(site)` adds visitors from journeys staying there; `CrowdSim` plans for visitors (market/kin by day, inn by night); waystation inns host overnight travellers. Tests: on its market day a town's crowd holds visiting farmers; at night the inn holds the caravan staying over; the visitors can be talked to.
+
+**E5. Migration as a journey (decision 5).** Split `moveHouseholds` into `departHouseholds` (choose, set `away`, launch) and `arriveHouseholds` (on the arrival day, both places current, apply the move); the destination score adds kin, work demand, safety and law; refugees across borders. N25's equivalence test (coarse/full/lazy) must still pass: departures and arrivals are realm-wide daily steps. Tests: a household leaving a famine is on the road for the days the road takes and only then appears in the new town's roster and population; a household with a son in a richer town goes there; nobody is in two places at once (a check over a 60-day run).
+
+**E6. News by people, through inns (decision 6).** Delete `relay.ts` and messenger relay journeys; `newsSeen` gets days; `carries` filled at departure; the daily `exchangeNews(day)` over all stops in time order; `reachesAt` returns the known day or null; N24's player learning and N25b's inputs read the new place knowledge. Update every caller of `reachesAt`/`relayDay` that expected a future day (admin "reaches day", tests): show "not heard yet" instead. Tests: news from a town reaches its neighbour only after a traveller from there arrives, and a town two roads away hears it through a traveller who heard it at an inn in between (assert the chain: who carried it where, from the exchange log); a king's death reaches every town of the kingdom within N days through couriers; a town with no traffic doesn't hear (and N22's bound below makes sure that's rare).
+
+**E7. Off-screen encounters (decision 7)** and **E8. Situations with real people (decision 8).** Tests: a caravan passing a strong gang's ambush is sometimes robbed (its cargo never arrives, the gang's wealth rises, the news spreads); a patrol on the road lowers that rate; every situation's actors are real rows near that stretch of road.
+
+**E9. Tracking (decision 9).** Admin traveller card, search for people on the road, pinned travellers drawn on the admin map, the Roads panel, a place's away/visiting lists. Tests (N17's read-only hash test extended).
+
+**E10. Docs, bounds, tests.** Stage file ticks and "What differs" updated; README (who travels and why, how news spreads); bounds below; the centre lint gains `hand(`, `personaOnRoad`, `x_` ids, `ROAD_SITE`.
+
+### Balance bounds (add)
+- `roads-not-empty` / `roads-not-clogged`: journeys per road segment within a band; at least some traffic on every road out of a town each week.
+- `news-reaches`: news of importance ≥ 7 reaches every connected town of its kingdom within a band of days; most news of importance ≥ 5 reaches the neighbours within a band.
+- `nobody-twice`: no person is away on two journeys, or away and also in a crowd.
+- `trips-return`: most round-trippers are home within their trip's length plus a margin (the rest died or settled, both with events).
+- `migration-follows-need`: net migration flows from poorer, hungrier, more dangerous places to better ones over a year.
+
+### Done when (Part E)
+- Over a 60-day run, every person on every road is a person row (or a figure with one) that the admin view can find, pin and follow; nobody is made up for a journey and nobody is in two places at once.
+- Farmers walk to market and back, merchants run caravans of their own town's people, people visit kin elsewhere, labourers go looking for work and some stay, households migrate toward better places and arrive days later, refugees flee a war.
+- News reaches a town only when someone brings it: through travellers swapping news at the inns along the road, and couriers for great news; the admin view can show the chain of who carried it.
+- A caravan robbed off-screen by a gang changes the realm (no cargo, a richer gang, news of it).
+
 ## Balance bounds (add in `balance/bounds.ts`)
 
 - `journeys-band`: active journeys per road segment within a band (roads are neither empty nor clogged).

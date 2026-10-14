@@ -8,6 +8,8 @@ What the player sees, the life they lead, the world reaching out to them, and wh
 
 **Status:** ⬜ Planned
 
+**Implementation plan:** [plans/n65-the-players-view.md](plans/n65-the-players-view.md)
+
 **Goal:** the player can see the living world they know about, without the admin view.
 
 **The rules:** everything shown is what the player knows (N24's rule): heard, seen or been told, with how sure they are.
@@ -23,6 +25,8 @@ What the player sees, the life they lead, the world reaching out to them, and wh
 ## N66: The player's own life
 
 **Status:** ⬜ Planned
+
+**Implementation plan:** [plans/n66-the-players-own-life.md](plans/n66-the-players-own-life.md)
 
 **Goal:** the player lives in the world like its people: a home, property, work, a family, age and heirs.
 
@@ -40,6 +44,8 @@ What the player sees, the life they lead, the world reaching out to them, and wh
 
 **Status:** ⬜ Planned
 
+**Implementation plan:** [plans/n67-npcs-come-to-you.md](plans/n67-npcs-come-to-you.md)
+
 **Goal:** the world reaches out to the player, and what they've done follows them, place by place.
 
 **The rules:** N38's menu gains "seek out the player": an NPC who needs something the player can give, wants to warn or threaten them, or has an offer, travels to find them. Reputation is kept per place and per faction, and spreads by N33's carriers.
@@ -54,6 +60,8 @@ What the player sees, the life they lead, the world reaching out to them, and wh
 ## N68: Legends, songs and the realm's history
 
 **Status:** ⬜ Planned
+
+**Implementation plan:** [plans/n68-legends-songs-and-history.md](plans/n68-legends-songs-and-history.md)
 
 **Goal:** the world remembers its past.
 
