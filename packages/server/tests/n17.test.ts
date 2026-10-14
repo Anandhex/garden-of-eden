@@ -12,6 +12,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { classCounts, crowdDay, folkOf } from "../src/admin/folk.js";
 import type { AdminContext } from "../src/admin/context.js";
 import { events } from "../src/admin/events.js";
+import { gossipOverview, knowersOf } from "../src/admin/gossip.js";
 import { health } from "../src/admin/health.js";
 import { overview } from "../src/admin/overview.js";
 import { card, crowdOf, pinned } from "../src/admin/person.js";
@@ -85,6 +86,9 @@ beforeAll(async () => {
     out.push(pinned(ctx, refs), crowdOf(ctx, town1.id), classCounts(ctx, town1.id));
     // The roads (N26 Part E): every journey, and who of a place is away.
     out.push(roadsOf(ctx), awayAndVisiting(ctx, town1.id));
+    // What people know (N33): the overview, and who knows the most-known things.
+    const gossip = gossipOverview(ctx);
+    out.push(gossip, ...gossip.popular.slice(0, 3).map((p) => knowersOf(ctx, p.ref)));
     return out;
   };
 }, 120_000);

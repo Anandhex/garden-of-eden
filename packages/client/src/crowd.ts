@@ -5,7 +5,7 @@
  * over the wire per step. Someone the player has talked to is a full NPC in the
  * snapshot; the crowd leaves them out so they aren't drawn twice.
  */
-import { CLASS_WORDS, CrowdSim, JOB_INFO, tileDistance, type Chat, type CrowdPos, type Snapshot, type Townsperson } from "@millbrook/shared";
+import { CLASS_WORDS, CrowdSim, JOB_INFO, tileDistance, type Chat, type CrowdPos, type GossipTold, type Snapshot, type Townsperson } from "@millbrook/shared";
 import { fetchCrowd } from "./api";
 
 export const crowd = {
@@ -113,4 +113,21 @@ export function insideOf(building: number): number[] {
   const out: number[] = [];
   crowd.pos.forEach((p, i) => p.inside === building && out.push(i));
   return out;
+}
+
+/** The bubble for something a townsperson passed on (N33): what they said, in their words, short enough to read at a glance. */
+export function gossipBubble(text: string): string {
+  const line = `Did you hear? ${text.replace(/\.$/, "")}.`;
+  return line.length > 70 ? `${line.slice(0, 68)}…` : line;
+}
+
+/** What was said since the last one shown (by `seq`), with the roster index of whoever said it, for those on this map. */
+export function freshTold(s: Snapshot, after: number): Array<{ seq: number; who: number; line: string }> {
+  const told: GossipTold[] = s.crowd?.told ?? [];
+  const sim = crowd.sim;
+  if (!sim || told.length === 0) return [];
+  return told.filter((t) => t.seq > after).flatMap((t) => {
+    const who = sim.index.get(t.who);
+    return who === undefined ? [] : [{ seq: t.seq, who, line: gossipBubble(t.text) }];
+  });
 }

@@ -322,3 +322,25 @@ export function compareAt(a: string, b: string): number {
   }
   return 0;
 }
+
+/** What is known, and by how many (N33): the Gossip panel. */
+export interface AdminGossip {
+  /** The things most people know, with what they say and the truth beside it. */
+  popular: Array<{ ref: string; text: string; count: number }>;
+  rows: number;
+  /** The most items anyone holds (the cap is 24). */
+  mostHeld: number;
+  people: number;
+  /** Is gossip on (GOSSIP=off turns it off)? */
+  on: boolean;
+}
+
+/** Who knows one thing and where (N33): the places in the order they learned it, and a few of the people with their versions. */
+export interface AdminKnowers {
+  ref: string;
+  /** The truth, as the records have it, and null if the record is gone. */
+  truth: string | null;
+  total: number;
+  places: Array<{ site: string; name: string; count: number; people: number; firstDay: number }>;
+  holders: Array<{ ref: string; name: string; site: string; siteName: string; day: number; accuracy: number; from: string; told: string | null; wrong: boolean }>;
+}

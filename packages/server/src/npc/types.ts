@@ -551,6 +551,18 @@ export interface DefeatResult {
   message: string;
 }
 
+export interface KnownEntry {
+  day: number;
+  how: "saw" | "told" | "news" | "read";
+  /** Who told them (a persona or person id), or the place the news came from. */
+  from?: string;
+  /** How accurate the version they were given is, and which detail was changed in the telling (0: none): game/gossip/describe.ts. */
+  accuracy?: number;
+  variant?: number;
+  /** The words they were told, kept so the journal shows the version they heard. */
+  text?: string;
+}
+
 export interface PlayerState {
   name: string;
   money: number;
@@ -576,6 +588,8 @@ export interface PlayerState {
   /** Fights won (the opponent died, ran or begged), for the Veteran title. */
   fightsWon?: number;
   journal?: JournalEntry[];
+  /** What the player knows of the wider world, by ref (`n:<newsId>`, `d:<personId>`): when, how, from whom and in whose version (game/playerKnowledge.ts, N24 step 1 and N33). */
+  known?: Record<string, KnownEntry>;
   /** Things the player has learned that can break cover stories: "odo.tomas_cellar" (npc/secrets.ts). */
   facts?: string[];
   /** The player's own promises, like repaying a loan (game/commitments.ts). */

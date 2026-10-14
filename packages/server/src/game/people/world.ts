@@ -7,6 +7,7 @@ import { reviewDay } from "./outlook.js";
 import { lazySites, liveSites } from "./live.js";
 import { riseDay, syncRisen } from "./rising.js";
 import { migrationDay } from "./migration.js";
+import { gossipDay } from "../gossip/day.js";
 import { roadArrivals, roadTrips } from "../road/day.js";
 import { stepSite, type LifeCtx, type SiteStep } from "./step.js";
 
@@ -59,6 +60,7 @@ export function catchUp(ctx: LifeCtx, site: string, toDay: number): SiteStep[] {
         const step = stepSite(ctx, site, d);
         riseDay(ctx, step, d);
         reviewDay(ctx, step, d);
+        gossipDay(ctx, step, d);
         out.push(step);
       }
     });
@@ -109,6 +111,8 @@ export function lifeDay(ctx: LifeCtx, day: number, opts: LifeOptions = {}): DayL
       result.steps.push(...behind, step);
       riseDay(ctx, step, day);
       reviewDay(ctx, step, day);
+      // The place the player is watching talks hour by hour as the day passes (town.ts), not all at once.
+      gossipDay(ctx, step, day, { hourly: watched.has(id) });
       // A place whose people were never rolled keeps its number (ensureLivePeople makes them first).
       if (store.people.count(id) > 0) realm.settlements[id]!.population = store.people.livingCount(id);
     }

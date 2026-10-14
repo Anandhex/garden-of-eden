@@ -6,6 +6,7 @@ import { eventByRef, events } from "../../admin/events.js";
 import { health } from "../../admin/health.js";
 import { clockOf, overview } from "../../admin/overview.js";
 import { playerView } from "../../admin/player.js";
+import { gossipOverview, knowersOf } from "../../admin/gossip.js";
 import { newsChainOf, roadsOf } from "../../admin/roads.js";
 import { search } from "../../admin/search.js";
 import { timeControl } from "../../admin/time.js";
@@ -120,6 +121,12 @@ export async function handleAdmin(req: IncomingMessage, res: ServerResponse, ctx
       return send(res, 200, playerView(ctx));
     case "roads":
       return send(res, 200, roadsOf(ctx));
+    case "gossip":
+      return send(res, 200, gossipOverview(ctx));
+    case "knowers": {
+      const k = knowersOf(ctx, q.get("ref") ?? "");
+      return k ? send(res, 200, k) : send(res, 404, { error: "Nobody knows that." });
+    }
     case "chain": {
       const c = newsChainOf(ctx, q.get("news") ?? "", q.get("site") ?? "");
       return c ? send(res, 200, c) : send(res, 404, { error: "No such news." });

@@ -13,7 +13,7 @@ import type { DatabaseSync } from "node:sqlite";
 export const TABLES = {
   people: ["id", "site", "n", "name", "gender", "species", "born_day", "cls", "job", "home", "work", "master", "master_id", "faction", "mother", "father", "spouse", "figure", "persona", "traits", "death", "expecting", "last_birth", "stepped_day", "outlook", "away", "rev"],
   relationships: ["a", "b", "trust", "affection", "respect", "fear", "since"],
-  knowledge: ["who", "ref", "learned_day", "source", "accuracy"],
+  knowledge: ["who", "ref", "learned_day", "source", "accuracy", "variant"],
   grievances: ["id", "who", "against", "cause_ref", "weight", "since", "settled"],
   ambitions: ["who", "kind", "target", "progress", "since"],
   jobs_held: ["who", "job", "site", "from_day", "to_day"],
@@ -144,6 +144,12 @@ const MIGRATIONS: Array<(db: DatabaseSync) => void> = [
     const have = new Set((db.prepare("PRAGMA table_info(people)").all() as Array<{ name: string }>).map((c) => c.name));
     if (!have.has("away")) db.exec("ALTER TABLE people ADD COLUMN away TEXT");
     db.exec("CREATE INDEX IF NOT EXISTS people_away ON people(site) WHERE away IS NOT NULL");
+  },
+  // 6 (N33): gossip for everyone. `knowledge.variant`: which detail of what they heard was changed in the telling (0 is the truth as it was
+  // told to them; game/gossip/describe.ts says what each number means).
+  (db) => {
+    const have = new Set((db.prepare("PRAGMA table_info(knowledge)").all() as Array<{ name: string }>).map((c) => c.name));
+    if (!have.has("variant")) db.exec("ALTER TABLE knowledge ADD COLUMN variant INTEGER NOT NULL DEFAULT 0");
   },
 ];
 

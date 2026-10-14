@@ -60,8 +60,10 @@ import { registerTalker, type Talker } from "./talkers.js";
  * 14: N26 Part E everyone on the road is someone, a clean break (the user's call, 2026-10-14: no migration): journeys and
  *    the news places have heard live in the realm (`realm.journeys`, `realm.heard`, `realm.transit`) and every traveller is a
  *    row of `people` (the database gains `away`, schema 5); `world.journeys` is gone.
+ * 15: N33 gossip for everyone. The player keeps what they know of the wider world (`player.known`, by ref: when, how, from whom, in
+ *    whose version) and the database gains `knowledge.variant` (schema 6). A v14 save loads as it is: the player knows nothing yet.
  */
-export const SAVE_VERSION = 14;
+export const SAVE_VERSION = 15;
 /** The oldest save this build can still read (older ones are set aside: N18's clean break). */
 export const MIN_SAVE_VERSION = 14;
 
@@ -146,6 +148,7 @@ export function newWorld(
   const player = startKit();
   player.site = startSite;
   player.place = "gate";
+  player.known = {};
   const world = bindActiveSite({
     day,
     hour: 8,
@@ -274,6 +277,8 @@ function upgradeSave(
 ): SavedWorld {
   const player = raw.player as unknown as PlayerState;
   player.site ??= raw.startSite;
+  // What they know of the wider world (N33): nothing, in a save from before.
+  player.known ??= {};
   // Lore grown in play first: NPC files in the save may know it, and the schema checks that.
   const lore = valid(LoreEntrySchema, raw.lore) as LoreEntry[];
   setDynamicLore(lore);

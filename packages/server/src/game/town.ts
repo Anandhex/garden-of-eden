@@ -1,5 +1,5 @@
 import { config } from "../config.js";
-import { record } from "../metrics/timing.js";
+import { record, timed } from "../metrics/timing.js";
 import { BudgetedProvider, ModelLedger } from "../llm/budgeted.js";
 import type { LLMProvider } from "../llm/provider.js";
 import { NpcAgent } from "../npc/NpcAgent.js";
@@ -34,7 +34,7 @@ import { familyNight, familyOf } from "./family.js";
 import { loadTemplates, writeChildWords, type NpcTemplate, type Where } from "../npc/templates.js";
 import { type AreaId, currentPlan, type PlaceId } from "./schedule.js";
 import type { DirectorLogEntry } from "../director/validator.js";
-import { addLore, learnLore, worldLore } from "../npc/knowledge.js";
+import { addLore, learnLore, worldLore, type Certainty } from "../npc/knowledge.js";
 import { bindActiveSite, creaturesOf, siteIdOf, siteState, type SiteState } from "./site.js";
 import { registerTalker, talkerIdsAt, talkerSite } from "./talkers.js";
 import { applyStory, deepen, factsFor, fallbackDepth } from "../npc/depth/index.js";
@@ -47,6 +47,10 @@ import { advanceRealm } from "./realm/day.js";
 import { lazySites, liveSites } from "./people/live.js";
 import { ensureLivePeople } from "../store/materialise.js";
 import { lifeDay } from "./people/world.js";
+import { describeKnown } from "./gossip/describe.js";
+import { absorbKnowledge, shareLore } from "./gossip/talkers.js";
+import { WATCHED_SHARE } from "./gossip/day.js";
+import { spreadSite } from "./gossip/spread.js";
 import { causeFromWords, deathWords, parseDeath } from "./people/death.js";
 import { killPerson } from "./people/index.js";
 import type { SiteStep } from "./people/step.js";
@@ -472,7 +476,64 @@ export class Town {
     if (!persona) return null;
     this.enrol(persona, roster.site);
     this.store?.people.update(p.id, { persona: persona.id });
+    // They start with what they had heard (N33): the version they got, sure or not.
+    this.syncTalker(persona.id);
     return persona.id;
+  }
+
+  /**
+   * A talker who is a row of the table knows what their row knows, and what they know that is news goes back into the row (N33), so the
+   * townsfolk they talk to can hear it from them. Called when they become a talker, when the player opens a conversation, and each
+   * hour for the talkers of the place the player is in.
+   */
+  syncTalker(id: string): void {
+    const realm = this.world.realm;
+    const agent = this.agents[id];
+    if (!realm || !this.store || !agent || !config.gossip || !parseTownsfolkId(id)) return;
+    const ctx = { realm, store: this.store };
+    absorbKnowledge(ctx, id, agent.state, this.world.day, { news: (n, certainty) => this.learnNews(agent.state, n, certainty) });
+    shareLore(ctx, id, agent.state, this.world.day);
+  }
+
+  /** What was told in the place the player is in, hour by hour, for bubbles over people's heads: (hour, speaker, listener, what). Newest last. */
+  readonly toldHere: Array<{ seq: number; day: number; hour: number; site: string; speaker: string; listener: string; ref: string; text: string }> = [];
+  private toldSeq = 0;
+
+  /** The last things said here, still fresh (within two hours), for the bubbles over people's heads. */
+  toldLately(): Array<{ seq: number; who: string; text: string }> {
+    const now = this.world.day * 24 + this.world.hour;
+    const site = this.site();
+    return this.toldHere.filter((t) => t.site === site && now - (t.day * 24 + t.hour) <= 2).slice(-4).map((t) => ({ seq: t.seq, who: t.speaker, text: t.text }));
+  }
+
+  /**
+   * The place the player is in talks hour by hour (N33): the venues open each hour, each at its share of a day's talk, so the day's total
+   * is what the daily spread would have been. Called after hours pass, for each of them.
+   */
+  private gossipHours(start: { day: number; hour: number }, hours: number): void {
+    const realm = this.world.realm;
+    if (!realm || !this.store || !config.gossip || this.store.people.count(this.site()) === 0) return;
+    const site = this.site();
+    const ctx = { realm, store: this.store };
+    timed("gossip.hour", () => {
+      for (let i = 0; i < hours; i++) {
+        const at = start.hour + i;
+        const day = start.day + Math.floor(at / 24);
+        if (day > this.world.day) break;
+        spreadSite(ctx, site, day, {
+          hour: at % 24,
+          share: 1 - WATCHED_SHARE,
+          onTold: (e) => {
+            // What the speaker says is their version, wrong or not.
+            const row = this.store!.knowledge.get(e.speaker, e.ref);
+            const text = describeKnown(ctx, e.ref, row?.accuracy ?? 1, row?.variant ?? 0);
+            if (text) this.toldHere.push({ seq: ++this.toldSeq, day, hour: at % 24, site, speaker: e.speaker, listener: e.listener, ref: e.ref, text });
+          },
+        });
+      }
+      if (this.toldHere.length > 60) this.toldHere.splice(0, this.toldHere.length - 60);
+      for (const id of this.talkersAt(site)) if (parseTownsfolkId(id) && !this.agents[id]!.isDead) this.syncTalker(id);
+    });
   }
 
   /** The buildings of a place's village map, and who keeps them, for its lore. */
@@ -590,10 +651,10 @@ export class Town {
   }
 
   /** A traveller learns a piece of realm news as the carrier of it: it becomes lore, and they know it for certain. */
-  learnNews(state: NpcAgent["state"], n: RealmNews): void {
+  learnNews(state: NpcAgent["state"], n: RealmNews, certainty: Certainty = "certain"): void {
     const id = realmNewsId(n);
     if (!worldLore().byId.has(id)) addLore(this.world, { id, kind: "news", name: shortName(n.text), aliases: [], keywords: ["news", "realm", "travellers"], text: n.text, event: true });
-    learnLore(state, id, "certain");
+    learnLore(state, id, certainty);
   }
 
   /**
@@ -949,6 +1010,7 @@ export class Town {
     log.push(...this.respawn(keep));
     if (this.world.day > start.day) log.push(...this.familyNights(start.day));
     if (this.world.day > start.day) log.push(...this.realmNights(start.day));
+    this.gossipHours(start, hours);
     // The realm's packs and gangs grow and thin as the days pass: the beasts and outlaws on the map follow.
     this.stockHaunts();
     log.push(...this.takeLifeNews());

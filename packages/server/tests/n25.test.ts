@@ -264,7 +264,7 @@ describe("N25 save v13", () => {
     const { mkdtempSync, readFileSync, writeFileSync } = await import("node:fs");
     const { tmpdir } = await import("node:os");
     const { join } = await import("node:path");
-    const { loadWorld, newWorld, saveWorld } = await import("../src/game/save.js");
+    const { loadWorld, newWorld, SAVE_VERSION, saveWorld } = await import("../src/game/save.js");
     const { allPersonas } = await import("./helpers.js");
     const { loadCreatureTemplates } = await import("../src/game/creatures.js");
     config.realm = true;
@@ -283,7 +283,7 @@ describe("N25 save v13", () => {
     const mb = back.realm!.settlements[back.startSite]!;
     expect(mb.houses).toBe(Math.ceil(mb.population / 5));
     expect(back.realm!.casualties).toEqual([]);
-    expect(back.version).toBe(14);
+    expect(back.version).toBe(SAVE_VERSION);
   });
 });
 

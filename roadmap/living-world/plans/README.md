@@ -26,7 +26,7 @@ Read this page first. It holds the rules every phase shares; the phase plans ass
 | N30 | [Seasons and the farming year](n30-seasons-and-the-farming-year.md) | N25, N26 | |
 | N31 | [Visible consequences on the map](n31-visible-consequences.md) | N25, N30 | |
 | N32 | [Interiors and homes](n32-interiors-and-homes.md) | N16, N18, N31 | |
-| N33 | [Gossip for everyone](n33-gossip-for-everyone.md) | N18, N24 (stub), N25, N26 | ✅ slice |
+| N33 | [Gossip for everyone](n33-gossip-for-everyone.md) | N18, N24 (stub), N25, N26 | ✅ built 2026-10-14 (all steps; N24 steps 1 only as its step 0) |
 | N34 | [Following people in the game](n34-following-people.md) | N24, N33 | |
 | N35 | [Moving through time](n35-moving-through-time.md) | N26, N34 | |
 | N36 | [The mood of a place](n36-the-mood-of-a-place.md) | N20 (causes), N25b | |
@@ -167,7 +167,7 @@ Added 2026-10-14 with the N29–N68 plans. Everything in sections 1–10 still h
 
 ## 11. Where things stand, and the pieces that are missing
 
-**Built (2026-10-14):** N17, N18, N19, N25, N25a, N25b and N26 (see each stage file's **What differs**). **Not built:** N20–N24, N27 and N28.
+**Built (2026-10-14):** N17, N18, N19, N25, N25a, N25b, N26 and N33 (see each stage file's **What differs**). **Not built:** N20–N24 (except `player.known`, `playerKnows` and `playerLearns`, built as N33's step 0 in `game/playerKnowledge.ts`), N27 and N28.
 
 **N26 Part E is built on top of N26 (2026-10-14, save v14)** ([plan](n26-the-open-road.md#part-e-everyone-on-the-road-is-someone-rework-asked-for-2026-10-14), asked for 2026-10-14): every traveller is a real person row (`people.away` while on a journey), migrants arrive on the day their journey does, the messenger relay (`relay.ts`) is deleted, and **news spreads by people**: travellers carry what their place knew when they left (`journey.carries`) and swap it with places at every stop, inns most of all; `reachesAt(news, site)` becomes "the day the place first heard it, or not yet". **The N29–N68 plans assume Part E, which is built.** Where the plans say `SiteState.newsSeen` with a day, read `realm.heard[site][newsId]` (see the stage file's What differs). Where a plan says a journey, a traveller or a carrier, it means a real person on a Part E journey; where it says a place heard news, it means Part E's `newsSeen` day. N33 then makes that knowledge per person instead of per place. Several later plans lean on small parts of those phases. **The rule:** if a phase needs a part that doesn't exist yet, it builds that part (only that part, as written in its own plan) as **step 0**, and says so in the stage file. It doesn't build its own version.
 
@@ -175,7 +175,7 @@ Added 2026-10-14 with the N29–N68 plans. Everything in sections 1–10 still h
 |---|---|---|---|
 | `causedBy` on every event and realm news, the `withCause(ref, fn)` scope | [N20](n20-stories-drama-liveness.md) step 1 | N36, N37, N43, N44, N45, N56, N58, N68, and every "linked by cause" done-when | N20 step 1 only (the field already exists on `GameEvent`, unfilled) |
 | Stories (chains of causes, scored) | N20 steps 2–4 | N68 (legends), N39 (incident hooks), N65 (journal stories) | N20 steps 2–4 |
-| `player.known`, `playerKnows(ref)`, `playerLearns(ref, how, from)` | [N24](n24-global-reporting.md) steps 1–3 | N33, N34, N35, N43, N52, N63, N65, N67 | N24 steps 1–3 (step 2b, places' own news clocks, is done by N26: the relay now, Part E's travellers swapping news at inns once that is built) |
+| `player.known`, `playerKnows(ref)`, `playerLearns(ref, how, from)` | [N24](n24-global-reporting.md) steps 1–3 | N33, N34, N35, N43, N52, N63, N65, N67 | **Step 1 is built** (N33, `game/playerKnowledge.ts`: functions on `PlayerState`, not the table, so `NpcAgent` needs no store; refs are `n:<newsId>`, `d:<personId>`, `e:<eventId>`). Steps 2–3 (`deliverToPlayer`, the feed reading only knowledge) are not. Step 2b is done by N26 Part E. |
 | The balance bounds runner | [N22](n22-long-run-balance.md) | every plan's **Balance bounds** list | Until N22 exists, put a phase's bounds in `game/<area>/bounds.ts` returning `Bound[]`, like [`road/bounds.ts`](../../../packages/server/src/game/road/bounds.ts), and check them at the end of a long test run. N22 gathers them into one list later. |
 | Points of interest off the road (`pois`) | [N27](n27-the-wilds.md) steps 1–2 | N51 (ley lines, stones), N54 (lairs, warrens), N55 (battlefields), N59 (hidden camps), N62 (mines), N63 (finds) | N27 steps 1–2 |
 | Species as data, `wildlifeAt` | [N28](n28-fauna-and-flora.md) steps 1–2 | N29 (animal calls), N60 (ecology) | N28 steps 1–2 |
@@ -239,7 +239,7 @@ N18 made tables that are still empty. Who fills them, so two phases don't both c
 
 | Table | Filled by | Rule |
 |---|---|---|
-| `knowledge(who, ref, learned_day, source, accuracy)` | N33 | what townsfolk know (news refs, rumours, secrets from N46). Capped per person (keep the 24 most important). |
+| `knowledge(who, ref, learned_day, source, accuracy, variant)` | N33 ✅ | what townsfolk know (news refs, deaths, later secrets from N46). Capped per person (keep the 24 most worth telling). `variant` is which detail was changed in the telling (`game/gossip/describe.ts`). The player's own knowledge is `player.known` in the save, not here. |
 | `relationships(a, b, trust, affection, respect, fear, since)` | N37 | only for pairs who have interacted; pruned when every axis is near 0 and the row is a year old |
 | `grievances(id, who, against, cause_ref, weight, since, settled)` | N37 | every wrong; N45 makes them pass to children, N56 sums them by oppressor, N58 counts them by place |
 | `ambitions(who, kind, target, progress, since)` | N40 | one row per person |
@@ -249,7 +249,7 @@ New tables after these: add them to `TABLES` and `ORDER_BY` in [`store/schema.ts
 
 ## 16. Save and schema versions from here on
 
-The save is at **v13** and the database at **schema 4** (2026-10-14). Every phase that adds saved state bumps the save version, the schema version or both, **with a real migration and a test from the version before** (the clean breaks at v11 and v13 were one-time decisions). If a phase would rather start clean, ask the user first. Each plan has a **Save** line saying what it adds. Two phases in a row may share a bump if they're built together.
+The save is at **v15** and the database at **schema 6** (2026-10-14). Every phase that adds saved state bumps the save version, the schema version or both, **with a real migration and a test from the version before** (the clean breaks at v11 and v13 were one-time decisions). If a phase would rather start clean, ask the user first. Each plan has a **Save** line saying what it adds. Two phases in a row may share a bump if they're built together.
 
 ## 17. Three grains of detail, and what a daily rule may read
 
