@@ -96,6 +96,107 @@ export function makeTextures(scene: Phaser.Scene): void {
   bake("drop", 2, 9, () => g.fillStyle(0xbfd7ff, 0.7).fillRect(0, 0, 1, 9));
   bake("flake", 4, 4, () => g.fillStyle(0xffffff, 0.9).fillCircle(2, 2, 2));
   bake("spark", 4, 4, () => g.fillStyle(0xffffff).fillRect(0, 0, 4, 4));
+
+  // ---- The open road (N26): ground and the things beside it ----
+  const speckle = (n: number, seed: number, color: number, alpha: number, size = 2) => {
+    g.fillStyle(color, alpha);
+    for (let i = 0; i < n; i++) g.fillRect(((i * 7 + seed * 13) * 5) % (TILE - size), ((i * 11 + seed * 5) * 3) % (TILE - size), size, size);
+  };
+  for (let i = 0; i < 3; i++) {
+    bake(`rpath${i}`, TILE, TILE, () => {
+      g.fillStyle(i % 2 ? 0xb39b6b : 0xa98f60).fillRect(0, 0, TILE, TILE);
+      speckle(5, i + 1, 0x000000, 0.1, 3);
+      speckle(4, i + 4, 0xffffff, 0.07, 2);
+    });
+  }
+  bake("sand", TILE, TILE, () => {
+    g.fillStyle(0xd2bf8a).fillRect(0, 0, TILE, TILE);
+    speckle(6, 2, 0x8a7a50, 0.18, 2);
+  });
+  bake("hill", TILE, TILE, () => {
+    g.fillStyle(0x5f7a45).fillRect(0, 0, TILE, TILE);
+    g.fillStyle(0x000000, 0.1).fillEllipse(16, 22, 30, 12);
+    speckle(4, 3, 0x8d8a80, 0.5, 3);
+  });
+  bake("marsh", TILE, TILE, () => {
+    g.fillStyle(0x4d6a45).fillRect(0, 0, TILE, TILE);
+    g.fillStyle(0x3b5a52, 0.55).fillEllipse(11, 20, 15, 7);
+    g.fillStyle(0x3b5a52, 0.4).fillEllipse(24, 9, 9, 5);
+    speckle(3, 1, 0x2a3f2a, 0.5, 2);
+  });
+  bake("field", TILE, TILE, () => {
+    g.fillStyle(0x8a8f45).fillRect(0, 0, TILE, TILE);
+    g.fillStyle(0x6f7435, 0.8);
+    for (let y = 2; y < TILE; y += 6) g.fillRect(0, y, TILE, 2);
+  });
+  bake("reeds", TILE, TILE, () => {
+    g.lineStyle(2, 0x6b8a3a);
+    for (const [x, h] of [[8, 14], [14, 18], [21, 12], [25, 16]] as const) g.lineBetween(x, 28, x - 1, 28 - h);
+    g.fillStyle(0x8a6a3a).fillRect(13, 8, 3, 5);
+  });
+  bake("rock", TILE, TILE, () => {
+    g.fillStyle(0x000000, 0.25).fillEllipse(16, 25, 24, 7);
+    g.fillStyle(0x8d8a84).fillEllipse(15, 19, 22, 15);
+    g.fillStyle(0xb3b0a8).fillEllipse(12, 15, 10, 6);
+  });
+  bake("ford", TILE, TILE, () => {
+    g.fillStyle(0x6a9bb8).fillRect(0, 0, TILE, TILE);
+    g.fillStyle(0xd2bf8a, 0.6);
+    for (const [x, y] of [[4, 6], [20, 4], [10, 18], [25, 22], [16, 28]] as const) g.fillEllipse(x, y, 9, 5);
+  });
+  bake("bridge", TILE, TILE, () => {
+    g.fillStyle(0x7a5a38).fillRect(0, 0, TILE, TILE);
+    g.fillStyle(0x4b351f);
+    for (let x = 0; x < TILE; x += 8) g.fillRect(x, 0, 2, TILE);
+    g.fillStyle(0x4b351f).fillRect(0, 0, TILE, 3).fillRect(0, TILE - 3, TILE, 3);
+  });
+  bake("town", TILE, TILE, () => {
+    g.fillStyle(0x8f8a7e).fillRect(0, 0, TILE, TILE);
+    g.fillStyle(0x000000, 0.14);
+    for (let i = 0; i < TILE; i += 8) g.fillRect(i, 0, 1, TILE).fillRect(0, i, TILE, 1);
+  });
+  bake("thatch", TILE, TILE, () => {
+    g.fillStyle(0x8f8a7e).fillRect(0, 0, TILE, TILE);
+    g.fillStyle(0xa0693a).fillRect(3, 6, TILE - 6, TILE - 9);
+    g.fillStyle(0x6c4526).fillRect(3, 6, TILE - 6, 5);
+    g.lineStyle(1, 0x000000, 0.25).strokeRect(3, 6, TILE - 6, TILE - 9);
+  });
+  bake("yard", TILE, TILE, () => {
+    g.fillStyle(0x7a7f45).fillRect(0, 0, TILE, TILE);
+    speckle(7, 2, 0x5b4a2a, 0.35, 2);
+  });
+  bake("farmhouse", TILE, TILE, () => {
+    g.fillStyle(0x000000, 0.22).fillRect(1, 24, TILE - 2, 6);
+    g.fillStyle(0xcdb78a).fillRect(1, 12, TILE - 2, 16);
+    g.fillStyle(0x9a4a32).fillTriangle(-2, 14, TILE + 2, 14, TILE / 2, 0);
+  });
+  bake("milestone", TILE, TILE, () => {
+    g.fillStyle(0x000000, 0.25).fillEllipse(16, 27, 14, 5);
+    g.fillStyle(0xa9a59b).fillRoundedRect(10, 10, 12, 18, 4);
+    g.fillStyle(0x4b4a44).fillRect(13, 14, 6, 1).fillRect(13, 18, 6, 1);
+  });
+  bake("signpost", TILE, TILE, () => {
+    g.fillStyle(0x5b3d22).fillRect(15, 6, 3, 22);
+    g.fillStyle(0xc9a56a).fillRect(6, 7, 14, 6).fillRect(13, 15, 14, 6);
+    g.fillStyle(0x000000, 0.3).fillRect(8, 9, 9, 1).fillRect(15, 17, 9, 1);
+  });
+  bake("shrine", TILE, TILE, () => {
+    g.fillStyle(0x000000, 0.25).fillEllipse(16, 27, 20, 6);
+    g.fillStyle(0xc9c3b0).fillRect(8, 14, 16, 13).fillTriangle(5, 15, 27, 15, 16, 4);
+    g.fillStyle(0x3a2a1c).fillRect(13, 18, 6, 9);
+    g.fillStyle(0xffd27a).fillRect(15, 6, 2, 5);
+  });
+  bake("bar", TILE, TILE, () => {
+    g.fillStyle(0x5b3d22).fillRect(2, 8, 4, 20).fillRect(26, 8, 4, 20);
+    g.fillStyle(0xb8423a).fillRect(2, 11, TILE - 4, 4);
+    g.fillStyle(0xf3e9d2).fillRect(8, 11, 4, 4).fillRect(18, 11, 4, 4);
+  });
+  bake("gate", TILE, TILE, () => {
+    g.fillStyle(0x7d7a72).fillRect(0, 0, TILE, TILE);
+    g.fillStyle(0x3a2a1c).fillRect(5, 6, TILE - 10, TILE - 6);
+    g.fillStyle(0xc9a24a).fillRect(TILE - 11, 18, 3, 3);
+  });
+  bake("lantern", 8, 8, () => g.fillStyle(0xffd27a, 0.9).fillCircle(4, 4, 4));
   g.destroy();
 }
 

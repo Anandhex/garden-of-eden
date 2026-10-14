@@ -19,7 +19,7 @@ Read this page first. It holds the rules every phase shares; the phase plans ass
 | N25 | [Townsfolk lives](n25-townsfolk-lives.md) | N18 | ✅ built (steps 1-10; see the stage file for what differs) |
 | N25a | [A world without a centre](n25a-a-world-without-a-centre.md) | N18, N25 (N24 step 2b, or absorbs it) | ✅ before N26 (built) |
 | N25b | [Lives that change](n25b-lives-that-change.md) | N18, N19, N25, N25a | ✅ the two towns (built) |
-| N26 | [The open road](n26-the-open-road.md) | N18, N19, N25, N25a | ✅ one road |
+| N26 | [The open road](n26-the-open-road.md) | N18, N19, N25, N25a | ✅ built (all four parts; the whole realm walkable, see the stage file for what differs) |
 | N27 | [The wilds](n27-the-wilds.md) | N26 | |
 | N28 | [Fauna and flora](n28-fauna-and-flora.md) | N26, N27 | |
 

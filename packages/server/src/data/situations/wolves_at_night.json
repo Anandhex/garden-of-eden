@@ -1,0 +1,85 @@
+{
+ "id": "wolves_at_night",
+ "title": "Eyes in the dark",
+ "where": [
+  "forest",
+  "hills"
+ ],
+ "when": {
+  "night": true
+ },
+ "chance": 0.5,
+ "actors": [],
+ "text": "You have been hearing it for a while: a patter beside the road, the sound of something keeping pace. Now two green eyes catch the light, and then four more.",
+ "choices": [
+  {
+   "id": "fire",
+   "label": "Make a fire and hold them off",
+   "effects": [
+    {
+     "type": "time",
+     "minutes": 45
+    },
+    {
+     "type": "needs",
+     "rest": -6
+    },
+    {
+     "type": "check",
+     "attr": "willpower",
+     "target": 11,
+     "success": [
+      {
+       "type": "say",
+       "text": "The fire holds. By morning the eyes are gone."
+      }
+     ],
+     "fail": [
+      {
+       "type": "fight",
+       "species": "wolf"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "fight",
+   "label": "Draw steel",
+   "effects": [
+    {
+     "type": "fight",
+     "species": "wolf"
+    }
+   ]
+  },
+  {
+   "id": "run",
+   "label": "Run for the road ahead",
+   "effects": [
+    {
+     "type": "needs",
+     "rest": -12
+    },
+    {
+     "type": "check",
+     "attr": "agility",
+     "target": 13,
+     "success": [
+      {
+       "type": "say",
+       "text": "You outrun them to a clearing where they lose interest."
+      }
+     ],
+     "fail": [
+      {
+       "type": "say",
+       "text": "They get a bite in before you shake them off.",
+       "hp": -8
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

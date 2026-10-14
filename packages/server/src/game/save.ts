@@ -20,6 +20,7 @@ import { authoredMarriages, FamilySchema, freshFamily, type FamilyState } from "
 import { parsePersona } from "../npc/personaSchema.js";
 import { BOUND_FIELDS, bindActiveSite, newSite, type SiteState } from "./site.js";
 import { registerTalker, type Talker } from "./talkers.js";
+import type { Journey } from "@millbrook/shared";
 
 /**
  * 2: crafting jobs end at an absolute minute (was an absolute hour).
@@ -79,6 +80,11 @@ export interface SavedWorld extends WorldSnapshot {
   talkers: Record<string, Talker>;
   /** The wider realm (N13, game/realm/). */
   realm?: Realm;
+  /** Everyone on a journey on the open road (N26, game/road/journeys.ts), and the counter for their ids. */
+  journeys?: Journey[];
+  nextJourney?: number;
+  /** What the road will bring later (N26): the consequences of a choice made on it, due on a day (game/road/situations.ts). */
+  roadLater?: Array<{ id: string; day: number; cause: string; outcomes: unknown[]; actor?: string; actorName?: string }>;
 }
 
 export const SaveSchema = z.object({
@@ -105,6 +111,9 @@ export const SaveSchema = z.object({
   directorLog: z.array(z.record(z.string(), z.unknown())).optional(),
   family: FamilySchema.optional(),
   realm: z.unknown().optional(),
+  journeys: z.array(z.record(z.string(), z.unknown())).optional(),
+  nextJourney: z.number().int().optional(),
+  roadLater: z.array(z.record(z.string(), z.unknown())).optional(),
   deathNotes: z.record(z.string(), z.unknown()).optional(),
 });
 
@@ -331,6 +340,9 @@ function upgradeSave(
     startSite: raw.startSite,
     sites,
     talkers,
+    ...(raw.journeys ? { journeys: raw.journeys as unknown as Journey[] } : {}),
+    ...(raw.nextJourney !== undefined ? { nextJourney: raw.nextJourney } : {}),
+    ...(raw.roadLater ? { roadLater: raw.roadLater as unknown as SavedWorld["roadLater"] } : {}),
     ...(raw.deathNotes ? { deathNotes: raw.deathNotes as SavedWorld["deathNotes"] } : {}),
     ...loadRealm(raw.realm, raw.day, raw.seed),
   } as unknown as SavedWorld;

@@ -1,0 +1,73 @@
+{
+ "id": "peddler",
+ "title": "A peddler",
+ "where": [
+  "road"
+ ],
+ "when": {
+  "night": false
+ },
+ "chance": 0.14,
+ "actors": [
+  {
+   "role": "merchant"
+  }
+ ],
+ "text": "{a} has a tray on a strap round their neck: hot pies, a stoppered jug of small beer, and a loud voice. \"Pies! Hot pies for the weary walker!\"",
+ "choices": [
+  {
+   "id": "pie",
+   "label": "A pie and a drink (5 copper)",
+   "requires": {
+    "money": 5
+   },
+   "effects": [
+    {
+     "type": "money",
+     "amount": -5
+    },
+    {
+     "type": "needs",
+     "food": 35,
+     "water": 25
+    },
+    {
+     "type": "time",
+     "minutes": 10
+    }
+   ]
+  },
+  {
+   "id": "jug",
+   "label": "Fill your belly and a bag for the road (20 copper)",
+   "requires": {
+    "money": 20
+   },
+   "effects": [
+    {
+     "type": "money",
+     "amount": -20
+    },
+    {
+     "type": "needs",
+     "food": 45,
+     "water": 35
+    },
+    {
+     "type": "item",
+     "item": "bread loaf",
+     "qty": 2
+    },
+    {
+     "type": "time",
+     "minutes": 15
+    }
+   ]
+  },
+  {
+   "id": "no",
+   "label": "Not today",
+   "effects": []
+  }
+ ]
+}

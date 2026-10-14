@@ -1,0 +1,86 @@
+{
+ "id": "flooded_ford",
+ "title": "The ford is up",
+ "where": [
+  "ford"
+ ],
+ "when": {
+  "rain": true
+ },
+ "chance": 0.6,
+ "actors": [
+  {
+   "role": "carter"
+  }
+ ],
+ "text": "Rain in the hills has put the ford under brown water, fast and cold. {a} stands on the bank holding a mule's halter, looking at it.",
+ "choices": [
+  {
+   "id": "wait",
+   "label": "Wait for it to fall (three hours)",
+   "effects": [
+    {
+     "type": "time",
+     "minutes": 180
+    },
+    {
+     "type": "trust",
+     "amount": 6
+    }
+   ]
+  },
+  {
+   "id": "wade",
+   "label": "Wade across",
+   "effects": [
+    {
+     "type": "check",
+     "attr": "strength",
+     "target": 12,
+     "success": [
+      {
+       "type": "say",
+       "text": "You get across with your teeth chattering.",
+       "needs": {
+        "rest": -8
+       }
+      }
+     ],
+     "fail": [
+      {
+       "type": "say",
+       "text": "The current takes your feet. You're soaked and bruised, and something from your pack is gone.",
+       "hp": -6,
+       "needs": {
+        "rest": -12
+       },
+       "loseItem": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "carry",
+   "label": "Help {a} across with the mule first",
+   "effects": [
+    {
+     "type": "time",
+     "minutes": 50
+    },
+    {
+     "type": "trust",
+     "amount": 14
+    },
+    {
+     "type": "reputation",
+     "trust": 1
+    },
+    {
+     "type": "xp",
+     "amount": 3
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,131 @@
+{
+ "id": "injured_traveller",
+ "title": "Someone hurt by the road",
+ "where": [
+  "road",
+  "forest",
+  "hills"
+ ],
+ "chance": 0.12,
+ "actors": [
+  {
+   "role": "commoner"
+  }
+ ],
+ "text": "{a} sits against a milestone with a bloody leg, grey in the face. \"Fell,\" they say. \"Or was pushed. I can't walk.\"",
+ "choices": [
+  {
+   "id": "salve",
+   "label": "Use a healing salve",
+   "requires": {
+    "item": "healing salve"
+   },
+   "effects": [
+    {
+     "type": "item",
+     "item": "healing salve",
+     "qty": -1
+    },
+    {
+     "type": "trust",
+     "amount": 25
+    },
+    {
+     "type": "reputation",
+     "trust": 4,
+     "affection": 2
+    },
+    {
+     "type": "xp",
+     "amount": 8
+    },
+    {
+     "type": "later",
+     "id": "hurt_thanks",
+     "days": 3,
+     "outcomes": [
+      {
+       "chance": 1,
+       "text": "{a} got home on their feet and told everyone who would listen that you saved their life.",
+       "effects": [
+        {
+         "type": "money",
+         "amount": 20
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "tend",
+   "label": "Bind the leg and help them on (two hours)",
+   "effects": [
+    {
+     "type": "time",
+     "minutes": 120
+    },
+    {
+     "type": "trust",
+     "amount": 15
+    },
+    {
+     "type": "reputation",
+     "trust": 3,
+     "affection": 1
+    },
+    {
+     "type": "xp",
+     "amount": 5
+    },
+    {
+     "type": "later",
+     "id": "hurt_thanks",
+     "days": 3,
+     "outcomes": [
+      {
+       "chance": 0.8,
+       "text": "{a} reached safety, limping. They remember who helped.",
+       "effects": [
+        {
+         "type": "money",
+         "amount": 10
+        }
+       ]
+      },
+      {
+       "chance": 0.2,
+       "text": "{a} reached safety but lost the leg to a fever. They bless your name all the same."
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pass",
+   "label": "Walk on",
+   "effects": [
+    {
+     "type": "reputation",
+     "respect": -1
+    },
+    {
+     "type": "later",
+     "id": "hurt_died",
+     "days": 2,
+     "outcomes": [
+      {
+       "chance": 0.6,
+       "text": "A carter found {a} dead by the milestone two days later. Somebody passed them by."
+      },
+      {
+       "chance": 0.4,
+       "text": "Another traveller found {a} and carried them on."
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

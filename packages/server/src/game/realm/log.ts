@@ -1,8 +1,16 @@
+import { relayDay } from "../road/relay.js";
 import { travelDays } from "./generate.js";
 import type { DirectorPush, Realm, RealmNews } from "./types.js";
 
-/** The day a piece of news reaches a place: where it happened, plus the days a traveller takes. */
-export const reachesAt = (realm: Realm, n: Pick<RealmNews, "day" | "at">, site: string): number => n.day + (n.at === site ? 0 : travelDays(realm, n.at, site));
+/**
+ * The day a piece of news reaches a place: where it happened, or when the messengers who carry it along the roads
+ * arrive (N26: the same relay the carriers on the road are made from, game/road/relay.ts). Without a road the old
+ * straight-line walk.
+ */
+export const reachesAt = (realm: Realm, n: Pick<RealmNews, "id" | "day" | "at">, site: string): number => {
+  if (n.at === site) return n.day;
+  return relayDay(realm, n, site) ?? n.day + travelDays(realm, n.at, site);
+};
 
 /** Realm news kept (oldest go first). */
 export const MAX_NEWS = 200;

@@ -11,6 +11,7 @@ import type { Traits } from "./traits.js";
 import type { Certainty } from "./knowledge.js";
 import type { Activity, AreaId, PlaceId, ScheduleBlock } from "../game/schedule.js";
 import type { Needs } from "../game/needs.js";
+import type { Mount, RoadNeeds, RoadState } from "../game/road/state.js";
 import type { Emotion } from "./emotions.js";
 import type { Commitment } from "../game/commitments.js";
 import type { Belief } from "../game/deception.js";
@@ -618,6 +619,14 @@ export interface PlayerState {
   site?: string;
   /** Where around that settlement (N15): its village (when unset), or a locality: the road, a camp, a mine, the woods. */
   area?: AreaId;
+  /** On the open road between places (N26): where, and what they've asked and paid. `site` stays the place they set out from. */
+  road?: RoadState;
+  /** Road stretches the player has walked end to end, as segment ids (game/road/walk.ts): fast travel runs only along these. */
+  walked?: string[];
+  /** Food, water and rest on the road (N26 D1). */
+  roadNeeds?: RoadNeeds;
+  /** A horse or a cart (N26 D2). */
+  mount?: Mount;
 }
 
 export interface JournalEntry {

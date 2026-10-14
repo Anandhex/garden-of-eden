@@ -9,6 +9,7 @@ import { postTick } from "./api";
 import { heldBy, simulation } from "./simulate";
 import { store } from "./store";
 import { setUpChat } from "./ui/chat";
+import { setUpRoadbar } from "./ui/roadbar";
 import { showCraft, showVoices } from "./ui/modals";
 import { renderHeader, setUpSheet } from "./ui/sheet";
 import { speaker } from "./voice/speaker";
@@ -16,6 +17,7 @@ import { startWorld } from "./world/WorldScene";
 
 setUpChat();
 setUpSheet();
+setUpRoadbar();
 setUpSimulation();
 
 // ---------- keys (read by the page, not Phaser, so typing never moves you) ----------

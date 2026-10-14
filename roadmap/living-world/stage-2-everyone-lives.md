@@ -99,7 +99,7 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 
 ## N26: The open road
 
-**Status:** ⬜ Planned
+**Status:** ✅ Built (all four parts; see **What differs** below)
 
 **Implementation plan:** [plans/n26-the-open-road.md](plans/n26-the-open-road.md)
 
@@ -109,19 +109,29 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 
 **The rules:** the realm between places becomes walkable maps (chunks), generated with a seed from the realm's terrain, roads and rivers, so a stretch of road looks the same every time. A set **travel time scale** makes a day's walk take several real minutes of play (about 7 of walking), not hours and not an instant. To get that at the normal walking speed, a road tile passes *less* game time than a village tile, so the clock runs faster on the road (user decision 2026-10-13). Everything met on the road is real: travellers are the realm's people actually moving (N33's carriers, caravans, armies, adventurers, runaways), not spawned for the moment.
 
-- [ ] **Walkable realm:** chunk maps between places, by terrain (plains, forest, hills, marsh, coast), with the road through them, rivers, bridges, fords and ferries; walk from one chunk into the next; N14's routes become the roads on these maps
-- [ ] **Time on the road:** a travel time scale per tile; day and night, weather (N30) that slows and soaks; the header shows the day and how far to the next place
-- [ ] **People on the road:** merchants and caravans, pilgrims, messengers, patrols, refugees from a war (N55), runaways (N59), adventurer parties (N42), bandits; all real and on their own journeys. They can be talked to, traded with, travelled with, robbed or helped, and they carry and give news (N33)
-- [ ] **Roadside places:** inns and waystations, farmsteads, hamlets, shrines, toll gates, milestones and signposts, crossroads, bridges with keepers, ferry crossings; each with people living there (N16) and its own small happenings
-- [ ] **Situations, not just fights:** a broken cart, an injured traveller, a toll demanded, papers checked under a crackdown (N58), a quarantine line (N61), a flooded ford, a beast on the road, an ambush; each a choice with consequences on the normal systems
-- [ ] **Nights:** find an inn or camp; a fire, a watch, rest (N6's needs), night sounds and night encounters; companions talk by the fire (N8's companions)
-- [ ] **Supplies and mounts:** food and water run down; buy, forage or hunt on the way; walk, ride a horse, take a cart or a river boat, each with a speed and a cost, and horses that need care and can be stolen
-- [ ] **Travelling with others:** join a caravan for safety, take an escort job (N42), hire a guide
-- [ ] **Fast travel only as a choice:** only along roads the player has already walked, and it still stops for anything worth stopping for (N35); a paid coach or boat as the in-world way to skip a known stretch
-- [ ] Performance: chunks streamed and simulated by level of detail (N25), inside N19's budgets
-- [ ] Tests, README, this roadmap
+- [x] **Walkable realm:** chunk maps between places, by terrain (plains, forest, hills, marsh, coast), with the road through them, rivers, bridges, fords and ferries; walk from one chunk into the next; N14's routes become the roads on these maps
+- [x] **Time on the road:** a travel time scale per tile; day and night, weather (N30) that slows and soaks; the header shows the day and how far to the next place
+- [x] **People on the road:** merchants and caravans, pilgrims, messengers, patrols, refugees from a war (N55), runaways (N59), adventurer parties (N42), bandits; all real and on their own journeys. They can be talked to, traded with, travelled with, robbed or helped, and they carry and give news (N33)
+- [x] **Roadside places:** inns and waystations, farmsteads, hamlets, shrines, toll gates, milestones and signposts, crossroads, bridges with keepers, ferry crossings; each with people living there (N16) and its own small happenings
+- [x] **Situations, not just fights:** a broken cart, an injured traveller, a toll demanded, papers checked under a crackdown (N58), a quarantine line (N61), a flooded ford, a beast on the road, an ambush; each a choice with consequences on the normal systems
+- [x] **Nights:** find an inn or camp; a fire, a watch, rest (N6's needs), night sounds and night encounters; companions talk by the fire (N8's companions)
+- [x] **Supplies and mounts:** food and water run down; buy, forage or hunt on the way; walk, ride a horse, take a cart or a river boat, each with a speed and a cost, and horses that need care and can be stolen
+- [x] **Travelling with others:** join a caravan for safety, take an escort job (N42), hire a guide
+- [x] **Fast travel only as a choice:** only along roads the player has already walked, and it still stops for anything worth stopping for (N35); a paid coach or boat as the in-world way to skip a known stretch
+- [x] Performance: chunks streamed and simulated by level of detail (N25), inside N19's budgets
+- [x] Tests, README, this roadmap
 
 - **Done when:** walking from Millbrook to Highdale takes a set number of real minutes over several chunk maps; on the way the player meets real travellers (one carries news the player didn't have), stops at a roadside inn for the night, helps or ignores someone in trouble with consequences later, and sees the same road again on the way back; fast travel is offered only for the stretch already walked.
+
+**Built:** `packages/shared/src/road/` (scale, noise, types, geometry, graph, chunk, journey), `packages/server/src/game/road/` (generateRoads, waystations, ground, walk, hud, play, journeys, sources, moves, relay, travellers, situations, threats, needs, mounts, camp, fast, coach, caravans, bounds), 14 situation files in `data/situations/`, the client's `RoadLayer`, `travellers.ts`, `roadData.ts`, `ui/roadbar.ts`, and `tests/n26.test.ts` (30 tests, including each done-when).
+
+**What differs from the plan:**
+1. *Road data is derived, not saved:* a pure function of the realm's seed, its settlements' positions and its road list (`roadDataOf`, cached), so nothing was added to the save for it and there are no chunk overrides yet (nothing changes a tile). The player's place on the road is global tile coordinates (`player.road`), not `{cx, cy, x, y}`; the chunk is derived.
+2. *Waystations are hamlets:* instead of a new "w:" site kind, each inn is a settlement of kind hamlet (`Settlement.way`) beside the road with a lane to it, so it has people who live (N25), an innkeeper, a map, news and everything else for free. They have no roads in the graph. This is 60 or so more places in a realm; the realm's day is about twice as slow (about 20 ms), and world generation is faster than before (roads are only built once).
+3. *Journeys are in the save* (`world.journeys`, a few hundred records) rather than a SQLite table with a chunk index; the browser is sent the ones within 900 tiles. They carry the people of the road as people made for the journey (a name, a role, a file made when you first speak), except migrants, who are the same `people` rows that moved. Real realm figures on journeys, with the home town missing them while they are away, is not done.
+4. *Messengers and `reachesAt`:* news is carried by a relay along the real roads (`relay.ts`); `reachesAt` reads it, so the carrier on the road and the day a place hears it are the same fact. Only as many hops as the news's weight are drawn as messengers; the rest hear by word of mouth at the same times.
+5. *Encounters:* the two-roll system is gone from the web game (a pack's ground and a gang's ambush are places); the CLI's `/travel` keeps the old time skip, since it has no screen to walk on.
+6. *Not built:* river boats (the realm has few places on a river), the "ferry" as a boat you ride (it is a ford with a ferryman's toll), companions' night lines by the model (they are code's words), the darker sight at night (the sky darkens as before), `ROAD=slice` (the whole realm is walkable).
 
 ## N27: The wilds
 

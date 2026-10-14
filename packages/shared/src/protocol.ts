@@ -213,6 +213,75 @@ export interface RealmView {
 /** A news item: something that happened outside a request (the combat clock, the chronicle). */
 export type NewsItem = StreamEvent & { id: number; npc?: string };
 
+/** A walk to a place, in tiles and in words. */
+export interface RoadLeg {
+  id: string;
+  name: string;
+  tiles: number;
+  walk: string;
+}
+
+/** Something to stop for on the road (N26): a situation waiting for a choice. */
+export interface SituationView {
+  id: string;
+  title: string;
+  text: string;
+  choices: Array<{ id: string; label: string; hint?: string }>;
+}
+
+/** The player's supplies on the road (N26 D1): 0 is none, 100 is full. */
+export interface RoadNeedsView {
+  food: number;
+  water: number;
+  rest: number;
+  /** "hungry", "parched"... or null when all is well. */
+  words: string | null;
+}
+
+/** A horse or a cart (N26 D2). */
+export interface MountView {
+  kind: string;
+  name: string;
+  fitness: number;
+  fed: number;
+  lame: boolean;
+  /** Pace as a multiple of walking. */
+  speed: number;
+}
+
+/** What is beside the road within reach: a place to use (E), with its kind and a line of what it offers. */
+export interface RoadNearby {
+  id: string;
+  kind: string;
+  name: string;
+  x: number;
+  y: number;
+  /** What can be done here (E, or the buttons under the map): `op` goes to the server, `label` is what the button says. */
+  offers: Array<{ op: string; label: string }>;
+}
+
+/** The player on the open road (N26): where, how far, what is near. The land itself is made in the browser from GET /api/road/data. */
+export interface RoadView {
+  where: string;
+  off: number | null;
+  ends: RoadLeg[];
+  dest: RoadLeg | null;
+  inn: { id: string; name: string; tiles: number } | null;
+  ground: string;
+  /** This stretch has been walked end to end before (fast travel runs on it). */
+  walked: boolean;
+  /** Fast travel to the destination is on offer (the whole way has been walked). */
+  canFast: boolean;
+  needs: RoadNeedsView | null;
+  mount: MountView | null;
+  pending: SituationView | null;
+  nearby: RoadNearby[];
+  /** Road steps in one game minute. */
+  stepsPerMinute: number;
+  /** Game minutes of daylight left to walk today (a walker rests at night), or null at night. */
+  lightLeft: number | null;
+}
+
 export interface Snapshot {
   llm: { ready: boolean; error: string };
   /** The map the player is on: a village, or one of the localities around it (N15). Walk onto an exit to go there. */
@@ -250,6 +319,8 @@ export interface Snapshot {
     daysPerYear: number;
   };
   position: Pos;
+  /** On the open road between places (N26), or null. While it is set, `position` is a global tile and `map` is a stand-in. */
+  road: RoadView | null;
   player: PlayerView;
   chronicle: { lore: string[]; log: Array<{ day: number; kind: string; ok: boolean; reason: string; proposal: string; event?: string }> };
   /** Marriages, courtships, children on the way and children born in play (N11.3), in words. */

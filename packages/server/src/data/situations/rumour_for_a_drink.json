@@ -1,0 +1,53 @@
+{
+ "id": "rumour_for_a_drink",
+ "title": "A talker at the roadside",
+ "where": [
+  "road"
+ ],
+ "when": {
+  "night": false
+ },
+ "chance": 0.08,
+ "actors": [
+  {
+   "role": "commoner"
+  }
+ ],
+ "text": "{a} is sitting on a wall with nothing to do but talk. \"I've come from far and I've news, if you've something wet to give a dry throat.\"",
+ "choices": [
+  {
+   "id": "drink",
+   "label": "Share a drink (3 copper)",
+   "requires": {
+    "money": 3
+   },
+   "effects": [
+    {
+     "type": "money",
+     "amount": -3
+    },
+    {
+     "type": "needs",
+     "water": 20
+    },
+    {
+     "type": "trust",
+     "amount": 8
+    },
+    {
+     "type": "time",
+     "minutes": 15
+    },
+    {
+     "type": "rumour",
+     "text": "{a} tells you, half-sure: the guards in the next town are doubling the watch after dark."
+    }
+   ]
+  },
+  {
+   "id": "no",
+   "label": "No time",
+   "effects": []
+  }
+ ]
+}

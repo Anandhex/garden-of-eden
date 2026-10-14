@@ -158,8 +158,10 @@ export const SettlementSchema = z.object({
   /** Day it became free of its liege (broke away), if it did. */
   freeSince: z.number().int().optional(),
   abandoned: z.boolean().optional(),
-  /** Roads to other settlements (ids). */
+  /** Roads to other settlements (ids). A waystation has none: it stands beside the road it is on. */
   roads: z.array(z.string()),
+  /** A waystation inn (N26): a hamlet beside a road, `t` tiles along it. */
+  way: z.object({ road: z.string(), t: z.number() }).optional(),
 });
 export type Settlement = z.infer<typeof SettlementSchema>;
 

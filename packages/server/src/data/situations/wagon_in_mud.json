@@ -1,0 +1,63 @@
+{
+ "id": "wagon_in_mud",
+ "title": "A wagon in the mud",
+ "where": [
+  "marsh"
+ ],
+ "chance": 0.2,
+ "actors": [
+  {
+   "role": "carter"
+  },
+  {
+   "role": "carter"
+  }
+ ],
+ "text": "A wagon has sunk to its axles in the black mud, and {a} and {b} are heaving at the wheels while an ox bellows. \"Shoulder here, friend,\" says {a}, \"and we'll stand you a hot meal.\"",
+ "choices": [
+  {
+   "id": "heave",
+   "label": "Put your shoulder to it (an hour)",
+   "effects": [
+    {
+     "type": "time",
+     "minutes": 60
+    },
+    {
+     "type": "needs",
+     "rest": -10
+    },
+    {
+     "type": "check",
+     "attr": "strength",
+     "target": 10,
+     "success": [
+      {
+       "type": "say",
+       "text": "With the three of you, the wagon comes out with a sucking sound.",
+       "trust": 15
+      }
+     ],
+     "fail": [
+      {
+       "type": "say",
+       "text": "It takes four more hands than they have, but they thank you.",
+       "trust": 6
+      }
+     ]
+    },
+    {
+     "type": "needs",
+     "food": 30,
+     "water": 20,
+     "text": "They share their hot meal."
+    }
+   ]
+  },
+  {
+   "id": "pass",
+   "label": "Wish them luck",
+   "effects": []
+  }
+ ]
+}

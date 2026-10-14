@@ -101,7 +101,7 @@ export function dangersOn(realm: Realm, r: Route): string[] {
   return [...out];
 }
 
-function gangsNear(realm: Realm, id: string) {
+export function gangsNear(realm: Realm, id: string) {
   const near = new Set([id, ...(realm.settlements[id]?.roads ?? [])]);
   return Object.values(realm.factions).filter((f) => !f.dissolved && f.kind === "gang" && f.seat && near.has(f.seat) && f.members.length > 0);
 }
@@ -113,7 +113,7 @@ export interface Trip {
   route?: Route;
 }
 
-interface Foe {
+export interface Foe {
   name: string;
   power: number;
   tier: Tier;
@@ -150,22 +150,32 @@ export function setOut(realm: Realm, player: PlayerState, to: string, day: numbe
 }
 
 /** Something on the road near this place, maybe. */
+/** The pack as a foe on the road (N26: met at its hunting ground). */
+export function packFoe(realm: Realm, p: Realm["packs"][string]): Foe {
+  const side = packSide(realm, p);
+  return { name: side.name, power: Math.min(p.count, 4) * (3 + tierIndex(p.tier as Tier) * 3) + side.fighters.reduce((a, f) => a + figurePower(f), 0), tier: p.tier as Tier, kind: "pack", id: p.id, species: p.species };
+}
+
+/** The gang as a foe on the road (N26: met at its ambush). */
+export function gangFoe(realm: Realm, g: Realm["factions"][string]): Foe {
+  return { name: g.name, power: gangSide(realm, g.id).strength * 0.25, tier: "E", kind: "gang", id: g.id };
+}
+
 function encounterAt(realm: Realm, id: string, rng: Rng): Foe | null {
   for (const p of Object.values(realm.packs)) {
     if (p.near !== id || p.count < p.cap * 0.6 || rng() >= 0.35) continue;
-    const side = packSide(realm, p);
-    return { name: side.name, power: Math.min(p.count, 4) * (3 + tierIndex(p.tier as Tier) * 3) + side.fighters.reduce((a, f) => a + figurePower(f), 0), tier: p.tier as Tier, kind: "pack", id: p.id, species: p.species };
+    return packFoe(realm, p);
   }
   for (const g of gangsNear(realm, id)) {
     if (rng() >= 0.3) continue;
-    return { name: g.name, power: gangSide(realm, g.id).strength * 0.25, tier: "E", kind: "gang", id: g.id };
+    return gangFoe(realm, g);
   }
   const s = realm.settlements[id]!;
   if (atWar(realm, s) && rng() < 0.15) return { name: "deserters from the war", power: 22, tier: "E", kind: "war", id: s.id };
   return null;
 }
 
-function fightOnRoad(realm: Realm, player: PlayerState, foe: Foe, near: string, day: number, rng: Rng, companions: number): string[] {
+export function fightOnRoad(realm: Realm, player: PlayerState, foe: Foe, near: string, day: number, rng: Rng, companions: number): string[] {
   const ours = playerPower(player) + companions;
   const lines = [`Near ${near}, ${foe.kind === "pack" ? `${foe.name} comes out of the trees` : foe.kind === "gang" ? `${foe.name} block the road` : `${foe.name} rush you`}.`];
   if (rng() < ours / (ours + foe.power)) {

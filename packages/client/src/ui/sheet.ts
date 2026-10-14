@@ -60,6 +60,9 @@ export function renderSheet(): void {
     for (const it of p.items) {
       const r = row(it.item, `×${it.qty}`);
       r.dataset.item = it.item;
+      // Food and drink (N26): eaten on the road or anywhere; a mount eats what it can.
+      if (/^(bread loaf|stew|eggs|turnips|ale|wild herbs)\b/.test(it.item)) r.append(button("Eat", () => void act({ action: "eat", item: it.item.replace(/ \[.*$/, "") })));
+      if (s.road?.mount && /^(turnips|bread loaf|wild herbs)\b/.test(it.item)) r.append(button("Feed", () => void act({ action: "mount", op: "feed", item: it.item.replace(/ \[.*$/, "") })));
       if (it.slot) {
         const b = button("Equip", () => void act({ action: "equip", item: it.item }), Boolean(it.needs));
         if (it.needs) b.title = it.needs;
@@ -125,7 +128,7 @@ export function renderSheet(): void {
 export function renderHeader(): void {
   const s = game();
   // Out at a locality (N15): "Ashby · The road out".
-  const where = s.site.area.id === "village" ? s.site.name : `${s.site.name} · ${s.site.area.name}`;
+  const where = s.road ? `On ${s.road.where}` : s.site.area.id === "village" ? s.site.name : `${s.site.name} · ${s.site.area.name}`;
   $("site-name").textContent = where;
   const ways = s.site.area.exits.length > 0 ? ` Walk off the map's edge: ${s.site.area.exits.join(", ")}.` : "";
   $("site-name").title = `${s.site.name}, a ${s.site.kind}${s.site.kingdom ? ` of ${s.site.kingdom}` : ""}. Travel from the Realm tab.${ways}`;

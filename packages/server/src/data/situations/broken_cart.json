@@ -1,0 +1,109 @@
+{
+ "id": "broken_cart",
+ "title": "A broken cart",
+ "where": [
+  "road"
+ ],
+ "when": {
+  "night": false
+ },
+ "chance": 0.16,
+ "actors": [
+  {
+   "role": "carter"
+  }
+ ],
+ "text": "{a} is on their knees by a cart tipped on its side, one wheel off and rolled into the ditch. Sacks of turnips have split across the road. They look up and then at you.",
+ "choices": [
+  {
+   "id": "help",
+   "label": "Help set it right (an hour)",
+   "effects": [
+    {
+     "type": "time",
+     "minutes": 60
+    },
+    {
+     "type": "trust",
+     "amount": 18
+    },
+    {
+     "type": "reputation",
+     "trust": 2,
+     "affection": 1
+    },
+    {
+     "type": "xp",
+     "amount": 4
+    },
+    {
+     "type": "item",
+     "item": "turnips",
+     "qty": 3,
+     "text": "{a} presses some turnips on you."
+    },
+    {
+     "type": "later",
+     "id": "cart_arrived",
+     "days": 2,
+     "outcomes": [
+      {
+       "chance": 0.7,
+       "text": "Word comes back that {a}'s cart got to market in time, thanks to you.",
+       "effects": [
+        {
+         "type": "money",
+         "amount": 15
+        }
+       ]
+      },
+      {
+       "chance": 0.3,
+       "text": "{a}'s cart made it to market. They spoke well of you."
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "coin",
+   "label": "Help, for a coin or two",
+   "effects": [
+    {
+     "type": "time",
+     "minutes": 60
+    },
+    {
+     "type": "money",
+     "amount": 12
+    },
+    {
+     "type": "trust",
+     "amount": 4,
+     "text": "{a} pays, grumbling."
+    }
+   ]
+  },
+  {
+   "id": "pass",
+   "label": "Walk on",
+   "effects": [
+    {
+     "type": "later",
+     "id": "cart_left",
+     "days": 1,
+     "outcomes": [
+      {
+       "chance": 0.5,
+       "text": "Travellers say a cart was stripped by thieves at the roadside where {a} was stranded."
+      },
+      {
+       "chance": 0.5,
+       "text": "A patrol found {a} and put the cart right."
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

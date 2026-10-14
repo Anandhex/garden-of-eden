@@ -73,6 +73,8 @@ export const EVENT_KINDS = [
   "new-fear",
   "secret-made",
   "story-turn",
+  // The open road (N26): a situation met on it, and what came of it later
+  "road",
 ] as const;
 export type EventKind = (typeof EVENT_KINDS)[number];
 

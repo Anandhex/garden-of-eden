@@ -1,0 +1,68 @@
+{
+ "id": "funeral",
+ "title": "A funeral procession",
+ "where": [
+  "road"
+ ],
+ "when": {
+  "night": false
+ },
+ "chance": 0.05,
+ "actors": [
+  {
+   "role": "commoner"
+  }
+ ],
+ "text": "A slow line of people in grey comes along the road behind a handcart. {a} at the head carries a bundle of dried flowers. Nobody speaks.",
+ "choices": [
+  {
+   "id": "join",
+   "label": "Walk with them to the burying place (an hour)",
+   "effects": [
+    {
+     "type": "time",
+     "minutes": 60
+    },
+    {
+     "type": "reputation",
+     "respect": 2,
+     "trust": 1
+    },
+    {
+     "type": "trust",
+     "amount": 10
+    },
+    {
+     "type": "needs",
+     "food": 6,
+     "text": "They share the funeral bread."
+    }
+   ]
+  },
+  {
+   "id": "stand",
+   "label": "Stand aside, hat in hand",
+   "effects": [
+    {
+     "type": "time",
+     "minutes": 10
+    },
+    {
+     "type": "reputation",
+     "respect": 1
+    }
+   ]
+  },
+  {
+   "id": "pass",
+   "label": "Push past",
+   "effects": [
+    {
+     "type": "reputation",
+     "respect": -3,
+     "affection": -2
+    }
+   ]
+  }
+ ]
+}
