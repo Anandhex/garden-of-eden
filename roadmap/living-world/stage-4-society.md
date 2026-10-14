@@ -8,6 +8,8 @@ How people live together and against each other: families, secrets, crime, law, 
 
 **Status:** ⬜ Planned
 
+**Implementation plan:** [plans/n45-family-feuds-and-inheritance.md](plans/n45-family-feuds-and-inheritance.md)
+
 **Goal:** families have histories: estates are fought over, feuds last generations, marriages break.
 
 **The rules:** built on N25's lineage. Inheritance follows each kingdom's law (eldest, split, chosen heir); disputes arise when the law and the family disagree. Grudges (N37) can pass to children.
@@ -23,6 +25,8 @@ How people live together and against each other: families, secrets, crime, law, 
 ## N46: Secrets, spies and blackmail
 
 **Status:** ⬜ Planned
+
+**Implementation plan:** [plans/n46-secrets-spies-and-blackmail.md](plans/n46-secrets-spies-and-blackmail.md)
 
 **Goal:** people hide things, find them out, and use them.
 
@@ -40,6 +44,8 @@ How people live together and against each other: families, secrets, crime, law, 
 
 **Status:** ⬜ Planned
 
+**Implementation plan:** [plans/n47-the-underworld.md](plans/n47-the-underworld.md)
+
 **Goal:** crime is organised: thieves' guilds, smuggling, black markets and corrupt guards.
 
 **The rules:** a thieves' guild is an N13 faction kind with its own ranks; smuggling routes avoid taxes and tolls; black markets sell what's banned or stolen; guards can be bribed, weighted by their traits and pay.
@@ -56,6 +62,8 @@ How people live together and against each other: families, secrets, crime, law, 
 ## N48: Law and trials
 
 **Status:** ⬜ Planned
+
+**Implementation plan:** [plans/n48-law-and-trials.md](plans/n48-law-and-trials.md)
 
 **Goal:** crime is judged, not just punished on the spot, and justice depends on the kingdom and who you are.
 
@@ -75,6 +83,8 @@ How people live together and against each other: families, secrets, crime, law, 
 
 **Status:** ⬜ Planned
 
+**Implementation plan:** [plans/n49-setbacks-instead-of-game-over.md](plans/n49-setbacks-instead-of-game-over.md)
+
 **Goal:** losing doesn't end the game; it starts a new chapter.
 
 **The rules:** where the player would die or lose everything, code chooses an outcome from the situation and the world: captured (held for ransom, sold, imprisoned), left for dead and found, enslaved where the law allows, exiled, in debt to someone dangerous, maimed. Real death stays possible, and N66's heir carries on.
@@ -89,6 +99,8 @@ How people live together and against each other: families, secrets, crime, law, 
 ## N50: Belief
 
 **Status:** ⬜ Planned
+
+**Implementation plan:** [plans/n50-belief.md](plans/n50-belief.md)
 
 **Goal:** faith is a force: temples compete, cults spread, rulers listen to omens.
 
@@ -105,6 +117,8 @@ How people live together and against each other: families, secrets, crime, law, 
 ## N51: Magic
 
 **Status:** ⬜ Planned
+
+**Implementation plan:** [plans/n51-magic.md](plans/n51-magic.md)
 
 **Goal:** magic has rules in this world: who can use it, how it's learned, what it costs, where it's strong, and how each kingdom and faith treats those who use it.
 
@@ -128,6 +142,8 @@ How people live together and against each other: families, secrets, crime, law, 
 
 **Status:** ⬜ Planned
 
+**Implementation plan:** [plans/n52-shaping-what-people-believe.md](plans/n52-shaping-what-people-believe.md)
+
 **Goal:** the player uses gossip and belief as tools: plant rumours, frame people, pay for songs, set factions against each other.
 
 **The rules:** the player's words enter N33's gossip like anyone's, believed by credence (trust, affection, the speaker's renown); lies can be found out (N5's lies), and a planted rumour traced back to the player is a crime or a grudge.
@@ -144,6 +160,8 @@ How people live together and against each other: families, secrets, crime, law, 
 ## N53: Cultures and languages
 
 **Status:** ⬜ Planned
+
+**Implementation plan:** [plans/n53-cultures-and-languages.md](plans/n53-cultures-and-languages.md)
 
 **Goal:** travelling to another kingdom feels like going somewhere else.
 

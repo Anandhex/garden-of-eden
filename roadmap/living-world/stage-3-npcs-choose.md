@@ -8,6 +8,8 @@ NPCs act for themselves: interactions with consequences, hourly choices, life go
 
 **Status:** ⬜ Planned
 
+**Implementation plan:** [plans/n37-chatter-with-consequences.md](plans/n37-chatter-with-consequences.md)
+
 **Goal:** what townsfolk say to each other matters. A noble's sneer, a refused bow or an insult changes how people feel and can start a grudge, and NPCs can wrong each other and seek revenge.
 
 **The rules:** code decides an interaction happened (greet, bow, refuse to bow, insult, humiliate, order, refuse, complain, share news), applies it to the four relationship axes (N5) and logs it as an event; the speech bubble (N16's `chatLines`) only shows it.
@@ -25,6 +27,8 @@ NPCs act for themselves: interactions with consequences, hourly choices, life go
 ## N38: NPCs as living players
 
 **Status:** ⬜ Planned
+
+**Implementation plan:** [plans/n38-npcs-as-living-players.md](plans/n38-npcs-as-living-players.md)
 
 **Goal:** NPCs act like players: they choose what to do from what they want right now, and the player can't predict them.
 
@@ -50,6 +54,8 @@ NPCs act for themselves: interactions with consequences, hourly choices, life go
 
 **Status:** ⬜ Planned
 
+**Implementation plan:** [plans/n39-the-first-hour.md](plans/n39-the-first-hour.md)
+
 **Goal:** a new game grabs the player within minutes and pulls them into the living world's systems.
 
 **The rules:** not a fixed script. At a new game, code picks an opening incident from what the seeded world already has brewing in Millbrook (a death, a theft, a stranger, a grudge near breaking, a raid coming), arranges for the player to be there when it breaks, and offers a choice with consequences that run on the normal systems.
@@ -67,6 +73,8 @@ NPCs act for themselves: interactions with consequences, hourly choices, life go
 
 **Status:** ⬜ Planned
 
+**Implementation plan:** [plans/n40-ambitions-and-careers.md](plans/n40-ambitions-and-careers.md)
+
 **Goal:** people want something from their life, not just from the next hour.
 
 **The rules:** each NPC (cast, notables and townsfolk at coarse grain) has an ambition picked in code from class, job, traits and family: master their trade, a guild seat, land, office, wealth, a good marriage for a child, revenge, freedom. It adds long-term weight to N38's scoring and is re-picked when achieved or impossible.
@@ -82,6 +90,8 @@ NPCs act for themselves: interactions with consequences, hourly choices, life go
 ## N41: Leisure and contests
 
 **Status:** ⬜ Planned
+
+**Implementation plan:** [plans/n41-leisure-and-contests.md](plans/n41-leisure-and-contests.md)
 
 **Goal:** people in the world have fun, and their games and contests are where they meet, compete, bet, quarrel and make names.
 
@@ -101,6 +111,8 @@ NPCs act for themselves: interactions with consequences, hourly choices, life go
 ## N42: A shared quest market and adventurer grades
 
 **Status:** ⬜ Planned
+
+**Implementation plan:** [plans/n42-shared-quest-market.md](plans/n42-shared-quest-market.md)
 
 **Goal:** quests aren't only the player's. NPCs take jobs too, as adventurers, hunters and explorers, to earn coin and climb the grades, and they compete with the player for them.
 
@@ -125,6 +137,8 @@ NPCs act for themselves: interactions with consequences, hourly choices, life go
 
 **Status:** ⬜ Planned
 
+**Implementation plan:** [plans/n43-items-with-a-history.md](plans/n43-items-with-a-history.md)
+
 **Goal:** things remember. A sword, a ring or a crown carries who owned it, what was done with it and where it's been, and people recognise it.
 
 **The rules:** notable items (weapons, armour, jewellery, heirlooms, artefacts, anything named, stolen or used in a notable event) keep a provenance in code: makers, owners, deeds, losses and finds. Ordinary items stay plain, so the cost stays small (N18, N19).
@@ -142,6 +156,8 @@ NPCs act for themselves: interactions with consequences, hourly choices, life go
 ## N44: A nemesis
 
 **Status:** ⬜ Planned
+
+**Implementation plan:** [plans/n44-a-nemesis.md](plans/n44-a-nemesis.md)
 
 **Goal:** one NPC the player made an enemy of keeps coming back, remembering every meeting, learning how the player fights and rising against them.
 

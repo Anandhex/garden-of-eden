@@ -8,6 +8,8 @@ Nature, disease and disaster, and a map that grows new places and new kingdoms.
 
 **Status:** ⬜ Planned
 
+**Implementation plan:** [plans/n60-ecology.md](plans/n60-ecology.md)
+
 **Goal:** nature has its own balance, and people change it.
 
 **The rules:** predator and prey populations per area rise and fall together (prey grows, predators eat prey, predators starve without it); hunting, clearing and mining draw on stocks that regrow slowly or not at all.
@@ -23,6 +25,8 @@ Nature, disease and disaster, and a map that grows new places and new kingdoms.
 ## N61: Epidemics
 
 **Status:** ⬜ Planned
+
+**Implementation plan:** [plans/n61-epidemics.md](plans/n61-epidemics.md)
 
 **Goal:** disease spreads through the world.
 
@@ -40,6 +44,8 @@ Nature, disease and disaster, and a map that grows new places and new kingdoms.
 
 **Status:** ⬜ Planned
 
+**Implementation plan:** [plans/n62-disasters.md](plans/n62-disasters.md)
+
 **Goal:** fires, floods, droughts and collapses happen, tied to the world.
 
 **The rules:** each disaster's chance comes from the place: fires from dense wooden houses, forges and dry weather; floods from rivers and storms; drought from the season (N30); collapses from mines (N63). Seeded and logged.
@@ -54,6 +60,8 @@ Nature, disease and disaster, and a map that grows new places and new kingdoms.
 ## N63: Exploration, roads and new settlements
 
 **Status:** ⬜ Planned
+
+**Implementation plan:** [plans/n63-exploration-roads-and-new-settlements.md](plans/n63-exploration-roads-and-new-settlements.md)
 
 **Goal:** the map grows. Explorers find things near their village, roads are built to them, and new hamlets are founded that can grow into towns.
 
@@ -71,6 +79,8 @@ Nature, disease and disaster, and a map that grows new places and new kingdoms.
 ## N64: New kingdoms
 
 **Status:** ⬜ Planned
+
+**Implementation plan:** [plans/n64-new-kingdoms.md](plans/n64-new-kingdoms.md)
 
 **Goal:** new kingdoms form: a free settlement or cluster that holds out becomes a state.
 

@@ -4,6 +4,8 @@
 
 **In one line:** every stored person ages, marries, has children, moves and dies by code, the same way at every level of detail; a place's population is the count of its living people; and a child with the right parents or traits can rise to a figure and a talking NPC.
 
+> **Changed by [N26 Part E](n26-the-open-road.md#part-e-everyone-on-the-road-is-someone-rework-asked-for-2026-10-14) (2026-10-14):** migration becomes a journey. Households **depart** (marked `away`, still counted at the old place) and **arrive** days later, when the move is applied. The choice of destination also weighs kin already there, work, safety and law. People also make round trips (market, kin, work, pilgrimage), so a person can be away from home without leaving it.
+
 **Read first:** [plans README](README.md) sections 2 (determinism: per-person streams), 5 (**a year is 12 days**), 6 (person refs), 9 (performance). Needs N18 (people in SQLite, materialised at world creation, batch writes). Use N22's `sim:years` to tune it.
 
 ## What exists

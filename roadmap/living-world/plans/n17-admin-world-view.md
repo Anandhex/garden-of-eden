@@ -4,6 +4,8 @@
 
 **In one line:** a second page, `/admin`, that shows the whole world as it really is, lets you search anyone and pin people or places to follow, and never changes the game.
 
+> **Changed by [N26 Part E](n26-the-open-road.md#part-e-everyone-on-the-road-is-someone-rework-asked-for-2026-10-14) (2026-10-14):** travellers are real people, so the admin view gains a traveller card (where on the road, why, arriving when, what news they carry), search for people on the road, pinned travellers drawn on the map, a Roads panel, and each place's away and visiting lists.
+
 **Read first:** [plans README](README.md) sections 2 (determinism), 3 (truth vs knowledge), 6 (person refs), 7 (where code goes).
 
 ## What exists

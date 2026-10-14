@@ -8,6 +8,8 @@ Other peoples and monsters with settlements and kingdoms of their own, armies of
 
 **Status:** ⬜ Planned
 
+**Implementation plan:** [plans/n54-peoples-and-monsters.md](plans/n54-peoples-and-monsters.md)
+
 **Goal:** the realm isn't only human. Goblins, orcs, ogres, trolls, giants, dragons and other peoples and monsters live in it: some in settlements of their own, some nomadic, some with kingdoms, some independent, some plotting harm. They have their own friends and enemies, take sides with other species, and a rare few are intelligent enough to talk with humans and live among them where a kingdom allows it.
 
 **What exists:** `world/species.ts` already has elves, dwarves, halflings and orcs as talking species (with ages and rank limits), beside humans and the beasts (wolf, bear, boar, giant spider, horse). The realm (N13) is generated with human settlements, kingdoms and factions; creatures are packs, gangs and dungeon things.
@@ -31,6 +33,8 @@ Other peoples and monsters with settlements and kingdoms of their own, armies of
 ## N55: Armies, soldiers and the war dead
 
 **Status:** ⬜ Planned
+
+**Implementation plan:** [plans/n55-armies-soldiers-and-the-war-dead.md](plans/n55-armies-soldiers-and-the-war-dead.md)
 
 **Goal:** wars are fought by real people. NPCs join armies and rise through the ranks; those who die in war are counted and remembered as war dead, distinct from other deaths.
 
@@ -56,6 +60,8 @@ Other peoples and monsters with settlements and kingdoms of their own, armies of
 
 **Status:** ⬜ Planned
 
+**Implementation plan:** [plans/n56-grievances-and-uprisings.md](plans/n56-grievances-and-uprisings.md)
+
 **Goal:** people band together against someone who keeps wronging them: commoners against a cruel noble, serfs against a harsh lord.
 
 **The rules:** code counts grievances per oppressor across a place. Past a threshold, a small rebel faction (N13's `rebel` kind) is founded with the aggrieved as members and the oppressor as its target. Gossip does the recruiting.
@@ -71,6 +77,8 @@ Other peoples and monsters with settlements and kingdoms of their own, armies of
 ## N57: Player-led factions
 
 **Status:** ⬜ Planned
+
+**Implementation plan:** [plans/n57-player-led-factions.md](plans/n57-player-led-factions.md)
 
 **Goal:** the player can found and lead their own band, guild, company or rebel group, and be followed, doubted and betrayed by its members like any leader.
 
@@ -91,6 +99,8 @@ Other peoples and monsters with settlements and kingdoms of their own, armies of
 
 **Status:** ⬜ Planned
 
+**Implementation plan:** [plans/n58-kingdoms-react-to-unrest.md](plans/n58-kingdoms-react-to-unrest.md)
+
 **Goal:** a kingdom that has seen revolts (its own, or a neighbour's) becomes scared, repressive or conciliatory.
 
 **The rules:** each kingdom keeps an **unrest memory**: recent revolts, uprisings and rebel factions, weighted by distance and age; a neighbour's revolt counts once its news reaches the court (N33). The ruler's traits and the court's mood pick a response. Policies are temporary and decay unless renewed, so a kingdom can swing between them.
@@ -107,6 +117,8 @@ Other peoples and monsters with settlements and kingdoms of their own, armies of
 ## N59: Runaways and liberation
 
 **Status:** ⬜ Planned
+
+**Implementation plan:** [plans/n59-runaways-and-liberation.md](plans/n59-runaways-and-liberation.md)
 
 **Goal:** a slave can run away, survive, and found a group that frees other slaves. Free kingdoms choose how to treat runaways, which drives diplomacy and war.
 
