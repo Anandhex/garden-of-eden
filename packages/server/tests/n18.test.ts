@@ -26,7 +26,7 @@ import { siteMap } from "../src/web/sites.js";
 import { allPersonas, FakeProvider, makeTown } from "./helpers.js";
 
 // Whole worlds for dozens of days: slower than the unit tests, and slower still with every file running at once.
-vi.setConfig({ testTimeout: 60_000 });
+vi.setConfig({ testTimeout: 180_000 });
 
 const dirs: string[] = [];
 const tmp = (name: string) => {
