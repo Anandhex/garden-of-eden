@@ -531,13 +531,13 @@ export class Town {
   private readonly chatterMemo = new Map<string, HourPlan>();
 
   /** An hour of the crowd's exchanges, planned once. Nothing is changed until the hour has passed (`chatterHours`), so a world loaded elsewhere plans the same hour. */
-  private chatterPlan(day: number, hour: number, sparse = false): HourPlan | null {
+  private chatterPlan(day: number, hour: number, sparse = false, simOf: CrowdSim | null = null): HourPlan | null {
     const realm = this.world.realm;
     const key = `${this.site()}|${day}|${hour}`;
     const had = this.chatterMemo.get(key);
     if (had) return had;
     if (!realm || !this.store || !config.chatter || this.store.people.count(this.site()) === 0) return null;
-    const sim = this.crowdSim();
+    const sim = simOf ?? this.crowdSim();
     if (!sim) return null;
     const plan = planHour({ realm, store: this.store }, this.site(), day, hour, sim, this.crowdDay(), { sparse });
     this.chatterMemo.set(key, plan);
@@ -574,13 +574,15 @@ export class Town {
   private chatterHours(start: { day: number; hour: number }, hours: number): void {
     const realm = this.world.realm;
     if (!config.chatter || !this.store || !realm) return;
+    // The roster and the map do not change while the hours are worked through (the clock is already at the end), so the crowd is built once.
+    const sim = hours > 1 ? this.crowdSim() : null;
     for (let i = 0; i < hours; i++) {
       const at = start.hour + i;
       const day = start.day + Math.floor(at / 24);
       if (day > this.world.day) break;
       // Planned afresh, not taken from the lookahead: how finely a long wait is sampled must not depend on what happened to be planned already.
       this.chatterMemo.delete(`${this.site()}|${day}|${at % 24}`);
-      const plan = this.chatterPlan(day, at % 24, hours > 2);
+      const plan = this.chatterPlan(day, at % 24, hours > 2, sim);
       if (plan) applyHour({ realm, store: this.store }, plan);
       this.chatterMemo.delete(`${this.site()}|${day}|${at % 24}`);
     }

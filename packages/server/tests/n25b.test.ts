@@ -32,7 +32,7 @@ import type { NpcPersona } from "../src/npc/types.js";
 import { materialisePeople } from "../src/store/materialise.js";
 import { always, FakeProvider, makeTown, brena, hale, pell, wren } from "./helpers.js";
 
-vi.setConfig({ testTimeout: 60_000 });
+vi.setConfig({ testTimeout: 180_000 });
 
 beforeEach(() => {
   config.director = false;

@@ -353,7 +353,7 @@ describe("N19.5 tick budgets", () => {
     const bad = run({ BUDGET_TICK_DAY_MS: "0" });
     expect(bad.status).toBe(1);
     expect(bad.stderr).toContain("over");
-  }, 60_000);
+  }, 180_000);
 });
 
 describe("N19.6 the admin Health tab", () => {

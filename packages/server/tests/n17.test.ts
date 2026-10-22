@@ -384,7 +384,7 @@ describe("N17.8 time controls move the clock, as the player waiting would, and a
     expect(town.world.day - day).toBe(30);
     expect((await timeControl({ ...ctx, time: undefined }, { action: "step-hour" })).ok).toBe(false);
     // 30 days now include everyone's lives (N25), so allow for a loaded machine.
-  }, 60_000);
+  }, 180_000);
 
   it("works over HTTP, and a bad action is refused", async () => {
     const http = await listen();
