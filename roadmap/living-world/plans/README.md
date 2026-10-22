@@ -30,7 +30,7 @@ Read this page first. It holds the rules every phase shares; the phase plans ass
 | N34 | [Following people in the game](n34-following-people.md) | N24, N33 | |
 | N35 | [Moving through time](n35-moving-through-time.md) | N26, N34 | |
 | N36 | [The mood of a place](n36-the-mood-of-a-place.md) | N20 (causes), N25b | |
-| N37 | [Chatter with consequences](n37-chatter-with-consequences.md) | N25b, N33 | ✅ slice |
+| N37 | [Chatter with consequences](n37-chatter-with-consequences.md) | N25b, N33 | ✅ built 2026-10-14 (all steps; schema 7, save still v15) |
 | N38 | [NPCs as living players](n38-npcs-as-living-players.md) | N18, N19, N37 | ✅ slice |
 | N39 | [The first hour](n39-the-first-hour.md) | N33, N37, N38 | |
 | N40 | [Ambitions and careers](n40-ambitions-and-careers.md) | N38 | ✅ slice |
@@ -167,7 +167,7 @@ Added 2026-10-14 with the N29–N68 plans. Everything in sections 1–10 still h
 
 ## 11. Where things stand, and the pieces that are missing
 
-**Built (2026-10-14):** N17, N18, N19, N25, N25a, N25b, N26 and N33 (see each stage file's **What differs**). **Not built:** N20–N24 (except `player.known`, `playerKnows` and `playerLearns`, built as N33's step 0 in `game/playerKnowledge.ts`), N27 and N28.
+**Built (2026-10-14):** N17, N18, N19, N25, N25a, N25b, N26, N33 and N37 (see each stage file's **What differs**). **Not built:** N20–N24 (except `player.known`, `playerKnows` and `playerLearns`, built as N33's step 0 in `game/playerKnowledge.ts`), N27 and N28.
 
 **N26 Part E is built on top of N26 (2026-10-14, save v14)** ([plan](n26-the-open-road.md#part-e-everyone-on-the-road-is-someone-rework-asked-for-2026-10-14), asked for 2026-10-14): every traveller is a real person row (`people.away` while on a journey), migrants arrive on the day their journey does, the messenger relay (`relay.ts`) is deleted, and **news spreads by people**: travellers carry what their place knew when they left (`journey.carries`) and swap it with places at every stop, inns most of all; `reachesAt(news, site)` becomes "the day the place first heard it, or not yet". **The N29–N68 plans assume Part E, which is built.** Where the plans say `SiteState.newsSeen` with a day, read `realm.heard[site][newsId]` (see the stage file's What differs). Where a plan says a journey, a traveller or a carrier, it means a real person on a Part E journey; where it says a place heard news, it means Part E's `newsSeen` day. N33 then makes that knowledge per person instead of per place. Several later plans lean on small parts of those phases. **The rule:** if a phase needs a part that doesn't exist yet, it builds that part (only that part, as written in its own plan) as **step 0**, and says so in the stage file. It doesn't build its own version.
 
@@ -240,8 +240,8 @@ N18 made tables that are still empty. Who fills them, so two phases don't both c
 | Table | Filled by | Rule |
 |---|---|---|
 | `knowledge(who, ref, learned_day, source, accuracy, variant)` | N33 ✅ | what townsfolk know (news refs, deaths, later secrets from N46). Capped per person (keep the 24 most worth telling). `variant` is which detail was changed in the telling (`game/gossip/describe.ts`). The player's own knowledge is `player.known` in the save, not here. |
-| `relationships(a, b, trust, affection, respect, fear, since)` | N37 | only for pairs who have interacted; pruned when every axis is near 0 and the row is a year old |
-| `grievances(id, who, against, cause_ref, weight, since, settled)` | N37 | every wrong; N45 makes them pass to children, N56 sums them by oppressor, N58 counts them by place |
+| `relationships(a, b, trust, affection, respect, fear, since)` | N37 ✅ | one person's view of another, only for pairs who have interacted (`since` is the day it last changed); written only through `adjustRel` (`game/chatter/rel.ts`: fades with a half-life of two years, pruned when every axis is under 3 and a year untouched, at most 50 a person); `credenceOf` is how gossip reads it |
+| `grievances(id, who, against, cause_ref, weight, since, settled)` | N37 ✅ | every wrong; add only through `addGrievance` (`chatter/grievance.ts`; the id comes from who, whom and what so places worked out in a different order agree), read the weight through `weightOn(g, day)` (it fades by its owner's forgiveness), settle with `settle`/`easeGrievances`/`settleAll`. N45 makes them pass to children, N56 sums them by oppressor, N58 counts them by place |
 | `ambitions(who, kind, target, progress, since)` | N40 | one row per person |
 | `jobs_held(who, job, site, from_day, to_day)` | N40 | a career history; N55 writes military service here too (`job = "soldier:<rank>"`) |
 
@@ -249,7 +249,7 @@ New tables after these: add them to `TABLES` and `ORDER_BY` in [`store/schema.ts
 
 ## 16. Save and schema versions from here on
 
-The save is at **v15** and the database at **schema 6** (2026-10-14). Every phase that adds saved state bumps the save version, the schema version or both, **with a real migration and a test from the version before** (the clean breaks at v11 and v13 were one-time decisions). If a phase would rather start clean, ask the user first. Each plan has a **Save** line saying what it adds. Two phases in a row may share a bump if they're built together.
+The save is at **v15** and the database at **schema 7** (2026-10-14). Every phase that adds saved state bumps the save version, the schema version or both, **with a real migration and a test from the version before** (the clean breaks at v11 and v13 were one-time decisions). If a phase would rather start clean, ask the user first. Each plan has a **Save** line saying what it adds. Two phases in a row may share a bump if they're built together.
 
 ## 17. Three grains of detail, and what a daily rule may read
 

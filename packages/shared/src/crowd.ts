@@ -16,6 +16,8 @@
  * rank (bows, deference and scorn), their factions (old grudges) and the day.
  */
 
+import { HOSTILE, type ChatterMark, type InteractionKind } from "./chatter.js";
+
 // ---------- who they are ----------
 
 /** Social classes, lowest first. */
@@ -239,10 +241,18 @@ export interface CrowdPos {
 export interface Chat {
   a: number;
   b: number;
+  /** What `a` says, then what `b` says. */
   lines: [string, string];
   /** The lower of the two bows to the higher. */
   bow: boolean;
+  /** What kind of exchange it was, when the server said it was more than a greeting (N37). */
+  kind?: InteractionKind;
+  /** Who did it (`a` or `b`) for a kind that has an actor. */
+  actor?: number;
 }
+
+/** The key a chat is looked up by in the server's marks: the two roster indices (either way round) and the minute bucket. */
+export const markKey = (a: number, b: number, k: number): string => (a < b ? `${a}|${b}|${k}` : `${b}|${a}|${k}`);
 
 type Target = { k: "in"; b: number } | { k: "front"; b: number } | { k: "zone"; z: string } | { k: "out"; z: string };
 
@@ -492,7 +502,7 @@ export class CrowdSim {
    * somewhere) strike up an exchange now and then. Only those inside `near` (a
    * box of tiles) if given, so the browser works out only what it shows.
    */
-  chats(day: number, minute: number, d: CrowdDay, at: CrowdPos[], near?: { x0: number; y0: number; x1: number; y1: number }): Chat[] {
+  chats(day: number, minute: number, d: CrowdDay, at: CrowdPos[], near?: { x0: number; y0: number; x1: number; y1: number }, marks?: ReadonlyMap<string, ChatterMark>): Chat[] {
     const { w } = this.map;
     const people = this.roster.people;
     const byTile = new Map<number, number[]>();
@@ -540,7 +550,21 @@ export class CrowdSim {
         // The one who speaks first: the lower to the higher (a greeting), else either.
         const first = CLASS_RANK[pa.cls] === CLASS_RANK[pb.cls] ? (mix(pa.id, k) % 2 === 0 ? i : best) : CLASS_RANK[pa.cls] < CLASS_RANK[pb.cls] ? i : best;
         const second = first === i ? best : i;
-        const lines = chatLines(this.roster, people[first]!, people[second]!, d, minute, mix(people[first]!.id, people[second]!.id, k));
+        const seed = mix(people[first]!.id, people[second]!.id, k);
+        const mark = marks?.get(markKey(first, second, k));
+        if (mark) {
+          // The server says what really passed between them (N37): the words match it.
+          const doer = mark.actor === first ? people[first]! : people[second]!;
+          const other = doer === people[first]! ? people[second]! : people[first]!;
+          const table = kindLines(mark.kind, doer, other, seed);
+          const said: [string, string] | null = mark.line ? [mark.line, table?.[1] ?? ""] : table;
+          if (said) {
+            const lines: [string, string] = mark.actor === first ? [said[0], said[1]] : [said[1], said[0]];
+            out.push({ a: first, b: second, lines, bow: mark.kind === "bow", kind: mark.kind, actor: mark.actor });
+            continue;
+          }
+        }
+        const lines = chatLines(this.roster, people[first]!, people[second]!, d, minute, seed);
         out.push({ a: first, b: second, lines, bow: CLASS_RANK[people[second]!.cls] - CLASS_RANK[people[first]!.cls] >= 3 });
       }
     }
@@ -1106,6 +1130,44 @@ export function chatLines(roster: Pick<CrowdRoster, "place" | "lord" | "ruler" |
 }
 
 const r100 = (seed: number) => (seed >>> 3) % 100;
+
+/**
+ * Two lines for an exchange of a known kind (N37): what `doer` says, then what `other` answers. Null for the kinds with no words of
+ * their own (a greeting, a bow, an order, news shared), which use `chatLines`.
+ */
+export function kindLines(kind: InteractionKind, doer: Townsperson, other: Townsperson, seed: number): [string, string] | null {
+  const s2 = Math.floor(seed / 7);
+  const down = CLASS_RANK[doer.cls] > CLASS_RANK[other.cls];
+  const title = honorific(doer, other);
+  const you = down ? pickBy(["you wretch", "you worm", "you fool", "you lump"], s2) : pickBy(["you jumped-up lout", "you pampered fool", "my lord", "your grace"], s2);
+  switch (kind) {
+    case "sneer":
+      return down
+        ? [pickBy(["*looks you up and down* Still here?", "Out of my sight.", "You smell of the midden.", "Don't stand there gawping.", "*sniffs* The streets are full of riff-raff."], seed), pickBy([`*eyes down* Yes, ${title}.`, "*says nothing*", "*stiffens, then bows*"], s2)]
+        : [pickBy(["*mutters* Look who thinks he's somebody.", "*snorts as you pass*", "Fine clothes. Whose purse paid for them?"], seed), pickBy(["Hmph.", "What was that?", "Mind your tongue."], s2)];
+    case "insult":
+      return [pickBy([`Get out of my way, ${you}.`, `Your kind spoils this street, ${you}.`, "You're a disgrace to your name.", "I've seen better sense in a goat.", `Were you born stupid, ${you}?`], seed), pickBy(["*glares*", "You'll answer for that.", "Say that again.", "*swallows it, face burning*"], s2)];
+    case "humiliate":
+      return [pickBy(["Look at this wretch! Kneel, or I'll have you whipped.", "Everyone, look! This one thinks he's a person.", "Down on your knees, and thank me for letting you breathe.", "Tell them what you are. Louder!"], seed), pickBy(["*stands, shaking*", "*eyes burning, says nothing*", "Please, not here...", "I'll remember this."], s2)];
+    case "refuse_bow":
+      return [pickBy(["*meets your eye and walks on*", "*keeps their head up*", "*pretends not to see you*"], seed), pickBy(["How dare you!", "Insolent!", "Bow when your betters pass!", "You'll learn your place."], s2)];
+    case "refuse_order":
+      return [pickBy(["Do it yourself.", "I'm not your dog.", "Not today.", "*folds their arms*"], seed), pickBy(["What did you say?", "You'll be sorry for that.", "Get back to work, or else.", "*stares, white with anger*"], s2)];
+    case "complain":
+      return [pickBy(["The prices are a scandal.", "The tithe is crushing us.", "Nothing is as it was.", "My back is breaking and for what?"], seed), pickBy(["Aye, hard times.", "Take it up with the lord.", "Don't I know it.", "Keep your voice down."], s2)];
+    case "flatter":
+      return [pickBy(["Your garden is the pride of the street.", "Everyone says you are the wisest here.", "That coat suits you wonderfully.", "Such a fine hand you have!"], seed), pickBy(["Kind of you.", "Hm, flattery.", "You're too generous.", "What do you want?"], s2)];
+    case "threaten":
+      return [pickBy(["You'll regret this. I know where you live.", "Cross me again and you'll see.", "One word and I break your teeth.", "Mind yourself. Accidents happen."], seed), pickBy(["Are you threatening me?", "*backs away*", "I'm not afraid of you.", "Leave me be."], s2)];
+    case "apologise":
+      return [pickBy(["I spoke out of turn. Forgive me.", "That was wrong of me. I'm sorry.", "Let's put the quarrel behind us.", "I was out of line."], seed), pickBy(["Hmph. Forgotten.", "Well. Thank you.", "It takes a bigger person to say it.", "...Very well."], s2)];
+    default:
+      return null;
+  }
+}
+
+/** Does this kind get the red edge? */
+export const isHostile = (kind: InteractionKind): boolean => HOSTILE.has(kind);
 const cap = (t: string) => t.replace(/^./, (c) => c.toUpperCase());
 
 /** How someone lower addresses this person. */

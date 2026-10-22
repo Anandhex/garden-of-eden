@@ -9,6 +9,7 @@ import type { GameEvent } from "./events.js";
 import { cosine, hashedEmbedder } from "./embeddings.js";
 import { timed } from "../metrics/timing.js";
 import { KnowledgeStore } from "../store/knowledgeStore.js";
+import { SocialStore } from "../store/socialStore.js";
 import { PeopleStore } from "../store/peopleStore.js";
 import { applySchema, ORDER_BY, type TableName } from "../store/schema.js";
 
@@ -66,6 +67,8 @@ export class WorldStore {
   readonly people: PeopleStore;
   /** What each person knows (N33). */
   readonly knowledge: KnowledgeStore;
+  /** How people feel about one another and what they hold against each other (N37). */
+  readonly social: SocialStore;
 
   constructor(file = ":memory:", embedder: Embedder = hashedEmbedder) {
     if (file !== ":memory:") mkdirSync(dirname(file), { recursive: true });
@@ -75,6 +78,7 @@ export class WorldStore {
     applySchema(this.db, file !== ":memory:");
     this.people = new PeopleStore(this.db);
     this.knowledge = new KnowledgeStore(this.db, this.people);
+    this.social = new SocialStore(this.db, this.people);
   }
 
   close(): void {
@@ -85,6 +89,7 @@ export class WorldStore {
   reset(): void {
     this.people.clear();
     this.knowledge.dropCache();
+    this.social.dropCache();
     this.db.exec("DELETE FROM events; DELETE FROM memories; DELETE FROM director_log; DELETE FROM relationships; DELETE FROM knowledge; DELETE FROM grievances; DELETE FROM ambitions; DELETE FROM jobs_held; DELETE FROM site_days; DELETE FROM site_seq; DELETE FROM model_calls; DELETE FROM meta;");
   }
 
@@ -132,6 +137,7 @@ export class WorldStore {
     });
     if (table === "people") this.people.dropCache();
     if (table === "knowledge") this.knowledge.dropCache();
+    if (table === "relationships" || table === "grievances") this.social.dropCache();
   }
 
   /** Set a `meta` value. */

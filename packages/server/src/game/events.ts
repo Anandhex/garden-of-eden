@@ -75,6 +75,11 @@ export const EVENT_KINDS = [
   "story-turn",
   // The open road (N26): a situation met on it, and what came of it later
   "road",
+  // Chatter with consequences (N37): a snub or a refusal, an insult or a humiliation, a threat, an apology
+  "slight",
+  "affront",
+  "menace",
+  "apology",
 ] as const;
 export type EventKind = (typeof EVENT_KINDS)[number];
 

@@ -3,6 +3,8 @@ import { config } from "../../config.js";
 import type { PersonRow } from "../../store/peopleStore.js";
 import { seedFrom, streamFor } from "../dice.js";
 import { KEEP_DAYS, NEUTRAL_DAY, type SiteDay } from "./conditions.js";
+import { addGrievance, strongestOf } from "../chatter/grievance.js";
+import { deathRef } from "../gossip/refs.js";
 import type { DeathRecord } from "./death.js";
 import type { LifeCtx, SiteStep } from "./step.js";
 
@@ -27,9 +29,25 @@ export interface Outlook {
   /** How they see whoever rules their place: trust, fear, respect, affection. */
   lord: { t: number; f: number; e: number; a: number };
   /** What they want, once something gives them reason to. */
-  goal?: { kind: "move" | "avenge"; since: number; target?: string };
+  goal?: Goal;
   /** Who they hold a grudge against, and since when. */
   grudge?: { against: string; since: number; why: string };
+}
+
+/**
+ * What a person wants: to move, or to have revenge. A revenge from a death in the family has a `target` (a name or cause) and nothing else;
+ * one from a grievance against a person (N37, game/chatter/revenge.ts) names that person's id and has a plan, a strength (how much they still
+ * hold against them), the words for it, the event behind it and, once done, the day.
+ */
+export interface Goal {
+  kind: "move" | "avenge";
+  since: number;
+  target?: string;
+  plan?: "ambush" | "confront" | "rumour" | "refuse";
+  strength?: number;
+  reason?: string;
+  cause?: string;
+  acted?: number;
 }
 
 export const BLANK_OUTLOOK: Outlook = { r: 0, mood: 0, lord: { t: 0, f: 0, e: 0, a: 0 } };
@@ -112,6 +130,8 @@ export interface Hit {
   death?: DeathRecord;
   /** For a death: the name, for the grudge's reason. */
   who?: string;
+  /** For a death: the dead person's id (a grievance against the killer points at their death). */
+  whoId?: string;
 }
 
 /** One person's review (pure). `kin` are their spouse's and parents' outlooks. */
@@ -194,7 +214,7 @@ function hitsOf(ctx: LifeCtx, step: SiteStep, day: number, rows: PersonRow[]): {
     const dead = people.get(d.id);
     if (!dead) continue;
     const kin = new Set<string>([...[dead.spouse, dead.mother, dead.father].filter((x): x is string => !!x), ...people.childrenOf(dead.id).map((c) => c.id)]);
-    for (const k of kin) if (alive.has(k)) add(k, { kind: "family-death", death: d.record, who: dead.name });
+    for (const k of kin) if (alive.has(k)) add(k, { kind: "family-death", death: d.record, who: dead.name, whoId: dead.id });
   }
   for (const [a, b] of step.marriages) {
     for (const id of [a, b]) if (alive.has(id)) add(id, { kind: "wedding" });
@@ -221,7 +241,7 @@ export function reviewDay(ctx: LifeCtx, step: SiteStep, day: number): number {
     return s;
   };
   let done = 0;
-  const staged: Array<[string, Outlook]> = [];
+  const staged: Array<[string, Outlook, Hit[]]> = [];
   // Read everyone's outlook as it was this morning, write after: the order of the roster never matters.
   for (const row of rows) {
     const own = byPerson.get(row.id) ?? [];
@@ -235,11 +255,34 @@ export function reviewDay(ctx: LifeCtx, step: SiteStep, day: number): number {
       .filter((r): r is PersonRow => !!r && r.death === null)
       .map(outlookOf);
     const from = old.r === 0 ? Math.max(1, day - config.review.everyDays + 1) : old.r + 1;
-    staged.push([row.id, review(row, old, seasonFrom(from), kin, hits, day, ctx.realm.seed)]);
+    staged.push([row.id, review(row, old, seasonFrom(from), kin, hits, day, ctx.realm.seed), hits]);
     done++;
   }
-  for (const [id, o] of staged) people.update(id, { outlook: JSON.stringify(o) });
+  for (const [id, o, hits] of staged) {
+    grudgeFromGrievances(ctx, id, o, hits, day);
+    people.update(id, { outlook: JSON.stringify(o) });
+  }
   return done;
+}
+
+/**
+ * One source of truth for who someone holds a grudge against (N37): the grievances table. A death in the family by a known hand (a person
+ * of the realm) is a grievance against whoever did it; and the outlook's `grudge` is a view of the heaviest grievance a person holds
+ * open (or, where they hold none, the review's own: a death by raiders or beasts has no one to be a grievance against).
+ */
+function grudgeFromGrievances(ctx: LifeCtx, id: string, o: Outlook, hits: Hit[], day: number): void {
+  const { store } = ctx;
+  for (const h of hits) {
+    const killer = h.kind === "family-death" ? h.death?.killer : undefined;
+    if (!killer || !h.whoId || !store.people.get(killer)) continue;
+    addGrievance(store, { who: id, against: killer, cause: deathRef(h.whoId), weight: 0.6, day });
+  }
+  const strongest = strongestOf(store, id, day);
+  if (!strongest || strongest.weight < 0.1) return;
+  const g = strongest.g;
+  const against = store.people.get(g.against);
+  const cause = g.cause_ref.startsWith("e:") ? store.eventById(g.cause_ref.slice(2))?.details : g.cause_ref.startsWith("d:") ? `${store.people.get(g.cause_ref.slice(2))?.name ?? "someone close"} was killed` : undefined;
+  o.grudge = { against: g.against, since: g.since, why: cause ?? `${against?.name ?? "someone"} wronged them` };
 }
 
 /** Feelings a person's outlook gives them, in plain sentences (the facts sheet carries them to a new talker's story). */
@@ -253,7 +296,7 @@ export function feelingsOf(o: Outlook, lord?: string): string[] {
   if (o.mood <= -1.5) out.push("they have been low in spirits lately");
   else if (o.mood >= 1.5) out.push("they have been in good spirits lately");
   if (o.goal?.kind === "move") out.push("they have been thinking of leaving");
-  if (o.goal?.kind === "avenge") out.push(`they want to see ${o.goal.target ?? "someone"} answer for a death in the family`);
+  if (o.goal?.kind === "avenge") out.push(o.goal.reason ? `they want revenge: ${o.goal.reason}` : `they want to see ${o.goal.target ?? "someone"} answer for a death in the family`);
   if (o.grudge) out.push(`they hold a grudge: ${o.grudge.why}`);
   return out;
 }

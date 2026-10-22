@@ -5,7 +5,7 @@
  * over the wire per step. Someone the player has talked to is a full NPC in the
  * snapshot; the crowd leaves them out so they aren't drawn twice.
  */
-import { CLASS_WORDS, CrowdSim, JOB_INFO, tileDistance, type Chat, type CrowdPos, type GossipTold, type Snapshot, type Townsperson } from "@millbrook/shared";
+import { CLASS_WORDS, CrowdSim, JOB_INFO, markKey, tileDistance, type Chat, type CrowdPos, type GossipTold, type Snapshot, type Townsperson } from "@millbrook/shared";
 import { fetchCrowd } from "./api";
 
 export const crowd = {
@@ -62,7 +62,9 @@ export function updateCrowd(s: Snapshot): boolean {
 export function crowdChats(s: Snapshot, box: { x0: number; y0: number; x1: number; y1: number }): Chat[] {
   const sim = crowd.sim;
   if (!sim || !s.crowd || crowd.pos.length === 0) return [];
-  return sim.chats(s.time.day, s.time.hour * 60 + s.time.minute, s.crowd.day, crowd.pos, box).filter((c) => !promoted(s, c.a) && !promoted(s, c.b));
+  // The server says what really passed between some of them (N37): those chats get the words and the look of it.
+  const marks = s.crowd.marks && s.crowd.marks.length > 0 ? new Map(s.crowd.marks.map((m) => [markKey(m.a, m.b, m.k), m])) : undefined;
+  return sim.chats(s.time.day, s.time.hour * 60 + s.time.minute, s.crowd.day, crowd.pos, box, marks).filter((c) => !promoted(s, c.a) && !promoted(s, c.b));
 }
 
 /** Is this roster index someone who's a full NPC in the snapshot (drawn as one)? */

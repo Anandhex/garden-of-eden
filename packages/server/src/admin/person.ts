@@ -9,7 +9,9 @@ import { rankIn } from "../game/realm/factions.js";
 import { lineageOf } from "../game/people/index.js";
 import { deathWords, parseDeath } from "../game/people/death.js";
 import { describeKnown } from "../game/gossip/describe.js";
+import { planWords } from "../game/chatter/revenge.js";
 import { outlookOf } from "../game/people/outlook.js";
+import { socialSections } from "./social.js";
 import { ageFrom } from "../game/people/rules.js";
 import { traitsOfRow } from "../game/people/traits.js";
 import { parseAway, type PersonRow } from "../store/peopleStore.js";
@@ -297,15 +299,23 @@ function knowsSection(ctx: AdminContext, row: PersonRow): AdminSection {
 }
 
 /** A townsperson's outlook (N25b): how they see whoever rules, their mood, what they want and who they hold a grudge against, as code's reviews left it. */
-function outlookSection(row: PersonRow, head: { name: string } | undefined): AdminSection {
+function outlookSection(ctx: AdminContext, row: PersonRow, head: { name: string } | undefined): AdminSection {
   const o = outlookOf(row);
   if (!row.outlook) return { title: "Outlook", rows: [["Reviews", "none yet: everyone is reviewed every few days, and the same day something big hits their life"]] };
-  const rows: Array<[string, string]> = [
+  const rows: Array<[string, string, string?]> = [
     ["Last review", `day ${o.r}`],
     ["Mood", `${o.mood > 0 ? "+" : ""}${o.mood} (of -3 to 3)`],
     [`Sees ${head?.name ?? "whoever rules"}`, `trust ${o.lord.t}, fear ${o.lord.f}, respect ${o.lord.e}, affection ${o.lord.a}`],
   ];
-  if (o.goal) rows.push(["Wants", o.goal.kind === "move" ? `to leave (since day ${o.goal.since})` : `to see ${o.goal.target ?? "someone"} answer for a death (since day ${o.goal.since})`]);
+  if (o.goal) {
+    // A revenge for a wrong (N37) names a person, the plan and how much they still hold against them.
+    const them = o.goal.plan && o.goal.target ? ctx.store?.people.get(o.goal.target) : null;
+    rows.push(
+      them
+        ? ["Wants", `revenge on ${them.name}: ${o.goal.reason ?? "an old wrong"}; means to ${planWords(o.goal.plan!)} (${pct(o.goal.strength ?? 0)} strong, since day ${o.goal.since})`, `town:${them.id}`]
+        : ["Wants", o.goal.kind === "move" ? `to leave (since day ${o.goal.since})` : `to see ${o.goal.target ?? "someone"} answer for a death (since day ${o.goal.since})`],
+    );
+  }
   if (o.grudge) rows.push(["Grudge", `${o.grudge.against}: ${o.grudge.why} (since day ${o.grudge.since})`]);
   return { title: "Outlook", rows };
 }
@@ -348,7 +358,7 @@ function awayCard(ctx: AdminContext, row: PersonRow): AdminCard {
     site: row.site,
     siteName: place?.name ?? null,
     doing: j ? `${j.where} (${parseAway(row.away)?.purpose ?? "on a journey"})` : "away",
-    sections: [...(roadSection(ctx, row) ? [roadSection(ctx, row)!] : []), ...lifeSections(ctx, row), knowsSection(ctx, row)],
+    sections: [...(roadSection(ctx, row) ? [roadSection(ctx, row)!] : []), ...lifeSections(ctx, row), knowsSection(ctx, row), ...socialSections(ctx, row)],
     ...(j ? { road: { journey: j.id, x: j.x, y: j.y, state: j.state } } : {}),
   };
 }
@@ -407,7 +417,8 @@ function townspersonCard(ctx: AdminContext, id: string): AdminCard | null {
     ...(row && row.away !== null && roadSection(ctx, row) ? [roadSection(ctx, row)!] : []),
     ...(row ? lifeSections(ctx, row) : []),
     ...(row ? [knowsSection(ctx, row)] : []),
-    ...(row && !row.persona ? [outlookSection(row, world.realm!.settlements[row.site]?.leader ? world.realm!.figures[world.realm!.settlements[row.site]!.leader!] : undefined)] : []),
+    ...(row ? socialSections(ctx, row) : []),
+    ...(row && !row.persona ? [outlookSection(ctx, row, world.realm!.settlements[row.site]?.leader ? world.realm!.figures[world.realm!.settlements[row.site]!.leader!] : undefined)] : []),
     ...(row && row.persona ? [] : [{ title: "Needs, emotions, goals", unavailable: "N25: townsfolk's needs and feelings are worked out by code (their outlook is above); they get a full set of their own once they talk to the player" } as AdminSection]),
   ];
   if (persona && state) sections.push(...castSections(ctx, id, persona, state));

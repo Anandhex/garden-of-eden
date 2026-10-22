@@ -72,7 +72,12 @@ import { dueLater } from "./road/situations.js";
 import { commitTrack, startRoad } from "./road/walk.js";
 import { figureTalkerId, notablePersona, notablesOf } from "./realm/notables.js";
 import { homeRoster, parseTownsfolkId, rosterFor, rosterFromStore, townsfolkPersona, townspersonOfRow } from "./realm/townsfolk.js";
-import type { CrowdRoster, Townsperson } from "@millbrook/shared";
+import { CHAT_MINUTES, CrowdSim, type ChatterMark, type CrowdDay, type CrowdRoster, type Townsperson } from "@millbrook/shared";
+import { applyHour, planHour, type HourPlan } from "./chatter/hours.js";
+import { HOSTILE } from "./chatter/types.js";
+import { writeChatterLine } from "./chatter/words.js";
+import { weatherOn } from "./weather.js";
+import { townEventsOn } from "./events-calendar.js";
 import { settleHaunts, stockHaunts } from "./realm/haunts.js";
 import { killFigure, titled } from "./realm/figures.js";
 import { realmNews } from "./realm/log.js";
@@ -498,6 +503,97 @@ export class Town {
   /** What was told in the place the player is in, hour by hour, for bubbles over people's heads: (hour, speaker, listener, what). Newest last. */
   readonly toldHere: Array<{ seq: number; day: number; hour: number; site: string; speaker: string; listener: string; ref: string; text: string }> = [];
   private toldSeq = 0;
+
+  // ---- The crowd, and what passes between its people (N37) ----
+
+  /** The simulation of the townsfolk of the village the player is in: one at a time, made again on a new map. */
+  private crowd: CrowdSim | null = null;
+
+  /** The townsfolk of the village the player is in, or null (a locality, the road, a world without a realm). */
+  crowdSim(): CrowdSim | null {
+    const realm = this.world.realm;
+    const s = realm?.settlements[this.site()];
+    if (!realm || !s || this.area() !== "village" || this.road.onRoad()) return null;
+    const map = siteMap(s, "village", realm);
+    const roster = this.rosterAt(this.site(), map, this.world.day);
+    if (!roster) return null;
+    if (!this.crowd || this.crowd.map.id !== map.id || this.crowd.roster.people !== roster.people) this.crowd = new CrowdSim({ id: map.id, w: map.w, h: map.h, tiles: map.tiles, buildings: map.buildings, zones: map.zones }, roster);
+    else this.crowd.roster = roster;
+    return this.crowd;
+  }
+
+  /** Today's conditions, for where the townsfolk go. */
+  crowdDay(): CrowdDay {
+    return { weather: weatherOn(this.world.day), festival: townEventsOn(this.world).includes("festival") };
+  }
+
+  /** The hours of the player's map worked out ahead (by place, day and hour): the marks to send and what is yet to happen when the hour has passed. */
+  private readonly chatterMemo = new Map<string, HourPlan>();
+
+  /** An hour of the crowd's exchanges, planned once. Nothing is changed until the hour has passed (`chatterHours`), so a world loaded elsewhere plans the same hour. */
+  private chatterPlan(day: number, hour: number, sparse = false): HourPlan | null {
+    const realm = this.world.realm;
+    const key = `${this.site()}|${day}|${hour}`;
+    const had = this.chatterMemo.get(key);
+    if (had) return had;
+    if (!realm || !this.store || !config.chatter || this.store.people.count(this.site()) === 0) return null;
+    const sim = this.crowdSim();
+    if (!sim) return null;
+    const plan = planHour({ realm, store: this.store }, this.site(), day, hour, sim, this.crowdDay(), { sparse });
+    this.chatterMemo.set(key, plan);
+    this.wordsForHour(sim, plan.marks, key);
+    if (this.chatterMemo.size > 12) this.chatterMemo.delete(this.chatterMemo.keys().next().value!);
+    return plan;
+  }
+
+  /**
+   * The model may write the line for a couple of the hour's hostile exchanges, ahead of the minutes they happen in (the table's lines stand
+   * if it is slow, busy or off). The mark is changed when the line arrives; the next snapshot carries it.
+   */
+  private wordsForHour(sim: CrowdSim, marks: ChatterMark[], key: string): void {
+    if (!config.director || !this.world.realm) return;
+    const place = this.world.realm.settlements[this.site()]?.name ?? "the village";
+    marks
+      .filter((m) => HOSTILE.has(m.kind) && m.kind !== "threaten")
+      .slice(0, 2)
+      .forEach((m, i) => {
+        const doer = sim.roster.people[m.actor]!;
+        const other = sim.roster.people[m.actor === m.a ? m.b : m.a]!;
+        this.background.add({
+          key: `chatter-line:${key}:${i}`,
+          kind: "chatter-line",
+          run: async () => {
+            const line = await writeChatterLine(this.bgLlm, { kind: m.kind, actor: doer.name, actorClass: doer.cls, target: other.name, targetClass: other.cls, place });
+            if (line) m.line = line;
+          },
+        });
+      });
+  }
+
+  /** The hours that passed happen (each planned first if it was not, after the one before it), and the hour the player is now in is planned. */
+  private chatterHours(start: { day: number; hour: number }, hours: number): void {
+    const realm = this.world.realm;
+    if (!config.chatter || !this.store || !realm) return;
+    for (let i = 0; i < hours; i++) {
+      const at = start.hour + i;
+      const day = start.day + Math.floor(at / 24);
+      if (day > this.world.day) break;
+      // Planned afresh, not taken from the lookahead: how finely a long wait is sampled must not depend on what happened to be planned already.
+      this.chatterMemo.delete(`${this.site()}|${day}|${at % 24}`);
+      const plan = this.chatterPlan(day, at % 24, hours > 2);
+      if (plan) applyHour({ realm, store: this.store }, plan);
+      this.chatterMemo.delete(`${this.site()}|${day}|${at % 24}`);
+    }
+    this.chatterPlan(this.world.day, this.world.hour);
+  }
+
+  /** What passes between the people the player can see, this hour: for the snapshot. */
+  chatterMarks(): ChatterMark[] {
+    const marks = this.chatterPlan(this.world.day, this.world.hour)?.marks ?? [];
+    // Only the exchanges still to come (or just begun): the browser has no use for the hour's past.
+    const now = Math.floor((this.world.day * 1440 + this.world.hour * 60 + (this.world.minute ?? 0)) / CHAT_MINUTES);
+    return marks.filter((m) => m.k >= now - 1);
+  }
 
   /** The last things said here, still fresh (within two hours), for the bubbles over people's heads. */
   toldLately(): Array<{ seq: number; who: string; text: string }> {
@@ -1011,6 +1107,7 @@ export class Town {
     if (this.world.day > start.day) log.push(...this.familyNights(start.day));
     if (this.world.day > start.day) log.push(...this.realmNights(start.day));
     this.gossipHours(start, hours);
+    this.chatterHours(start, hours);
     // The realm's packs and gangs grow and thin as the days pass: the beasts and outlaws on the map follow.
     this.stockHaunts();
     log.push(...this.takeLifeNews());
