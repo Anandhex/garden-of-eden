@@ -19,7 +19,7 @@
 2. **Songs and tales from the facts.** A bard (a talker or row with the bard/performer job: N41) composes a **song** about a legend within a season of it (a chance by the bard's skill and the legend's weight and nearness); the song is a record `songs(id, legend, by, made_day, text, variant, reach)` with the words from the model (`song`, low priority: a few verses from the facts; invented-name check on every name) or a **template** ballad from the facts. A **tale** is the same in prose (told by storytellers and old folk).
 3. **Songs spread like rumours.** A song is a knowledge ref `g:<songId>` (N33) learned by everyone in a venue where it's sung (the inn on evenings: N41's bard performance), and carried by travelling bards and listeners; retelling **drifts** the facts (N33's variant mechanism on the structured facts: the number of dead grows, the villain's name changes to a better-known one, the place moves to a more famous one), and a bard who learns a drifted version may compose a **new** song from it (variant songs). The truth stays in the legend; the admin shows both.
 4. **Eras.** When a legend (or a cluster of legends with shared causes: a war and its battles; a famine and its migrations) passes a high weight, it names an **era**: `eras(id, name, start, end?, legends[])`, e.g. "the Ashford Revolt", "the Long Winter": names from templates (`the <place> <kind>`, `the <adjective> <season>`) or the model (`era-name`). The chronicle groups history by era.
-5. **The chronicle:** `chronicleOf(view: "truth" | "player")`: years and eras, with each legend's facts (truth) or the player's known version (player: from their knowledge of songs and news, with sources). In the game it's a book the player reads (a journal tab: N65); in the admin, the truth with links to events.
+5. **The chronicle:** `chronicleOf(view: "truth" | "player")`: years, reigns and eras, with each legend's facts (truth) or the player's known version (player: from their knowledge of songs and news, with sources). In the game it's a book the player reads (a journal tab: N65); in the admin, the truth with links to events.
 6. **Monuments and names:** a legend of enough weight at a place may **name** a feature (the Weeping Bridge: a bridge where many died; Greyfang's Hollow: the lair where a famous beast was killed) — the feature's name in road data/POIs (a name override table, so derived data stays derived) and on the player's map once heard; and raise a **monument** (a memorial mark: N31; a statue in a capital for a hero, funded by the crown).
 7. **People refer to legends.** Talkers get the top legends they know (by knowledge) in their persona lore ("Everyone knows the song of the Ashford Revolt"); townsfolk chat lines sometimes quote a known song; years later, an NPC asked about the past names the era. The legend's weight decays slowly, so old legends fade unless sung.
 
@@ -81,6 +81,12 @@ The done-when ones:
 | an NPC years later refers to it | step 6 test |
 
 **Save:** the next schema version (`legends`, `songs`, `eras`, name overrides).
+
+## Realism notes (2026-10-23)
+
+From the [realism review](../README.md#realism-gaps-review-2026-10-23).
+
+- **Gap 1, one 48-day year (decided 2026-10-23):** ages and dates agree, so the chronicle may number years ("year 3 of Queen Isolde") as well as eras and reigns; "years ago" in lore is plain years.
 
 ## Slice cut
 

@@ -3,6 +3,7 @@
  * them); people who are together pass items on; news enters a place only by someone arriving with it; and a townsperson who becomes a
  * talker starts with what they knew. Ids and places are found by role, never by name (plans README section 12).
  */
+import { days } from "./long.js";
 import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -473,7 +474,7 @@ describe("N33 balance bounds", () => {
     const w = world(1);
     advanceWorld(w.realm, w.store, 2, { live: w.live });
     killAt(w, w.start, 2);
-    advanceWorld(w.realm, w.store, 30, { live: w.live });
+    advanceWorld(w.realm, w.store, days(30, 15), { live: w.live });
     for (const b of checkGossipBounds(w.realm, w.store)) expect(b.ok, `${b.name}: ${b.detail}`).toBe(true);
     expect(w.store.knowledge.total()).toBeGreaterThan(100);
   });

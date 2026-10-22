@@ -190,9 +190,16 @@ export class WorldStore {
     return this.db.prepare(`SELECT kind, actor, details, site, day FROM events WHERE day > ? AND kind IN (${kinds.map(() => "?").join(", ")})`).all(afterDay, ...kinds) as Array<{ kind: string; actor: string; details: string; site: string | null; day: number }>;
   }
 
-  /** Every event involving someone (as actor or target), oldest first. */
+  /** The deeds townsfolk chose to do on a day in a place (N38): who did what to whom, in the order they were made. */
+  choiceDeeds(site: string, day: number): Array<{ kind: string; actor: string; target: string }> {
+    return this.db.prepare(`SELECT kind, actor, target FROM events WHERE site = ? AND day = ? AND id LIKE '%-choice:%' ORDER BY hour, id`).all(site, day) as Array<{ kind: string; actor: string; target: string }>;
+  }
+
+  /** The latest `limit` events involving someone (as actor or target), oldest first. */
   eventsAbout(who: string, limit = 100): GameEvent[] {
-    const rows = this.db.prepare(`SELECT * FROM events WHERE actor = ? OR target = ? ORDER BY day, hour, seq, rowid LIMIT ?`).all(who, who, limit) as Array<Record<string, unknown>>;
+    const rows = this.db
+      .prepare(`SELECT * FROM (SELECT *, rowid AS rid FROM events WHERE actor = ? OR target = ? ORDER BY day DESC, hour DESC, seq DESC, rowid DESC LIMIT ?) ORDER BY day, hour, seq, rid`)
+      .all(who, who, limit) as Array<Record<string, unknown>>;
     return rows.map(rowToEvent);
   }
 

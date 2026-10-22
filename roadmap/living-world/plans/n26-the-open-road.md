@@ -237,6 +237,14 @@ Listed per part above. The done-when ones:
 | sees the same road again on the way back | chunk determinism test |
 | fast travel is offered only for the stretch already walked | D3 test |
 
+## Realism notes (2026-10-23)
+
+From the [realism review](../README.md#realism-gaps-review-2026-10-23); not decided or built yet.
+
+- **Gap 1, one 48-day year (decided 2026-10-23):** journeys and news delays stay in plain days; a 3-day trip is now a quarter of a season. Built code that reads `seasonOf` (`road/camp.ts`, `caravans.ts`, `fast.ts`, `play.ts`, `situations.ts`) gets 12-day seasons with N30 step 1: re-check season-weighted situations and camp cold.
+- **Quiet travel is quick (decided 2026-10-23), a follow-up to D3 ([migration guide](migration-2026-10-23-one-year-ageless-player.md) part C):** (1) fast travel (`canFast`, `routeFromHere` in `road/fast.ts`) works on any road the player **knows of**, walked or not: heard of in gossip (N33 knowledge), on a bought map, or told by a traveller; it still stops for parties, situations, threats, nightfall, hunger and tolls, and a road first crossed this way is marked walked. (2) **Quick walking:** while the player walks, the clock and the walk run faster (3–5×, config) when nothing is in view, and drop to normal as soon as a traveller, a situation, a threat or a place comes into view. The 7-minute day's walk stays the pace for walking by choice. Tests: a heard-of road can be fast-travelled and still stops at a rolled situation; quick walking drops to normal when a party comes into view.
+- **Gap 2, goods that move:** carts and caravans have `cargo?` but nothing fills it from one place's surplus to another's shortage. A trade journey should load goods bought at the start (lowering stock there), sell them at the end (raising stock, lowering prices), and pick its route by the price gap merchants *know of* (N33 knowledge, not the truth). A robbed caravan then really leaves a shortage.
+
 ## Slice cut
 
 Part A in full for the one road; Part B with caravans, messengers and migrants; Part C's inn and two or three situations; nights simply (rest at the inn); no mounts or fast travel. The rest of the realm keeps N14's time-skip travel during the slice (behind `ROAD=slice`, a list of road ids that are walkable).

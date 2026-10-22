@@ -101,6 +101,14 @@ The done-when ones:
 
 **Save:** the next schema version (`people.skill`, `people.shop`, `ambitions.step`).
 
+## Realism notes (2026-10-23)
+
+From the [realism review](../README.md#realism-gaps-review-2026-10-23); not decided or built yet.
+
+- **Gap 1, one 48-day year (decided 2026-10-23):** years at the bench and in a rank are 4× longer in game days; set promotion thresholds so a rise shows within a few years of skips, and check talker-facing careers still move in normal play.
+- **Gap 7, old age:** `NO_RETIRING` keeps everyone at work until death. Let elders step back (work falls with `ageStage` and health), pass the shop to an heir or journeyman, and depend on the household (or the poor relief of a faith, N50, or a kingdom policy); an elder with no kin and no work is a poverty case the mood and gossip notice.
+- **Gap 2, a household purse:** wages and sales should land in a household purse (rent, food, tools out), so poverty is running out of coin, not only a class label; ambitions like `wealth` read it.
+
 ## Slice cut
 
 Steps 1–3 and 5 for the start town and its liege town.

@@ -101,6 +101,14 @@ The done-when ones:
 
 **Save:** the next schema version (`armies`, `soldiers`, `war_dead`, `prisoners`); the next save version (policies, death record fields).
 
+## Realism notes (2026-10-23)
+
+From the [realism review](../README.md#realism-gaps-review-2026-10-23); not decided or built yet.
+
+- **Gap 6, levies and the fields:** levies come from working adults, so N30's harvest yield falls in the places they left; a long war hurts the next year's food even without a battle nearby.
+- **Gap 6, a campaigning season:** armies march in spring and summer; in winter they go into quarters or pay for it (hunger, disease, desertion), and levies press to go home for the harvest (weariness up, desertion chance up), unless the kingdom pays a standing army.
+- **Gap 1, one 48-day year (decided 2026-10-23):** campaigns run spring and summer, ~24 days a year, so a week's march is a real part of a season, not half a year. Ranks and years of service are 4× longer in game days: set promotion by years so a long war turns recruits into veterans.
+
 ## Slice cut
 
 Not in the slice.

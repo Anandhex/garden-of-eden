@@ -80,6 +80,9 @@ export const EVENT_KINDS = [
   "affront",
   "menace",
   "apology",
+  // NPCs choose (N38): a deliberate confrontation, a recruit into someone's company
+  "confrontation",
+  "recruited",
 ] as const;
 export type EventKind = (typeof EVENT_KINDS)[number];
 

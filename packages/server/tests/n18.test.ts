@@ -4,6 +4,7 @@
  * saved by place in batches; the save and the database share a commit point; a world can be
  * exported and imported; 50,000 people save and load fast.
  */
+import { days } from "./long.js";
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -80,13 +81,13 @@ describe("N18.1 a seed gives the same world", () => {
     expect(seedFrom("a:b")).toBe(seedFrom("a:b"));
   });
 
-  it("two fresh worlds of one seed are the same after 30 days, down to the database", () => {
+  it("two fresh worlds of one seed are the same after a while, down to the database", () => {
     const a = startTown(3);
     const b = startTown(3);
     expect(hashOf(a)).toBe(hashOf(b));
-    play(a, 30);
-    play(b, 30);
-    expect(a.world.day).toBe(31);
+    play(a, days(30, 12));
+    play(b, days(30, 12));
+    expect(a.world.day).toBe(1 + days(30, 12));
     expect(hashOf(a)).toBe(hashOf(b));
     // And a different seed is a different world.
     expect(hashOf(startTown(4))).not.toBe(hashOf(startTown(3)));

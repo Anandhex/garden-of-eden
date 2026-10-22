@@ -4,6 +4,7 @@ import { learn } from "../gossip/knowledge.js";
 import { eventRef } from "../gossip/refs.js";
 import type { PersonRow } from "../../store/peopleStore.js";
 import { outlookOf, type Goal, type Outlook } from "../people/outlook.js";
+import { parseDeath } from "../people/death.js";
 import { recordLifeEvent } from "../people/events.js";
 import type { LifeCtx } from "../people/step.js";
 import { addGrievance, settleAll, weightOn } from "./grievance.js";
@@ -95,7 +96,9 @@ export function vendettaDay(ctx: LifeCtx, site: string, day: number): VendettaRe
     const live: GrievanceRow[] = [];
     for (const g of byWho.get(who)!) {
       const other = store.people.get(g.against);
-      if (!other || other.death !== null) store.social.settle(g.id, day);
+      // Dead by this day: a place caught up late sees deaths that came after the day it is working out, and they settle nothing yet.
+      const gone = !other || (other.death !== null && (parseDeath(other.death)?.day ?? 0) <= day);
+      if (gone) store.social.settle(g.id, day);
       else live.push(g);
     }
     if (live.length === 0) continue;

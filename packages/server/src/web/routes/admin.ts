@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { AdminCardKind, AdminEventQuery, AdminSource, AdminTimeRequest } from "@millbrook/shared";
 import { card, crowdOf, pinned } from "../../admin/person.js";
+import { choicesView } from "../../admin/choices.js";
 import type { AdminContext } from "../../admin/context.js";
 import { eventByRef, events } from "../../admin/events.js";
 import { health } from "../../admin/health.js";
@@ -112,6 +113,13 @@ export async function handleAdmin(req: IncomingMessage, res: ServerResponse, ctx
     case "card": {
       const c = card(ctx, q.get("ref") ?? "");
       return c ? send(res, 200, c) : send(res, 404, { error: "Nobody there." });
+    }
+    case "choices": {
+      const ref = (q.get("ref") ?? "").replace(/^(town|cast):/, "");
+      const v = choicesView(ctx, ref);
+      if (!v) return send(res, 404, { error: "Nobody there." });
+      // `say=1`: the last things they did that were not their day, in their own voice (a model call when it is wanted: `choice-reason`).
+      return send(res, 200, q.get("say") ? { ...v, says: await ctx.town().sayWhy(ref) } : v);
     }
     case "pinned": {
       const refs = (q.get("refs") ?? "").split(",").filter(Boolean);

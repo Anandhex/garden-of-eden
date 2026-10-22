@@ -42,7 +42,7 @@ NPCs act for themselves: interactions with consequences, hourly choices, life go
 
 ## N38: NPCs as living players
 
-**Status:** ⬜ Planned
+**Status:** ✅ Built (2026-10-22; the save is still v15 and the database schema 7: a talker's `choice` memory is an optional field of their saved state, a townsperson's cooldowns sit in their outlook JSON). Violent actions are behind `CHOICE_VIOLENCE` (off by default); nothing an NPC chooses ever kills (see **What differs**).
 
 **Implementation plan:** [plans/n38-npcs-as-living-players.md](plans/n38-npcs-as-living-players.md)
 
@@ -56,15 +56,29 @@ NPCs act for themselves: interactions with consequences, hourly choices, life go
 5. **Every action is an event**, so gossip, grudges, factions and the realm react: an insult leads to a grudge, an ambush, a rebel band.
 6. **The model narrates only** (dialogue, the reason given); it never picks.
 
-- [ ] Shared action menu and scoring; N6's schedules and N12's daily plans become defaults the scoring can override
-- [ ] Per-NPC seeded RNG (switch the default away from `Math.random` for the simulation)
-- [ ] Guardrails: cooldowns so they don't loop, a cap on fights at once, story-critical NPCs can't die by accident
-- [ ] Violent actions behind a config flag (open decision above)
-- [ ] The admin view (N17) shows each NPC's options, scores and choice per hour
-- [ ] Prototype in Millbrook with 3–4 NPCs first, then the cast, then townsfolk at coarse grain
-- [ ] Tests, README, this roadmap
+- [x] Shared action menu and scoring; N6's schedules and N12's daily plans become defaults the scoring can override
+- [x] Per-NPC seeded RNG (switch the default away from `Math.random` for the simulation)
+- [x] Guardrails: cooldowns so they don't loop, a cap on fights at once, story-critical NPCs can't die by accident
+- [x] Violent actions behind a config flag (open decision above)
+- [x] The admin view (N17) shows each NPC's options, scores and choice per hour
+- [x] Prototype in Millbrook with 3–4 NPCs first, then the cast, then townsfolk at coarse grain
+- [x] Tests, README, this roadmap
 
-- **Done when:** with the same seed a day plays the same twice, with a different seed it differs; a hungry, wronged, bold commoner confronts the noble instead of going to work; a cautious NPC in the same spot doesn't; nobody loops on one action; the admin view explains every choice.
+- **Done when:** with the same seed a day plays the same twice, with a different seed it differs; a hungry, wronged, bold commoner confronts the noble instead of going to work; a cautious NPC in the same spot doesn't; nobody loops on one action; the admin view explains every choice. ✅ (`tests/n38.test.ts`: "the same seed plays the same days twice…", "a hungry, wronged, bold commoner confronts the noble…", "a cautious one in the same spot… does not", "nobody loops on one action over a simulated week", "the admin view explains every choice…")
+
+**Built:** `packages/server/src/game/choice/`: `types.ts` (`ActionDef`, `ChoiceCtx`, `Option`, `Deed`, `ChoiceHost`), `weights.ts` (every weight, cooldown and cap in one table), `score.ts` (`scored`, softmax, `temperatureOf`, `reasonOf`), `guards.ts` (cooldowns, the loop damp and cut-off, the fight cap, the violence flag), `registry.ts` (`ACTIONS`, `menuFor`, `decide`), `actions/basic.ts` (work, eat, rest, gossip, buy, sell), `actions/social.ts` (court, confront, insult, revenge, spread_rumour, recruit), `actions/risk.ts` (steal, attack, travel), `talker.ts` (the hourly menu for talkers: `chooseHour`, the context, the host that writes events and feelings), `day.ts` (`choiceDay`: the same menu for townsfolk, a day at a time), `intents.ts` (what the crowd shows), `protect.ts` (who nobody may do violence to), `player.ts` (the player's insult and confront through the same `apply`), `words.ts` (the reason in plain words, `describeChoices`, the `choice-reason` call), `bounds.ts` (`no-loops`, `work-still-happens`, `violence-rare`, `choices-cost`), `memory.ts`; `simulation.ts` follows a talker's pick for the hour instead of the schedule's (`chosenPlan`) and a `sell` pick skips crafting; `village.ts` `passVillage` calls `choose` before each hour; `Town.talkersChoose`; `people/world.ts` runs `choiceDay` after gossip (and in `catchUp`); `shared/src/crowd.ts` `CrowdDay.intents` (the confronting commoner walks to the noble's door); `admin/choices.ts` (the *Choices (last hours)* and *Chose to do* sections, `GET /api/admin/choices?ref=`); `web/server.ts` `insult` and `confront` actions; `tests/n38.test.ts` (28 tests). New event kinds `confrontation` and `recruited`; new call kind `choice-reason`.
+
+**What differs from the plan:**
+- **No new table and no save bump.** The plan's `choices` table for pinned people and `NpcState.cooldowns` are not built: a talker's recent choices (the last 48, with every option and its score) are kept in memory for the admin, a talker's cooldowns and loop count are `NpcState.choice` (an optional field), a townsperson's cooldowns are `outlook.choice.cd` on their row. Each deed is an event with `why` (the top three score parts), which is what a pinned person's history shows.
+- **The schedule is read first, then overridden.** `planHour` is the *habit*: the action that does what the schedule has them doing gets a +0.85 habit part, so a worker with nothing against anyone keeps their day (tests: at least 50 of 60 hours). The menu's pick becomes the hour's plan (`state.choice.plan`, for that absolute hour only): a confronting commoner leaves the forge for the square. Choosing is done before each hour is lived, in id order, so what one does changes what the next sees.
+- **Rows, not the player's NPC state, hold the feelings that matter.** A talker with a row feels others through the row's grievances and relationships (N37); talkers without one use their own four-axis `npcRelations`. Both change when a deed is done.
+- **Townsfolk choose a smaller group.** Everyone with an open grievance, plus 1% of the rest (picked by who they are and the day, no stream walked), score the menu at day grain, up to 2% of a place's grown people a day (4 to 60, a fair draw of those who want to choose, not the lowest ids), the people in reach being the ones they hold something against and a few more picked by the stream. A wish to leave is looked at only for these. Revenge for townsfolk stays N37's `vendettaDay` (it already acts the day after the goal is made, before the menu runs); the `revenge` action is the talkers'. Townsfolk have no purse, so `sell`, `buy` and the coin of a theft do nothing for them; `travel` writes the move goal N25b's migration already reads.
+- **Nothing kills.** Violent deeds (attack, steal, the hired-men way of revenge) are offered only with `CHOICE_VIOLENCE=on`, at most two a place a day and one an hour, never against a protected person (a companion, whoever the player is talking to, an open quest-giver, a child). A beaten talker is hurt, never below 1 hit point. Deaths by NPC action wait for a phase that needs them.
+- **`recruit` moves a row's faction**, not a talker's (a talker's faction comes from their file); `court` is a courtship event and a little warmth, the weddings stay with N11 and N25.
+- **Two things this found in older phases, fixed.** N33's `learn` counted (and could forget) rows learned on days after the one being worked out, so a place caught up late chose differently from one worked out on the day (it now looks only at rows learned by that day); N37's `vendettaDay` settled a grievance because the person it was held against had died, even if they died after the day being worked out (it now compares the day of death). `WorldStore.eventsAbout` now returns the *latest* events of a person (it returned the oldest, so a busy person's card lost their recent past); the admin card's placeholder *Ambitions and choices* is now *Ambitions* (N40) with the choices in their own sections.
+- **The default is `CHOICE=all`.** N22's bounds runner does not exist yet, so the four bounds are `choice/bounds.ts` and are checked in the tests; `CHOICE=off`, `proto` (the ids in `CHOICE_PROTO`) and `talkers` step the rollout back. `CHOICE_ONLY=habit` keeps only the schedule's own actions (a test proves the day then goes exactly as before).
+- **The reason is plain words first.** `describeChoices` is in a talker's situation lines when the player asks why, and in the day's plan; `explainChoice` asks the model for the line in their voice (`choice-reason`, 6 a game day) and falls back to the words.
+- **The player's menu is two actions.** `insult` and `confront` call the same `apply` with the player as actor (the same exchange table and event kinds; the player's events use the kinds the rest of the game reacts to: `insulted`, `threatened`). The player's steal and attack keep their own richer flows (N7, N8).
 
 ## N39: The first hour
 
@@ -102,6 +116,26 @@ NPCs act for themselves: interactions with consequences, hourly choices, life go
 - [ ] Tests, README, this roadmap
 
 - **Done when:** over a few simulated years an apprentice becomes a master and opens a shop, two journeymen compete for one guild seat and the loser bears a grudge, and an NPC asked what they want names their ambition.
+
+## N69: Offices, treasuries and renown
+
+**Status:** ⬜ Planned (asked for 2026-10-22; build right after N40)
+
+**Implementation plan:** [plans/n69-offices-treasuries-and-renown.md](plans/n69-offices-treasuries-and-renown.md)
+
+**Goal:** guilds, villages, towns and cities are run by people: officers who keep the treasury, the watch and the stores, paid from a treasury whose ledger shows where the coin went. A guild needs members to exist and must recruit to grow; belonging raises a member's name; renown runs from −100 (infamous) to 100 (famed), a leader's comes partly from the people who follow them, a failed venture costs it, and how someone leads earns them a name (the Good, the Cruel) and can make them a named NPC.
+
+**The rules:** all in code. Posts by institution (reeve, treasurer, captain, steward, warden, quartermaster...) are appointed by the head and change the numbers (income, defence, costs, recruiting); unpaid officers quit; a greedy treasurer may skim until an audit finds them. A guild is chartered only once enough members pledge, folds below a minimum, and recruits in drives that people choose to answer. Renown becomes signed, −100..100 (fame = how far from zero); a leader's support from followers (their regard, grievances and own fame) adds to or takes from it. Epithets are titles awarded from facts (the Good, the Just, the Generous, the Bold, the Bad, the Cruel, the Coward, the Thief, Oathbreaker); a townsperson rises to a figure at fame 25, an epithet or a town office, and a figure talks at fame 30. Every raid, war, conquest or takeover has a failure side: the leader and the guild head lose renown, followers lose loyalty, the families of the dead bear grievances, and a lieutenant may split.
+
+- [ ] Offices and appointments for every settlement and faction; wages; the ledger and one coin path
+- [ ] Officers' effects, embezzlement and audits
+- [ ] Charters, a minimum membership, recruiting drives, dues; members counted as figures and townsfolk
+- [ ] Signed renown (−100..100), prestige, renown from belonging, support from followers, challenges
+- [ ] Epithets for good and bad leaders; rising to a named NPC by renown
+- [ ] Ventures that can fail: raids, wars, conquests, guild takeovers
+- [ ] Admin cards, talkers' lines, tests, README, this roadmap
+
+- **Done when:** the start town's treasurer skims, is found out and replaced; a guild founded by one smith is chartered only when three have joined (or fails, costing its founder); a respected village head gains renown from their people while a resented one loses it and is challenged; and a lord's failed conquest costs them renown (below zero when it repeats), their captain loyalty, and leaves grieving families with a grudge; a loved head is called the Good, a cruel lord the Cruel, and a reeve caught skimming becomes the Thief and a named NPC.
 
 ## N41: Leisure and contests
 

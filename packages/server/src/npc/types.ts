@@ -424,8 +424,17 @@ export interface NpcState {
   views?: Record<string, RelationAxes>;
   /** What they want from what has happened to them (N25b, npc/review/): set by life reviews; revenge stays in `goals`. */
   lifeGoals?: LifeGoal[];
+  /** What they have chosen to do lately (N38, game/choice/): when each action was last picked, the run of the same one, and this hour's pick if it is not the schedule's. */
+  choice?: ChoiceMemory;
   /** Their last life review (N25b): the day, and the day of the last shock review. */
   review?: { day: number; shock?: number; /** Events (refs) it already weighed, so a later review does not weigh them twice. */ seen?: string[] };
+}
+
+/** A talker's memory of their own choices (N38). Hours are absolute hours. */
+export interface ChoiceMemory {
+  last: Record<string, number>;
+  streak?: { action: string; n: number };
+  plan?: { activity: Activity; place: PlaceId; why: string; at: number; sell?: boolean };
 }
 
 /** What a life review made someone want (N25b). The kinds are fixed; the words are written, the numbers are code's. */

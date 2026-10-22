@@ -92,6 +92,7 @@ import { realmView } from "../game/realm/view.js";
 import { dungeonsInReach, GUILD_FEE, guildRank, inGuild, joinGuild, mouthOf, playerDelve } from "../game/realm/wilds.js";
 import { lootBody } from "../game/loot.js";
 import { sneak } from "../game/stealth.js";
+import { playerMenuAct } from "../game/choice/player.js";
 import { bountyOf, openCrimes, payFine, surrender } from "../game/crime.js";
 import { describeStandings, describeFactionView, joinFaction } from "../game/factions.js";
 import { describeReputation } from "../game/reputation.js";
@@ -1078,6 +1079,13 @@ async function act(body: Record<string, unknown>, emit: Emit): Promise<void> {
           emit({ t: "note", kind: "roll", text: r.ok ? `${kind} ${r.success ? "succeeded" : "failed"} ${rollOf(r.message)}` : r.message }),
         ),
       );
+      break;
+    }
+    case "insult":
+    case "confront": {
+      // The same actions NPCs choose from (N38), done by the player: the same exchange, the same event.
+      const r = playerMenuAct(action, agent.persona, agent.state, world);
+      emit({ t: "note", kind: r.ok ? "action" : "fail", text: r.message });
       break;
     }
     case "haggle":

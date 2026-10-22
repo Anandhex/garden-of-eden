@@ -4,6 +4,7 @@
  * nothing except the clock. The data side is `src/admin/*` (pure reads of the world,
  * the town and the store); the routes are `src/web/routes/admin.ts`.
  */
+import { days } from "./long.js";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { createServer, type Server } from "node:http";
 import { fileURLToPath } from "node:url";
@@ -342,7 +343,7 @@ describe("N17.7 a person's card", () => {
     const rumours = c.sections.find((s) => s.title === "What they know or believe")!;
     expect("rows" in rumours && rumours.rows.some(([label]) => label.includes("Rumour"))).toBe(true);
     // A section whose phase isn't built says which phase.
-    expect(c.sections.find((s) => s.title === "Ambitions and choices")).toEqual({ title: "Ambitions and choices", unavailable: expect.stringContaining("N38") });
+    expect(c.sections.find((s) => s.title === "Ambitions")).toEqual({ title: "Ambitions", unavailable: expect.stringContaining("N40") });
   });
 
   it("shows a figure's rank, faction, chain of command and deeds; a place's numbers and people", () => {

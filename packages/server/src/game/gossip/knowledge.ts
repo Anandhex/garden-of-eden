@@ -78,8 +78,10 @@ export function learn(ctx: LifeCtx, who: string, ref: string, o: Learned): boole
   const had = k.get(who, ref);
   if (had && had.accuracy >= o.accuracy) return false;
   k.put({ who, ref, learned_day: had?.learned_day ?? o.day, source: had?.source ?? o.source, accuracy: Math.round(o.accuracy * 100) / 100, variant: o.variant ?? 0 });
-  if (!had && k.countOf(who) > KNOWLEDGE_CAP) {
-    const rows = [...k.rowsOf(who)];
+  // Only what they knew by this day counts toward what they can hold: a place caught up late already has the rows of later days (news a
+  // traveller brought on day 13 when day 11 is being worked out), and they must not decide what is forgotten on day 11.
+  const rows = [...k.rowsOf(who)].filter((r) => r.learned_day <= o.day);
+  if (!had && rows.length > KNOWLEDGE_CAP) {
     let worst = rows[0]!;
     let low = Infinity;
     for (const r of rows) {

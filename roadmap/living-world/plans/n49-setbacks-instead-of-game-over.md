@@ -2,7 +2,7 @@
 
 # N49 plan: Setbacks instead of game over
 
-**In one line:** when the player would die or lose everything, code picks a **setback** from who beat them and where (robbed and left, captured for ransom, sold to slavers, imprisoned by a crown, left for dead and found, exiled, in debt to someone dangerous, maimed); each setback is a **chapter** with its own state, its own exits (escape, ransom, working it off, earning freedom, a friend's or faction's rescue) and lasting marks (a scar, a lost limb, a criminal record, a reputation); real death stays possible and hands over to the heir (N66).
+**In one line:** when the player would die or lose everything, code picks a **setback** from who beat them and where (robbed and left, captured for ransom, sold to slavers, imprisoned by a crown, left for dead and found, exiled, in debt to someone dangerous, maimed); each setback is a **chapter** with its own state, its own exits (escape, ransom, working it off, earning freedom, a friend's or faction's rescue) and lasting marks (a scar, a lost limb, a criminal record, a reputation); when the player really dies they come back (plans README §5a: a day later where they last slept or at a temple, what they carried left where they fell).
 
 **Read first:** [plans README](README.md) sections 2, 3, 13. Needs N48 (prisons, sentences, records), the slave and serf laws (N16), N26 (being moved along roads). Uses N8 (injuries), N34 (friends hear and may come), N42 (rescue jobs on the board), N57 (the player's faction ransoms them), N59 (escape paths for slaves; this phase gives the player a slave's escape; N59 later gives NPC slaves the same), N66 (heirs on real death).
 
@@ -58,8 +58,10 @@ player.chapter?: { kind: "captive" | "slave" | "prisoner" | "bonded" | "exiled" 
 - Permanent injuries, brands, records, the story as a knowledge ref spread by gossip; greetings at home.
 - Test (done-when part): back home with a scar, people there have heard the story (knowledge rows of the ref in the home place).
 
-### Step 6: real death and heirs (hook)
-- When death is real: hand over to N66's heir if built; else the end screen with the world's memory (who mourned, what's said).
+### Step 6: death and coming back
+- Built code today: [migration guide](migration-2026-10-23-one-year-ageless-player.md) part B.
+- When death is real: the player comes back: they wake a day later where they last slept (home, an inn) or at a temple (N50 can make it a shrine of their faith), at low HP; what they carried stays where they fell, for others to take or for them to recover; and people who saw them die talk about it ("came back from the dead"), which can make them feared or revered (plans README §5a, decided 2026-10-23). With `PLAYER_DEFEAT=permadeath`, the end screen with the world's memory (who mourned, what's said).
+- Test: a player killed by bandits wakes a day later at the inn they last slept in, their pack lies at the place they fell, and a witness's gossip says they came back from the dead.
 - Docs: README on setbacks.
 
 ## Balance bounds

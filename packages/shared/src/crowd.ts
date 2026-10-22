@@ -219,10 +219,33 @@ export interface CrowdMap {
   zones: CrowdZone[];
 }
 
+/** What a townsperson set out to do today when they chose something other than their day's work (N38): where they go and to whom. */
+export interface CrowdIntent {
+  id: string;
+  /** confront, insult, attack, steal, revenge, court, recruit (to a person's door); gossip (to the square); travel (to the gate). */
+  kind: string;
+  /** The townsperson's id they go to. */
+  target?: string;
+}
+
 /** Today's conditions. */
 export interface CrowdDay {
   weather: string;
   festival: boolean;
+  /** Townsfolk who chose to do something else with their day (N38). */
+  intents?: CrowdIntent[];
+}
+
+const intentSigs = new WeakMap<CrowdIntent[], string>();
+/** A short signature of the day's intents, for the plan cache. */
+function intentSig(d: CrowdDay): string {
+  if (!d.intents || d.intents.length === 0) return "";
+  let sig = intentSigs.get(d.intents);
+  if (sig === undefined) {
+    sig = d.intents.map((i) => `${i.id}:${i.kind}:${i.target ?? ""}`).join(",");
+    intentSigs.set(d.intents, sig);
+  }
+  return sig;
 }
 
 export interface CrowdPos {
@@ -464,7 +487,7 @@ export class CrowdSim {
 
   /** Their plan for a day (kept until the day or the weather changes). */
   plan(p: Townsperson, day: number, d: CrowdDay): PlanEntry[] {
-    const key = `${day}|${d.weather}|${d.festival}`;
+    const key = `${day}|${d.weather}|${d.festival}|${intentSig(d)}`;
     const hit = this.plans.get(p.id);
     if (hit && hit.key === key) return hit.plan;
     const plan = dayPlan(this, p, day, d);
@@ -851,8 +874,45 @@ function dayPlan(sim: CrowdSim, p: Townsperson, day: number, d: CrowdDay): PlanE
     out.push(...kept, { at, t: square(sim), doing: "at the festival" });
     out.push({ at: Math.max(at + 60, Math.min(1439, sleep?.at ?? 22 * H)), t: home, doing: "asleep" });
   }
+  const intent = d.intents?.find((i) => i.id === p.id);
+  if (intent) {
+    const go = intentTarget(sim, intent);
+    if (go) {
+      // The morning is spent on it: they leave what they were doing mid-morning and take the long way round, back by the afternoon.
+      const from = 10 * H + (mix(p.id, "intent") % 90);
+      const to = from + 3 * H;
+      const kept = out.filter((e) => e.at < from || e.at >= to);
+      kept.push({ at: from, t: go.t, doing: go.doing });
+      kept.sort((a, b) => a.at - b.at);
+      out.length = 0;
+      out.push(...kept);
+    }
+  }
   if (out.length === 0) out.push({ at: 0, t: home, doing: "at home" });
   return out;
+}
+
+const INTENT_WORDS: Record<string, string> = {
+  confront: "gone to have it out with",
+  insult: "gone to speak sharply to",
+  attack: "gone after",
+  steal: "prowling near",
+  revenge: "gone to settle with",
+  court: "gone to call on",
+  recruit: "gone to talk to",
+};
+
+/** Where an intent takes someone: the target's door, the square, or the gate. */
+function intentTarget(sim: CrowdSim, i: CrowdIntent): { t: Target; doing: string } | null {
+  if (i.target) {
+    const idx = sim.index.get(i.target);
+    const them = idx === undefined ? undefined : sim.roster.people[idx];
+    const words = INTENT_WORDS[i.kind];
+    return them && words ? { t: { k: "front", b: them.home }, doing: `${words} ${them.name}` } : null;
+  }
+  if (i.kind === "gossip") return { t: square(sim), doing: "gone to talk to whoever is about" };
+  if (i.kind === "travel") return { t: zoneOr(sim, "gate"), doing: "gone to the gate, meaning to leave" };
+  return null;
 }
 
 function workDoing(job: Job): string {

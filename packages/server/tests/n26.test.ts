@@ -2,6 +2,7 @@
  * N26: the open road. Chunks are made from the realm; a player walks them step by step; the clock runs on the
  * road scale; settlements are entered by their gates.
  */
+import { days } from "./long.js";
 import { beforeEach, describe, expect, it } from "vitest";
 import { cumulative, pointAt, findPath, resample, CHUNK, STEPS_PER_DAY_WALK, STEPS_PER_GAME_MINUTE, STEPS_PER_SECOND, REAL_MINUTES_PER_DAY_WALK, TILES_PER_UNIT, DAY_WALK_UNITS, chunkAt, isSolidGround, journeyLine, type Journey, positionAt, shortestWay, type RoadData } from "@millbrook/shared";
 import { config } from "../src/config.js";

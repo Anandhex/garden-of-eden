@@ -87,7 +87,7 @@ How people live together and against each other: families, secrets, crime, law, 
 
 **Goal:** losing doesn't end the game; it starts a new chapter.
 
-**The rules:** where the player would die or lose everything, code chooses an outcome from the situation and the world: captured (held for ransom, sold, imprisoned), left for dead and found, enslaved where the law allows, exiled, in debt to someone dangerous, maimed. Real death stays possible, and N66's heir carries on.
+**The rules:** where the player would die or lose everything, code chooses an outcome from the situation and the world: captured (held for ransom, sold, imprisoned), left for dead and found, enslaved where the law allows, exiled, in debt to someone dangerous, maimed. Real death brings the player back (decided 2026-10-23): they wake a day later where they last slept or at a temple, and what they carried stays where they fell.
 
 - [ ] Defeat outcomes by who beat the player and where (bandits rob and leave, slavers sell, a crown imprisons, beasts leave them wounded)
 - [ ] Escaping: break out, be ransomed by friends or a faction (N57), work off a debt, earn freedom (N59's paths, as a slave)

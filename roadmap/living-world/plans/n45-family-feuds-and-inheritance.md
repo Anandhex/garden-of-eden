@@ -70,7 +70,7 @@ kingdom.policy: { inheritance?: …, divorce?: …, marriage_by?: … }   // sec
 
 ## Edge cases and traps
 
-- **Generation length:** with `daysPerYear = 12`, a generation is ~240 days. Long tests (`LONG=1`) for feuds over generations; a small version runs always with a short fake generation (young people coming of age in the test's span).
+- **Generation length:** with `daysPerYear = 48` (plans README §5), a generation is ~960 days; the player sees feuds pass down mostly through N35's "the years pass" skip. Long tests (`LONG=1`) for feuds over generations; a small version runs always with a short fake generation (young people coming of age in the test's span).
 - **Houses** are indexes in a fixed layout (N31): inheriting a house means the household's `home` stays; an heir who already has a house may sell it to a family needing one (N40 economy).
 - **Talkers vs rows:** one estate/heir function for both; talkers who inherit change their persona's job/workplace.
 - **Feud spirals:** the inherited weight factor < 1 and settling options keep them from growing forever (bound).
@@ -91,6 +91,12 @@ The done-when ones:
 | an affair becomes gossip that ends a marriage | step 5 test |
 
 **Save:** the next save version (`kingdom.policy`); the next schema version (`people.will`, `people.claimed_father`, `disputes`, `feuds`).
+
+## Realism notes (2026-10-23)
+
+From the [realism review](../README.md#realism-gaps-review-2026-10-23); not decided or built yet.
+
+- **Gap 7, orphans and dependents:** when both parents die (any cause, not only war), the children go to kin by the kingdom's custom (grandparents, an uncle, an older sibling), else a faith house or a master as a servant or apprentice; an orphan taken in by a rival family is a feud seed. Estates should leave something for dependents (a widow's share, a portion for minors) per the `inheritance` policy.
 
 ## Slice cut
 

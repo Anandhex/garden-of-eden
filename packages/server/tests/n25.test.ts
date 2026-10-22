@@ -2,6 +2,7 @@
  * N25: townsfolk lives. Every stored person ages, marries, has children, moves and dies by code; a place's
  * population is the count of its living people; level of detail never changes outcomes.
  */
+import { days } from "./long.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { config } from "../src/config.js";
 import { WorldStore } from "../src/game/db.js";
@@ -152,9 +153,9 @@ describe("N25.9 level of detail never changes outcomes", () => {
     const a = world(2);
     const b = world(2);
     const lazy = [...b.live].find((id) => id !== home(b.realm))!;
-    advanceWorld(a.realm, a.store, 61, { live: a.live });
+    advanceWorld(a.realm, a.store, days(61, 25), { live: a.live });
     config.peopleLazy = lazy;
-    advanceWorld(b.realm, b.store, 61, { live: b.live, settleLazy: true });
+    advanceWorld(b.realm, b.store, days(61, 25), { live: b.live, settleLazy: true });
     config.peopleLazy = "";
     const rows = (w: ReturnType<typeof world>) => JSON.stringify(w.store.dumpTable("people").filter((r) => w.live.has(String(r.site))).map((r) => ({ ...r, rev: 0 })));
     expect(rows(b)).toBe(rows(a));
@@ -165,8 +166,8 @@ describe("N25.9 level of detail never changes outcomes", () => {
   it("the same seed gives the same people", () => {
     const a = world();
     const b = world();
-    advanceWorld(a.realm, a.store, 40, { live: a.live });
-    advanceWorld(b.realm, b.store, 40, { live: b.live });
+    advanceWorld(a.realm, a.store, days(40, 15), { live: a.live });
+    advanceWorld(b.realm, b.store, days(40, 15), { live: b.live });
     expect(worldHash({ realm: a.realm }, a.store)).toBe(worldHash({ realm: b.realm }, b.store));
   });
 });

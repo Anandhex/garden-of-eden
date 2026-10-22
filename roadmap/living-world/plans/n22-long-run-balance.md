@@ -4,7 +4,7 @@
 
 **In one line:** `npm run sim:years` runs the realm (and, after N25, every person) for years over several seeds with no model, checks every number against bounds that each phase adds, and fails CI when the world collapses or stalls.
 
-**Read first:** [plans README](README.md) sections 2 (determinism), 5 (**a year is 12 days**), 10 (long tests). Needs N18 (deterministic streams), N20 (liveness metrics); gets much more useful after N25 (people) but should be built before it so N25 is tuned with it.
+**Read first:** [plans README](README.md) sections 2 (determinism), 5 (**a year is 48 days**: "10 years" is 480 days), 10 (long tests). Needs N18 (deterministic streams), N20 (liveness metrics); gets much more useful after N25 (people) but should be built before it so N25 is tuned with it.
 
 ## What exists
 
@@ -12,14 +12,14 @@
 - `realm.stats`: counters (`tally(realm, key)`) for what happened.
 - N13 had to be tuned down from 41 factions by hand; `MAX_FACTIONS = 24` in [`realm/director.ts`](../../../packages/server/src/game/realm/director.ts).
 - Famine relief exists: [`realm/economy.ts`](../../../packages/server/src/game/realm/economy.ts) buys food when `food < 30` and the treasury can pay. War weariness: `kingdom.weariness`, used in [`diplomacy.ts`](../../../packages/server/src/game/realm/diplomacy.ts) to end wars.
-- `config.daysPerYear = 12`: **10 years is 120 days**. A 10-year, 10-seed run is 1,200 realm days. At N19's `dayCoarseMs` budget of 250 ms that's 5 minutes worst case; today's realm-only day is much cheaper.
+- `config.daysPerYear = 48` (plans README §5, from N30): **10 years is 480 days**. A 10-year, 10-seed run is 4,800 realm days. At N19's `dayCoarseMs` budget of 250 ms that's 5 minutes worst case; today's realm-only day is much cheaper.
 
 ## Decisions made in this plan
 
 1. **Bounds are data with code checks**, in `server/src/balance/bounds.ts`, each tagged with the phase that added it. A phase that adds a system adds its bounds in the same commit. The runner knows nothing about specific systems.
 2. **Sample once a day** into a compact series (`Sample` per day: totals and per-kingdom/per-species numbers). Bounds check the series, so they can say "never", "not for more than N days in a row", "at least once a year", "stays within a band after year 1".
 3. **No model, enforced:** the runner uses `NoModelProvider` (throws on any call) and `DIRECTOR=off`, `PLANNING=off`. Anything that needs the model must have a fallback anyway (README section 4).
-4. **A warm-up.** Bands are checked after the first year (12 days) so the generator's starting state doesn't trip them.
+4. **A warm-up.** Bands are checked after the first year (48 days) so the generator's starting state doesn't trip them.
 5. **Break switches for the self-test:** add `config.balance.break: Set<string>` (env `BALANCE_BREAK=no-famine-relief,no-war-fatigue`). Each switch disables one stabiliser in code (`if (!broken("no-famine-relief")) { …relief… }`). They exist only to prove the bounds catch a broken world; tests use them, players never do.
 6. **CI and nightly:** a small run in the normal test suite (3 seeds × 5 years = 180 realm days); a nightly GitHub Actions workflow with 10 seeds × 10 years that uploads the JSON report as an artifact.
 
@@ -109,6 +109,13 @@ Start each band from what the current game does (run 10 seeds, take the observed
 |---|---|
 | ten years over ten seeds stay inside every bound | nightly run (and once locally before calling it done) |
 | a deliberately broken setting is caught | break-switch tests |
+
+## Realism notes (2026-10-23)
+
+From the [realism review](../README.md#realism-gaps-review-2026-10-23); not decided or built yet.
+
+- **Gaps 4 and 5, demography bands:** add bounds for child deaths before adulthood (a band, not zero), births per completed family, and the share of adults who can find a spouse in places under 60 people; a stall or a run of close-kin matches fails the band.
+- **Gap 2, coin:** add a bound on total coin in the realm per head (sources: wages, sales to outsiders, loot, mines; sinks: taxes spent, upkeep, theft that leaves the realm, burials), so long runs show inflation or a coin drought.
 
 ## Slice cut
 

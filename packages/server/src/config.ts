@@ -74,6 +74,16 @@ export const config = {
   gossip: (process.env.GOSSIP ?? "on") !== "off",
   /** Townsfolk who meet greet, snub, insult and quarrel, and a wronged person may seek revenge (N37). CHATTER=off turns it off. */
   chatter: (process.env.CHATTER ?? "on") !== "off",
+  // NPCs as living players (N38, game/choice/): who scores an action menu and picks by a weighted roll. CHOICE: "off", "proto" (the talkers
+  // named in CHOICE_PROTO), "talkers" (every talker, an hour at a time), "all" (and the townsfolk, a day at a time). Violent actions (steal,
+  // attack, and the hired-men way of revenge) are offered only with CHOICE_VIOLENCE=on.
+  choice: {
+    mode: (process.env.CHOICE ?? "all") as "off" | "proto" | "talkers" | "all",
+    proto: (process.env.CHOICE_PROTO ?? "").split(",").map((s) => s.trim()).filter(Boolean),
+    violence: process.env.CHOICE_VIOLENCE === "on",
+    /** Only these actions exist ("habit": only what the schedule has them doing; for tests and the rollout). */
+    only: (process.env.CHOICE_ONLY ?? "").split(",").map((s) => s.trim()).filter(Boolean),
+  },
   // Lives that change (N25b, npc/review/): every person is reviewed every `everyDays` days (spread by a seeded offset), and the same
   // day when a big event hits their life (an impact of `shockImpact` or more). Talkers are reviewed by the model, `batch` to a call
   // (code checks every proposal); everyone else, and any talker the model can't serve, by code's rules. REVIEWS=off: no model

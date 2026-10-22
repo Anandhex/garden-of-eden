@@ -1,8 +1,8 @@
 [← Roadmap](../../ROADMAP.md)
 
-# Game track (G1–G4)
+# Game track (G1–G6)
 
-The playable game around the NPCs. G1 can run in parallel with the NPC track once N2 exists.
+The playable game around the NPCs. G1 can run in parallel with the NPC track once N2 exists. G5 and G6 have build guides in [plans/](plans/); build them in that order, then the [48-day year migration](../living-world/plans/migration-2026-10-23-one-year-ageless-player.md), then N40.
 
 ---
 
@@ -77,3 +77,45 @@ The big question: **where does the model run for players?**
 - [ ] Per-player rate limits on the server, whichever option you choose
 - [ ] Telemetry: latency to first token, action failure rate, how often fallback lines fire
 - [ ] Privacy: if you use a hosted provider, tell players their dialogue is sent to an AI service
+
+---
+
+## G5: A switchable client
+
+**Status:** ⬜ Planned 2026-10-23. **Build guide:** [plans/g5-a-switchable-client.md](plans/g5-a-switchable-client.md).
+
+Goal: the client can be web, Unity or Unreal, with as little logic in it as possible. The server is the brain and decides everything; a client only draws and sends what the player wants.
+
+```
+Adapter (Phaser + DOM today; Unity, Unreal later)  ──WebSocket, JSON (schema in protocol/)──▶  Node server: rules, clocks, walking, frames, UI model
+   draws, tweens, input → intents, voices                                                  ──▶  Ollama
+```
+
+- [ ] One versioned protocol (zod in `shared/src/view/`, JSON Schema in `protocol/schema/`): frames, events, speech, UI model, prompts from the server; intents from the client
+- [ ] A WebSocket session per player that holds the view box, history, prompts, clocks and walks
+- [ ] The frame builder: crowd, travellers and terrain placed on the server for the view box only
+- [ ] Intents the server resolves: click, interact, fight, flee, walk to, travel
+- [ ] The clocks on the server: time flow, Simulate, the fight clock, the model check
+- [ ] Panels as data with every string written by the server; feed and chat history kept by the server
+- [ ] The web client split into `core/` and `adapter/web/`; the client's simulation, terrain, placement, pathfinding and clock code deleted; an import test guards the line
+- [ ] A recorder (`npm run frames:record`) and a second, plain-canvas adapter to prove the protocol; `protocol/ADAPTERS.md` for Unity and Unreal
+
+**Done when:** the web game plays as before with none of that logic in the browser, and the plain-canvas adapter can walk, talk, fight, travel and simulate through the protocol alone.
+
+---
+
+## G6: The look
+
+**Status:** ⬜ Planned 2026-10-23. **Build guide:** [plans/g6-the-look.md](plans/g6-the-look.md).
+
+Goal: crisp pixel art now, built so the 2.5D HD look (upright sprites in a lit scene with depth blur) is a renderer swap later.
+
+- [ ] Art looked up by id (`shared/src/view/art.ts`), a manifest per adapter, code-drawn art as the fallback
+- [ ] An art pipeline: 64 px source shown at 32 px, Tiled tilesets with autotiles and building templates (the maps stay generated)
+- [ ] The first art pass: terrain, buildings, tinted people with four-way walks, creatures
+- [ ] Four layers (ground, buildings, props, actors) and roofs that fade
+- [ ] Light2D: ambient light by time and weather, lit windows, lamps and fires sent by the server as facts
+- [ ] Depth and atmosphere: y-sorting, foreground parallax, blur, weather effects, at 60 fps
+- [ ] Checkpoint: stay on Phaser, or prototype 2.5D HD in Three.js or Unity against G5 recordings
+
+**Done when:** the game looks like real pixel art with light at night, and the renderer checkpoint is decided and written down.
