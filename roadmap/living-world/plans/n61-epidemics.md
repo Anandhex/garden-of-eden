@@ -80,6 +80,12 @@ The done-when ones:
 
 **Save:** the next schema version (`outbreaks`, `people.ill`); the next save version (illness kinds on talkers, policies for closures).
 
+## Realism notes (2026-10-23)
+
+From the [realism review](../README.md#realism-gaps-review-2026-10-23); not decided or built yet.
+
+- **Gap 3, everyday illness:** epidemics should sit on N8.1's illness (`game/health.ts`, the player and cast) and N25's (follow-up) health state for townsfolk rows: a person already ill, injured or starving catches it more and dies of it more; most outbreaks start as a common illness that spreads. Healers and herbalists should be an ordinary job (not only a magic school, N51) that shortens illness and lowers deaths a little, and is blamed when they don't.
+
 ## Slice cut
 
 Not in the slice.

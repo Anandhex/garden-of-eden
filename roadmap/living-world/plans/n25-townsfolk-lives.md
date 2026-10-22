@@ -6,7 +6,7 @@
 
 > **Changed by [N26 Part E](n26-the-open-road.md#part-e-everyone-on-the-road-is-someone-rework-asked-for-2026-10-14) (2026-10-14):** migration becomes a journey. Households **depart** (marked `away`, still counted at the old place) and **arrive** days later, when the move is applied. The choice of destination also weighs kin already there, work, safety and law. People also make round trips (market, kin, work, pilgrimage), so a person can be away from home without leaving it.
 
-**Read first:** [plans README](README.md) sections 2 (determinism: per-person streams), 5 (**a year is 12 days**), 6 (person refs), 9 (performance). Needs N18 (people in SQLite, materialised at world creation, batch writes). Use N22's `sim:years` to tune it.
+**Read first:** [plans README](README.md) sections 2 (determinism: per-person streams), 5 (**a year is 48 days**, from N30 step 1; it was 12 when this was built), 6 (person refs), 9 (performance). Needs N18 (people in SQLite, materialised at world creation, batch writes). Use N22's `sim:years` to tune it.
 
 ## What exists
 
@@ -157,6 +157,15 @@ Listed with each step above; the done-when ones:
 | a born townsperson rises to a talking NPC with their parents in their file | step 8 test |
 | a famine kills people in the place it struck | step 6 test |
 | a capital still runs at 60 fps | N19 frame proxy + manual check |
+
+## Realism notes (2026-10-23)
+
+From the [realism review](../README.md#realism-gaps-review-2026-10-23); not decided or built yet.
+
+- **Gap 1, one 48-day year (decided 2026-10-23):** lives slow 4× in game days. The yearly rates follow `daysPerYear`, but daily ones (`LIVES.conception`, `seeking`, `famineDaily`, pregnancy and rest days) must be retuned with `sim:lives` when N30 step 1 switches the year (plans README §5).
+- **Gap 3, health:** townsfolk rows are alive or dead; only the player and the cast carry N8.1's injuries and illness (`game/health.ts`). A follow-up should give rows a compact health state built on the same `INJURIES`/`ILLNESSES` tables (ill, injured, lasting marks), caught by age, season and place (crowding, famine), most of it passing; some changes work and the death roll. N61 layers epidemics on top of this, not beside it.
+- **Gap 4, child deaths:** townsfolk already allow 6 children (`LIVES.maxChildren`; the cast's 3 is a memory cap), but `LIVES.yearly` infant 0.035 and child 0.006 mean few children die. Raise the infant and child bands so roughly a third to half die before adulthood in poor places, and retune conception so the population bound still holds. Grief, heirs (N45) and feuds read from this.
+- **Gap 5, marriage between places:** the realm step allows it but sets no rate. Add a pull for matches outside the place when few eligible partners are left (scaled by distance and kin at the other place), and forbid close kin (parents, siblings, first cousins by default; a culture policy later, N53).
 
 ## Slice cut
 

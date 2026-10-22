@@ -3,6 +3,7 @@
  * (the model proposes, in batches; code's rules are the fallback and do everyone else's); every proposal is checked
  * and limited, applied through the existing systems, recorded with its reasons, and remembered by meaning.
  */
+import { days } from "./long.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { config } from "../src/config.js";
 import { loadCreatureTemplates } from "../src/game/creatures.js";
@@ -672,10 +673,10 @@ describe("N25b townsfolk change by code's rules", () => {
   it("is the same on every run, and the same worked out later (a lazy place)", () => {
     const a = world(4);
     const b = world(4);
-    advanceWorld(a.realm, a.store, 30, { live: a.live });
-    advanceWorld(b.realm, b.store, 30, { live: b.live });
+    advanceWorld(a.realm, a.store, days(30, 12), { live: a.live });
+    advanceWorld(b.realm, b.store, days(30, 12), { live: b.live });
     expect(worldHash({ realm: a.realm }, a.store)).toBe(worldHash({ realm: b.realm }, b.store));
-    expect(seasonOf({ realm: a.realm, store: a.store }, [...a.live][0]!, 1, 30).days).toBe(30);
+    expect(seasonOf({ realm: a.realm, store: a.store }, [...a.live][0]!, 1, days(30, 12)).days).toBe(days(30, 12));
   });
   it("someone who becomes a talker keeps how they feel, and it is part of what the model is told about them", () => {
     const o = { ...BLANK_OUTLOOK, mood: -2, lord: { t: -40, f: 10, e: -30, a: 0 }, goal: { kind: "move" as const, since: 3 } };
@@ -701,7 +702,7 @@ describe("N25b determinism", () => {
       const store = new WorldStore(":memory:");
       const templates = loadCreatureTemplates();
       const town = new Town({ personas: {}, creatureTemplates: templates, world: newWorld({}, templates, always(0.5), 5), llm: new FakeProvider(), store });
-      for (let d = 0; d < 30; d++) town.passHours(24);
+      for (let d = 0; d < days(30, 12); d++) town.passHours(24);
       await town.reviews.idle();
       return { hash: worldHash(town.world, store), reviews: store.reviewCount(), states: JSON.stringify(Object.values(town.agents).map((a) => [a.state.relationship, a.state.review, a.state.lifeGoals])) };
     };

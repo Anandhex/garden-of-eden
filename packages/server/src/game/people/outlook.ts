@@ -30,6 +30,8 @@ export interface Outlook {
   lord: { t: number; f: number; e: number; a: number };
   /** What they want, once something gives them reason to. */
   goal?: Goal;
+  /** When they last picked each action of the daily menu (N38, game/choice/day.ts): the cooldowns. */
+  choice?: { cd: Record<string, number> };
   /** Who they hold a grudge against, and since when. */
   grudge?: { against: string; since: number; why: string };
 }

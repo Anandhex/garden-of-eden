@@ -2,7 +2,7 @@
 
 # N66 plan: The player's own life
 
-**In one line:** the player lives by the same rules as everyone: they can **rent or buy** a house, land, a shop or a workshop (real buildings on the fixed layouts), **hire** people to run them (wages, theft, loyalty), **run a business** through the economy and pay taxes; **court, marry and have children** by N11's rules with a spouse and children who have their own lives; they **age**; and when they die they **play on as an heir** who inherits by the kingdom's law, with the world's memory of the parent.
+**In one line:** the player lives by the same rules as everyone: they can **rent or buy** a house, land, a shop or a workshop (real buildings on the fixed layouts), **hire** people to run them (wages, theft, loyalty), **run a business** through the economy and pay taxes; **court, marry and have children** by N11's rules with a spouse and children who have their own lives; they **don't age**, and when they die they **come back** (decided 2026-10-23, plans README §5a); their children grow up as people with their own lives.
 
 **Read first:** [plans README](README.md) sections 2, 13, 14, 15. Needs N32 (interiors and household goods: a home to furnish), N40 (shops, careers, apprentices), N45 (estates and heirs by law). Uses N31 (buildings on reserved lots), N38 (employees choose and may steal), N44 (a nemesis outlasting the player strikes the heir), N47 (theft from the business), N49 (setbacks; real death leads here), N57 (the player's faction), N65 (the journal carries on).
 
@@ -20,9 +20,9 @@
 2. **Hiring:** the player hires **employees** (townsfolk rows or talkers) for a shop, workshop or farm: wage, role (apprentice, journeyman, shopkeeper, labourer, steward), hours; employees decide by N38 (`take_employment` scored by wage vs their current, the player's reputation, their ambition). Employees have loyalty (N57's model): paid on time and treated well → loyal; unpaid or mistreated → slack, **theft** (N47's theft rule with the stash as target: a greedy, disloyal employee skims), leaving. An apprentice taught by the player (N9 training) grows skill and may later want their own shop (N40).
 3. **Running a business:** a **business** record: `{ id, kind: shop | workshop | farm | inn | trading_house, building, owner: "player", employees, stock, prices, ledger }`. It makes goods (crafting by employees at their skill, from inputs bought), sells at the place's market through the existing NPC economy (villagers buy from it like any trader: N10's demand), pays **taxes** to the place's head on tax days (N13's rate), and keeps a ledger the player reads. While the player travels, it runs by day (the employees' daily step); the player gets news of it by letter from the steward (N34) or on return.
 4. **Family:** courtship with talkers or townsfolk (a townsperson becomes a talker when courted), by N11's rules (affection, trust, compatibility; `config.content.romance` must be on), marriage (a wedding event; the spouse moves into the player's home), **children** born (talkers by `makeChild`; they grow up by `childhood`/`adulthood` over in-game years), a spouse who has their own life (their job, friends, ambitions: N38/N40 apply), and who may grow unhappy (N45's affairs and separation apply to the player's marriage too).
-5. **Age:** the player gets an age (start ~20, chosen at creation), ages with the calendar (`daysPerYear`), reaches elder and venerable stages with stat effects (N25's rules: `ageStage`), and can die of old age (a daily chance in old age, as NPCs) or by violence or illness (N49's real death).
-6. **Heirs:** on the player's death, **play on as an heir**: the heir is chosen by the kingdom's inheritance law (N45: the eldest child, or a will the player made in a "Will" panel), among the player's grown children (or, if none, a sibling or spouse: or the game ends with the memorial screen). The heir **inherits** the estate (house, businesses, coin, notable items, the faction's leadership if N57's rules allow), **the family's reputation** (the parent's reputation by place at a share: N67), and **the world's memory**: grudges against the parent pass to the heir at half weight (N45's rule; a nemesis may outlast the parent: N44), friends of the parent are warmer, the parent's deeds are known (gossip continues). The journal (N65) starts a new chapter with the parent's life summarised.
-7. **Children as playable:** the heir's stats come from the child's own life (talents inherited, skills trained if apprenticed) — the player who wants a strong heir trains their child.
+5. **Age (decided 2026-10-23):** the player has **no age** and never dies of it (plans README §5a). When they die they come back (N49 step 6). Their spouse and children age like anyone.
+6. **Heirs (dropped 2026-10-23):** there's no handover on death, since the player comes back. The **will** stays: the player can name who gets their property if they choose to give it up, and the kingdom's law (N45) still decides for the player's spouse and children when *they* die.
+7. **Children (changed 2026-10-23):** the player's children are not playable; they grow up by their own lives (talents inherited, skills trained if apprenticed to the player), and can become companions, employees, rivals or heirs to the player's business.
 
 ## Steps
 
@@ -46,13 +46,12 @@
 - The player in `family.ts`'s rules; spouses' own lives; children growing.
 - Test (done-when part): the player marries and has a child.
 
-### Step 6: age and death
-- The player's age and stages; death by old age and other causes; the will panel.
-- Test: an old player dies of old age eventually in a long run.
+### Step 6: no age, and the will
+- The player has no age (plans README §5a); death is N49 step 6 (coming back). The will panel for property.
+- Test: in a long run the player's age never changes while their child grows up.
 
-### Step 7: playing on as the heir
-- Heir selection by law; inheritance; reputation and memory; the new chapter.
-- Test (done-when part): after the player's death, they play on as that child with the workshop and the family's reputation.
+### Step 7: (dropped 2026-10-23: no heir handover)
+- The player comes back from death instead (N49 step 6).
 
 ### Step 8: admin and docs
 - Admin shows the player's property, businesses and family. README: a life in the world.
@@ -60,13 +59,12 @@
 ## Balance bounds
 
 - `business-viable`: a well-run shop in a town turns a profit in an average year; a badly run one fails.
-- `player-ageing`: a player character's life is long enough to raise an heir with the default `daysPerYear` (or the year length must change: **Question 1**).
 
 ## Edge cases and traps
 
-- **Time scale:** with 12 days a year, raising a child to adulthood (16 years) takes 192 game days, months of real play. **Question 1** asks whether ageing should be optional or the year longer.
+- **Time scale:** with a 48-day year (plans README §5), a child takes ~770 game days to grow up; the player sees it through N35's "the years pass" skip.
 - **The player as a household:** many systems assume a household is rows; the player's household (spouse and children as talkers) must be visible to them (gossip venues: home; N45 heirs).
-- **Romance config:** marriage and children need `config.content.romance`; when off, heirs come from adoption (an orphan taken in: a row) so the heir path still works.
+- **Romance config:** marriage and children need `config.content.romance`; when off, the player can still take in an orphan (a row) as a ward.
 
 ## Tests (`packages/server/tests/n66.test.ts`)
 
@@ -83,9 +81,15 @@ The done-when one, as a long scenario (LONG=1 for the ageing; a short version wi
 
 ## Questions for the user
 
-1. With a 12-day year, a child grows up in about 200 game days. Should the player age at all by default, should the year be longer, or should there be a "the years pass" skip (N35) that ages everyone faster?
+1. ~~How fast should the player age?~~ Answered 2026-10-23: the player doesn't age and comes back from death (plans README §5a); a 48-day year, with N35's "the years pass" skip for watching a child grow up.
 
 **Save:** the next save version (property owners, businesses, the player's age, will, family).
+
+## Realism notes (2026-10-23)
+
+From the [realism review](../README.md#realism-gaps-review-2026-10-23); not decided or built yet.
+
+- **Gap 1, one 48-day year (decided 2026-10-23):** the player doesn't age and comes back from death; dates can show year numbers again.
 
 ## Slice cut
 

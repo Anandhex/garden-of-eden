@@ -131,7 +131,7 @@ export function passVillage(
   world: WorldSnapshot,
   hours: number,
   rng: Rng,
-  { talkingTo }: { talkingTo?: string } = {},
+  { talkingTo, choose }: { talkingTo?: string; /** Called before each hour is lived with the hour that is about to be (N38: talkers choose what to do). */ choose?: (at: { day: number; hour: number }) => void } = {},
 ): string[] {
   const log: string[] = [];
   world.events ??= [];
@@ -141,6 +141,11 @@ export function passVillage(
   const givers = Object.fromEntries(members.map((m) => [m.id, m]));
   const guards = members.filter((m) => isGuard(m.persona) && m.state.outcome !== "dead").map((m) => m.id);
   for (let h = 0; h < hours; h++) {
+    if (choose && clocks[0]) {
+      const next = { ...clocks[0] };
+      advanceMinutes(next, 60 - (next.minute ?? 0));
+      choose({ day: next.day, hour: next.hour });
+    }
     members.forEach((m, i) => log.push(...passMinutes(m.persona, m.state, clocks[i]!, 60, rng, { talking: m.id === talkingTo })));
     const at: WorldSnapshot = { ...world, day: clocks[0]?.day ?? world.day, hour: clocks[0]?.hour ?? world.hour, minute: clocks[0]?.minute ?? world.minute, timeOfDay: clocks[0]?.timeOfDay ?? world.timeOfDay };
     log.push(...villageHour(members, at, rng));

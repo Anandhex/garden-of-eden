@@ -1,5 +1,7 @@
 [← Plans](README.md) · [Stage 3: N38](../stage-3-npcs-choose.md#n38-npcs-as-living-players)
 
+> **Built 2026-10-22.** What differs from this plan is listed in the [stage file](../stage-3-npcs-choose.md#n38-npcs-as-living-players) under **What differs from the plan**; the steps below are as written.
+
 # N38 plan: NPCs as living players
 
 **In one line:** one action menu (section 13 of the README) for talkers, townsfolk and the player; every hour a talker in the player's place scores every option it has from its needs, goals, emotions, relationships, traits and the place's mood, and picks by a weighted roll whose spread its traits set; townsfolk make the same kind of choice once a day at coarse grain; every choice is an event with its score parts as the reason; cooldowns and caps stop loops and massacres; the model never chooses.

@@ -6,6 +6,7 @@ import { traitsOf } from "../npc/traits.js";
 import type { NpcPersona, NpcState, WorldSnapshot } from "../npc/types.js";
 import { describeNeeds } from "../game/needs.js";
 import { describeRevenge } from "./revenge.js";
+import { describeChoices } from "../game/choice/words.js";
 import { describeArcs } from "../npc/arcs.js";
 import { structured } from "./structured.js";
 
@@ -32,6 +33,7 @@ export function planningPrompt(persona: NpcPersona, state: NpcState, world: Worl
     memories.length > 0 ? `On your mind: ${memories.join(" ")}` : null,
     describeNeeds(state.needs),
     describeRevenge(state),
+    describeChoices(state),
     ...describeArcs(persona, state),
     `It's day ${world.day}. Write 1-3 short plans for today, each under 15 words, in the first person. Only mention people and places named above.`,
   ].filter((l): l is string => !!l);

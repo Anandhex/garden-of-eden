@@ -12,6 +12,7 @@ import { describeKnown } from "../game/gossip/describe.js";
 import { planWords } from "../game/chatter/revenge.js";
 import { outlookOf } from "../game/people/outlook.js";
 import { socialSections } from "./social.js";
+import { choiceSections } from "./choices.js";
 import { ageFrom } from "../game/people/rules.js";
 import { traitsOfRow } from "../game/people/traits.js";
 import { parseAway, type PersonRow } from "../store/peopleStore.js";
@@ -147,7 +148,7 @@ function castSections(ctx: AdminContext, id: string, persona: NpcPersona, state:
     title: "Timeline",
     rows: timeline.slice(-25).reverse().map((e): [string, string] => [`Day ${e.day}, ${String(e.hour).padStart(2, "0")}:00`, `${e.kind}: ${e.details}${e.why ? ` (why: ${e.why})` : ""}`]),
   });
-  out.push({ title: "Ambitions and choices", unavailable: "N37 and N38: what they want in life and what they chose, with the options they weighed" });
+  out.push({ title: "Ambitions", unavailable: "N40: what they want in life (their choices, and the options they weighed, are under Choices)" });
   return out;
 }
 
@@ -165,7 +166,7 @@ function castCard(ctx: AdminContext, id: string): AdminCard | null {
   const figure = ctx.town().figureOf(id);
   const t = parseTownsfolkId(id);
   const site = t ? t.site : (ctx.town().homeSiteOf(id) ?? figure?.home ?? null);
-  const sections = castSections(ctx, id, persona, state);
+  const sections = [...castSections(ctx, id, persona, state), ...choiceSections(ctx, id, state)];
   if (figure) sections.push({ title: "In the realm", rows: [["Realm figure", titled(figure), `figure:${figure.id}`]] });
   return {
     ref: `cast:${id}`,
@@ -358,7 +359,7 @@ function awayCard(ctx: AdminContext, row: PersonRow): AdminCard {
     site: row.site,
     siteName: place?.name ?? null,
     doing: j ? `${j.where} (${parseAway(row.away)?.purpose ?? "on a journey"})` : "away",
-    sections: [...(roadSection(ctx, row) ? [roadSection(ctx, row)!] : []), ...lifeSections(ctx, row), knowsSection(ctx, row), ...socialSections(ctx, row)],
+    sections: [...(roadSection(ctx, row) ? [roadSection(ctx, row)!] : []), ...lifeSections(ctx, row), knowsSection(ctx, row), ...socialSections(ctx, row), ...choiceSections(ctx, row.id)],
     ...(j ? { road: { journey: j.id, x: j.x, y: j.y, state: j.state } } : {}),
   };
 }
@@ -418,10 +419,11 @@ function townspersonCard(ctx: AdminContext, id: string): AdminCard | null {
     ...(row ? lifeSections(ctx, row) : []),
     ...(row ? [knowsSection(ctx, row)] : []),
     ...(row ? socialSections(ctx, row) : []),
+    ...(row ? choiceSections(ctx, row.id) : []),
     ...(row && !row.persona ? [outlookSection(ctx, row, world.realm!.settlements[row.site]?.leader ? world.realm!.figures[world.realm!.settlements[row.site]!.leader!] : undefined)] : []),
     ...(row && row.persona ? [] : [{ title: "Needs, emotions, goals", unavailable: "N25: townsfolk's needs and feelings are worked out by code (their outlook is above); they get a full set of their own once they talk to the player" } as AdminSection]),
   ];
-  if (persona && state) sections.push(...castSections(ctx, id, persona, state));
+  if (persona && state) sections.push(...castSections(ctx, id, persona, state), ...choiceSections(ctx, id, state));
   return {
     ref: `town:${id}`,
     kind: "townsperson",

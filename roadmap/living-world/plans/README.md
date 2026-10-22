@@ -6,6 +6,10 @@ Written 2026-10-13 (N17–N28) and 2026-10-14 (N29–N68). These are build guide
 
 Read this page first. It holds the rules every phase shares; the phase plans assume them and don't repeat them. Sections 1–10 are for every phase; sections 11–20 were added with the N29–N68 plans and hold the building blocks those phases share (read them before any phase from N29 on).
 
+**Migration for built code:** [one 48-day year, an ageless player, quick travel](migration-2026-10-23-one-year-ageless-player.md) (decided 2026-10-23) says what the switch changes in code already built (N6, N11, N25, N25b, N26, N37, N38), in what order, what to retune and which tests break. Do its part A before or with N30 step 1.
+
+**Before N40 (decided 2026-10-23), in this order:** the game track's [G5, a switchable client](../../game/plans/g5-a-switchable-client.md), then [G6, the look](../../game/plans/g6-the-look.md), then the migration's part A (the 48-day clock), alone. Then N40. After G5, a phase that shows something new in the game adds it to the server's frame or UI model (`server/src/view/`), never to client code: the client only draws.
+
 | Phase | Plan | Builds on | Vertical slice? |
 |---|---|---|---|
 | N17 | [The admin world view](n17-admin-world-view.md) | (nothing new) | ✅ cut down |
@@ -31,9 +35,10 @@ Read this page first. It holds the rules every phase shares; the phase plans ass
 | N35 | [Moving through time](n35-moving-through-time.md) | N26, N34 | |
 | N36 | [The mood of a place](n36-the-mood-of-a-place.md) | N20 (causes), N25b | |
 | N37 | [Chatter with consequences](n37-chatter-with-consequences.md) | N25b, N33 | ✅ built 2026-10-14 (all steps; schema 7, save still v15) |
-| N38 | [NPCs as living players](n38-npcs-as-living-players.md) | N18, N19, N37 | ✅ slice |
+| N38 | [NPCs as living players](n38-npcs-as-living-players.md) | N18, N19, N37 | ✅ built 2026-10-22 (all steps; no save or schema bump) |
 | N39 | [The first hour](n39-the-first-hour.md) | N33, N37, N38 | |
 | N40 | [Ambitions and careers](n40-ambitions-and-careers.md) | N38 | ✅ slice |
+| N69 | [Offices, treasuries and renown](n69-offices-treasuries-and-renown.md) | N37, N38 (with N40) | planned 2026-10-22; build right after N40 |
 | N41 | [Leisure and contests](n41-leisure-and-contests.md) | N37, N38, N40 | |
 | N42 | [A shared quest market and adventurer grades](n42-shared-quest-market.md) | N38, N40 | |
 | N43 | [Items with a history](n43-items-with-a-history.md) | N20, N33 | |
@@ -104,9 +109,20 @@ Every plan leans on this. Today it doesn't fully hold, and N18 fixes it before a
 
 Unchanged from every phase before. For these twelve phases the model writes, at most: story titles and summaries (N20), how an NPC phrases a callback (N21), place and POI names (N27, through the invented-name check in [`realm/director.ts`](../../../packages/server/src/game/realm/director.ts) `inventedWords`), and flavour text. Each has a **template fallback** that works with the model off (`DIRECTOR=off`, `PLANNING=off`), and tests run with the model off. N19's budget can turn any flavour call into its fallback at any moment, so no feature may *depend* on the model answering.
 
-## 5. Time: a year is 12 days
+## 5. Time: one clock, a 48-day year
 
-`config.daysPerYear` is **12** by default ([`config.ts`](../../../packages/server/src/config.ts)). So "10 years" in a done-when is **120 game days**, "a season" is 3 days, and a pregnancy is 9 days. Keep every rule in days via `config.daysPerYear`, never a literal 365 or 12. When a plan says "a year", compute it.
+Decided 2026-10-23 ([realism gap 1](../README.md#realism-gaps-review-2026-10-23)): `config.daysPerYear` becomes **48** (it was 12), with four **12-day seasons**. One clock for everything: weather, the farming year, festivals, travel, news, armies, ageing, births, careers, how fast grudges fade. So "10 years" in a done-when is **480 game days**, a season is 12 days, a pregnancy is 36 days and a generation (~20 years) is ~960 days. Keep every rule in `config.daysPerYear`, never a literal 12, 48 or 365. When a plan says "a year", compute it. (Two clocks, a 48-day calendar beside a 12-day life year, were considered the same day and dropped: ages and dates would disagree.)
+
+What it means:
+
+- **Lives are 4× slower in game days.** Generations turn over through **time that passes faster where nothing happens**: sleeping skips the night, fast travel and "wait until" skip empty days (N35), and N35's **"the years pass"** skip runs a season or a year at once on N25's lazy catch-up. The player doesn't age (section 5a), so they can watch generations come and go.
+- **Retune what is stated per day.** Rules stated per year and turned into daily chances (`people/rates.ts`, `life.ts` `dailyDeathChance`) follow `daysPerYear` on their own. Rules stated per day don't: `LIVES.conception`, `seeking`, `famineDaily`, `config.family.pregnancyDays` (9 → 36) and `restDays` (12 → 48), `courtshipNights`, and anything in N37/N38 counted in days. Grudge and relationship fades (`chatter/grievance.ts`, `chatter/rel.ts`) are in years, so they last 4× longer in days: check that's wanted. The "season = daysPerYear / 4" windows in `chatter/bounds.ts` and `choice/bounds.ts` become 12 days; retune those bounds. Rerun `npm run sim:lives` until N25's bounds hold.
+- **Long tests run 4× more days** (N22: a 10-year, 10-seed run is 4,800 realm days); at N25's 20–60 ms a coarse day that's still a few minutes, nightly rather than per commit.
+- Built **alone, after G6 and before N40** (decided 2026-10-23), following the [migration guide](migration-2026-10-23-one-year-ageless-player.md) part A. No save bump of its own (old saves are disposable, section 1; a save from before just has older people than it should).
+
+### 5a. The player doesn't age, and comes back from death
+
+Decided 2026-10-23 (built code: [migration guide](migration-2026-10-23-one-year-ageless-player.md) part B). The player has no age and never dies of age. When they die (a fight, the law, nature) they comes back: they wake a day later where they last slept (home, an inn) or at a temple (N50 can make it a shrine of their faith), at low HP; what they carried stays where they fell, for others to take or for them to recover; and people who saw them die talk about it ("came back from the dead"), which can make them feared or revered. N49's setbacks (capture, ransom, prison, slavery) still come first where someone would rather keep them alive. `PLAYER_DEFEAT=permadeath` stays as an option. There is no heir handover (N66); the player's children grow up as people like any other.
 
 Clock: `world.day`, `world.hour`, `world.minute`. A game minute passes every 2 real seconds while the player stands about (`TIME_FLOW_SECONDS`); a step on a map is a game minute (`MINUTES_PER_STEP`). The realm runs a day at a time (`realmDay`).
 
@@ -167,7 +183,7 @@ Added 2026-10-14 with the N29–N68 plans. Everything in sections 1–10 still h
 
 ## 11. Where things stand, and the pieces that are missing
 
-**Built (2026-10-14):** N17, N18, N19, N25, N25a, N25b, N26, N33 and N37 (see each stage file's **What differs**). **Not built:** N20–N24 (except `player.known`, `playerKnows` and `playerLearns`, built as N33's step 0 in `game/playerKnowledge.ts`), N27 and N28.
+**Built (2026-10-22):** N17, N18, N19, N25, N25a, N25b, N26, N33, N37 and N38 (see each stage file's **What differs**). **Not built:** N20–N24 (except `player.known`, `playerKnows` and `playerLearns`, built as N33's step 0 in `game/playerKnowledge.ts`), N27 and N28.
 
 **N26 Part E is built on top of N26 (2026-10-14, save v14)** ([plan](n26-the-open-road.md#part-e-everyone-on-the-road-is-someone-rework-asked-for-2026-10-14), asked for 2026-10-14): every traveller is a real person row (`people.away` while on a journey), migrants arrive on the day their journey does, the messenger relay (`relay.ts`) is deleted, and **news spreads by people**: travellers carry what their place knew when they left (`journey.carries`) and swap it with places at every stop, inns most of all; `reachesAt(news, site)` becomes "the day the place first heard it, or not yet". **The N29–N68 plans assume Part E, which is built.** Where the plans say `SiteState.newsSeen` with a day, read `realm.heard[site][newsId]` (see the stage file's What differs). Where a plan says a journey, a traveller or a carrier, it means a real person on a Part E journey; where it says a place heard news, it means Part E's `newsSeen` day. N33 then makes that knowledge per person instead of per place. Several later plans lean on small parts of those phases. **The rule:** if a phase needs a part that doesn't exist yet, it builds that part (only that part, as written in its own plan) as **step 0**, and says so in the stage file. It doesn't build its own version.
 
@@ -196,6 +212,8 @@ Since N25a nothing is authored, so the stage files' names are roles, not things 
 The first phase that needs them adds `pickTestPlaces(world)` and `pickTestPerson(world, site, { job | role | cls })` to [`tests/helpers.ts`](../../../packages/server/tests/helpers.ts) and every later test uses them. If a seed lacks the kingdom a done-when needs (say, no slave kingdom), the test searches a short fixed list of seeds for one that has it, and that list lives in the helper.
 
 ## 13. The action menu is the spine of Stages 3–7
+
+**Built (N38, 2026-10-22), in `server/src/game/choice/`.** What it looks like as built: `ActionDef.apply(ctx, option, why, host)` returns what the hour needs (`plan`, `sell`, `intent`) and does its deeds through `host.deed(...)` (events, feelings, grievances, goods), so one action serves a talker (`talker.ts`), a townsperson (`day.ts`) and the player (`player.ts`). To add an action: a file in `actions/`, a line in `ACTIONS` (`registry.ts`), its weights in `weights.ts`, a cooldown, a test; give it `habit: [...]` only if it is something the schedule already does. Scores are `scored(["label", value], ...)` so the reason is free. Violent actions say `violent: true`. The rest of this section is the original plan.
 
 N38 builds **one action menu** for talkers, townsfolk and the player. After N38, every phase that adds something people *do* (bet at dice, take a job, blackmail, preach, enlist, run away, seek out the player) adds it as an **action** in that menu. It doesn't add its own little loop. The shape (detailed in the [N38 plan](n38-npcs-as-living-players.md)):
 

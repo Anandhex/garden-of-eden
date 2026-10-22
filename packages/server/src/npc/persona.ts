@@ -45,6 +45,7 @@ import { describeHealth } from "../game/health.js";
 import { describeGrowth } from "./growth.js";
 import { describeArcs } from "./arcs.js";
 import { describeRevenge } from "../director/revenge.js";
+import { describeChoices } from "../game/choice/words.js";
 import { describePlan } from "../director/planning.js";
 import { describeCompanion } from "../game/party.js";
 import { describeDilemma, dilemmasFor } from "../game/dilemmas.js";
@@ -125,6 +126,7 @@ function describeStrangeNames(persona: NpcPersona, playerLine: string, playerNam
 /** Talk about how they are: their wounds, their health. */
 const HEALTH_TALK = /\b(hurt|hand|arm|burn\w*|wound\w*|sick|ill|fever|cough|injur\w*|heal\w*|well|feeling|how are you)\b/i;
 /** Talk about what they're up to. */
+const WHY_TALK = /\b(why|how come|what made you|what happened|reason|did you really|explain)\b/i;
 const PLAN_TALK = /\b(plans?|today|doing|busy|up to|tomorrow|going to)\b/i;
 
 /** Does the line touch one of their arcs (its name, or the words that move it on)? */
@@ -207,6 +209,7 @@ function buildSituation(
     ...(!playerLine || arcTalk(persona, playerLine) ? describeArcs(persona, state) : []),
     describeRevenge(state),
     describeLifeGoals(state),
+    playerLine && WHY_TALK.test(playerLine) ? describeChoices(state) : null,
     playerLine && PLAN_TALK.test(playerLine) ? describePlan(state, world.day) : null,
     describeBond(persona, state, player),
     // Family (N11.3): only when the talk is about it, or family is here (design rule 3).

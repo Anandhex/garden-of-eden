@@ -32,6 +32,7 @@ import { fadeRevenge, wantRevenge } from "../director/revenge.js";
 import { remember } from "../npc/memory.js";
 import { setGrudge } from "../npc/relationship.js";
 import { addEmotion } from "../npc/emotions.js";
+import { chosenPlan } from "./choice/memory.js";
 
 /**
  * Time passing for an NPC. Each hour they follow their schedule (game/schedule.ts),
@@ -182,7 +183,9 @@ function hourTick(persona: NpcPersona, state: NpcState, world: WorldSnapshot, rn
     log.push(...checkPlayerPromises(persona, state, world.player, world));
   }
   // This hour's plan: the schedule, unless a need, the weather or a festival says otherwise.
-  const plan = state.inCombat && state.activity ? state.activity : planHour(persona, state, world);
+  // (N38: a talker's own pick for this hour, when it is not the schedule's, is followed instead.)
+  const chosen = chosenPlan(state, absoluteHour(world));
+  const plan = state.inCombat && state.activity ? state.activity : chosen ? { activity: chosen.activity, place: chosen.place, why: chosen.why } : planHour(persona, state, world);
   state.activity = { activity: plan.activity, place: plan.place, ...(plan.why ? { why: plan.why } : {}), at: absoluteHour(world) };
   tickNeeds(state.needs, plan.activity, { cold: isCold(world.day), drain: illnessDrain(state) });
   regenNpc(persona, state, plan.activity === "sleep");
@@ -222,9 +225,10 @@ function hourTick(persona: NpcPersona, state: NpcState, world: WorldSnapshot, rn
     if (good) log.push(good);
   }
   if (talking || state.job) return log; // with the player, or still busy
+  const selling = !!chosen?.sell;
 
   // A commission comes before anything else they might make.
-  const ordered = canStartCommission(persona, state);
+  const ordered = selling ? null : canStartCommission(persona, state);
   if (ordered) {
     // An order gets the best materials they have (N10).
     const job = startCraft(persona, state, ordered, now, rng, { best: true });
@@ -237,7 +241,7 @@ function hourTick(persona: NpcPersona, state: NpcState, world: WorldSnapshot, rn
   }
 
   // Only what they have the materials for, and room to keep.
-  const options = tradeRecipes(persona).filter((r) => hasInputs(state.inventory, r) && fitsCraft(state.inventory, npcSlots(persona, state), r));
+  const options = selling ? [] : tradeRecipes(persona).filter((r) => hasInputs(state.inventory, r) && fitsCraft(state.inventory, npcSlots(persona, state), r));
   if (options.length > 0 && rng() < CRAFT_CHANCE) {
     const recipe = options[Math.floor(rng() * options.length)]!;
     const job = startCraft(persona, state, recipe, now, rng);
@@ -249,7 +253,7 @@ function hourTick(persona: NpcPersona, state: NpcState, world: WorldSnapshot, rn
 
   // Villagers don't come to the bandit camp to shop.
   if (plan.place === "camp") return log;
-  if (rng() < VILLAGE_SALE_CHANCE * saleChanceFactor(world)) {
+  if (rng() < (selling ? 0.9 : VILLAGE_SALE_CHANCE * saleChanceFactor(world))) {
     const stock = Object.keys(state.inventory).filter(
       (k) => (state.inventory[k] ?? 0) > 0 && npcPrice(persona, k) !== undefined && !heldBack(persona, { relationship: -100, metBefore: false }, k),
     );

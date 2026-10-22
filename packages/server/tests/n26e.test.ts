@@ -3,6 +3,7 @@
  * trips have real reasons, migration is a journey with an arrival, and news travels with the people who carry it and swap it
  * at the inns. A save is v14 (a clean break).
  */
+import { days } from "./long.js";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -53,7 +54,7 @@ const open = (realm: ReturnType<typeof world>["realm"]) => journeysOf(realm).fil
 describe("N26 Part E: every traveller is a person of the table", () => {
   it("over 60 days every person on a road is a row (or a figure) that is away, once, and nobody is made up", () => {
     const { realm, store, live } = world(1);
-    for (let d = 2; d <= 61; d++) {
+    for (let d = 2; d <= days(61, 25); d++) {
       advanceWorld(realm, store, d, { live });
       const seen = new Map<string, string>();
       for (const j of open(realm)) {
@@ -264,7 +265,7 @@ describe("N26 Part E: migration is a journey", () => {
 
   it("nobody is in two places at once over a 60-day run", () => {
     const { realm, store, live } = world(2);
-    for (let d = 2; d <= 61; d++) {
+    for (let d = 2; d <= days(61, 25); d++) {
       advanceWorld(realm, store, d, { live });
       const away = new Set(store.people.awayRows().map((r) => r.id));
       for (const site of live) {

@@ -24,6 +24,10 @@ import { rulesFor } from "./realm/spawnrules.js";
 import { deathRipple } from "./succession.js";
 import { passVillageNights } from "./underworld.js";
 import { passVillage, type VillageMember } from "./village.js";
+import { choicesOf, chooseHour } from "./choice/talker.js";
+import { explainChoice } from "./choice/words.js";
+import { intentsOn } from "./choice/intents.js";
+import { protectedSet } from "./choice/protect.js";
 import { companionsStrike, endangered, type Foe } from "./party.js";
 import { statsOf, npcSkills } from "../npc/state.js";
 import { skillLevel } from "../npc/skills.js";
@@ -72,7 +76,7 @@ import { dueLater } from "./road/situations.js";
 import { commitTrack, startRoad } from "./road/walk.js";
 import { figureTalkerId, notablePersona, notablesOf } from "./realm/notables.js";
 import { homeRoster, parseTownsfolkId, rosterFor, rosterFromStore, townsfolkPersona, townspersonOfRow } from "./realm/townsfolk.js";
-import { CHAT_MINUTES, CrowdSim, type ChatterMark, type CrowdDay, type CrowdRoster, type Townsperson } from "@millbrook/shared";
+import { CHAT_MINUTES, CrowdSim, type ChatterMark, type CrowdDay, type CrowdIntent, type CrowdRoster, type Townsperson } from "@millbrook/shared";
 import { applyHour, planHour, type HourPlan } from "./chatter/hours.js";
 import { HOSTILE } from "./chatter/types.js";
 import { writeChatterLine } from "./chatter/words.js";
@@ -524,8 +528,25 @@ export class Town {
 
   /** Today's conditions, for where the townsfolk go. */
   crowdDay(): CrowdDay {
-    return { weather: weatherOn(this.world.day), festival: townEventsOn(this.world).includes("festival") };
+    const day: CrowdDay = { weather: weatherOn(this.world.day), festival: townEventsOn(this.world).includes("festival") };
+    // Townsfolk who chose something other than their day's work (N38), once an hour.
+    if (this.store && config.choice.mode === "all") {
+      const key = `${this.site()}|${this.world.day}|${this.world.hour}`;
+      if (this.intentMemo?.key !== key) this.intentMemo = { key, intents: intentsOn(this.store, this.site(), this.world.day) };
+      if (this.intentMemo.intents.length > 0) day.intents = this.intentMemo.intents;
+    }
+    return day;
   }
+
+  /** What a talker says when asked why they did their last few non-habit things, in their voice if the model has it (N38 `choice-reason`), else in plain words. */
+  async sayWhy(id: string, n = 2): Promise<string[]> {
+    const agent = this.agents[id];
+    if (!agent) return [];
+    const logs = choicesOf(agent.state).filter((l) => !l.habit).slice(-n);
+    return Promise.all(logs.map((l) => explainChoice(l, agent.persona.name, config.director ? this.bgLlm : null)));
+  }
+
+  private intentMemo: { key: string; intents: CrowdIntent[] } | null = null;
 
   /** The hours of the player's map worked out ahead (by place, day and hour): the marks to send and what is yet to happen when the hour has passed. */
   private readonly chatterMemo = new Map<string, HourPlan>();
@@ -1101,7 +1122,7 @@ export class Town {
   private passHoursNow(hours: number, { talkingTo, keep = [] }: { talkingTo?: string; keep?: string[] }): string[] {
     const start = { day: this.world.day, hour: this.world.hour };
     const site = this.site();
-    const log = passVillage(this.members(), this.world, hours, this.rngFor("village"), talkingTo ? { talkingTo } : {});
+    const log = passVillage(this.members(), this.world, hours, this.rngFor("village"), { ...(talkingTo ? { talkingTo } : {}), ...this.talkersChoose(talkingTo) });
     log.push(...passCreatureTime(this.templates, this.creaturesHere(), start, hours, this.rngFor("creatures")).filter(isNotable));
     log.push(...passVillageNights(this.templates, this.creaturesHere(), this.members(), this.world, start, hours, this.rngFor("nights")));
     if (this.world.realm) log.push(...castCrowd(this.world.realm, this.creaturesHere(), this.world.day, site));
@@ -1116,6 +1137,33 @@ export class Town {
     log.push(...this.consequences());
     if (this.world.day > start.day) this.newDay(start.day);
     return log;
+  }
+
+  /**
+   * Talkers choose what to do with the next hour (N38, game/choice/): `passVillage` calls this before each hour is lived.
+   * Nothing when the setting is off or when this is not a world with a seed to roll from.
+   */
+  private talkersChoose(talkingTo?: string): { choose?: (at: { day: number; hour: number }) => void } {
+    const c = config.choice;
+    if (c.mode === "off") return {};
+    return {
+      choose: (at) => {
+        const members = this.members();
+        chooseHour({
+          seed: this.world.seed,
+          members,
+          world: this.world,
+          at,
+          store: this.store,
+          realm: this.world.realm ?? undefined,
+          protect: protectedSet(this.world.player, members, talkingTo, this.store?.people),
+          busy: new Set(talkingTo ? [talkingTo] : []),
+          violence: c.violence,
+          choosers: c.mode === "proto" ? new Set(c.proto) : undefined,
+          only: c.only.length > 0 ? c.only : undefined,
+        });
+      },
+    };
   }
 
   /**

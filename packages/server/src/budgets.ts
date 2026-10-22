@@ -32,6 +32,7 @@ export const CALL_KINDS = [
   "child-words",
   "quest-flavor",
   "chatter-line", // the words of an insult the player can see (N37; fallback: the table's lines)
+  "choice-reason", // why an NPC did what they did, in their own voice, when asked or pinned (N38; fallback: the score parts in words)
   "identity", // `npm run gen` writing a new character: not part of play
 ] as const;
 export type CallKind = (typeof CALL_KINDS)[number];
@@ -74,6 +75,7 @@ export const budgets = {
       "child-words": num("BUDGET_CALLS_CHILD_WORDS", 2),
       "quest-flavor": num("BUDGET_CALLS_QUEST_FLAVOR", 6),
       "chatter-line": num("BUDGET_CALLS_CHATTER_LINE", 12),
+      "choice-reason": num("BUDGET_CALLS_CHOICE_REASON", 6),
       identity: num("BUDGET_CALLS_IDENTITY", 10),
     } as Record<CallKind, number>,
     /**
@@ -97,6 +99,7 @@ export const budgets = {
       "child-words": 4000,
       "quest-flavor": 1500,
       "chatter-line": 1500,
+      "choice-reason": 1500,
       identity: 5000,
     } as Record<CallKind, number>,
   },

@@ -4,6 +4,7 @@
  * gossip (N33) carries it on; a wronged person with enough pride or hate comes to want revenge on the one who wronged them (anyone, not
  * only the player) and carries it out. Words come last. Roles are found by class and job, never by name (plans README section 12).
  */
+import { days } from "./long.js";
 import { DatabaseSync } from "node:sqlite";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CHAT_MINUTES, CLASS_RANK, CrowdSim, kindLines, markKey, type SocialClass } from "@millbrook/shared";
@@ -592,7 +593,7 @@ describe("N37 step 7: the whole thing, over days", () => {
 
   it("the balance bounds hold after a good while", () => {
     const w = world(1);
-    advanceWorld(w.realm, w.store, 50, { live: w.live });
+    advanceWorld(w.realm, w.store, days(50, 30), { live: w.live });
     const bounds = checkChatterBounds(w.realm, w.store);
     for (const b of bounds) expect(b, `${b.name}: ${b.detail}`).toMatchObject({ ok: true });
     expect(bounds.map((b) => b.name)).toEqual(["insults-rare", "grievances-settle", "revenge-bounded", "relationships-bounded"]);
@@ -600,7 +601,7 @@ describe("N37 step 7: the whole thing, over days", () => {
 
   it("revenge happens, now and then, in a living place, and nobody dies of it", () => {
     const w = world(1);
-    advanceWorld(w.realm, w.store, 60, { live: w.live });
+    advanceWorld(w.realm, w.store, days(60, 40), { live: w.live });
     const events = w.store.dumpTable("events").filter((e) => String(e.id).includes("vendetta:"));
     expect(events.length).toBeGreaterThan(0);
     const forms = events.filter((e) => e.kind === "new-goal");

@@ -23,7 +23,7 @@
    - `season`: the season turns; `time`: a set hour/day; `festival`, `market`.
    - **Always on** (can't be turned off): danger to the player (an attack, a raid on this place, fire), someone wants to talk to the player (N67), the player's needs critical, a crime against the player.
 3. **Fast travel uses the same engine.** `fast.ts` keeps its stop reasons, but as wake conditions passed to `passUntil` with mode `travel` (it advances position along the route each step). The "news from a passing traveller" stop becomes the `followed`/"news the player doesn't know of weight ≥ X" condition, evaluated by the same code.
-4. **Skips are capped and summarised.** "Skip a day", "skip until the season turns" (at most a season: 3 days at 12 days a year, more with a longer year). While skipping, model calls of low priority are dropped to fallbacks (N19 `budgeted.ts` gets a `skipping` flag), the client shows a progress bar, and the server streams progress. The summary lists what the player **heard** (refs learned during the skip, newest first, up to ~12, grouped: about people you follow; about this place; from afar), plus what they did (slept at the inn, ate) and money spent.
+4. **Skips are capped and summarised.** "Skip a day", "skip until the season turns" (at most a season: 12 days on the 48-day year, plans README §5). While skipping, model calls of low priority are dropped to fallbacks (N19 `budgeted.ts` gets a `skipping` flag), the client shows a progress bar, and the server streams progress. The summary lists what the player **heard** (refs learned during the skip, newest first, up to ~12, grouped: about people you follow; about this place; from afar), plus what they did (slept at the inn, ate) and money spent.
 5. **Where the player is while waiting:** in a place, at a chosen spot (the inn: costs a bed for nights; home: N66; the street: rest is poor); on the road, camping (N26). The needs model (N26 D1) runs as normal.
 6. **Determinism:** the engine changes nothing about the world's rolls; it calls the same `passHours`/`realmDay` the clock already does. A test runs "wait 24 hours" and "wait until X" that stops at hour 24 and compares world hashes.
 
@@ -82,6 +82,12 @@ The done-when ones:
 | fast travel stops for a gang on the road | step 4 test |
 
 **Save:** none (a wait in progress isn't saved; a save during one saves where it stopped).
+
+## Realism notes (2026-10-23)
+
+From the [realism review](../README.md#realism-gaps-review-2026-10-23).
+
+- **Gap 1, one 48-day year (decided 2026-10-23):** with lives 4× slower in game days, skips are how the player sees generations. Add **"the years pass"**: skip a season or a year (several in a row allowed, each confirmed), on N25's lazy catch-up so it stays fast; the summary says what changed in people (births, deaths, marriages, who grew up, who rose) as well as news. The player doesn't age (plans README §5a), so nothing about them stops a long skip.
 
 ## Slice cut
 

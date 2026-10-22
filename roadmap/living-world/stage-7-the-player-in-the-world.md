@@ -28,17 +28,17 @@ What the player sees, the life they lead, the world reaching out to them, and wh
 
 **Implementation plan:** [plans/n66-the-players-own-life.md](plans/n66-the-players-own-life.md)
 
-**Goal:** the player lives in the world like its people: a home, property, work, a family, age and heirs.
+**Goal:** the player lives in the world like its people: a home, property, work and a family; the player doesn't age and comes back from death (decided 2026-10-23).
 
 **The rules:** the same rules as NPCs (N25, N40, N45) apply to the player where they fit.
 
 - [ ] Rent or buy a house; own land, a shop or a workshop; hire people to run it (wages, theft, loyalty)
 - [ ] Run a business: buy, make and sell through N10's economy; taxes to the place's head (N13)
 - [ ] Court, marry and have children (N11's rules); a spouse and children with their own lives
-- [ ] Age; play on as an heir after death, inheriting by the kingdom's law (N45), with the world's memory of the parent
+- [ ] No age for the player; their spouse and children age and inherit by the kingdom's law (N45); a will for the player's property
 - [ ] Tests, README, this roadmap
 
-- **Done when:** the player buys a workshop in Millbrook, hires an apprentice who runs it while they travel, marries and has a child, and after the player's death plays on as that child with the workshop and the family's reputation.
+- **Done when:** the player buys a workshop in Millbrook, hires an apprentice who runs it while they travel, marries and has a child, and, after a few years pass (N35), the child is grown and works in the workshop while the player, unchanged, travels on.
 
 ## N67: NPCs come to you, and reputation by place
 
