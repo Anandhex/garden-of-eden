@@ -31,7 +31,9 @@ export function importanceOf(ctx: LifeCtx, ref: string): number {
     // From what never changes about them (a person who later becomes a talker is no more worth telling of): the weight is cached.
     return 3 + (rank >= 5 ? 2 : 0);
   }
-  return 3;
+  // An event: as weighty as it was (N37: an insult in the market is worth telling for a few days, a sneer barely), never less than the old flat 3.
+  const ev = ctx.store.eventById(r.id);
+  return ev ? Math.max(3, Math.min(9, 2 + ev.importance)) : 3;
 }
 
 /** The place a thing is about, for the listener's interest in what happened at home. */
@@ -43,5 +45,15 @@ export function placeOfRef(ctx: LifeCtx, ref: string): string | null {
     const row = ctx.store.people.get(r.id);
     return row ? (parseDeath(row.death)?.site ?? row.site) : null;
   }
-  return null;
+  // An event happens where it happened for good: asked about for every row of every speaker, so kept.
+  let sites = eventSites.get(ctx.store);
+  if (!sites || sites.size > 20000) eventSites.set(ctx.store, (sites = new Map()));
+  let site = sites.get(r.id);
+  if (site === undefined) {
+    site = ctx.store.eventById(r.id)?.site ?? null;
+    sites.set(r.id, site);
+  }
+  return site;
 }
+
+const eventSites = new WeakMap<object, Map<string, string | null>>();

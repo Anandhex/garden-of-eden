@@ -151,6 +151,16 @@ const MIGRATIONS: Array<(db: DatabaseSync) => void> = [
     const have = new Set((db.prepare("PRAGMA table_info(knowledge)").all() as Array<{ name: string }>).map((c) => c.name));
     if (!have.has("variant")) db.exec("ALTER TABLE knowledge ADD COLUMN variant INTEGER NOT NULL DEFAULT 0");
   },
+  // 7 (N37): chatter with consequences. Indexes only: `relationships` and `grievances` already have their columns (version 1); N37 starts
+  // filling them. `relationships.since` is the day a row was last changed (what its slow decay counts from).
+  (db) => {
+    db.exec(`
+      CREATE INDEX IF NOT EXISTS relationships_b ON relationships(b);
+      CREATE INDEX IF NOT EXISTS relationships_since ON relationships(since);
+      CREATE INDEX IF NOT EXISTS grievances_who ON grievances(who) WHERE settled IS NULL;
+      CREATE INDEX IF NOT EXISTS grievances_against ON grievances(against) WHERE settled IS NULL;
+    `);
+  },
 ];
 
 /** The version `applySchema` leaves a database at. */

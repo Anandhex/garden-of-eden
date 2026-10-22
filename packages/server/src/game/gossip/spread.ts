@@ -1,3 +1,4 @@
+import { credenceOf } from "../chatter/rel.js";
 import { streamFor } from "../dice.js";
 import type { LifeCtx } from "../people/step.js";
 import { CREDENCE, hoursOf, LISTENERS, openAt, sociability, venuesOf, type VenueKind } from "./venues.js";
@@ -63,7 +64,7 @@ export function spreadSite(ctx: LifeCtx, site: string, day: number, opts: { hour
         for (let i = 0; i < n; i++) {
           let listener = venue.members[Math.floor(rng() * venue.members.length)]!;
           if (listener === speaker) listener = venue.members[(venue.members.indexOf(speaker) + 1) % venue.members.length]!;
-          const told = tellOne(ctx, speaker, listener, items, day, cred, rng, false, familiar, site);
+          const told = tellOne(ctx, speaker, listener, items, day, credenceOf(store, listener, speaker, day, cred), rng, false, familiar, site);
           if (told) {
             out.told++;
             opts.onTold?.({ speaker, listener, ref: told, venue: venue.kind });

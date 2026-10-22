@@ -140,21 +140,15 @@ const local = (): string[] => (town.road.onRoad() ? town.road.travellersNear().f
 
 // ---- The townsfolk (N16) ----
 
-/** The simulation of the townsfolk of the village the player is in: one at a time, made again on a new map. */
+/** The simulation of the townsfolk of the village the player is in (the town keeps it, N37), as of the last time it was asked for. */
 let crowd: CrowdSim | null = null;
 /** The townsfolk of the village the player is in, or null (a locality, no realm). */
 function crowdHere(): CrowdSim | null {
-  const realm = world.realm;
-  if (!realm || town.area() !== "village" || town.road.onRoad()) return null;
-  const map = here();
-  const roster = town.rosterAt(town.site(), map, world.day);
-  if (!roster) return null;
-  if (!crowd || crowd.map.id !== map.id || crowd.roster.people !== roster.people) crowd = new CrowdSim({ id: map.id, w: map.w, h: map.h, tiles: map.tiles, buildings: map.buildings, zones: map.zones }, roster);
-  else crowd.roster = roster;
+  crowd = town.crowdSim();
   return crowd;
 }
 /** Today's conditions, for where the townsfolk go. */
-const crowdDay = (): CrowdDay => ({ weather: weatherOn(world.day), festival: townEventsOn(world).includes("festival") });
+const crowdDay = (): CrowdDay => town.crowdDay();
 const minuteOfDay = () => world.hour * 60 + (world.minute ?? 0);
 /** Where one of the townsfolk is now, or null if they're not of this village. */
 function townsfolkAt(id: string) {
@@ -599,7 +593,8 @@ function snapshot(): Snapshot {
       const sim = crowdHere();
       if (!sim) return null;
       const told = town.toldLately();
-      return { map: sim.map.id, count: sim.roster.people.length, day: crowdDay(), ...(told.length > 0 ? { told } : {}) };
+      const marks = town.chatterMarks();
+      return { map: sim.map.id, count: sim.roster.people.length, day: crowdDay(), ...(told.length > 0 ? { told } : {}), ...(marks.length > 0 ? { marks } : {}) };
     })(),
     timeFlowSeconds: config.timeFlowSeconds,
     site: siteView(),

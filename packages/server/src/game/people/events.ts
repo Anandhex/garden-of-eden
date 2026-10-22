@@ -27,11 +27,19 @@ export interface LifeEventInput {
   importance: number;
   /** Where the id is made from when `actor` alone isn't enough. */
   key?: string;
+  /** The hour, when it is known (an exchange on the player's map); else drawn from a stream. */
+  hour?: number;
+  /** Who saw it. */
+  witnesses?: string[];
+  /** The earlier events (or refs) that led to it (N37: a revenge points at the insult). */
+  causedBy?: string[];
+  /** The reason, in words. */
+  why?: string;
 }
 
 /** Make an event and write it. Returns it, with its hour, for the player's view of a place at full detail. */
 export function recordLifeEvent(realm: Realm, store: Pick<WorldStore, "archiveEvent">, e: LifeEventInput): GameEvent {
-  const hour = hourFor(realm, e.key ?? e.actor, e.day, e.kind);
+  const hour = e.hour ?? hourFor(realm, e.key ?? e.actor, e.day, e.kind);
   const kingdom = realm.settlements[e.site]?.kingdom ?? undefined;
   const event: GameEvent = {
     id: `l${e.day}-${hour}-${e.kind}-${e.key ?? e.actor}`,
@@ -42,8 +50,10 @@ export function recordLifeEvent(realm: Realm, store: Pick<WorldStore, "archiveEv
     target: e.target ?? "",
     details: e.details,
     importance: Math.max(0, Math.min(10, e.importance)),
-    witnesses: [],
-    knownBy: [],
+    witnesses: e.witnesses ?? [],
+    knownBy: e.witnesses ?? [],
+    ...(e.causedBy && e.causedBy.length > 0 ? { causedBy: e.causedBy } : {}),
+    ...(e.why ? { why: e.why } : {}),
     site: e.site,
     ...(kingdom ? { kingdom } : {}),
   };

@@ -40,7 +40,7 @@ export const openAt = (kind: VenueKind, hour: number): boolean => {
 
 /** How many others each person who knows something tells, in a day at a venue. */
 export const LISTENERS: Record<VenueKind, number> = { household: 3, work: 2, inn: 3, market: 3, temple: 3 };
-/** How far the telling is believed there (until relationships exist: N37). */
+/** How far the telling is believed there, before what the listener thinks of the teller (a relationship row, if they have one: chatter/rel.ts `credenceOf`, N37). */
 export const CREDENCE: Record<VenueKind, number> = { household: 0.95, work: 0.9, inn: 0.85, market: 0.85, temple: 0.9 };
 
 /** A fixed 0..1 for a person and a purpose (and day): their own, from nothing but who they are. */

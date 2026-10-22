@@ -6,7 +6,7 @@
  * bubbles, and the low-born bow when their betters pass.
  */
 import * as Phaser from "phaser";
-import { CLASS_RANK, type Snapshot } from "@millbrook/shared";
+import { CLASS_RANK, isHostile, type Snapshot } from "@millbrook/shared";
 import { crowd, crowdChats, freshTold, person, promoted } from "../crowd";
 import { nearestShown, walkAt } from "./frame";
 import { hexColor, ORIGINS, TILE } from "./textures";
@@ -200,7 +200,9 @@ export class CrowdLayer {
     if (crowd.minute % 3 !== 0) return;
     const chats = crowdChats(s, box);
     const me = s.position;
-    chats.sort((a, b) => dist2(crowd.pos[a.a]!, me) - dist2(crowd.pos[b.a]!, me));
+    // A quarrel is worth watching: those first, then by how near the player they are.
+    const quarrel = (c: (typeof chats)[number]) => (c.kind && isHostile(c.kind) ? 0 : 1);
+    chats.sort((a, b) => quarrel(a) - quarrel(b) || dist2(crowd.pos[a.a]!, me) - dist2(crowd.pos[b.a]!, me));
     const now = this.scene.time.now;
     // Far enough apart that the bubbles don't sit on each other.
     const picked: typeof chats = [];
@@ -210,13 +212,15 @@ export class CrowdLayer {
       if (picked.length >= BUBBLES) break;
     }
     picked.forEach((c, k) => {
-      this.say(2 * k, c.a, c.lines[0], 0, now + 3200);
-      this.scene.time.delayedCall(1500, () => this.say(2 * k + 1, c.b, c.lines[1], 22, this.scene.time.now + 3000));
+      const hot = !!c.kind && isHostile(c.kind);
+      this.say(2 * k, c.a, c.lines[0], 0, now + 3200, hot);
+      this.scene.time.delayedCall(1500, () => this.say(2 * k + 1, c.b, c.lines[1], 22, this.scene.time.now + 3000, hot));
       if (c.bow) this.emote(c.a, "🙇");
+      else if (hot) this.emote(c.actor ?? c.a, "💢");
     });
   }
 
-  private say(slot: number, who: number, line: string, lift: number, until: number): boolean {
+  private say(slot: number, who: number, line: string, lift: number, until: number, hot = false): boolean {
     const say = this.says[slot];
     const sp = this.sprites[who];
     if (!say || !sp?.shown) return false;
@@ -226,6 +230,8 @@ export class CrowdLayer {
     const h = say.text.height + 8;
     say.bg.clear();
     say.bg.fillStyle(0xf3e9d2, 0.92).fillRoundedRect(-w / 2, -h - 5, w, h, 6);
+    // A hostile exchange (N37) has a red edge.
+    if (hot) say.bg.lineStyle(2, 0xb03a2e, 1).strokeRoundedRect(-w / 2, -h - 5, w, h, 6);
     say.bg.fillTriangle(-4, -6, 4, -6, 0, 0);
     say.text.setPosition(0, -9);
     say.who = who;

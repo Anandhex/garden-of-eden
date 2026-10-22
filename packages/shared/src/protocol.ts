@@ -2,6 +2,7 @@
  * The HTTP contract between the server (packages/server/src/web/server.ts) and the
  * browser client. The server builds `Snapshot` from game state; the client only reads it.
  */
+import type { ChatterMark } from "./chatter.js";
 import type { CrowdDay, CrowdZone } from "./crowd.js";
 import type { GameEvent } from "./events.js";
 import type { NpcVoice } from "./voice.js";
@@ -300,7 +301,7 @@ export interface Snapshot {
    * without a realm). Who they are is GET /api/crowd (CrowdRoster, fetched once per map);
    * where they are is worked out from it and the clock (crowd.ts), with today's conditions here.
    */
-  crowd: { map: string; count: number; day: CrowdDay; told?: GossipTold[] } | null;
+  crowd: { map: string; count: number; day: CrowdDay; told?: GossipTold[]; marks?: ChatterMark[] } | null;
   /** N16: real seconds per game minute while the player stands about (POST /api/tick), or 0 when time waits for the player. */
   timeFlowSeconds: number;
   /**
