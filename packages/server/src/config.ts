@@ -1,3 +1,6 @@
+// How many in-game days make a year: four 12-day seasons (decided 2026-10-23; the year was 12 days before). Everything runs on this one clock.
+const DAYS_PER_YEAR = Math.max(1, Number(process.env.DAYS_PER_YEAR ?? 48));
+
 export const config = {
   ollamaHost: process.env.OLLAMA_HOST ?? "http://localhost:11434",
   // Tested on an 8 GB M2: fast (~1-3 s) and the most reliable small model at tool calls.
@@ -22,8 +25,9 @@ export const config = {
   knockoutHpShare: 0.25,
   /** Share of the player's money the winner takes. */
   knockoutMoneyShare: 0.25,
-  // How many in-game days make a year. NPCs and creatures age (and can die of old age) on this calendar.
-  daysPerYear: Math.max(1, Number(process.env.DAYS_PER_YEAR ?? 12)),
+  // How many in-game days make a year. NPCs and creatures age (and can die of old age) on this calendar, and every
+  // rule stated over a year or a season reads it: write `config.daysPerYear` (or weather.ts `perDay`/`dailyChance`), never a literal.
+  daysPerYear: DAYS_PER_YEAR,
   // In a fight, real seconds the player has to act. If they don't, their turn is lost and the opponent strikes. 0 turns it off.
   combatTickSeconds: Math.max(0, Number(process.env.COMBAT_TICK_SECONDS ?? 6)),
   // N16: while the player stands about (no talk, no fight), a game minute passes every this many real seconds, so the townsfolk keep moving. 0 turns it off (TIME_FLOW_SECONDS=0).
@@ -46,18 +50,18 @@ export const config = {
   },
   // Families (N11.3, game/family.ts). Ages and days follow config.daysPerYear.
   family: {
-    // Nights of growing closer before a courting pair marries.
+    // Nights of growing closer before a courting pair marries (a few weeks, whatever the length of the year).
     courtshipNights: 6,
     // Most years between two NPCs who court.
     maxAgeGap: 15,
     // Courting starts this many years after their species is grown (18 for humans): nobody courts the day they come of age.
     courtingAfterAdult: 2,
-    // Chance, each night, that a married couple with room for a child starts expecting one.
-    conceptionChance: 0.15,
-    // Days from expecting to birth (9 days is three quarters of a 12-day year).
-    pregnancyDays: Math.max(1, Number(process.env.PREGNANCY_DAYS ?? 9)),
-    // Days after a birth before the next child can be expected.
-    restDays: 12,
+    // Chance over a year that a married couple with room for a child starts expecting one (rolled each night as a day's part).
+    conceptionYearly: 0.86,
+    // Days from expecting to birth: three quarters of a year.
+    pregnancyDays: Math.max(1, Number(process.env.PREGNANCY_DAYS ?? Math.round(DAYS_PER_YEAR * 0.75))),
+    // Days after a birth before the next child can be expected: a year.
+    restDays: DAYS_PER_YEAR,
     maxChildrenPerCouple: 3,
     // No births once this many NPCs are alive in the town (8 GB: every NPC is a prompt).
     maxPopulation: 14,

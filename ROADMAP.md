@@ -188,7 +188,7 @@ The target model. Each phase fills in part of it.
   - **T13 before G1, T14 after G1.** ✅ Both done with G1 (2026-10-11).
   - **T15 grows with every NPC phase.**
 - **Game:** G1 can start after N2 and run in parallel with the NPC track. G2–G4 follow G1. ✅ G1 is done; next are the rest of G2 (barks, content settings, output clean-up) and G3's targets as a check.
-  - **G5, then G6, then the 48-day year migration, before N40** (decided 2026-10-23): make the client switchable first, then the look, then [migration part A](roadmap/living-world/plans/migration-2026-10-23-one-year-ageless-player.md#part-a-one-48-day-year) (the 48-day clock, on its own commit), then go back to the living-world features. G5 and G6 change no rules or saves.
+  - **G5, then G6, then the 48-day year migration, before N40** (decided 2026-10-23): make the client switchable first, then the look, then [migration part A](roadmap/living-world/plans/migration-2026-10-23-one-year-ageless-player.md#part-a-one-48-day-year) (the 48-day clock, on its own commit), then go back to the living-world features. G5 and G6 change no rules or saves. ✅ Part A built 2026-10-23: `config.daysPerYear` is 48; next is N40.
 
 **At the end of every phase:** run `npm test`, `npm run bench` and `npm run test:live`. If a pass rate drops, fix it before moving on: gate the new tool or line (design rule 3), or reword it firmly (Lessons 4–6).
 

@@ -1,5 +1,5 @@
 import type { Rng } from "../dice.js";
-import { seasonOf } from "../weather.js";
+import { perDay, seasonDays, seasonOf } from "../weather.js";
 import { addDeed, addRenown, residents, titled } from "./figures.js";
 import { neighbours } from "./generate.js";
 import { crowding, housesOf } from "./houses.js";
@@ -31,8 +31,18 @@ export const BUILDING_WORDS: Record<BuildingId, string> = { farms: "new fields",
 export const UNSAFE_DAYS = 12;
 /** Copper a working head brings in a day, before buildings and prosperity. */
 export const INCOME_PER_HEAD = 0.35;
-/** Daily growth of a fed, safe place at prosperity 50. */
-export const GROWTH = 0.0015;
+/** Yearly growth of a fed, safe place at prosperity 50 (a day's part each day), where people are a number. */
+export const GROWTH = 0.018;
+/**
+ * How far a year of (food ratio − 1) moves a place's stores (0-100): with a winter ratio near 0.8 its stores fall about
+ * 25 over the winter, whatever the length of the year. A level of granary gives back GRANARY_WINTER over a winter.
+ */
+export const FOOD_SWING = 480;
+export const GRANARY_WINTER = 4.5;
+/** Shares of a place's people (where they are a number) lost over a year of famine, or leaving a year of famine or raids, or drawn by a better place. */
+export const STARVING_SHARE = 0.18;
+export const FLEEING_SHARE = 0.24;
+export const BETTER_SHARE = 0.036;
 /** Below this, people starve. */
 export const FAMINE = 12;
 
@@ -115,8 +125,8 @@ export function economyDay(realm: Realm, day: number, rng: Rng, live: ReadonlySe
     const own = live.has(s.id);
     // Food.
     const ratio = foodRatio(realm, s, day);
-    let delta = (ratio - 1) * 40;
-    if (seasonOf(day) === "winter") delta += level(s, "granary") * 1.5;
+    let delta = (ratio - 1) * perDay(FOOD_SWING);
+    if (seasonOf(day) === "winter") delta += (level(s, "granary") * GRANARY_WINTER) / seasonDays();
     s.food = clamp(s.food + delta);
     // Short of food, a place with coin buys it from its neighbours.
     if (s.food < 30 && s.treasury > s.population) {
@@ -131,12 +141,12 @@ export function economyDay(realm: Realm, day: number, rng: Rng, live: ReadonlySe
     s.prosperity = clamp(s.prosperity + Math.max(-2, Math.min(2, (target - s.prosperity) * 0.2)));
     // People.
     if (s.food < FAMINE) {
-      const lost = own ? 0 : roundBy(rng, s.population * 0.015);
+      const lost = own ? 0 : roundBy(rng, s.population * perDay(STARVING_SHARE));
       s.population = Math.max(0, s.population - lost);
       if ((own ? rng() < 0.15 : lost > 0 && rng() < 0.15)) realmNews(realm, day, s.id, "famine", `Hunger in ${s.name}: people are going without bread.`, 4, [s.name]);
       tally(realm, "starved", lost);
     } else if (!own && s.food > 30 && s.prosperity > 35) {
-      s.population += roundBy(rng, s.population * GROWTH * (s.prosperity / 50));
+      s.population += roundBy(rng, s.population * perDay(GROWTH) * (s.prosperity / 50));
     }
     build(realm, s, day);
     housesDay(realm, s, day);
@@ -228,14 +238,14 @@ function migrate(realm: Realm, day: number, rng: Rng, live: ReadonlySet<string>)
     if (!better && !fleeing) continue;
     const to = better ?? neighbours(realm, s.id).filter((n) => !live.has(n.id)).sort((a, b) => b.prosperity - a.prosperity)[0];
     if (!to) continue;
-    const share = fleeing ? 0.02 : 0.003 * ((to.prosperity - s.prosperity) / 15);
+    const share = fleeing ? perDay(FLEEING_SHARE) : perDay(BETTER_SHARE) * ((to.prosperity - s.prosperity) / 15);
     const moving = Math.min(s.population - 5, roundBy(rng, s.population * share));
     if (moving <= 0) continue;
     s.population -= moving;
     to.population += moving;
     tally(realm, "migrants", moving);
     if (moving >= 3) sendArrival(realm, to.id, { day, kind: "refugees", count: Math.min(4, Math.ceil(moving / 3)), by: s.name });
-    if (fleeing && moving >= 5 && rng() < 0.3) realmNews(realm, day, s.id, "refugees", `Folk are leaving ${s.name} for ${to.name}: ${moving} gone this week.`, 3, [s.name, to.name]);
+    if (fleeing && moving >= 5 && rng() < 0.3) realmNews(realm, day, s.id, "refugees", `Folk are leaving ${s.name} for ${to.name}: ${moving} gone of late.`, 3, [s.name, to.name]);
   }
   // An ambitious figure in a poor place looks for better.
   for (const f of Object.values(realm.figures)) {

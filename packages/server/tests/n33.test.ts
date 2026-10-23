@@ -16,7 +16,7 @@ import { card } from "../src/admin/person.js";
 import type { AdminContext } from "../src/admin/context.js";
 import { checkGossipBounds } from "../src/game/gossip/bounds.js";
 import { describeKnown, fieldOf, fieldsOf, variantOf } from "../src/game/gossip/describe.js";
-import { KNOWLEDGE_CAP, learn, retell, tellable } from "../src/game/gossip/knowledge.js";
+import { KNOWLEDGE_CAP, learn, retell, tellable, tellables } from "../src/game/gossip/knowledge.js";
 import { meetAtStop } from "../src/game/gossip/meet.js";
 import { deathRef, newsRef, parseRef } from "../src/game/gossip/refs.js";
 import { seedDay } from "../src/game/gossip/seed.js";
@@ -30,6 +30,7 @@ import { advanceWorld, settle } from "../src/game/people/world.js";
 import type { LifeCtx, SiteStep } from "../src/game/people/step.js";
 import { generateRealm } from "../src/game/realm/generate.js";
 import { realmNews } from "../src/game/realm/log.js";
+import { TAX_DAYS } from "../src/game/realm/politics.js";
 import { pickStartSite } from "../src/game/realm/start.js";
 import { journeysOf } from "../src/game/road/journeys.js";
 import { TRIPS } from "../src/game/road/trips/config.js";
@@ -256,22 +257,25 @@ describe("N33 step 2: venues and the daily spread", () => {
 
 describe("N33 step 4: news enters with people", () => {
   it("a death in the start town reaches someone in the liege town only after a traveller went between them, who told it", () => {
+    // The death comes a few days before the first tax day, when the tax clerk goes up to the liege town (TAX_DAYS: 24 at 48 days a
+    // year): news is told for TELL_WINDOW days after it is heard, so a death weeks before is stale by the time the clerk goes.
+    const dies = TAX_DAYS - 4;
     // With no one on the road it never arrives.
     noRoads();
     let w = world(2);
-    advanceWorld(w.realm, w.store, 2, { live: w.live });
-    let k = killAt(w, w.start, 2);
-    advanceWorld(w.realm, w.store, 16, { live: w.live });
+    advanceWorld(w.realm, w.store, dies, { live: w.live });
+    let k = killAt(w, w.start, dies);
+    advanceWorld(w.realm, w.store, dies + 14, { live: w.live });
     expect(holdersAt(w, k.ref, w.liege)).toEqual([]);
 
     // With them it does, and every row there came from a person who had it before: a traveller of another place, or someone in the liege town who had it from one.
     for (const key of Object.keys(TRIPS)) (TRIPS as Record<string, { cap: number }>)[key]!.cap = trips[key]!;
     w = world(2);
-    advanceWorld(w.realm, w.store, 2, { live: w.live });
-    k = killAt(w, w.start, 2);
+    advanceWorld(w.realm, w.store, dies, { live: w.live });
+    k = killAt(w, w.start, dies);
     // Day by day: whoever learned it in the liege town that day was told by someone from elsewhere who is out on the road.
     let first: { day: number; rows: ReturnType<typeof holdersAt> } | null = null;
-    for (let d = 3; d <= 14 && !first; d++) {
+    for (let d = dies + 1; d <= dies + 12 && !first; d++) {
       advanceWorld(w.realm, w.store, d, { live: w.live });
       const rows = holdersAt(w, k.ref, w.liege);
       if (rows.length > 0) first = { day: d, rows };
@@ -284,8 +288,8 @@ describe("N33 step 4: news enters with people", () => {
       expect(teller.site).not.toBe(w.liege);
       expect(w.store.knowledge.get(teller.id, k.ref)!.learned_day).toBeLessThanOrEqual(first!.day);
     }
-    // Before that day nobody in the liege town knew it; the start town had known it since day 2.
-    expect(first!.day).toBeGreaterThan(2);
+    // Before that day nobody in the liege town knew it; the start town had known it since the day it happened.
+    expect(first!.day).toBeGreaterThan(dies);
     expect(holdersAt(w, k.ref, w.start).length).toBeGreaterThan(3);
     const bounds = checkGossipBounds(w.realm, w.store);
     expect(bounds.find((b) => b.name === "gossip-not-instant")!.ok).toBe(true);
@@ -294,8 +298,10 @@ describe("N33 step 4: news enters with people", () => {
   it("a traveller tells what they heard, in their own version, and the people they meet hear it", () => {
     const w = world(1);
     advanceWorld(w.realm, w.store, 3, { live: w.live });
-    const j = journeysOf(w.realm).find((x) => x.path.length >= 2 && x.party.some((t) => !w.realm.figures[t.person]))!;
-    const traveller = j.party.find((t) => !w.realm.figures[t.person])!.person;
+    // A traveller with nothing else to tell yet, so what they tell is this death (otherwise fresher news may come first).
+    const firstRow = (x: ReturnType<typeof journeysOf>[number]) => x.party.find((t) => !w.realm.figures[t.person])?.person;
+    const j = journeysOf(w.realm).find((x) => x.path.length >= 2 && firstRow(x) && tellables(w.ctx, firstRow(x)!, 3, x.path[1]).length === 0)!;
+    const traveller = firstRow(j)!;
     const there = j.path[1]!;
     const { ref } = killAt(w, j.path[0]!, 3);
     learn(w.ctx, traveller, ref, { day: 3, source: "saw", accuracy: 0.8, variant: variantOf(4, 1) });

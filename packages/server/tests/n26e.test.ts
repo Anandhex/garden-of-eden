@@ -74,7 +74,7 @@ describe("N26 Part E: every traveller is a person of the table", () => {
     }
     const kinds = new Set(journeysOf(realm).map((j) => j.kind));
     for (const k of ["market", "caravan", "officials"]) expect(kinds.has(k as Journey["kind"]), k).toBe(true);
-    for (const b of checkRoadBounds(realm, store.people, 61)) expect(b.ok, `${b.name}: ${b.detail}`).toBe(true);
+    for (const b of checkRoadBounds(realm, store.people, realm.day)) expect(b.ok, `${b.name}: ${b.detail}`).toBe(true);
   });
 
   it("someone away is not in their town's crowd but still counts in its people; their place steps them, and they are home again after", () => {
@@ -355,7 +355,8 @@ describe("N26 Part E: news travels with people", () => {
 describe("N26 Part E: off-screen meetings and situations", () => {
   it("parties that pass a gang or a pack sometimes meet it: robbed, hurt or turned back, on real rows, with news", () => {
     const { realm, store, live } = world(1);
-    advanceWorld(realm, store, 60, { live });
+    // Ambushes come about twice a year, mostly where a gang has risen: seed 1's first is near day 100, so two and a half years.
+    advanceWorld(realm, store, Math.round(2.5 * config.daysPerYear), { live });
     expect((realm.stats["road_ambush_lost"] ?? 0) + (realm.stats["road_ambush_beaten"] ?? 0)).toBeGreaterThan(0);
     const stopped = journeysOf(realm).filter((j) => j.ended && /robbed|driven back/.test(j.ended.why));
     for (const j of stopped) {

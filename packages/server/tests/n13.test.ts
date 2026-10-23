@@ -332,7 +332,7 @@ describe("N13.6 beasts and dungeons", () => {
     for (let d = 1; d <= 3; d++) packsDay(r, d, always(0.1)); // spring days, a lucky roll
     expect(p.count).toBeGreaterThan(3);
     p.count = p.cap;
-    packsDay(r, 4, always(0.1));
+    packsDay(r, 4, always(0.01)); // under the day's share of the yearly attack chance
     expect(r.stats.beast_attacks).toBeGreaterThanOrEqual(1);
     expect(r.arrivals[site]?.some((e) => e.kind === "beasts")).toBe(true);
   });

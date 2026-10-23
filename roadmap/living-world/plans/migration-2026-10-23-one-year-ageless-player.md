@@ -8,7 +8,7 @@
 
 | Decision | Built code affected | When |
 |---|---|---|
-| **A. One clock, a 48-day year** (`config.daysPerYear` 12 → 48, four 12-day seasons, lives included) | yes: ~20 source files, 9 test files, `sim:lives` | **alone, after G5 and G6, before N40** (order decided 2026-10-23) |
+| **A. One clock, a 48-day year** (`config.daysPerYear` 12 → 48, four 12-day seasons, lives included) | yes: ~20 source files, 9 test files, `sim:lives` | ✅ **built 2026-10-23** (after G5 and G6, before N40): see [What was done](#what-was-done-2026-10-23) |
 | **B. The player doesn't age and comes back from death** | almost none: the player has no age today, and losing a fight is already a knockout | with N49 step 6 / N66; part B0 now |
 | **C. Quiet travel is quick** (fast travel on known roads, quick walking) | `road/fast.ts`, `road/walk.ts`, the walk | an N26 follow-up, **after G5** (G5 moves walking to the server, so C2 is server-only) |
 
@@ -17,6 +17,8 @@
 ---
 
 ## Part A: one 48-day year
+
+> ✅ **Built 2026-10-23.** The tables below are the plan as written; [What was done](#what-was-done-2026-10-23) at the end of this part says what changed, including four rules the dry run found that the tables missed (the economy's food swing, raids, beast attacks and the tax day).
 
 ### What exists
 
@@ -106,6 +108,37 @@ The last three likely share one cause. Do the `LIVES` retune before chasing them
 ### Done when
 
 - `config.daysPerYear` is 48 by default; the full suite passes; `sim:lives` for 10 years (480 days) on 3 seeds holds every N25 band; `sim:realm` famine deaths are in their band; N37/N38 bounds pass; budgets re-measured; docs say 48.
+
+### What was done (2026-10-23)
+
+**The rule:** anything that should happen so many times *a year* is now stated over a year and taken a day at a time, through two helpers in [`weather.ts`](../../../packages/server/src/game/weather.ts): `dailyChance(yearly)` for a chance and `perDay(perYear)` for an amount (with `seasonDays()` for "a season"). Changing `config.daysPerYear` again leaves what happens in a year the same. Stories told in days stay in days: wars (`WAR_CHANCE`, `BATTLE_EVERY`), journeys and their trips, news and gossip windows (`TELL_WINDOW`, `FORGET_DAYS`, `NEWS_DAYS`), courtship nights, reviews every 3 days, cooldowns in hours.
+
+| Where | Was | Now |
+|---|---|---|
+| `config.daysPerYear` | 12 | **48** (env `DAYS_PER_YEAR` still overrides) |
+| `config.family` | `conceptionChance` 0.15 a night, `pregnancyDays` 9, `restDays` 12 | `conceptionYearly` 0.86, `pregnancyDays` ¾ of a year (36), `restDays` a year (48); `courtshipNights` stays 6 |
+| `people/rates.ts` `LIVES` | `conception` 0.03, `seeking` 0.02, `famineDaily` 0.012 (per day) | `conception` 0.31, `seeking` 0.22, `famineYearly` 0.135 (per year; `conceptionDaily()`, `seekingDaily()`) |
+| `people/migration.ts` | fleeing 0.012, better 0.003, packed 0.008, `HOMESTEAD` 0.012 (per day) | `FLEEING_SHARE` 0.144, `BETTER_SHARE` 0.036, `PACKED_SHARE` 0.096, `HOMESTEAD` 0.144 (per year, `perDay`) |
+| `realm/economy.ts` (found by the dry run) | food moved `(ratio − 1) × 40` a day, granary +1.5 a winter day: a 12-day winter emptied the stores (10 years: starved 531, 66 places abandoned) | `FOOD_SWING` 480 a year, `GRANARY_WINTER` 4.5 a winter; `GROWTH`, `STARVING_SHARE`, `FLEEING_SHARE`, `BETTER_SHARE` per year (for places whose people are a number) |
+| `realm/politics.ts` `TAX_DAYS` (found by the dry run) | 7: taxes ~1.7 times a 12-day year, 7 times a 48-day one, and each missed tax day can bring the liege's men ("unpaid taxes" was 87% of all raids) | **twice a year** (`daysPerYear / 2`, 24 days); tributes, wages and the tax clerk's trip go with it |
+| `realm/diplomacy.ts` raids (found) | a pressed place raids at 0.04 a day, a gang at 0.1 | `RAID_YEARLY` 0.39, `GANG_RAID_YEARLY` 0.72 |
+| `realm/wilds.ts` beast attacks (found) | 0.25 a day, at most every 5 days | `BEAST_ATTACK_YEARLY` 0.97, rest `BEAST_REST` 5/12 of a year (20 days) |
+| `choice/weights.ts` | `travel` cooldown 3 days / 288 hours | a season (`seasonDays()`: 12 days / 288 hours) |
+| `chatter/bounds.ts`, `choice/bounds.ts` | `Math.floor(dpy / 4)` | `seasonDays()`; the caps per season are unchanged and pass |
+| `chatter/grievance.ts`, `chatter/rel.ts` | half-lives in years | kept in years (decided default): grudges and feelings last 4× longer in days |
+| `sim:lives`, `sim:realm` | 120 days by default | ten years (`10 × daysPerYear`, 480 days) |
+| `budgets.yearCatchupMs` | 1,500 ms | kept: a year of catch-up is now ~1.1 s for the biggest capital (4,149 people), ~0.5 s for a city (0.4 s and 0.2 s before) |
+
+**The numbers (ten years, seed 1):**
+
+| | 12-day year (120 days) | 48-day year, before the retune | 48-day year, after (480 days) |
+|---|---|---|---|
+| `sim:realm` starved / abandoned / raids | 80 / 13 / 237 | 531 / 66 / 894 | 78 / 15 / 288 |
+| `sim:lives` births / deaths per 1,000, children-adults-elders, abandoned | 38.8 / 34.4, 32-54-14%, 43 | (N25.5: deaths 115 per 1,000) | 35.8 / 28.8, 32-54-14%, 40 |
+
+`sim:lives` at 480 days holds every N25 bound on seeds 1, 2 and 3 (births 35.8–39.4, deaths 28.8–30.1 per 1,000; the pyramid 32-54-14% on all three).
+
+**Tests changed** (restated in years or in the days the rule really uses; no bound loosened): N13.6's lucky roll is under the day's share of the yearly attack chance; N17.3 has a village break away on day 1 (the first war of a 48-day year comes after three missed tax days, about day 93: day 22 at 12 days, the same ~1.9 years); N25.3 lives three years (`3 × daysPerYear`) and expects people three years older; N26 Part E checks the road bounds on the day it reached (it read day 61 after a 25-day run) and waits two and a half years for an ambush (about 1.75 a year now, 1.4 before); N33 step 4 kills someone a few days before the first tax day (news is told for 6 days, and the clerk goes on day 24) and picks a traveller with nothing fresher to tell.
 
 ---
 

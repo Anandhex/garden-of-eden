@@ -1,4 +1,5 @@
 import type { Rng } from "../dice.js";
+import { dailyChance } from "../weather.js";
 import { addDeed, addRenown, titled } from "./figures.js";
 import { distance, neighbours } from "./generate.js";
 import { realmNews, tally } from "./log.js";
@@ -32,6 +33,12 @@ export const CAPTURE_SCORE = 35;
 export const WAR_CHANCE = 0.03;
 /** Daily chance a crown moves against rebels or a place that broke away. */
 export const REBEL_WAR_CHANCE = 0.05;
+/**
+ * Yearly chance a hard-pressed settlement raids a neighbour, and a gang goes raiding. Raids kill townsfolk, so how many a
+ * year a place suffers is stated over the year (wars stay a daily story: a war is told in days, not in years).
+ */
+export const RAID_YEARLY = 0.39;
+export const GANG_RAID_YEARLY = 0.72;
 
 /** The parties a settlement counts as: itself, its kingdom, and its liege chain. */
 export function partiesOf(realm: Realm, s: Settlement): Party[] {
@@ -190,14 +197,14 @@ export function raidsDay(realm: Realm, day: number, rng: Rng): void {
     if (s.abandoned || s.kind === "capital" || s.population < 20) continue;
     const lead = s.leader ? realm.figures[s.leader] : undefined;
     const pressed = s.food < 25 || s.prosperity < 30 || (lead !== undefined && lead.greed > 0.8 && lead.bravery > 0.5);
-    if (!pressed || rng() >= 0.04) continue;
+    if (!pressed || rng() >= dailyChance(RAID_YEARLY)) continue;
     const side = settlementSide(realm, s, { defending: false });
     const target = raidTarget(realm, partiesOf(realm, s), s.id, side.strength, day);
     if (!target) continue;
     raid(realm, side, `s:${s.id}`, target, day, rng, s.food < 25 ? "they were starving" : lead && lead.greed > 0.8 ? `${lead.name} wanted their coin` : "hard times");
   }
   for (const g of Object.values(realm.factions)) {
-    if (g.dissolved || g.kind !== "gang" || !g.seat || rng() >= 0.1) continue;
+    if (g.dissolved || g.kind !== "gang" || !g.seat || rng() >= dailyChance(GANG_RAID_YEARLY)) continue;
     const side = gangSide(realm, g.id);
     if (side.fighters.length === 0) continue;
     const target = raidTarget(realm, [`f:${g.id}`], g.seat, side.strength, day);

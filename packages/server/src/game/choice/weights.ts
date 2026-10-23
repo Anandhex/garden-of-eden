@@ -1,3 +1,5 @@
+import { seasonDays } from "../weather.js";
+
 /**
  * Every weight of the action menu, in one table (N38), so a balance pass changes numbers here and nowhere else. A score is a sum of
  * named parts `weight × feature`; the feature is a 0..1 reading of the person's state, so the weights compare across actions.
@@ -67,11 +69,11 @@ export const HOUR_COOLDOWNS: Record<string, number> = {
   spread_rumour: 12,
   revenge: 24,
   recruit: 24,
-  travel: 24 * 3 * 4,
+  travel: 24 * seasonDays(),
   gossip: 1,
 };
 
-/** In days (day grain). `travel` is once a season. */
+/** In days (day grain). `travel` is once a season (both grains). */
 export const DAY_COOLDOWNS: Record<string, number> = {
   confront: 2,
   insult: 1,
@@ -80,7 +82,7 @@ export const DAY_COOLDOWNS: Record<string, number> = {
   court: 2,
   spread_rumour: 2,
   recruit: 4,
-  travel: 3,
+  travel: seasonDays(),
   gossip: 0,
 };
 

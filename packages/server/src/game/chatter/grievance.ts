@@ -6,7 +6,7 @@ import { seedFrom } from "../dice.js";
 
 /**
  * Grievances (N37): one per wrong. A wronged person's weight fades by the day at their own pace (the forgiving let go within a few
- * days of a 12-day year, the unforgiving carry it for more than a year); it is settled by amends, by revenge carried out, by
+ * weeks, the unforgiving carry it for more than a year); it is settled by amends, by revenge carried out, by
  * the other's death, or when it has faded to nothing. The sum of what a person holds open against someone is how much they hate them.
  */
 export const FADED_BELOW = 0.03;

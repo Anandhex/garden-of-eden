@@ -20,6 +20,7 @@ import { ITEM_TIERS } from "./items.js";
 import { ageOn, ageStage, effectiveStats } from "./life.js";
 import { ageGapTooWide, canCourtAt, closeKin } from "./people/rules.js";
 import type { ScheduleBlock } from "./schedule.js";
+import { dailyChance } from "./weather.js";
 import { registerTalker, talkerSite } from "./talkers.js";
 
 /**
@@ -547,7 +548,7 @@ export function familyNight(members: Kin[], world: WorldSnapshot, rng: Rng, temp
       const k = byId(id)!;
       return ageStage(speciesOf(k.persona.species), ageOn(k.state.life, day)) === "adult";
     });
-    if (!young || rng() >= config.family.conceptionChance) continue;
+    if (!young || rng() >= dailyChance(config.family.conceptionYearly)) continue;
     fam.expecting.push({ parents: [m.a, m.b], since: day, dueDay: day + config.family.pregnancyDays });
     const na = nameOf(members, world.player, m.a);
     const nb = nameOf(members, world.player, m.b);

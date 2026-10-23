@@ -12,7 +12,8 @@ import { tierIndex, type Tier } from "../life.js";
 import { playerGainXp, QUEST_TIER_XP } from "../levels.js";
 import { formatMoney } from "../money.js";
 import { recordClear } from "../quests.js";
-import { seasonOf } from "../weather.js";
+import { config } from "../../config.js";
+import { dailyChance, seasonOf } from "../weather.js";
 import { addDeed, addRenown, figureOvercomes, figurePower, killFigure, makeFigure, takenNames } from "./figures.js";
 import { travelDays } from "./generate.js";
 import { realmNews, tally } from "./log.js";
@@ -38,6 +39,12 @@ import { sendArrival } from "./arrivals.js";
 export const DANGER_SPILL = 85;
 /** Chance a day adventurers try a dungeon in reach (more with a bounty). */
 export const DELVE_CHANCE = 0.12;
+/**
+ * A full pack attacks the place it lives by: a yearly chance, taken a day at a time, and never twice within a rest of
+ * BEAST_REST of a year. Attacks kill townsfolk, so how many a place suffers is stated over the year.
+ */
+export const BEAST_ATTACK_YEARLY = 0.97;
+export const BEAST_REST = 5 / 12;
 
 const roundBy = (rng: Rng, n: number) => Math.floor(n) + (rng() < n - Math.floor(n) ? 1 : 0);
 
@@ -80,7 +87,7 @@ export function packsDay(realm: Realm, day: number, rng: Rng): void {
     // A beast rises to lead the pack.
     if (!p.alpha && p.count >= 5 && rng() < 0.02) crownAlpha(realm, p, day, rng, "beating its rivals for the lead of the pack");
     // Too many: they come for the settlement.
-    if (p.count >= Math.ceil(p.cap * 0.8) && (p.lastAttack === undefined || day - p.lastAttack >= 5) && rng() < 0.25) attackFrom(realm, p, day, rng);
+    if (p.count >= Math.ceil(p.cap * 0.8) && (p.lastAttack === undefined || day - p.lastAttack >= Math.round(BEAST_REST * config.daysPerYear)) && rng() < dailyChance(BEAST_ATTACK_YEARLY)) attackFrom(realm, p, day, rng);
   }
 }
 

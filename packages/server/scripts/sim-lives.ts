@@ -2,8 +2,8 @@
  * A seeded run of the realm with its people living (N25): what happens to every person over DAYS days, for balance.
  * No model, no talking NPCs. Same seed, same story.
  *
- *   npm run sim:lives
- *   DAYS=240 SEED=7 npm run sim:lives
+ *   npm run sim:lives                       # ten years (10 × config.daysPerYear days)
+ *   DAYS=960 SEED=7 npm run sim:lives
  *   PEOPLE_LIVE=slice npm run sim:lives     # only the start town and its neighbour
  *   npm run sim:lives -- --check            # also print each step's timing against its budget; exit 1 if one is over
  */
@@ -21,7 +21,7 @@ import { snapshot } from "../src/metrics/timing.js";
 import { materialisePeople } from "../src/store/materialise.js";
 
 const seed = Number(process.env.SEED ?? 1);
-const days = Number(process.env.DAYS ?? 120);
+const days = Number(process.env.DAYS ?? 10 * config.daysPerYear);
 const every = Number(process.env.EVERY ?? config.daysPerYear * 2);
 const realm = generateRealm(seed, 1);
 const store = new WorldStore(":memory:");
