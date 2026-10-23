@@ -5,6 +5,7 @@
  */
 import type { AdminMapLayer, RealmView } from "@millbrook/shared";
 import { el } from "./dom";
+import "./realmMap.css";
 
 const NS = "http://www.w3.org/2000/svg";
 
@@ -111,6 +112,6 @@ export function realmLegend(r: RealmView, extra = "◆ dungeon · red ring: war 
     chip.style.borderColor = k.color;
     legend.append(chip);
   }
-  legend.append(el("span", { className: "chip", textContent: extra }));
+  legend.append(el("span", { className: "key", textContent: extra }));
   return legend;
 }

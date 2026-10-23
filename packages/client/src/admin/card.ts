@@ -30,12 +30,37 @@ function sectionEl(s: AdminSection): HTMLElement {
     tr.append(el("th", { textContent: label }));
     const td = el("td");
     if (ref) td.append(linkButton(value, () => nav.openCard(ref), ref));
-    else td.textContent = value;
+    else td.append(valueEl(label, value));
     tr.append(td);
     t.append(tr);
   }
   d.append(t);
   return d;
+}
+
+/**
+ * A row's value, drawn by what it is: a ladder ("a → [b] → c", the rung reached in brackets) as steps, a share ("35% toward …") with a small
+ * meter in front, anything else as text.
+ */
+function valueEl(label: string, value: string): Node {
+  if (label === "Ladder" && value.includes("→")) {
+    const steps = el("div", { className: "ladder" });
+    const parts = value.split("→").map((x) => x.trim());
+    const at = parts.findIndex((x) => x.startsWith("["));
+    parts.forEach((x, i) => steps.append(el("span", { className: i < at ? "step done" : i === at ? "step now" : "step", textContent: x.replace(/^\[|\]$/g, "") })));
+    return steps;
+  }
+  const pct = /^(\d{1,3})%/.exec(value);
+  if (pct) {
+    const box = el("div", { className: "metered" });
+    const bar = el("span", { className: `meter${label === "Frustration" ? " hot" : ""}` });
+    const fill = el("i");
+    fill.style.width = `${Math.min(100, Number(pct[1]))}%`;
+    bar.append(fill);
+    box.append(bar, el("span", { textContent: value }));
+    return box;
+  }
+  return document.createTextNode(value);
 }
 
 /** A townsperson's day, hour by hour. */

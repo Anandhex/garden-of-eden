@@ -1607,7 +1607,7 @@ const viewHost: ViewHost = {
     return journeysNear(realm, landOf(realm).data, road, radius + 10, town.road.minute()).map((x) => x.journey);
   },
   placeName: (id) => world.realm?.settlements[id]?.name ?? id,
-  realm: () => (world.realm ? realmView(world.realm, { here: town.site(), heard: (id) => town.siteHere().newsSeen.includes(id) }) : null),
+  realm: () => (world.realm ? realmView(world.realm, { here: town.site(), heard: (id) => town.siteHere().newsSeen.includes(id), sworn: store.people.swornByFaction() }) : null),
   quoteTraining: (id, skillName, hours) => {
     const skill = parseSkill(skillName);
     if (!personas[id] || !skill) return { ok: false, message: "Unknown NPC or skill.", hours: 0, money: world.player.money };

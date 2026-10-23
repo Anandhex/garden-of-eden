@@ -1,4 +1,31 @@
-/* The admin page (N17). Builds on style.css's colours and the realm map's styles. */
+/* The admin page (N17). Self-contained: its own colour tokens and base styles (it used to lean on the game's stylesheet, which moved with
+   G5 and left this page on the browser's defaults). The realm map's styles come with the map (src/realmMap.css). */
+:root {
+  --bg: #121418; --panel: #1b1e24; --panel2: #23272f; --panel3: #2b303a; --line: #2f343e; --line2: #3b414d;
+  --text: #e6e4df; --muted: #969ca7; --faint: #6c727d;
+  --accent: #e0a64b; --good: #7bc47f; --bad: #e0675b; --info: #74aee6; --warn: #e0b24a;
+  --radius: 10px;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; background: var(--bg); color: var(--text); }
+body { font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+h1, h2, h3 { font-weight: 650; letter-spacing: .01em; }
+a { color: var(--info); }
+button { background: var(--panel2); color: var(--text); border: 1px solid var(--line2); border-radius: 7px; padding: 5px 11px; font: inherit; font-size: 13px; cursor: pointer; transition: border-color .12s, background .12s; }
+button:hover:not(:disabled) { border-color: var(--accent); background: var(--panel3); }
+button:disabled { opacity: .45; cursor: default; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--info); outline-offset: 1px; }
+.spacer { flex: 1; }
+.pill { display: inline-flex; align-items: center; gap: 4px; background: var(--panel2); border: 1px solid var(--line2); border-radius: 999px; padding: 2px 11px; font-size: 13px; white-space: nowrap; }
+.pill.ok { border-color: var(--good); color: var(--good); }
+.pill.err { border-color: var(--bad); color: var(--bad); }
+
+/* Header: the name, the clock, the time controls, back to the game. */
+body.admin > header { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 20px; background: color-mix(in srgb, var(--panel) 94%, transparent); backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); }
+.admin h1 { margin: 0 6px 0 0; font-size: 18px; color: var(--accent); }
+.admin #clock { font-variant-numeric: tabular-nums; font-weight: 600; }
 body.admin { min-height: 100vh; }
 .admin h1 small { font-size: 12px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
 .admin .note { padding: 6px 16px; font-size: 13px; background: #2a2f38; color: var(--muted); border-bottom: 1px solid var(--line); }
@@ -56,7 +83,7 @@ table.grid caption { caption-side: bottom; padding: 6px; text-align: left; }
 .ev.imp7 .txt, .ev.imp8 .txt, .ev.imp9 .txt { color: var(--accent); font-weight: 600; }
 .ev.director .kind { color: #c8b6e2; }
 .ev.realm .kind { color: #7bc47f; }
-.detail { position: sticky; top: 8px; }
+.detail { position: sticky; top: 64px; max-height: calc(100vh - 76px); overflow-y: auto; }
 
 /* Search */
 .hit { display: flex; align-items: baseline; gap: 10px; padding: 5px 0; border-bottom: 1px solid var(--line); }
@@ -95,3 +122,39 @@ table.day td { padding: 1px 8px 1px 0; }
 .badge.warn { color: #e0b24a; }
 .badge.over { color: #ec7070; }
 .badge.idle { color: var(--muted); }
+
+/* Panels (the Realm tab's wars, treaties, factions, every place) and their lists. */
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 14px; }
+.panel.wide { margin-top: 6px; }
+.panel h3 { margin: 0 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.view .panel h3 { color: var(--muted); }
+ul.list { list-style: none; margin: 0; padding: 0; }
+ul.list li { padding: 7px 0; border-top: 1px solid var(--line); }
+ul.list li:first-child { border-top: none; padding-top: 0; }
+.list-head { display: flex; justify-content: space-between; gap: 8px; font-weight: 600; }
+ul.list .muted { font-size: 13px; }
+.tag { flex: none; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); border: 1px solid var(--line2); border-radius: 999px; padding: 0 7px; align-self: center; }
+.table-wrap { overflow-x: auto; }
+.small { font-size: 12px; }
+.nowrap { white-space: nowrap; }
+.place-card { margin-bottom: 14px; }
+
+/* Card values: a ladder's rungs, and shares with a meter. */
+.ladder { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.ladder .step { font-size: 12px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line2); color: var(--faint); }
+.ladder .step.done { color: var(--muted); border-color: var(--line2); background: var(--panel2); }
+.ladder .step.now { color: var(--bg); background: var(--accent); border-color: var(--accent); font-weight: 600; }
+.metered { display: flex; align-items: center; gap: 8px; }
+.meter { flex: none; width: 70px; height: 6px; border-radius: 3px; background: var(--panel3); overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--info); }
+.meter.hot i { background: var(--bad); }
+
+/* Narrow windows: the tab bar scrolls on its own, the header packs tighter. */
+#tabs { overflow-x: auto; scrollbar-width: none; }
+#tabs button { flex: none; }
+@media (max-width: 600px) {
+  body.admin > header { padding: 8px 12px; gap: 6px; }
+  #views { padding: 12px; }
+  .admin .note { padding: 6px 12px; }
+  #tabs { padding: 6px 12px 0; }
+}

@@ -272,6 +272,22 @@ export class PeopleStore {
     return this.alive!.get(site) ?? 0;
   }
 
+  /**
+   * The living townsfolk sworn to each faction, changes not yet written included. Those who rose to a realm figure
+   * are left out: the faction counts them among its named members. Reads every sworn row: for views, not a day's step.
+   */
+  swornByFaction(): Map<string, number> {
+    const rows = this.sql("SELECT id, faction FROM people WHERE faction IS NOT NULL AND death IS NULL AND figure IS NULL").all() as Array<{ id: string; faction: string }>;
+    const of = new Map(rows.map((r) => [r.id, r.faction]));
+    for (const r of this.dirty.values()) {
+      if (r.faction !== null && r.death === null && r.figure === null) of.set(r.id, r.faction);
+      else of.delete(r.id);
+    }
+    const out = new Map<string, number>();
+    for (const fac of of.values()) out.set(fac, (out.get(fac) ?? 0) + 1);
+    return out;
+  }
+
   /** The changed rows not yet written (the world hash and export see the world as it is, not as last saved). */
   pendingRows(): PersonRow[] {
     return [...this.dirty.values()];

@@ -69,7 +69,8 @@ export function describeFactions(realm: Realm): string[] {
 }
 
 /** The realm for the browser (N13.9): small enough to send with every state. */
-export function realmView(realm: Realm, opts: { here?: string; heard?: (newsId: string) => boolean } = {}): RealmView {
+/** `sworn`: the townsfolk sworn to each faction (from the people store), counted with its named members in `size`. */
+export function realmView(realm: Realm, opts: { here?: string; heard?: (newsId: string) => boolean; sworn?: ReadonlyMap<string, number> } = {}): RealmView {
   const fig = (id: string | null) => (id && realm.figures[id] ? titled(realm.figures[id]!) : null);
   return {
     day: realm.day,
@@ -107,7 +108,9 @@ export function realmView(realm: Realm, opts: { here?: string; heard?: (newsId: 
         creed: f.creed,
         leader: fig(f.leader),
         members: membersOf(realm, f).slice(0, 8).map((m) => `${m.name} (${rankIn(realm, f, m.id)})`),
-        size: f.members.length,
+        size: f.members.length + (opts.sworn?.get(f.id) ?? 0),
+        named: f.members.length,
+        sworn: opts.sworn?.get(f.id) ?? 0,
         branches: f.branches.map((b) => realm.settlements[b]?.name ?? b),
         wealth: f.wealth,
         parent: f.parent ? (realm.factions[f.parent]?.name ?? null) : null,

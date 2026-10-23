@@ -8,13 +8,13 @@ import { ageFigures, titled } from "./figures.js";
 import { roadDataOf } from "../road/generateRoads.js";
 import { realmNews } from "./log.js";
 import { withLivePlaces } from "./military.js";
-import { isTaxDay, refreshHierarchy, settleTransit, successionDay, taxDay } from "./politics.js";
+import { courtDay, isTaxDay, refreshHierarchy, settleTransit, successionDay, taxDay } from "./politics.js";
 import type { Realm } from "./types.js";
 import { dungeonsDay, packsDay } from "./wilds.js";
 
 /**
  * One day of the realm (N13), in this order: people age (and some die); empty
- * seats are filled; settlements eat, earn, build and move; taxes climb the chain
+ * seats are filled (heads of places, then the crowns' courts); settlements eat, earn, build and move; taxes climb the chain
  * on tax days; factions recruit, expand and split; the director pushes what's most
  * needed; raids; wars; beasts; dungeons; and the chain of command is tidied.
  * `live`: the places whose people are rows that live their own lives (game/people/); the economy
@@ -36,6 +36,7 @@ export function realmDay(realm: Realm, day: number, only?: Rng, opts: { live?: R
     });
     settleTransit(realm, day);
     timed("realm.succession", () => successionDay(realm, day, rng("succession")));
+    timed("realm.court", () => courtDay(realm, day, rng("court")));
     timed("realm.economy", () => economyDay(realm, day, rng("economy"), opts.live));
     if (isTaxDay(day)) timed("realm.taxes", () => taxDay(realm, day, rng("taxes")));
     timed("realm.factions", () => factionsDay(realm, day, rng("factions")));

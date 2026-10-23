@@ -59,7 +59,7 @@ export function overview(ctx: AdminContext): AdminOverview {
   const settlements = Object.values(realm.settlements);
   return {
     clock,
-    realm: realmView(realm),
+    realm: realmView(realm, { sworn: ctx.store?.people.swornByFaction() }),
     layer: mapLayer(realm),
     totals: {
       kingdoms: Object.keys(realm.kingdoms).length,

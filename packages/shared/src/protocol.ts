@@ -201,7 +201,7 @@ export interface RealmView {
     arrears: number;
     taxRate: number;
   }>;
-  factions: Array<{ id: string; name: string; kind: string; creed: string; leader: string | null; members: string[]; size: number; branches: string[]; wealth: number; parent: string | null; founded: number }>;
+  factions: Array<{ id: string; name: string; kind: string; creed: string; leader: string | null; members: string[]; /** Everyone sworn: `named` realm figures plus `sworn` townsfolk. */ size: number; named: number; sworn: number; branches: string[]; wealth: number; parent: string | null; founded: number }>;
   treaties: Array<{ kind: string; a: string; b: string; until: number; why: string }>;
   wars: Array<{ attackers: string[]; defenders: string[]; cause: string; start: number; score: number; battles: number; end: number | null; outcome: string | null }>;
   dungeons: Array<{ id: string; name: string; near: string; x: number; y: number; tier: string; depth: number; danger: number; bounty: number; cleared: boolean }>;
