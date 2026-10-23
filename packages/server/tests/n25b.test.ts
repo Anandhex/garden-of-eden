@@ -613,6 +613,8 @@ describe("N25b townsfolk change by code's rules", () => {
     const a = world(1);
     const b = world(1);
     const site = [...a.live][0]!;
+    // Nothing else hard happens there in either world (in a 48-day year a pack may come out of the woods in these 24 days): only the famine differs.
+    for (const w of [a, b]) for (const [id, p] of Object.entries(w.realm.packs)) if (p.near === site) delete w.realm.packs[id];
     const hungry = (w: typeof a) => {
       for (let d = 2; d <= 24; d++) {
         w.realm.settlements[site]!.food = 0;

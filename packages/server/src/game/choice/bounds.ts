@@ -1,5 +1,6 @@
 import { budgets } from "../../budgets.js";
 import { config } from "../../config.js";
+import { seasonDays } from "../weather.js";
 import type { Bound } from "../road/bounds.js";
 import type { ChoiceLog } from "./types.js";
 import { MAX_FIGHTS_PER_PLACE_PER_DAY, MAX_RUN } from "./weights.js";
@@ -54,7 +55,7 @@ export function checkChoiceBounds(sample: ChoiceSample): Bound[] {
   const worked = workHours.filter((l) => picked(l).action === "work").length;
   out.push({ name: "work-still-happens", ok: workHours.length < 20 || worked / workHours.length >= 0.7, detail: `${worked} of ${workHours.length} scheduled work hours were worked` });
 
-  const season = Math.max(1, Math.floor(config.daysPerYear / 4));
+  const season = seasonDays();
   const perPlaceSeason = new Map<string, number>();
   for (const v of sample.violent) {
     const key = `${v.site}|${Math.floor(v.day / season)}`;

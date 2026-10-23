@@ -26,6 +26,8 @@ import { WorldStore } from "../src/game/db.js";
 import { recordEvent } from "../src/game/events.js";
 import { worldHash } from "../src/game/hash.js";
 import { realmNews } from "../src/game/realm/log.js";
+import { breakAway } from "../src/game/realm/politics.js";
+import { seededRng } from "../src/game/dice.js";
 import { describeRealm } from "../src/game/realm/view.js";
 import { townEventsOn } from "../src/game/events-calendar.js";
 import { weatherOn } from "../src/game/weather.js";
@@ -47,14 +49,18 @@ beforeAll(async () => {
   config.planning = false;
   config.summaries = false;
   config.realm = true;
-  // Seed 1, every system on its own stream (N18): in 40 days wars break out and the director pushes (`SEED=1 npm run sim:realm`).
-  // A death needs luck in 40 days, so one place's leader is made too old to live (as n13.test does).
+  // Seed 1, every system on its own stream (N18): in 40 days the director pushes (`SEED=1 npm run sim:realm`).
+  // A death needs luck in 40 days, so one place's leader is made too old to live (as n13.test does). The first war of a
+  // 48-day year comes after three missed tax days (about day 90), so a village breaks away on day 1 and its crown comes for it.
   config.realmSeed = 1;
   resetTimings();
   store = new WorldStore(":memory:");
   town = makeTown({ rng: null, store });
   const elder = Object.values(town.world.realm!.figures).find((f) => f.home && f.home !== START() && town.world.realm!.settlements[f.home]?.leader === f.id)!;
   elder.life.bornOnDay = -95 * config.daysPerYear;
+  const realm = town.world.realm!;
+  const rebel = Object.values(realm.settlements).find((s) => s.id !== START() && s.kind === "village" && s.kingdom && s.liege && s.leader && s.liege !== START())!;
+  breakAway(realm, rebel, town.world.day, seededRng(1));
   for (let d = 0; d < 40; d++) town.passHours(24);
   // The reviews of those days leave their reflections in the store a moment later (embeddings): let them land before anything is measured.
   await town.reviews.idle();

@@ -29,6 +29,17 @@ export function seasonOf(day: number): Season {
   return SEASONS[Math.min(3, Math.floor((dayOfYear(day) * 4) / config.daysPerYear))]!;
 }
 
+/** Days in a season (a quarter of the year, at least one). */
+export const seasonDays = (): number => Math.max(1, Math.floor(config.daysPerYear / 4));
+
+/**
+ * Rules that follow the calendar are stated over a year and turned into a day's part here, so changing the length of
+ * the year (config.daysPerYear) leaves what happens in a year the same. `dailyChance` is for a chance (0.3 a year is
+ * about 0.0074 a day at 48 days); `perDay` is for an amount (a store that falls 120 over a year falls 2.5 a day).
+ */
+export const dailyChance = (yearly: number): number => 1 - (1 - Math.min(1, Math.max(0, yearly))) ** (1 / config.daysPerYear);
+export const perDay = (perYear: number): number => perYear / config.daysPerYear;
+
 /** A number in [0, 1) that depends only on `n` (a small integer hash). */
 export function hashUnit(n: number): number {
   let t = Math.imul(n, 0x9e3779b9) >>> 0;

@@ -24,7 +24,7 @@ Planned 2026-10-12 from the user's notes: "npc also acts as a living player, unp
 - **Which peoples and monsters (N54):** default the list in N54; dragons rare (a few in the realm).
 - **Can the player lead a faction (N57):** default yes, any kind an NPC could found.
 - **Can the player join an army (N55):** default yes, as a volunteer or a levy, with the same ranks as NPCs.
-- **The time scale (realism gap 1):** decided 2026-10-23: **one clock, a 48-day year** (`config.daysPerYear` 48: four 12-day seasons). Seasons, harvests, travel, wars and lives all run on it, so ages and dates agree. Generations turn over slowly in normal play (a child takes ~770 days to grow up), so time passes faster where nothing happens: sleep skips the night, fast travel and "wait until" (N35) skip empty days, and N35 adds a "the years pass" skip. Rules: [plans README §5](plans/README.md#5-time-one-clock-a-48-day-year). (A two-clock split was considered the same day and dropped.)
+- **The time scale (realism gap 1):** decided 2026-10-23: **one clock, a 48-day year** (`config.daysPerYear` 48: four 12-day seasons). Seasons, harvests, travel, wars and lives all run on it, so ages and dates agree. Generations turn over slowly in normal play (a child takes ~770 days to grow up), so time passes faster where nothing happens: sleep skips the night, fast travel and "wait until" (N35) skip empty days, and N35 adds a "the years pass" skip. Rules: [plans README §5](plans/README.md#5-time-one-clock-a-48-day-year). (A two-clock split was considered the same day and dropped.) ✅ Built 2026-10-23 ([migration part A](plans/migration-2026-10-23-one-year-ageless-player.md#what-was-done-2026-10-23)).
 - **Admin powers (N17):** read-only first, except the time controls (pause, step, fast-forward), which act on the live game (decided 2026-10-13); interventions (spawn, kill, edit traits, trigger an event, nudge the director) later, as their own phase.
 
 | Stage                                                                  | Phases, in build order                                                                                                                                                                                                                                                                                               |
@@ -52,7 +52,7 @@ A read through every plan for where the world stops feeling real. Most topics ar
 
 **Smaller:** what one person knows doesn't fade or blur (only mood, news and legends decay: N33); drink at the inn never becomes drunkenness or habit (N36/N41); fire is only a disaster (N62), not a daily risk of candles, hearths and thatch.
 
-**Next:** the [migration guide](plans/migration-2026-10-23-one-year-ageless-player.md) says how the decisions change built code; gap 1 (the 48-day clock) is built alone after G5 and G6 and before N40 (order decided 2026-10-23), the ageless, returning player with N49/N66, quick travel as an N26 follow-up; gaps 2–7 go into the phases named, or into a follow-up phase for those already built (N25, N26).
+**Next:** the [migration guide](plans/migration-2026-10-23-one-year-ageless-player.md) says how the decisions change built code; gap 1 (the 48-day clock) was built alone after G5 and G6 and before N40 (✅ 2026-10-23), the ageless, returning player with N49/N66, quick travel as an N26 follow-up; gaps 2–7 go into the phases named, or into a follow-up phase for those already built (N25, N26).
 
 ## Milestone: the vertical slice
 

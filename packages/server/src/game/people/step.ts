@@ -14,7 +14,7 @@ import { NEUTRAL_DAY, type SiteDay } from "./conditions.js";
 import type { DeathRecord } from "./death.js";
 import { recordLifeEvent } from "./events.js";
 import { NO_RETIRING, occupationAtAdulthood } from "./jobs.js";
-import { backgroundDaily, birthMultiplier, famineDaily, LIVES, oldAgeDaily } from "./rates.js";
+import { backgroundDaily, birthMultiplier, conceptionDaily, famineDaily, LIVES, oldAgeDaily, seekingDaily } from "./rates.js";
 import { ageFrom, ageGapTooWide, canCourtAt, closeKin, inheritRowTraits, isBirthday } from "./rules.js";
 import { traitsOfRow } from "./traits.js";
 
@@ -196,13 +196,13 @@ export function stepSite(ctx: LifeCtx, site: string, day: number): SiteStep {
     // Conceiving.
     if (config.content.npcMarriage && r.gender === "female" && r.spouse && !r.expecting && age >= sp.adultAge && age <= LIVES.fertileUntil && alive.has(r.spouse)) {
       const rested = r.last_birth === null || day - r.last_birth >= config.family.restDays;
-      if (rested && d3 < LIVES.conception * mult && people.childCount(r.id, r.spouse) < LIVES.maxChildren) {
+      if (rested && d3 < conceptionDaily() * mult && people.childCount(r.id, r.spouse) < LIVES.maxChildren) {
         patch(r.id, { expecting: JSON.stringify({ father: r.spouse, due: day + config.family.pregnancyDays }) });
       }
     }
 
     // Looking for a match.
-    if (config.content.npcMarriage && !r.spouse && !r.expecting && canCourtAt(r.species, age) && d4 < LIVES.seeking) seekers.push(r.id);
+    if (config.content.npcMarriage && !r.spouse && !r.expecting && canCourtAt(r.species, age) && d4 < seekingDaily()) seekers.push(r.id);
   }
 
   // ---- 3. Matches ----

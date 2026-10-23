@@ -81,13 +81,16 @@ describe("N25.2 houses are fixed", () => {
   });
 });
 
-describe("N25.3 a village lives ten years", () => {
+// Three years (ten made this test four times slower once the year became 48 days); `npm run sim:lives` runs ten.
+const YEARS = 3;
+
+describe("N25.3 a village lives three years", () => {
   it("ages, marries, has children and dies; the population is the living roster every day", () => {
     const { realm, store, live } = world();
     const site = home(realm);
     const start = living(store, site).length;
     const day0 = realm.day;
-    for (let d = day0 + 1; d <= day0 + 120; d++) {
+    for (let d = day0 + 1; d <= day0 + YEARS * config.daysPerYear; d++) {
       advanceWorld(realm, store, d, { live });
       expect(realm.settlements[site]!.population).toBe(sqlAlive(store, site));
     }
@@ -98,9 +101,9 @@ describe("N25.3 a village lives ten years", () => {
     expect(events.filter((e) => e.kind === "death").length).toBeGreaterThan(5);
     expect(events.filter((e) => e.kind === "marriage").length).toBeGreaterThan(5);
     expect(stats.married / stats.courting).toBeGreaterThan(0.4);
-    // Everyone alive who is a year-12-day cohort older: a 30-year-old on day 1 is 40 now.
+    // Everyone alive is YEARS older: a 30-year-old on day 1 is 33 now.
     const old = store.people.get(`t_${site}_0`);
-    if (old) expect(ageFrom(old.born_day, realm.day) - ageFrom(old.born_day, 1)).toBe(10);
+    if (old) expect(ageFrom(old.born_day, realm.day) - ageFrom(old.born_day, 1)).toBe(YEARS);
     // Every child has parents in the table, and nobody wed or conceived under age.
     for (const r of store.dumpTable("people")) {
       if (r.mother) expect(store.people.get(String(r.mother))).not.toBeNull();

@@ -8,6 +8,7 @@ import { realmNews, tally } from "../realm/log.js";
 import type { Realm, Settlement } from "../realm/types.js";
 import { recordLifeEvent } from "./events.js";
 import { LIVES } from "./rates.js";
+import { perDay } from "../weather.js";
 import { ageFrom } from "./rules.js";
 import type { LifeCtx } from "./step.js";
 import { sendArrival } from "../realm/arrivals.js";
@@ -25,8 +26,14 @@ import { shortest } from "../road/paths.js";
  * free classes go (serfs are bound to the land, slaves to their masters, the gentry and above have
  * their manors), and they go together.
  */
-/** Daily share of a frightened or starving place's people who leave (a household at a time; the old model took 2% off the number). */
-export const FLEEING_SHARE = 0.012;
+/**
+ * Shares of a place's people who move, stated over a year of such days and taken a day at a time (`perDay`), so the
+ * length of the year doesn't change how many leave: frightened or starving (a household at a time), drawn by a better
+ * place (per 15 points of prosperity it has over this one), or pushed out of a packed one.
+ */
+export const FLEEING_SHARE = 0.144;
+export const BETTER_SHARE = 0.036;
+export const PACKED_SHARE = 0.096;
 
 const FREE = new Set(["commoner", "artisan", "merchant"]);
 
@@ -212,8 +219,8 @@ export function migrationDay(ctx: LifeCtx, day: number, live: ReadonlySet<string
     const roomy = packed ? near.filter((n) => crowding(n) < crowding(s) * 0.8 && n.food > FAMINE)[0] : undefined;
     const to = better ?? roomy ?? (fleeing ? near[0] : undefined);
     if (!to) continue;
-    let share = fleeing ? FLEEING_SHARE : better ? 0.003 * ((to.prosperity - s.prosperity) / 15) : 0;
-    if (packed) share = Math.max(share, 0.008);
+    let share = fleeing ? perDay(FLEEING_SHARE) : better ? perDay(BETTER_SHARE) * ((to.prosperity - s.prosperity) / 15) : 0;
+    if (packed) share = Math.max(share, perDay(PACKED_SHARE));
     const moving = Math.min(people.livingCount(s.id) - 5, roundBy(rng, people.livingCount(s.id) * share));
     if (moving <= 0) continue;
     ensureCurrent(s.id, day - 1);
@@ -223,7 +230,7 @@ export function migrationDay(ctx: LifeCtx, day: number, live: ReadonlySet<string
     total += moved;
     s.population = people.livingCount(s.id);
     to.population = people.livingCount(to.id);
-    if (fleeing && moved >= 5 && rng() < 0.3) realmNews(realm, day, s.id, "refugees", `Folk are leaving ${s.name} for ${to.name}: ${moved} gone this week.`, 3, [s.name, to.name]);
+    if (fleeing && moved >= 5 && rng() < 0.3) realmNews(realm, day, s.id, "refugees", `Folk are leaving ${s.name} for ${to.name}: ${moved} gone of late.`, 3, [s.name, to.name]);
   }
   total += homestead(ctx, day, live, ensureCurrent, sites);
   return total;
@@ -233,8 +240,8 @@ export function migrationDay(ctx: LifeCtx, day: number, live: ReadonlySet<string
 export const ROOMY = 0.85;
 /** The neighbour must be at least this crowded to send anyone. */
 export const SENDS_AT = 1.05;
-/** Daily share of its empty homes' worth of people that a roomy place draws. */
-export const HOMESTEAD = 0.012;
+/** Share of its empty homes' worth of people that a roomy place draws over a year (a day's part each day). */
+export const HOMESTEAD = 0.144;
 
 /**
  * Settling the empty (N25): a village that has lost people still has its houses, and the next place along
@@ -255,7 +262,7 @@ function homestead(ctx: LifeCtx, day: number, live: ReadonlySet<string>, ensureC
     if (!from) continue;
     const rng = streamFor(realm.seed, "settle", to.id, day);
     const capacity = (to.houses ?? 1) * PER_HOUSE[to.kind];
-    const want = roundBy(rng, HOMESTEAD * capacity * (gap / ROOMY));
+    const want = roundBy(rng, perDay(HOMESTEAD) * capacity * (gap / ROOMY));
     if (want <= 0) continue;
     ensureCurrent(from.id, day - 1);
     ensureCurrent(to.id, day - 1);

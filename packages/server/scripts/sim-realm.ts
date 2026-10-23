@@ -3,13 +3,14 @@
  * over DAYS days, for balance. Same seed, same realm, same story: each step rolls from its
  * own stream of the seed (N18), exactly as the game does.
  *
- *   npm run sim:realm
- *   DAYS=200 SEED=7 npm run sim:realm
+ *   npm run sim:realm                # ten years (10 × config.daysPerYear days)
+ *   DAYS=960 SEED=7 npm run sim:realm
  *   VERBOSE=1 npm run sim:realm      # every piece of news, as it happens
  *   npm run sim:realm -- --check     # also print each step's timing against its budget (budgets.ts); exit 1 if one is over (N19)
  *   BUDGET_TICK_DAY_MS=0 npm run sim:realm -- --check   # fails on purpose
  */
 import { perfSlack } from "../src/budgets.js";
+import { config } from "../src/config.js";
 import { checkBudgets } from "../src/metrics/budget.js";
 import { snapshot } from "../src/metrics/timing.js";
 import { advanceRealm, realmDay } from "../src/game/realm/day.js";
@@ -18,7 +19,7 @@ import { generateRealm } from "../src/game/realm/generate.js";
 import { describeRealm } from "../src/game/realm/view.js";
 
 const seed = Number(process.env.SEED ?? 1);
-const days = Number(process.env.DAYS ?? 120);
+const days = Number(process.env.DAYS ?? 10 * config.daysPerYear);
 const verbose = process.env.VERBOSE === "1";
 const realm = generateRealm(seed, 1);
 const people = () => Object.values(realm.figures).filter((f) => f.alive).length;

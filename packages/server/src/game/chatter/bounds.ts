@@ -1,5 +1,6 @@
 import type { WorldStore } from "../db.js";
 import { config } from "../../config.js";
+import { seasonDays } from "../weather.js";
 import { streamFor } from "../dice.js";
 import type { PersonRow } from "../../store/peopleStore.js";
 import type { Realm } from "../realm/types.js";
@@ -49,7 +50,7 @@ export function checkChatterBounds(realm: Realm, store: Pick<WorldStore, "social
   const gone = old.filter((g) => g.settled !== null || weightOn(g, day) < g.weight / 2).length;
   out.push({ name: "grievances-settle", ok: old.length < 20 || gone / old.length >= 0.6, detail: `${gone} of ${old.length} grievances over a year old are settled or have faded by half` });
 
-  const season = Math.max(1, Math.floor(config.daysPerYear / 4));
+  const season = seasonDays();
   const revenge = store.dumpTable("events").filter((e) => String(e.id).includes("vendetta:") && Number(e.day) > day - season);
   const bySite = new Map<string, number>();
   for (const e of revenge) bySite.set(String(e.site), (bySite.get(String(e.site)) ?? 0) + (String(e.kind) === "new-goal" ? 0 : 1));

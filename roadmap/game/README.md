@@ -2,7 +2,7 @@
 
 # Game track (G1–G6)
 
-The playable game around the NPCs. G1 can run in parallel with the NPC track once N2 exists. G5 and G6 have build guides in [plans/](plans/); build them in that order, then the [48-day year migration](../living-world/plans/migration-2026-10-23-one-year-ageless-player.md), then N40.
+The playable game around the NPCs. G1 can run in parallel with the NPC track once N2 exists. G5 and G6 have build guides in [plans/](plans/); build them in that order, then the [48-day year migration](../living-world/plans/migration-2026-10-23-one-year-ageless-player.md) (✅ part A built 2026-10-23), then N40.
 
 ---
 

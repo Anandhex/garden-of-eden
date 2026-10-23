@@ -49,7 +49,7 @@ export const budgets = {
     hourFullMs: num("BUDGET_TICK_HOUR_MS", 50),
     /** One game day of the whole realm at coarse detail (the realm's day; everyone's day, `people.day`, is timed alongside and must fit the same limit: tests/n25). Measured: 4 ms median, 7 ms at the 95th (sim:realm, 120 days). */
     dayCoarseMs: num("BUDGET_TICK_DAY_MS", 250),
-    /** One year (config.daysPerYear days) of lazy catch-up for one place (N25 fills this in). */
+    /** One year (config.daysPerYear days) of lazy catch-up for one place (N25). Measured at 48 days a year: ~1.1 s for a capital of 4,149, ~0.5 s for a city of 2,037 (0.4 s and 0.2 s at the old 12-day year). */
     yearCatchupMs: num("BUDGET_TICK_YEAR_MS", 1500),
     /** The batch write at the end of a tick (N18): the browser stutters past this. Measured: 5 ms for 300 changed people. */
     flushMs: num("BUDGET_TICK_FLUSH_MS", 50),

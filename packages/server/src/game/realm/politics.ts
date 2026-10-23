@@ -1,3 +1,4 @@
+import { config } from "../../config.js";
 import type { Rng } from "../dice.js";
 import { tierIndex, type Tier } from "../life.js";
 import { addDeed, addRenown, leaderRole, makeFigure, residents, titled } from "./figures.js";
@@ -10,14 +11,18 @@ import { SETTLEMENT_KINDS, type Figure, type Realm, type Settlement } from "./ty
 /**
  * Hierarchy and taxes (N13.3). Every settlement has a head (elder, village head,
  * mayor, lord, king or queen) who answers to the head of its liege, up to the
- * crown. Every TAX_DAYS each place pays its liege a share of its coffers, from the
+ * crown. Twice a year (TAX_DAYS) each place pays its liege a share of its coffers, from the
  * hamlets up, so coin climbs the chain the same day; in war the crown asks more.
  * A head too poor, greedy or disloyal to pay falls behind; the liege sends men to
  * collect, and a place strong and stubborn enough breaks away (and its crown
  * comes for it: game/realm/diplomacy.ts). A dead head is replaced by their heir;
  * a close, ambitious rival may refuse them and found rebels.
  */
-export const TAX_DAYS = 7;
+/**
+ * Taxes fall due twice a year (24 days at 48). Tributes and wages are paid the same day, and a liege sends men to collect
+ * arrears only then, so how often a place is squeezed is stated over the year, not in days.
+ */
+export const TAX_DAYS = Math.max(1, Math.round(config.daysPerYear / 2));
 /** Extra share the crown asks while at war. */
 export const WAR_TAX = 0.06;
 
