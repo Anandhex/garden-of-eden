@@ -1,0 +1,1082 @@
+{
+ "tile": 16,
+ "templates": {
+  "camp": {
+   "kinds": [
+    "fire"
+   ],
+   "w": 1,
+   "h": 2,
+   "slice": {
+    "left": 0,
+    "right": 0,
+    "top": 1,
+    "bottom": 1
+   },
+   "roofTint": false,
+   "roof": [
+    [
+     null
+    ],
+    [
+     null
+    ]
+   ],
+   "walls": [
+    [
+     null
+    ],
+    [
+     "buildings/campfire"
+    ]
+   ],
+   "door": "buildings/campfire",
+   "porch": "buildings/campfire",
+   "doorAt": {
+    "x": 0,
+    "y": 1
+   },
+   "props": [],
+   "lights": [
+    {
+     "x": 0.5,
+     "y": 1.55,
+     "kind": "fire"
+    }
+   ]
+  },
+  "cart": {
+   "kinds": [
+    "cart"
+   ],
+   "w": 2,
+   "h": 2,
+   "slice": {
+    "left": 1,
+    "right": 1,
+    "top": 1,
+    "bottom": 1
+   },
+   "roofTint": false,
+   "roof": [
+    [
+     null,
+     null
+    ],
+    [
+     null,
+     null
+    ]
+   ],
+   "walls": [
+    [
+     null,
+     null
+    ],
+    [
+     "buildings/cart_l",
+     "buildings/cart_r"
+    ]
+   ],
+   "door": "buildings/cart_l",
+   "porch": "buildings/cart_l",
+   "doorAt": {
+    "x": 1,
+    "y": 1
+   },
+   "props": [],
+   "lights": []
+  },
+  "farm": {
+   "kinds": [
+    "granary",
+    "farm"
+   ],
+   "w": 4,
+   "h": 4,
+   "slice": {
+    "left": 1,
+    "right": 1,
+    "top": 1,
+    "bottom": 2
+   },
+   "roofTint": false,
+   "roof": [
+    [
+     "buildings/thatch_top_l",
+     "buildings/thatch_top_m",
+     "buildings/thatch_top_m",
+     "buildings/thatch_top_r"
+    ],
+    [
+     "buildings/thatch_mid_l",
+     "buildings/thatch_mid_m",
+     "buildings/thatch_mid_m",
+     "buildings/thatch_mid_r"
+    ],
+    [
+     "buildings/thatch_near_l",
+     "buildings/thatch_near_m",
+     "buildings/thatch_near_m",
+     "buildings/thatch_near_r"
+    ],
+    [
+     null,
+     null,
+     null,
+     null
+    ]
+   ],
+   "walls": [
+    [
+     null,
+     null,
+     null,
+     null
+    ],
+    [
+     null,
+     null,
+     null,
+     null
+    ],
+    [
+     null,
+     null,
+     null,
+     null
+    ],
+    [
+     "buildings/plank_l",
+     "buildings/plank_m",
+     "buildings/plank_m",
+     "buildings/plank_r"
+    ]
+   ],
+   "door": "buildings/door_barn",
+   "porch": "buildings/porch",
+   "doorAt": {
+    "x": 2,
+    "y": 3
+   },
+   "props": [
+    {
+     "x": 3.3,
+     "y": 4,
+     "art": "props/hay",
+     "layer": "walls"
+    },
+    {
+     "x": 0.7,
+     "y": 4,
+     "art": "props/crate",
+     "layer": "walls"
+    }
+   ],
+   "lights": []
+  },
+  "hall": {
+   "kinds": [
+    "hall",
+    "palace",
+    "temple",
+    "guildhall",
+    "barracks",
+    "manor"
+   ],
+   "w": 4,
+   "h": 4,
+   "slice": {
+    "left": 1,
+    "right": 1,
+    "top": 1,
+    "bottom": 2
+   },
+   "roofTint": true,
+   "roof": [
+    [
+     "buildings/shingle_top_l",
+     "buildings/shingle_top_m",
+     "buildings/shingle_top_m",
+     "buildings/shingle_top_r"
+    ],
+    [
+     "buildings/shingle_mid_l",
+     "buildings/shingle_mid_m",
+     "buildings/shingle_mid_m",
+     "buildings/shingle_mid_r"
+    ],
+    [
+     "buildings/shingle_near_l",
+     "buildings/shingle_near_m",
+     "buildings/shingle_near_m",
+     "buildings/shingle_near_r"
+    ],
+    [
+     null,
+     null,
+     null,
+     null
+    ]
+   ],
+   "walls": [
+    [
+     null,
+     null,
+     null,
+     null
+    ],
+    [
+     null,
+     null,
+     null,
+     null
+    ],
+    [
+     null,
+     null,
+     null,
+     null
+    ],
+    [
+     "buildings/stone_l",
+     "buildings/stone_win",
+     "buildings/stone_m",
+     "buildings/stone_r"
+    ]
+   ],
+   "door": "buildings/door_stone",
+   "porch": "buildings/porch",
+   "doorAt": {
+    "x": 2,
+    "y": 3
+   },
+   "props": [
+    {
+     "x": 3,
+     "y": 1.05,
+     "art": "props/chimney_stone",
+     "layer": "roof"
+    },
+    {
+     "x": 0.75,
+     "y": 3.12,
+     "art": "props/banner",
+     "layer": "walls"
+    },
+    {
+     "x": 3.25,
+     "y": 3.12,
+     "art": "props/banner",
+     "layer": "walls"
+    },
+    {
+     "x": 1.2,
+     "y": 3.1,
+     "art": "props/lamp_wall",
+     "layer": "walls",
+     "anchor": "door"
+    },
+    {
+     "x": 2.8,
+     "y": 3.1,
+     "art": "props/lamp_wall",
+     "layer": "walls",
+     "anchor": "door"
+    }
+   ],
+   "lights": [
+    {
+     "x": 1.2,
+     "y": 3.3,
+     "kind": "lamp",
+     "anchor": "door"
+    },
+    {
+     "x": 2.8,
+     "y": 3.3,
+     "kind": "lamp",
+     "anchor": "door"
+    }
+   ]
+  },
+  "heap": {
+   "kinds": [
+    "heap"
+   ],
+   "w": 3,
+   "h": 3,
+   "slice": {
+    "left": 0,
+    "right": 0,
+    "top": 1,
+    "bottom": 1
+   },
+   "roofTint": false,
+   "roof": [
+    [
+     null,
+     null,
+     null
+    ],
+    [
+     "buildings/heap",
+     "buildings/heap",
+     "buildings/heap"
+    ],
+    [
+     null,
+     null,
+     null
+    ]
+   ],
+   "walls": [
+    [
+     null,
+     null,
+     null
+    ],
+    [
+     null,
+     null,
+     null
+    ],
+    [
+     "buildings/heap",
+     "buildings/heap",
+     "buildings/heap"
+    ]
+   ],
+   "door": "buildings/heap",
+   "porch": "buildings/heap",
+   "doorAt": {
+    "x": 1,
+    "y": 2
+   },
+   "props": [],
+   "lights": []
+  },
+  "house_a": {
+   "kinds": [
+    "house"
+   ],
+   "w": 4,
+   "h": 4,
+   "slice": {
+    "left": 1,
+    "right": 1,
+    "top": 1,
+    "bottom": 2
+   },
+   "roofTint": false,
+   "roof": [
+    [
+     "buildings/thatch_top_l",
+     "buildings/thatch_top_m",
+     "buildings/thatch_top_m",
+     "buildings/thatch_top_r"
+    ],
+    [
+     "buildings/thatch_mid_l",
+     "buildings/thatch_mid_m",
+     "buildings/thatch_mid_m",
+     "buildings/thatch_mid_r"
+    ],
+    [
+     "buildings/thatch_near_l",
+     "buildings/thatch_near_m",
+     "buildings/thatch_near_m",
+     "buildings/thatch_near_r"
+    ],
+    [
+     null,
+     null,
+     null,
+     null
+    ]
+   ],
+   "walls": [
+    [
+     null,
+     null,
+     null,
+     null
+    ],
+    [
+     null,
+     null,
+     null,
+     null
+    ],
+    [
+     null,
+     null,
+     null,
+     null
+    ],
+    [
+     "buildings/plaster_l",
+     "buildings/plaster_win",
+     "buildings/plaster_m",
+     "buildings/plaster_r"
+    ]
+   ],
+   "door": "buildings/door_wood",
+   "porch": "buildings/porch",
+   "doorAt": {
+    "x": 2,
+    "y": 3
+   },
+   "props": [
+    {
+     "x": 2.7,
+     "y": 1.05,
+     "art": "props/chimney",
+     "layer": "roof"
+    }
+   ],
+   "lights": []
+  },
+  "house_b": {
+   "kinds": [
+    "house"
+   ],
+   "w": 4,
+   "h": 4,
+   "slice": {
+    "left": 1,
+    "right": 1,
+    "top": 1,
+    "bottom": 2
+   },
+   "roofTint": true,
+   "roof": [
+    [
+     "buildings/shingle_top_l",
+     "buildings/shingle_top_m",
+     "buildings/shingle_top_m",
+     "buildings/shingle_top_r"
+    ],
+    [
+     "buildings/shingle_mid_l",
+     "buildings/shingle_mid_m",
+     "buildings/shingle_mid_m",
+     "buildings/shingle_mid_r"
+    ],
+    [
+     "buildings/shingle_near_l",
+     "buildings/shingle_near_m",
+     "buildings/shingle_near_m",
+     "buildings/shingle_near_r"
+    ],
+    [
+     null,
+     null,
+     null,
+     null
+    ]
+   ],
+   "walls": [
+    [
+     null,
+     null,
+     null,
+     null
+    ],
+    [
+     null,
+     null,
+     null,
+     null
+    ],
+    [
+     null,
+     null,
+     null,
+     null
+    ],
+    [
+     "buildings/plaster_l",
+     "buildings/plaster_win",
+     "buildings/plaster_win",
+     "buildings/plaster_r"
+    ]
+   ],
+   "door": "buildings/door_wood",
+   "porch": "buildings/porch",
+   "doorAt": {
+    "x": 2,
+    "y": 3
+   },
+   "props": [
+    {
+     "x": 1.3,
+     "y": 1.05,
+     "art": "props/chimney",
+     "layer": "roof"
+    }
+   ],
+   "lights": []
+  },
+  "house_c": {
+   "kinds": [
+    "house",
+    "hut"
+   ],
+   "w": 4,
+   "h": 4,
+   "slice": {
+    "left": 1,
+    "right": 1,
+    "top": 1,
+    "bottom": 2
+   },
+   "roofTint": false,
+   "roof": [
+    [
+     "buildings/thatch_top_l",
+     "buildings/thatch_top_m",
+     "buildings/thatch_top_m",
+     "buildings/thatch_top_r"
+    ],
+    [
+     "buildings/thatch_mid_l",
+     "buildings/thatch_mid_m",
+     "buildings/thatch_mid_m",
+     "buildings/thatch_mid_r"
+    ],
+    [
+     "buildings/thatch_near_l",
+     "buildings/thatch_near_m",
+     "buildings/thatch_near_m",
+     "buildings/thatch_near_r"
+    ],
+    [
+     null,
+     null,
+     null,
+     null
+    ]
+   ],
+   "walls": [
+    [
+     null,
+     null,
+     null,
+     null
+    ],
+    [
+     null,
+     null,
+     null,
+     null
+    ],
+    [
+     null,
+     null,
+     null,
+     null
+    ],
+    [
+     "buildings/plank_l",
+     "buildings/plank_win",
+     "buildings/plank_m",
+     "buildings/plank_r"
+    ]
+   ],
+   "door": "buildings/door_barn",
+   "porch": "buildings/porch",
+   "doorAt": {
+    "x": 2,
+    "y": 3
+   },
+   "props": [
+    {
+     "x": 3.45,
+     "y": 4,
+     "art": "props/barrel",
+     "layer": "walls"
+    }
+   ],
+   "lights": []
+  },
+  "inn": {
+   "kinds": [
+    "inn"
+   ],
+   "w": 4,
+   "h": 4,
+   "slice": {
+    "left": 1,
+    "right": 1,
+    "top": 1,
+    "bottom": 2
+   },
+   "roofTint": true,
+   "roof": [
+    [
+     "buildings/shingle_top_l",
+     "buildings/shingle_top_m",
+     "buildings/shingle_top_m",
+     "buildings/shingle_top_r"
+    ],
+    [
+     "buildings/shingle_mid_l",
+     "buildings/shingle_mid_m",
+     "buildings/shingle_mid_m",
+     "buildings/shingle_mid_r"
+    ],
+    [
+     "buildings/shingle_near_l",
+     "buildings/shingle_near_m",
+     "buildings/shingle_near_m",
+     "buildings/shingle_near_r"
+    ],
+    [
+     null,
+     null,
+     null,
+     null
+    ]
+   ],
+   "walls": [
+    [
+     null,
+     null,
+     null,
+     null
+    ],
+    [
+     null,
+     null,
+     null,
+     null
+    ],
+    [
+     null,
+     null,
+     null,
+     null
+    ],
+    [
+     "buildings/plaster_l",
+     "buildings/plaster_win",
+     "buildings/plaster_m",
+     "buildings/plaster_r"
+    ]
+   ],
+   "door": "buildings/door_wood",
+   "porch": "buildings/porch",
+   "doorAt": {
+    "x": 2,
+    "y": 3
+   },
+   "props": [
+    {
+     "x": 2.6,
+     "y": 1.05,
+     "art": "props/chimney",
+     "layer": "roof"
+    },
+    {
+     "x": 2.95,
+     "y": 3.05,
+     "art": "props/sign_inn",
+     "layer": "walls",
+     "anchor": "door"
+    },
+    {
+     "x": 1.75,
+     "y": 3.1,
+     "art": "props/lamp_wall",
+     "layer": "walls",
+     "anchor": "door"
+    }
+   ],
+   "lights": [
+    {
+     "x": 1.75,
+     "y": 3.3,
+     "kind": "lamp",
+     "anchor": "door"
+    },
+    {
+     "x": 2.6,
+     "y": 3.6,
+     "kind": "fire"
+    }
+   ]
+  },
+  "loot": {
+   "kinds": [
+    "loot"
+   ],
+   "w": 1,
+   "h": 2,
+   "slice": {
+    "left": 0,
+    "right": 0,
+    "top": 1,
+    "bottom": 1
+   },
+   "roofTint": false,
+   "roof": [
+    [
+     null
+    ],
+    [
+     null
+    ]
+   ],
+   "walls": [
+    [
+     null
+    ],
+    [
+     "buildings/loot"
+    ]
+   ],
+   "door": "buildings/loot",
+   "porch": "buildings/loot",
+   "doorAt": {
+    "x": 0,
+    "y": 1
+   },
+   "props": [],
+   "lights": []
+  },
+  "market": {
+   "kinds": [
+    "market"
+   ],
+   "w": 4,
+   "h": 4,
+   "slice": {
+    "left": 1,
+    "right": 1,
+    "top": 1,
+    "bottom": 2
+   },
+   "roofTint": true,
+   "roof": [
+    [
+     "buildings/canvas_top_l",
+     "buildings/canvas_top_m",
+     "buildings/canvas_top_m",
+     "buildings/canvas_top_r"
+    ],
+    [
+     "buildings/canvas_mid_l",
+     "buildings/canvas_mid_m",
+     "buildings/canvas_mid_m",
+     "buildings/canvas_mid_r"
+    ],
+    [
+     "buildings/canvas_near_l",
+     "buildings/canvas_near_m",
+     "buildings/canvas_near_m",
+     "buildings/canvas_near_r"
+    ],
+    [
+     null,
+     null,
+     null,
+     null
+    ]
+   ],
+   "walls": [
+    [
+     null,
+     null,
+     null,
+     null
+    ],
+    [
+     null,
+     null,
+     null,
+     null
+    ],
+    [
+     null,
+     null,
+     null,
+     null
+    ],
+    [
+     "buildings/stall_l",
+     "buildings/stall_m",
+     "buildings/stall_goods",
+     "buildings/stall_r"
+    ]
+   ],
+   "door": "buildings/stall_m",
+   "porch": "buildings/porch",
+   "doorAt": {
+    "x": 2,
+    "y": 3
+   },
+   "props": [
+    {
+     "x": 0.6,
+     "y": 3.05,
+     "art": "props/lamp_wall",
+     "layer": "walls"
+    },
+    {
+     "x": 3.4,
+     "y": 3.05,
+     "art": "props/lamp_wall",
+     "layer": "walls"
+    }
+   ],
+   "lights": [
+    {
+     "x": 0.6,
+     "y": 3.25,
+     "kind": "lamp"
+    },
+    {
+     "x": 3.4,
+     "y": 3.25,
+     "kind": "lamp"
+    }
+   ]
+  },
+  "smithy": {
+   "kinds": [
+    "smithy"
+   ],
+   "w": 4,
+   "h": 4,
+   "slice": {
+    "left": 1,
+    "right": 1,
+    "top": 1,
+    "bottom": 2
+   },
+   "roofTint": true,
+   "roof": [
+    [
+     "buildings/shingle_top_l",
+     "buildings/shingle_top_m",
+     "buildings/shingle_top_m",
+     "buildings/shingle_top_r"
+    ],
+    [
+     "buildings/shingle_mid_l",
+     "buildings/shingle_mid_m",
+     "buildings/shingle_mid_m",
+     "buildings/shingle_mid_r"
+    ],
+    [
+     "buildings/shingle_near_l",
+     "buildings/shingle_near_m",
+     "buildings/shingle_near_m",
+     "buildings/shingle_near_r"
+    ],
+    [
+     null,
+     null,
+     null,
+     null
+    ]
+   ],
+   "walls": [
+    [
+     null,
+     null,
+     null,
+     null
+    ],
+    [
+     null,
+     null,
+     null,
+     null
+    ],
+    [
+     null,
+     null,
+     null,
+     null
+    ],
+    [
+     "buildings/stone_l",
+     "buildings/stone_m",
+     "buildings/stone_win",
+     "buildings/stone_r"
+    ]
+   ],
+   "door": "buildings/door_stone",
+   "porch": "buildings/porch",
+   "doorAt": {
+    "x": 2,
+    "y": 3
+   },
+   "props": [
+    {
+     "x": 1.5,
+     "y": 4,
+     "art": "buildings/forge_mouth",
+     "layer": "walls"
+    },
+    {
+     "x": 1.5,
+     "y": 1.05,
+     "art": "props/chimney_stone",
+     "layer": "roof"
+    },
+    {
+     "x": 2.5,
+     "y": 3.98,
+     "art": "props/anvil",
+     "layer": "walls"
+    },
+    {
+     "x": 3,
+     "y": 3.05,
+     "art": "props/sign_forge",
+     "layer": "walls",
+     "anchor": "door"
+    }
+   ],
+   "lights": [
+    {
+     "x": 1.5,
+     "y": 3.5,
+     "kind": "forge"
+    }
+   ]
+  },
+  "tent": {
+   "kinds": [
+    "tent"
+   ],
+   "w": 3,
+   "h": 4,
+   "slice": {
+    "left": 1,
+    "right": 1,
+    "top": 1,
+    "bottom": 2
+   },
+   "roofTint": true,
+   "roof": [
+    [
+     "buildings/canvas_top_l",
+     "buildings/canvas_top_m",
+     "buildings/canvas_top_r"
+    ],
+    [
+     "buildings/canvas_mid_l",
+     "buildings/canvas_mid_m",
+     "buildings/canvas_mid_r"
+    ],
+    [
+     "buildings/canvas_near_l",
+     "buildings/canvas_near_m",
+     "buildings/canvas_near_r"
+    ],
+    [
+     null,
+     null,
+     null
+    ]
+   ],
+   "walls": [
+    [
+     null,
+     null,
+     null
+    ],
+    [
+     null,
+     null,
+     null
+    ],
+    [
+     null,
+     null,
+     null
+    ],
+    [
+     "buildings/tent_side",
+     "buildings/tent_side",
+     "buildings/tent_side"
+    ]
+   ],
+   "door": "buildings/tent_front",
+   "porch": "buildings/tent_front",
+   "doorAt": {
+    "x": 1,
+    "y": 3
+   },
+   "props": [],
+   "lights": []
+  }
+ },
+ "kinds": {
+  "fire": [
+   "camp"
+  ],
+  "cart": [
+   "cart"
+  ],
+  "granary": [
+   "farm"
+  ],
+  "farm": [
+   "farm"
+  ],
+  "hall": [
+   "hall"
+  ],
+  "palace": [
+   "hall"
+  ],
+  "temple": [
+   "hall"
+  ],
+  "guildhall": [
+   "hall"
+  ],
+  "barracks": [
+   "hall"
+  ],
+  "manor": [
+   "hall"
+  ],
+  "heap": [
+   "heap"
+  ],
+  "house": [
+   "house_a",
+   "house_b",
+   "house_c"
+  ],
+  "hut": [
+   "house_c"
+  ],
+  "inn": [
+   "inn"
+  ],
+  "loot": [
+   "loot"
+  ],
+  "market": [
+   "market"
+  ],
+  "smithy": [
+   "smithy"
+  ],
+  "tent": [
+   "tent"
+  ]
+ },
+ "windows": {
+  "buildings/plaster_win": "fx/window_glow",
+  "buildings/stone_win": "fx/window_glow_arch",
+  "buildings/plank_win": "fx/window_glow_small"
+ }
+}

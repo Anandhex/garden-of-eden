@@ -85,3 +85,81 @@ Play it and decide. If Phaser is enough, stop here. If not, build a **prototype 
 - Real 3D models, physics or navigation meshes.
 - Animation beyond walk cycles and the existing event effects (lunge, flash, float).
 - Sound (that is [N29](../../living-world/plans/n29-a-soundscape.md)).
+
+## Built (2026-10-23)
+
+Built in one session after G5, uncommitted. What is where:
+
+- **Art pipeline:** [`art/`](../../../art/README.md). Sprites are pixel art written as text (`art/sprites/*.txt`, one
+  character a pixel from [`palette.txt`](../../../art/palette.txt)), 16 px a tile. `npm run art`
+  ([`art/pack.ts`](../../../art/pack.ts), PNG by [`art/png.ts`](../../../art/png.ts) with node's zlib, no new
+  dependency) packs them ×4 (64 px a tile) into `packages/client/public/art/<sheet>.png` + Phaser JSON frames,
+  writes the frame index the adapter imports, the Tiled tilesets (`art/tiled/*.tsj`, with Wang sets) and
+  `packages/shared/src/view/templates.json` from the Tiled templates (`art/tiled/templates/*.tmj`).
+- **The first art pass:** 252 frames. Terrain for every `TERRAIN_IDS` entry (variants for grass, path, road,
+  water), 64 generated corner tiles where grass meets path, road, water and sand; every `OBJECT_IDS` prop; 59 building
+  tiles (thatch, shingle and canvas roofs; plaster, stone and plank walls, windows, doors, forge, stalls, tents,
+  campfire, cart, loot, spoil, town walls, gate, porch); one person body in four directions × three steps, split
+  into body, clothes, hair and trim layers (tinted by `look.tint`, a hair pick, `look.trim`); wolf, bear, boar,
+  spider, horse and a tintable stand-in beast (two trot frames each way); fx (grave, shadow, marker, rain, snow,
+  lit-window frames, glow, fireflies, dust, fog, light shafts, near leaves).
+- **Templates:** 13 (three houses, inn, smithy, hall for hall/palace/temple/guildhall/barracks/manor, market,
+  farm, and tent, camp, cart, loot, heap for the localities' unkinded things, matched by name).
+  [`templates.ts`](../../../packages/shared/src/view/templates.ts): `templateFor` (a stable pick by map and
+  building) and `dress` (a 9-slice stretch to any size: roof, front wall, door, porch, props, lights, windows).
+- **Frame fields:** a building's `template` and `door`; `lights` per window of its template plus the template's
+  lamps, fires and forge, with `on` as facts ([`frame.ts`](../../../packages/server/src/view/frame.ts)
+  `buildingLights`); `facing` for the two in a conversation. Ground under a building is `terrain/yard`.
+  `npm run schema` rerun. No rules or saves changed.
+- **The adapter** ([`adapter/web/world/`](../../../packages/client/src/adapter/web/world)): `depth.ts` (the layers),
+  `ground.ts` (tile pool, the half-tile Wang grid, y-sorted props, town walls by their south neighbour, water
+  shimmer), `buildings.ts` (templates; roofs fade while the player is under or behind), `actors.ts` (layered
+  people with four-way walks, creatures, labels and bubbles on top), `lighting.ts` + `lightPlan.ts` (Light2D),
+  `atmosphere.ts`, `look.ts` (the setting). [`art.ts`](../../../packages/client/src/adapter/web/art.ts) is the
+  manifest: `SHEET_ART` (ids → frames) over `MANIFEST` (the code-drawn fallback, per id).
+- **Tests:** [`g6.test.ts`](../../../packages/server/tests/g6.test.ts), 12 tests.
+
+### Deviations from the plan
+
+- **Sources are text, not 64 px paintings.** Decided before the build: 16 px art written as characters, scaled ×4
+  to 64 px, shown at 32 px with nearest-neighbour. Same on-screen result as the plan's "art at 2×", and reviewable
+  in a diff. A later HD pass can replace a sheet with real 64 px art under the same frame names.
+- **The manifest is TypeScript** (`adapter/web/art.ts` over a generated `art/sheets.json`), not a hand-written
+  `manifest.json`.
+- **Tilesets are generated** by the packer (tile numbers kept stable from the old `.tsj`); the templates are Tiled
+  maps, first written by a script, then edited in Tiled.
+- **Templates dress buildings only.** Decided before the build: the town generator, the map tiles and solidity are
+  unchanged (they feed the crowd sim and the tests). Variants: three for houses, one for each other kind (the plan
+  said 2–4 per kind). [~]
+- **No `layer` field on patches.** The adapter puts terrain on the ground layer and props on the sorted layer by
+  family; buildings get their layers from their template.
+- **Facing** is sent only while two are in a conversation; everyone else faces the way they walk (drawing).
+  Creatures are drawn from the side (east, west); going north or south they keep their last side.
+- **Light budget 24** real lights (Phaser `maxLights`), nearest the player; every light that's on also glows with
+  an additive halo, and lit windows show their lit frame, so far lights still read. No normal maps (flat Light2D).
+- **The night rectangle is gone.** Night is Light2D's ambient, so it needs WebGL; on Phaser's Canvas fallback the
+  world stays at day brightness.
+- **Blur** is a pre-FX blur on the near leaves only (behind the atmosphere setting); no blur on a far layer, since a
+  top-down town has none.
+- **The 60 fps check** could not be read off `?fps=1` here: the browser pane was hidden, so the browser paused the
+  page's animation. Instead the Phaser loop was stepped by hand in the page: over 480 frames in Wilcross at night,
+  atmosphere on, a frame took 1.1 ms median, 4.3 ms at the 95th percentile and 13.3 ms at worst (budget 16.7). On
+  the way there, two fixes: buildings redraw only when their shape changes (not on every new tip), and the water
+  shimmer swaps only water tiles. The real check on the test laptop, in a capital at night, is still to do. [~]
+- **The recording** `protocol/recordings/town-and-road.jsonl` was recorded again with the new fields; it replays
+  with no `[art]` warnings (checked in the browser and in the test).
+
+## Checkpoint (step 7): decided, stay on Phaser
+
+**Recommendation: stay on Phaser for now, and do not build the 2.5D prototype yet.** The step builds the prototype
+only if playing shows Phaser isn't enough, and so far it holds up: lit windows, lamps, fires and the ambient
+light read well at night, roofs fade, and the frame budget has plenty of room. What G6 set up makes the swap
+cheap when it is wanted: the server sends art ids, templates, lights and facing as facts; the art has stable
+frame names; recordings play with no server.
+
+When the 2.5D HD look becomes the priority (after the 48-day migration and N40, or sooner if playing says so),
+prototype it in **Three.js** first, not Unity: it stays in this repo's web stack, plays the G5 recordings as they
+are, reuses `templates.ts` (`dress()` gives roof and wall boxes directly) and the sheets as billboard textures,
+and needs no C# port. Unity (URP 2D lights) is the choice only if a native build is wanted anyway.
+
+**Decided 2026-10-23 by the user: stay on Phaser for now.** No 2.5D prototype is built; when the HD look becomes the priority, the Three.js prototype above is the first step.

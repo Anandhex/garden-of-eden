@@ -71,7 +71,22 @@ export const PatchSchema = z.object({
 });
 export type Patch = z.infer<typeof PatchSchema>;
 
-export const BuildingSchema = z.object({ id: z.number().int(), x: z.number(), y: z.number(), w: z.number(), h: z.number(), kind: z.string(), color: z.string(), lit: z.boolean(), label: z.string(), tip: z.string() });
+export const BuildingSchema = z.object({
+  id: z.number().int(),
+  x: z.number(),
+  y: z.number(),
+  w: z.number(),
+  h: z.number(),
+  kind: z.string(),
+  color: z.string(),
+  lit: z.boolean(),
+  label: z.string(),
+  tip: z.string(),
+  /** The template it is dressed in (templates.json, G6); an adapter without it picks by `templateFor`. */
+  template: z.string().optional(),
+  /** Its door's tile, if it has one. */
+  door: Point.nullable().optional(),
+});
 export const LightSchema = z.object({ id: z.string(), x: z.number(), y: z.number(), kind: z.enum(["window", "lamp", "fire", "torch", "forge", "magic"]), on: z.boolean() });
 export const SignSchema = z.object({ id: z.string(), x: z.number(), y: z.number(), text: z.string(), kind: z.enum(["exit", "place"]) });
 export const ChatterSchema = z.object({ a: z.string(), b: z.string(), lines: z.tuple([z.string(), z.string()]), hot: z.boolean(), bow: z.boolean() });

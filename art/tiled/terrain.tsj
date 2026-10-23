@@ -1,0 +1,2415 @@
+{
+ "type": "tileset",
+ "version": "1.10",
+ "tiledversion": "1.11.0",
+ "name": "terrain",
+ "image": "terrain.png",
+ "imagewidth": 1024,
+ "imageheight": 384,
+ "tilewidth": 64,
+ "tileheight": 64,
+ "margin": 0,
+ "spacing": 0,
+ "columns": 16,
+ "tilecount": 84,
+ "tiles": [
+  {
+   "id": 0,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/grass_0"
+    }
+   ]
+  },
+  {
+   "id": 1,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/grass_1"
+    }
+   ]
+  },
+  {
+   "id": 2,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/grass_2"
+    }
+   ]
+  },
+  {
+   "id": 3,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/grass_3"
+    }
+   ]
+  },
+  {
+   "id": 4,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/path_0"
+    }
+   ]
+  },
+  {
+   "id": 5,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/path_1"
+    }
+   ]
+  },
+  {
+   "id": 6,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/path_2"
+    }
+   ]
+  },
+  {
+   "id": 7,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/road_0"
+    }
+   ]
+  },
+  {
+   "id": 8,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/road_1"
+    }
+   ]
+  },
+  {
+   "id": 9,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/road_2"
+    }
+   ]
+  },
+  {
+   "id": 10,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/water_0"
+    }
+   ]
+  },
+  {
+   "id": 11,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/water_1"
+    }
+   ]
+  },
+  {
+   "id": 12,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/sand_0"
+    }
+   ]
+  },
+  {
+   "id": 13,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/hill_0"
+    }
+   ]
+  },
+  {
+   "id": 14,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/marsh_0"
+    }
+   ]
+  },
+  {
+   "id": 15,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/field_0"
+    }
+   ]
+  },
+  {
+   "id": 16,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/ford_0"
+    }
+   ]
+  },
+  {
+   "id": 17,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/bridge_0"
+    }
+   ]
+  },
+  {
+   "id": 18,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/town_0"
+    }
+   ]
+  },
+  {
+   "id": 19,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/yard_0"
+    }
+   ]
+  },
+  {
+   "id": 20,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/path_0"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/path"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "0"
+    }
+   ]
+  },
+  {
+   "id": 21,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/path_1"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/path"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "1"
+    }
+   ]
+  },
+  {
+   "id": 22,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/path_2"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/path"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "2"
+    }
+   ]
+  },
+  {
+   "id": 23,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/path_3"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/path"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "3"
+    }
+   ]
+  },
+  {
+   "id": 24,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/path_4"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/path"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "4"
+    }
+   ]
+  },
+  {
+   "id": 25,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/path_5"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/path"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "5"
+    }
+   ]
+  },
+  {
+   "id": 26,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/path_6"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/path"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "6"
+    }
+   ]
+  },
+  {
+   "id": 27,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/path_7"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/path"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "7"
+    }
+   ]
+  },
+  {
+   "id": 28,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/path_8"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/path"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "8"
+    }
+   ]
+  },
+  {
+   "id": 29,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/path_9"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/path"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "9"
+    }
+   ]
+  },
+  {
+   "id": 30,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/path_10"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/path"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "10"
+    }
+   ]
+  },
+  {
+   "id": 31,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/path_11"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/path"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "11"
+    }
+   ]
+  },
+  {
+   "id": 32,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/path_12"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/path"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "12"
+    }
+   ]
+  },
+  {
+   "id": 33,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/path_13"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/path"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "13"
+    }
+   ]
+  },
+  {
+   "id": 34,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/path_14"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/path"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "14"
+    }
+   ]
+  },
+  {
+   "id": 35,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/path_15"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/path"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "15"
+    }
+   ]
+  },
+  {
+   "id": 36,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/road_0"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/road"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "0"
+    }
+   ]
+  },
+  {
+   "id": 37,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/road_1"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/road"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "1"
+    }
+   ]
+  },
+  {
+   "id": 38,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/road_2"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/road"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "2"
+    }
+   ]
+  },
+  {
+   "id": 39,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/road_3"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/road"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "3"
+    }
+   ]
+  },
+  {
+   "id": 40,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/road_4"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/road"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "4"
+    }
+   ]
+  },
+  {
+   "id": 41,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/road_5"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/road"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "5"
+    }
+   ]
+  },
+  {
+   "id": 42,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/road_6"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/road"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "6"
+    }
+   ]
+  },
+  {
+   "id": 43,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/road_7"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/road"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "7"
+    }
+   ]
+  },
+  {
+   "id": 44,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/road_8"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/road"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "8"
+    }
+   ]
+  },
+  {
+   "id": 45,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/road_9"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/road"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "9"
+    }
+   ]
+  },
+  {
+   "id": 46,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/road_10"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/road"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "10"
+    }
+   ]
+  },
+  {
+   "id": 47,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/road_11"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/road"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "11"
+    }
+   ]
+  },
+  {
+   "id": 48,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/road_12"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/road"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "12"
+    }
+   ]
+  },
+  {
+   "id": 49,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/road_13"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/road"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "13"
+    }
+   ]
+  },
+  {
+   "id": 50,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/road_14"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/road"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "14"
+    }
+   ]
+  },
+  {
+   "id": 51,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/road_15"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/road"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "15"
+    }
+   ]
+  },
+  {
+   "id": 52,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/water_0"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/water"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "0"
+    }
+   ]
+  },
+  {
+   "id": 53,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/water_1"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/water"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "1"
+    }
+   ]
+  },
+  {
+   "id": 54,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/water_2"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/water"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "2"
+    }
+   ]
+  },
+  {
+   "id": 55,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/water_3"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/water"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "3"
+    }
+   ]
+  },
+  {
+   "id": 56,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/water_4"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/water"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "4"
+    }
+   ]
+  },
+  {
+   "id": 57,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/water_5"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/water"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "5"
+    }
+   ]
+  },
+  {
+   "id": 58,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/water_6"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/water"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "6"
+    }
+   ]
+  },
+  {
+   "id": 59,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/water_7"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/water"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "7"
+    }
+   ]
+  },
+  {
+   "id": 60,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/water_8"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/water"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "8"
+    }
+   ]
+  },
+  {
+   "id": 61,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/water_9"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/water"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "9"
+    }
+   ]
+  },
+  {
+   "id": 62,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/water_10"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/water"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "10"
+    }
+   ]
+  },
+  {
+   "id": 63,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/water_11"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/water"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "11"
+    }
+   ]
+  },
+  {
+   "id": 64,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/water_12"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/water"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "12"
+    }
+   ]
+  },
+  {
+   "id": 65,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/water_13"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/water"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "13"
+    }
+   ]
+  },
+  {
+   "id": 66,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/water_14"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/water"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "14"
+    }
+   ]
+  },
+  {
+   "id": 67,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/water_15"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/water"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "15"
+    }
+   ]
+  },
+  {
+   "id": 68,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/sand_0"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/sand"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "0"
+    }
+   ]
+  },
+  {
+   "id": 69,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/sand_1"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/sand"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "1"
+    }
+   ]
+  },
+  {
+   "id": 70,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/sand_2"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/sand"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "2"
+    }
+   ]
+  },
+  {
+   "id": 71,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/sand_3"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/sand"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "3"
+    }
+   ]
+  },
+  {
+   "id": 72,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/sand_4"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/sand"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "4"
+    }
+   ]
+  },
+  {
+   "id": 73,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/sand_5"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/sand"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "5"
+    }
+   ]
+  },
+  {
+   "id": 74,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/sand_6"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/sand"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "6"
+    }
+   ]
+  },
+  {
+   "id": 75,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/sand_7"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/sand"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "7"
+    }
+   ]
+  },
+  {
+   "id": 76,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/sand_8"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/sand"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "8"
+    }
+   ]
+  },
+  {
+   "id": 77,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/sand_9"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/sand"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "9"
+    }
+   ]
+  },
+  {
+   "id": 78,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/sand_10"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/sand"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "10"
+    }
+   ]
+  },
+  {
+   "id": 79,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/sand_11"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/sand"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "11"
+    }
+   ]
+  },
+  {
+   "id": 80,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/sand_12"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/sand"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "12"
+    }
+   ]
+  },
+  {
+   "id": 81,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/sand_13"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/sand"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "13"
+    }
+   ]
+  },
+  {
+   "id": 82,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/sand_14"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/sand"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "14"
+    }
+   ]
+  },
+  {
+   "id": 83,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/wang/sand_15"
+    },
+    {
+     "name": "wang",
+     "type": "string",
+     "value": "terrain/wang/sand"
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "value": "15"
+    }
+   ]
+  }
+ ],
+ "wangsets": [
+  {
+   "name": "grass-path",
+   "type": "corner",
+   "tile": 35,
+   "colors": [
+    {
+     "name": "grass",
+     "color": "#4a823a",
+     "tile": 20,
+     "probability": 1
+    },
+    {
+     "name": "path",
+     "color": "#b49668",
+     "tile": 35,
+     "probability": 1
+    }
+   ],
+   "wangtiles": [
+    {
+     "tileid": 20,
+     "wangid": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 21,
+     "wangid": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      2
+     ]
+    },
+    {
+     "tileid": 22,
+     "wangid": [
+      0,
+      2,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 23,
+     "wangid": [
+      0,
+      2,
+      0,
+      1,
+      0,
+      1,
+      0,
+      2
+     ]
+    },
+    {
+     "tileid": 24,
+     "wangid": [
+      0,
+      1,
+      0,
+      2,
+      0,
+      1,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 25,
+     "wangid": [
+      0,
+      1,
+      0,
+      2,
+      0,
+      1,
+      0,
+      2
+     ]
+    },
+    {
+     "tileid": 26,
+     "wangid": [
+      0,
+      2,
+      0,
+      2,
+      0,
+      1,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 27,
+     "wangid": [
+      0,
+      2,
+      0,
+      2,
+      0,
+      1,
+      0,
+      2
+     ]
+    },
+    {
+     "tileid": 28,
+     "wangid": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      2,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 29,
+     "wangid": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      2,
+      0,
+      2
+     ]
+    },
+    {
+     "tileid": 30,
+     "wangid": [
+      0,
+      2,
+      0,
+      1,
+      0,
+      2,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 31,
+     "wangid": [
+      0,
+      2,
+      0,
+      1,
+      0,
+      2,
+      0,
+      2
+     ]
+    },
+    {
+     "tileid": 32,
+     "wangid": [
+      0,
+      1,
+      0,
+      2,
+      0,
+      2,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 33,
+     "wangid": [
+      0,
+      1,
+      0,
+      2,
+      0,
+      2,
+      0,
+      2
+     ]
+    },
+    {
+     "tileid": 34,
+     "wangid": [
+      0,
+      2,
+      0,
+      2,
+      0,
+      2,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 35,
+     "wangid": [
+      0,
+      2,
+      0,
+      2,
+      0,
+      2,
+      0,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "name": "grass-road",
+   "type": "corner",
+   "tile": 51,
+   "colors": [
+    {
+     "name": "grass",
+     "color": "#4a823a",
+     "tile": 36,
+     "probability": 1
+    },
+    {
+     "name": "road",
+     "color": "#b49668",
+     "tile": 51,
+     "probability": 1
+    }
+   ],
+   "wangtiles": [
+    {
+     "tileid": 36,
+     "wangid": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 37,
+     "wangid": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      2
+     ]
+    },
+    {
+     "tileid": 38,
+     "wangid": [
+      0,
+      2,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 39,
+     "wangid": [
+      0,
+      2,
+      0,
+      1,
+      0,
+      1,
+      0,
+      2
+     ]
+    },
+    {
+     "tileid": 40,
+     "wangid": [
+      0,
+      1,
+      0,
+      2,
+      0,
+      1,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 41,
+     "wangid": [
+      0,
+      1,
+      0,
+      2,
+      0,
+      1,
+      0,
+      2
+     ]
+    },
+    {
+     "tileid": 42,
+     "wangid": [
+      0,
+      2,
+      0,
+      2,
+      0,
+      1,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 43,
+     "wangid": [
+      0,
+      2,
+      0,
+      2,
+      0,
+      1,
+      0,
+      2
+     ]
+    },
+    {
+     "tileid": 44,
+     "wangid": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      2,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 45,
+     "wangid": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      2,
+      0,
+      2
+     ]
+    },
+    {
+     "tileid": 46,
+     "wangid": [
+      0,
+      2,
+      0,
+      1,
+      0,
+      2,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 47,
+     "wangid": [
+      0,
+      2,
+      0,
+      1,
+      0,
+      2,
+      0,
+      2
+     ]
+    },
+    {
+     "tileid": 48,
+     "wangid": [
+      0,
+      1,
+      0,
+      2,
+      0,
+      2,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 49,
+     "wangid": [
+      0,
+      1,
+      0,
+      2,
+      0,
+      2,
+      0,
+      2
+     ]
+    },
+    {
+     "tileid": 50,
+     "wangid": [
+      0,
+      2,
+      0,
+      2,
+      0,
+      2,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 51,
+     "wangid": [
+      0,
+      2,
+      0,
+      2,
+      0,
+      2,
+      0,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "name": "grass-water",
+   "type": "corner",
+   "tile": 67,
+   "colors": [
+    {
+     "name": "grass",
+     "color": "#4a823a",
+     "tile": 52,
+     "probability": 1
+    },
+    {
+     "name": "water",
+     "color": "#b49668",
+     "tile": 67,
+     "probability": 1
+    }
+   ],
+   "wangtiles": [
+    {
+     "tileid": 52,
+     "wangid": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 53,
+     "wangid": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      2
+     ]
+    },
+    {
+     "tileid": 54,
+     "wangid": [
+      0,
+      2,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 55,
+     "wangid": [
+      0,
+      2,
+      0,
+      1,
+      0,
+      1,
+      0,
+      2
+     ]
+    },
+    {
+     "tileid": 56,
+     "wangid": [
+      0,
+      1,
+      0,
+      2,
+      0,
+      1,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 57,
+     "wangid": [
+      0,
+      1,
+      0,
+      2,
+      0,
+      1,
+      0,
+      2
+     ]
+    },
+    {
+     "tileid": 58,
+     "wangid": [
+      0,
+      2,
+      0,
+      2,
+      0,
+      1,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 59,
+     "wangid": [
+      0,
+      2,
+      0,
+      2,
+      0,
+      1,
+      0,
+      2
+     ]
+    },
+    {
+     "tileid": 60,
+     "wangid": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      2,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 61,
+     "wangid": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      2,
+      0,
+      2
+     ]
+    },
+    {
+     "tileid": 62,
+     "wangid": [
+      0,
+      2,
+      0,
+      1,
+      0,
+      2,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 63,
+     "wangid": [
+      0,
+      2,
+      0,
+      1,
+      0,
+      2,
+      0,
+      2
+     ]
+    },
+    {
+     "tileid": 64,
+     "wangid": [
+      0,
+      1,
+      0,
+      2,
+      0,
+      2,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 65,
+     "wangid": [
+      0,
+      1,
+      0,
+      2,
+      0,
+      2,
+      0,
+      2
+     ]
+    },
+    {
+     "tileid": 66,
+     "wangid": [
+      0,
+      2,
+      0,
+      2,
+      0,
+      2,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 67,
+     "wangid": [
+      0,
+      2,
+      0,
+      2,
+      0,
+      2,
+      0,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "name": "grass-sand",
+   "type": "corner",
+   "tile": 83,
+   "colors": [
+    {
+     "name": "grass",
+     "color": "#4a823a",
+     "tile": 68,
+     "probability": 1
+    },
+    {
+     "name": "sand",
+     "color": "#b49668",
+     "tile": 83,
+     "probability": 1
+    }
+   ],
+   "wangtiles": [
+    {
+     "tileid": 68,
+     "wangid": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 69,
+     "wangid": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      2
+     ]
+    },
+    {
+     "tileid": 70,
+     "wangid": [
+      0,
+      2,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 71,
+     "wangid": [
+      0,
+      2,
+      0,
+      1,
+      0,
+      1,
+      0,
+      2
+     ]
+    },
+    {
+     "tileid": 72,
+     "wangid": [
+      0,
+      1,
+      0,
+      2,
+      0,
+      1,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 73,
+     "wangid": [
+      0,
+      1,
+      0,
+      2,
+      0,
+      1,
+      0,
+      2
+     ]
+    },
+    {
+     "tileid": 74,
+     "wangid": [
+      0,
+      2,
+      0,
+      2,
+      0,
+      1,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 75,
+     "wangid": [
+      0,
+      2,
+      0,
+      2,
+      0,
+      1,
+      0,
+      2
+     ]
+    },
+    {
+     "tileid": 76,
+     "wangid": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      2,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 77,
+     "wangid": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      2,
+      0,
+      2
+     ]
+    },
+    {
+     "tileid": 78,
+     "wangid": [
+      0,
+      2,
+      0,
+      1,
+      0,
+      2,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 79,
+     "wangid": [
+      0,
+      2,
+      0,
+      1,
+      0,
+      2,
+      0,
+      2
+     ]
+    },
+    {
+     "tileid": 80,
+     "wangid": [
+      0,
+      1,
+      0,
+      2,
+      0,
+      2,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 81,
+     "wangid": [
+      0,
+      1,
+      0,
+      2,
+      0,
+      2,
+      0,
+      2
+     ]
+    },
+    {
+     "tileid": 82,
+     "wangid": [
+      0,
+      2,
+      0,
+      2,
+      0,
+      2,
+      0,
+      1
+     ]
+    },
+    {
+     "tileid": 83,
+     "wangid": [
+      0,
+      2,
+      0,
+      2,
+      0,
+      2,
+      0,
+      2
+     ]
+    }
+   ]
+  }
+ ]
+}

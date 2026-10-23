@@ -45,7 +45,12 @@ no pathfinding, no "can I talk to them", no clocks, no sentences about the game.
      mover has a route in `routes`, go through its tiles; never pathfind.
    - **Labels.** Show `label` up close or when hovered, `shortLabel` from afar (travellers, beasts), and the
      `prompt` text under its `target`. Hover text is `tip`. Highlight the prompt's target.
-   - **Light and weather.** From `ambience.light` and `ambience.weather`; lit windows and lamps from `lights`.
+   - **Buildings.** Dress each in its `template` with `dress()` from `packages/shared/src/view/templates.ts` (or
+     port it: it is a 9-slice over `templates.json`): roof tiles over the actors, the front wall y-sorted with them,
+     props, a porch for a door the roof hides. The tiles name frames in the web sheets (`npm run art`); map them in
+     your manifest like art ids.
+   - **Light and weather.** From `ambience.light` and `ambience.weather`; lit windows and lamps from `lights`. The
+     web adapter's colours and light kinds are in `packages/client/src/adapter/web/world/lightPlan.ts`.
    - **Speech.** `speech` messages go to a bubble over the speaker and into the chat log. `chatter` and `gossip`
      are bubbles over townsfolk.
 5. **Panels.** Lay out `ui` with your UI kit (Unity UI Toolkit, UMG). Every string is in the model, so never build

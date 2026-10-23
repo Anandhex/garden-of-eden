@@ -21,7 +21,7 @@ import {
   type CrowdPos,
   type Snapshot,
 } from "@millbrook/shared";
-import { OBJECT_IDS, TERRAIN_IDS, type Actor, type Frame, type Patch } from "@millbrook/shared/view";
+import { dress, OBJECT_IDS, TEMPLATES, templateFor, TERRAIN_IDS, type Actor, type Frame, type Patch } from "@millbrook/shared/view";
 import { groundAt } from "../game/road/ground.js";
 import type { Land, ViewHost } from "./host.js";
 
@@ -72,10 +72,45 @@ function placeArt(t: string | undefined, inBuilding: boolean): [number, number] 
     case "path": return [T("terrain/path"), 0];
     case "water": return [T("terrain/water"), 0];
     case "tree": return [T("terrain/grass"), O("props/tree")];
-    case "wall": return inBuilding ? [T("terrain/town"), 0] : [T("terrain/town"), O("buildings/wall")];
+    // Under a building is a yard: its template covers it, except where a tent, cart or fire leaves the ground showing.
+    case "wall": return inBuilding ? [T("terrain/yard"), 0] : [T("terrain/town"), O("buildings/wall")];
     case "door": return [T("terrain/path"), O("buildings/door")];
     default: return [T("terrain/grass"), 0];
   }
+}
+
+/** A building's door: the door tile inside its rectangle (the town generator put it there), or null. */
+export function doorOf(tiles: string[][], b: { x: number; y: number; w: number; h: number }): { x: number; y: number } | null {
+  for (let y = b.y; y < b.y + b.h; y++) for (let x = b.x; x < b.x + b.w; x++) if (tiles[y]?.[x] === "door") return { x, y };
+  return null;
+}
+
+/**
+ * A building's lights (G6): one per window of its template, lit after dark while someone is home; and the
+ * template's lamps (lit after dark), fires (burning while someone is in, a camp's always) and forge (at work by
+ * day, or while the smith is in after dark). Facts of the simulation, so the server sends them; the glow is the
+ * adapter's.
+ */
+export function buildingLights(i: number, template: string, b: { x: number; y: number; w: number; h: number; door: { x: number; y: number } | null }, st: { lit: boolean; dark: boolean; occupied: boolean }): NonNullable<Frame["lights"]> {
+  const t = TEMPLATES[template];
+  if (!t) return [];
+  const d = dress(t, b);
+  const on = (kind: string): boolean => {
+    if (kind === "lamp" || kind === "torch") return st.dark;
+    if (kind === "fire") return template === "camp" || st.occupied;
+    if (kind === "forge") return st.lit || !st.dark;
+    return st.lit;
+  };
+  const out: NonNullable<Frame["lights"]> = d.windows.map((w, k) => ({ id: `win:${i}:${k}`, x: w.x, y: w.y, kind: "window" as const, on: st.lit }));
+  d.lights.forEach((l, k) => out.push({ id: `${l.kind}:${i}:${k}`, x: l.x, y: l.y, kind: (["lamp", "fire", "torch", "forge", "magic"].includes(l.kind) ? l.kind : "lamp") as "lamp", on: on(l.kind) }));
+  return out;
+}
+
+/** The way someone at `from` faces to look at `to`. */
+export function facingTo(from: { x: number; y: number }, to: { x: number; y: number }): "n" | "e" | "s" | "w" {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  return Math.abs(dx) >= Math.abs(dy) ? (dx >= 0 ? "e" : "w") : dy >= 0 ? "s" : "n";
 }
 
 /** The box of tiles in view: the adapter's viewport round the player, plus a margin. */
@@ -291,8 +326,10 @@ export function buildFrame(f: FrameInput): Frame {
       const tip = sim ? `${what}: ${who.length === 0 ? "nobody inside" : `${who.length} inside (${names.join(", ")}${who.length > 6 ? ", …" : ""})`}` : what;
       // A window is lit after dark while someone is at home (G6: a fact, so the server says it).
       const lit = light < 0.6 && who.length > 0;
-      buildings.push({ id: i, x: b.x, y: b.y, w: b.w, h: b.h, kind: b.kind ?? "house", color: b.color, lit, label: b.name && b.name !== "Gate" ? b.name : "", tip });
-      if (b.kind !== "market") lights.push({ id: `win:${i}`, x: b.x + b.w / 2, y: b.y + b.h - 1, kind: b.kind === "smithy" ? "forge" : "window", on: lit || (b.kind === "smithy" && light >= 0.6) });
+      const door = doorOf(s.map.tiles, b);
+      const template = templateFor(b.kind, b.name, `${s.map.id}:${i}`);
+      buildings.push({ id: i, x: b.x, y: b.y, w: b.w, h: b.h, kind: b.kind ?? "house", color: b.color, lit, label: b.name && b.name !== "Gate" ? b.name : "", tip, template, door });
+      lights.push(...buildingLights(i, template, { ...b, door }, { lit, dark: light < 0.6, occupied: who.length > 0 }));
     });
     for (const e of s.map.exits) {
       const arrow = e.x === 0 ? "◀" : e.x === s.map.w - 1 ? "▶" : e.y === 0 ? "▲" : "▼";
@@ -366,6 +403,13 @@ export function buildFrame(f: FrameInput): Frame {
         flags,
       });
     });
+  }
+
+  // In a conversation the two face each other (the rest face the way they walk, the adapter's to draw).
+  const other = f.talking ? actors.find((a) => a.id === f.talking) : undefined;
+  if (other) {
+    actors[0]!.facing = facingTo(actors[0]!, other);
+    other.facing = facingTo(other, actors[0]!);
   }
 
   // ---- the prompt under whoever E or F acts on ----

@@ -38,7 +38,8 @@ export const OBJECT_IDS = [
 
 export const PEOPLE_IDS = ["people/body", "people/player"] as const;
 export const CREATURE_IDS = ["creature/wolf", "creature/bear", "creature/boar", "creature/spider", "creature/horse", "creature/beast"] as const;
-export const FX_IDS = ["fx/grave", "fx/shadow", "fx/marker", "fx/drop", "fx/flake", "fx/ripple"] as const;
+/** Graves, shadows, markers and weather; and the atmosphere an adapter adds (glows, fireflies, dust, fog, light shafts, near leaves). */
+export const FX_IDS = ["fx/grave", "fx/shadow", "fx/marker", "fx/drop", "fx/flake", "fx/ripple", "fx/glow", "fx/firefly", "fx/dust", "fx/fog", "fx/shaft", "fx/leaves"] as const;
 
 export type ArtId = (typeof TERRAIN_IDS)[number] | NonNullable<(typeof OBJECT_IDS)[number]> | (typeof PEOPLE_IDS)[number] | (typeof CREATURE_IDS)[number] | (typeof FX_IDS)[number];
 
