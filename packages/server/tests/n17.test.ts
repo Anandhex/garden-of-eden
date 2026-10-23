@@ -348,8 +348,10 @@ describe("N17.7 a person's card", () => {
     expect("rows" in timeline && timeline.rows.some(([, text]) => text.includes("called the forge a ruin") && text.includes("temper"))).toBe(true);
     const rumours = c.sections.find((s) => s.title === "What they know or believe")!;
     expect("rows" in rumours && rumours.rows.some(([label]) => label.includes("Rumour"))).toBe(true);
-    // A section whose phase isn't built says which phase.
-    expect(c.sections.find((s) => s.title === "Ambitions")).toEqual({ title: "Ambitions", unavailable: expect.stringContaining("N40") });
+    // Ambitions (N40) are built: the section is there, filled from the database (or saying none is open).
+    const amb = c.sections.find((s) => s.title === "Ambitions")!;
+    expect(amb).toBeDefined();
+    expect("rows" in amb || amb.unavailable.includes("N40")).toBe(true);
   });
 
   it("shows a figure's rank, faction, chain of command and deeds; a place's numbers and people", () => {

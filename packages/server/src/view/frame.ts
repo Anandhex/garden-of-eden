@@ -24,6 +24,7 @@ import {
 import { dress, OBJECT_IDS, TEMPLATES, templateFor, TERRAIN_IDS, type Actor, type Frame, type Patch } from "@millbrook/shared/view";
 import { groundAt } from "../game/road/ground.js";
 import type { Land, ViewHost } from "./host.js";
+import { TRADES } from "../game/ambition/kinds.js";
 
 export const PATCH = 16;
 /** Tiles drawn beyond the adapter's viewport on each side. */
@@ -318,17 +319,21 @@ export function buildFrame(f: FrameInput): Frame {
   if (!s.road) {
     const inside = new Map<number, number[]>();
     pos.forEach((p, i) => p.inside !== undefined && (inside.get(p.inside) ?? inside.set(p.inside, []).get(p.inside)!).push(i));
+    // A house that is someone's own shop (N40) bears their sign: N31's reserved lots are not built, so a new shop is a house's new use.
+    const shops = new Map<number, string>();
+    for (const p of sim?.roster.people ?? []) if (p.shop !== undefined && !shops.has(p.shop)) shops.set(p.shop, `${p.name.split(" ")[0]}'s ${TRADES[p.job]?.shop ?? "shop"}`);
     s.map.buildings.forEach((b, i) => {
       if (b.x + b.w < box.x0 || b.x > box.x1 || b.y + b.h < box.y0 || b.y > box.y1) return;
       const who = inside.get(i) ?? [];
-      const what = b.name || (b.kind === "house" ? "A house" : (b.kind ?? "A building"));
+      const sign = shops.get(i);
+      const what = sign ?? (b.name || (b.kind === "house" ? "A house" : (b.kind ?? "A building")));
       const names = sim ? who.slice(0, 6).map((k) => sim.roster.people[k]!.name.split(" ")[0]) : [];
       const tip = sim ? `${what}: ${who.length === 0 ? "nobody inside" : `${who.length} inside (${names.join(", ")}${who.length > 6 ? ", …" : ""})`}` : what;
       // A window is lit after dark while someone is at home (G6: a fact, so the server says it).
       const lit = light < 0.6 && who.length > 0;
       const door = doorOf(s.map.tiles, b);
       const template = templateFor(b.kind, b.name, `${s.map.id}:${i}`);
-      buildings.push({ id: i, x: b.x, y: b.y, w: b.w, h: b.h, kind: b.kind ?? "house", color: b.color, lit, label: b.name && b.name !== "Gate" ? b.name : "", tip, template, door });
+      buildings.push({ id: i, x: b.x, y: b.y, w: b.w, h: b.h, kind: b.kind ?? "house", color: b.color, lit, label: sign ?? (b.name && b.name !== "Gate" ? b.name : ""), tip, template, door });
       lights.push(...buildingLights(i, template, { ...b, door }, { lit, dark: light < 0.6, occupied: who.length > 0 }));
     });
     for (const e of s.map.exits) {

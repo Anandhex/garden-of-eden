@@ -7,7 +7,7 @@ import { defineConfig } from "vitest/config";
  *   other for the cores. Their long versions (LONG=1, the nightly job) are in tests/long.ts.
  * A test slower than `slowTestThreshold` is flagged in the report, so a creeping one is seen before it times out.
  */
-const HEAVY = ["n17", "n18", "n25", "n25b", "n26", "n26e", "n37", "n12", "n19", "n33"].map((n) => `packages/server/tests/${n}.test.ts`);
+const HEAVY = ["n17", "n18", "n25", "n25b", "n26", "n26e", "n37", "n12", "n19", "n33", "n40"].map((n) => `packages/server/tests/${n}.test.ts`);
 
 const shared = {
   // A generated realm has its waystation inns (N26) and a world takes a few seconds to roll; a loaded machine more.

@@ -249,7 +249,7 @@ describe("N18.4 batch writes", () => {
   it("changing three people and flushing writes exactly three rows, in one transaction, and nothing before", () => {
     const store = new WorldStore(":memory:");
     store.people.insertMany(
-      Array.from({ length: 10 }, (_, n) => ({ id: `t_x_${n}`, site: "x", n, name: `P${n}`, gender: "female", species: "human", born_day: -100, cls: "commoner", job: "labourer", home: 0, work: "streets", master: null, master_id: null, faction: null, mother: null, father: null, spouse: null, figure: null, persona: null, traits: null, death: null, expecting: null, last_birth: null, stepped_day: 0, outlook: null, away: null, rev: 0 })),
+      Array.from({ length: 10 }, (_, n) => ({ id: `t_x_${n}`, site: "x", n, name: `P${n}`, gender: "female", species: "human", born_day: -100, cls: "commoner", job: "labourer", home: 0, work: "streets", master: null, master_id: null, faction: null, mother: null, father: null, spouse: null, figure: null, persona: null, traits: null, death: null, expecting: null, last_birth: null, stepped_day: 0, outlook: null, away: null, skill: null, shop: null, rev: 0 })),
     );
     const before = store.people.commits;
     store.people.update("t_x_1", { job: "farmer" });
@@ -280,7 +280,7 @@ describe("N18.4 batch writes", () => {
     const store = new WorldStore(":memory:");
     expect(() =>
       store.people.transaction(() => {
-        store.people.insertMany([{ id: "t_y_0", site: "y", n: 0, name: "A", gender: "male", species: "human", born_day: 0, cls: "serf", job: "farmer", home: 0, work: null, master: null, master_id: null, faction: null, mother: null, father: null, spouse: null, figure: null, persona: null, traits: null, death: null, expecting: null, last_birth: null, stepped_day: 0, outlook: null, away: null, rev: 0 }]);
+        store.people.insertMany([{ id: "t_y_0", site: "y", n: 0, name: "A", gender: "male", species: "human", born_day: 0, cls: "serf", job: "farmer", home: 0, work: null, master: null, master_id: null, faction: null, mother: null, father: null, spouse: null, figure: null, persona: null, traits: null, death: null, expecting: null, last_birth: null, stepped_day: 0, outlook: null, away: null, skill: null, shop: null, rev: 0 }]);
         throw new Error("boom");
       }),
     ).toThrow("boom");

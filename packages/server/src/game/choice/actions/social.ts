@@ -24,6 +24,8 @@ export function nerve(ctx: ChoiceCtx, them: Other, share = 1): Part[] {
 }
 
 const grudge = (them: Other, w: number): Part => [`grudge vs ${them.name}`, w * Math.min(1.5, them.hate)];
+/** A rival for what they want (N40) is easier to have words with. */
+const rivalry = (ctx: ChoiceCtx, them: Other): Part | null => (ctx.ambition?.rivals.includes(them.id) ? [`rival for ${ctx.ambition.kind.replace("_", " ")}`, W.rival * (0.4 + ctx.traits.ambition)] : null);
 
 export const confront: ActionDef = {
   id: "confront",
@@ -32,7 +34,7 @@ export const confront: ActionDef = {
   available: (ctx) => ctx.present.filter((p) => p.hate >= 0.15).map((p) => ({ action: "confront", target: p.id, place: p.place })),
   score: (ctx, o) => {
     const them = other(ctx, o)!;
-    return scored(grudge(them, W.grudge), ...nerve(ctx, them));
+    return scored(grudge(them, W.grudge), rivalry(ctx, them), ...nerve(ctx, them));
   },
   apply: (ctx, o, why, host) => {
     const them = other(ctx, o)!;
@@ -61,7 +63,7 @@ export const insult: ActionDef = {
   available: (ctx) => ctx.present.filter((p) => p.hate >= 0.1 || (ctx.mood <= -1.5 && ctx.traits.temper >= 0.65 && p.rank <= ctx.rank + 1)).map((p) => ({ action: "insult", target: p.id, place: p.place })),
   score: (ctx, o) => {
     const them = other(ctx, o)!;
-    return scored(grudge(them, W.insultGrudge), ...nerve(ctx, them, 0.5));
+    return scored(grudge(them, W.insultGrudge), rivalry(ctx, them), ...nerve(ctx, them, 0.5));
   },
   apply: (ctx, o, why, host) => {
     const them = other(ctx, o)!;
@@ -112,7 +114,7 @@ export const spreadRumour: ActionDef = {
   available: (ctx) => (ctx.present.length >= 1 ? ctx.absent.filter((a) => a.hate >= 0.2).map((a) => ({ action: "spread_rumour", target: a.id })) : []),
   score: (ctx, o) => {
     const them = other(ctx, o)!;
-    return scored(grudge(them, W.rumourHate), ["dishonest", W.dishonest * (1 - ctx.traits.honesty)], ["sociable", 0.2 * ctx.traits.sociability], ["fear of being caught", -0.2 * ctx.traits.honesty]);
+    return scored(grudge(them, W.rumourHate), rivalry(ctx, them), ["dishonest", W.dishonest * (1 - ctx.traits.honesty)], ["sociable", 0.2 * ctx.traits.sociability], ["fear of being caught", -0.2 * ctx.traits.honesty]);
   },
   apply: (ctx, o, why, host) => {
     const them = other(ctx, o)!;
@@ -137,7 +139,7 @@ export const recruit: ActionDef = {
   available: (ctx) => (ctx.recruiter ? ctx.present.filter((p) => p.restless && !p.sameFaction && !p.protected).slice(0, 3).map((p) => ({ action: "recruit", target: p.id, place: p.place })) : []),
   score: (ctx, o) => {
     const them = other(ctx, o)!;
-    return scored(["believes in the cause", W.recruit * (0.4 + 0.4 * ctx.traits.ambition)], [`${them.name} is restless`, 0.3], ["sociable", 0.2 * ctx.traits.sociability], [`${them.name} likes them`, (them.affection / 100) * 0.3], ["honest folk balk", -0.1 * ctx.traits.honesty]);
+    return scored(["believes in the cause", W.recruit * (0.4 + 0.4 * ctx.traits.ambition)], ctx.ambition?.kind === "guild_seat" && ["a following in the guild", 0.15], [`${them.name} is restless`, 0.3], ["sociable", 0.2 * ctx.traits.sociability], [`${them.name} likes them`, (them.affection / 100) * 0.3], ["honest folk balk", -0.1 * ctx.traits.honesty]);
   },
   apply: (ctx, o, why, host) => {
     const them = other(ctx, o)!;

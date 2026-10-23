@@ -83,6 +83,19 @@ export const EVENT_KINDS = [
   // NPCs choose (N38): a deliberate confrontation, a recruit into someone's company
   "confrontation",
   "recruited",
+  // Ambitions and careers (N40): an apprentice taken on, a rise in rank, a shop opened, a seat won (the losers' grudges point at it), land
+  // bought, freedom won, a knighthood, an ambition reached or given up; and the menu's flattery and petitions to whoever decides a seat
+  "apprenticed",
+  "promoted",
+  "opened-shop",
+  "seat-won",
+  "bought-land",
+  "freed",
+  "knighted",
+  "ambition-achieved",
+  "ambition-changed",
+  "flattery",
+  "petition",
 ] as const;
 export type EventKind = (typeof EVENT_KINDS)[number];
 

@@ -2,6 +2,7 @@ import { scored } from "../score.js";
 import type { PlaceId } from "../../schedule.js";
 import type { ActionDef, Applied, ChoiceCtx, Part } from "../types.js";
 import { W } from "../weights.js";
+import { ambitionPart, urgentPart } from "./ambition.js";
 
 /**
  * The everyday actions (N38): work, eat, rest, gossip, buy, sell. Each stands for something the schedule already does, so the schedule's own
@@ -25,6 +26,9 @@ export const work: ActionDef = {
       habitPart(ctx, work, "work block"),
       ctx.broke && ["broke", W.broke],
       ["ambition", W.ambition * ctx.traits.ambition],
+      // Working toward what they want: a trade's mastery, coin for land or wealth, the skill a knight needs.
+      !!ctx.ambition && ["master_trade", "land", "wealth", "knighthood"].includes(ctx.ambition.kind) && ambitionPart(ctx, W.ambitionWork),
+      urgentPart(ctx, "work"),
       ["hunger", -0.5 * ctx.hunger],
       ["tired", -0.4 * ctx.fatigue],
       ctx.storm && ["storm", -0.3],
@@ -53,6 +57,7 @@ export const rest: ActionDef = {
     scored(
       habitPart(ctx, rest, ctx.habit.activity === "sleep" ? "night's sleep" : "free hour"),
       ["tired", W.fatigue * ctx.fatigue],
+      urgentPart(ctx, "rest"),
       ctx.storm && ["storm", 0.3],
       ctx.festival && ctx.habit.activity !== "sleep" && ["festival", -0.1],
     ),
@@ -83,6 +88,7 @@ export const gossip: ActionDef = {
       ["company", Math.min(here, W.crowdMax) * W.crowd],
       ctx.festival && ["festival", W.festival],
       ["hunger", -0.4 * ctx.hunger],
+      urgentPart(ctx, "gossip"),
     );
   },
   apply: (_ctx, o) => ({ plan: { activity: "socialise", place: o.place ?? "square", why: "to talk" }, intent: { kind: "gossip", ...(o.place ? { place: o.place } : {}) } }),

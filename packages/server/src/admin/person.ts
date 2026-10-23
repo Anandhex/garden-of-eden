@@ -12,6 +12,7 @@ import { describeKnown } from "../game/gossip/describe.js";
 import { planWords } from "../game/chatter/revenge.js";
 import { outlookOf } from "../game/people/outlook.js";
 import { socialSections } from "./social.js";
+import { ambitionRows } from "../game/ambition/words.js";
 import { choiceSections } from "./choices.js";
 import { ageFrom } from "../game/people/rules.js";
 import { traitsOfRow } from "../game/people/traits.js";
@@ -31,7 +32,7 @@ import { nameOfRef, parseRef, refOfId } from "./refs.js";
 
 /**
  * Person and place cards (N17). A card is a list of sections (title + rows), not one big
- * typed object, so later phases add sections (ambitions N37, grievances N40, choices N38)
+ * typed object, so later phases add sections (grievances N37, choices N38, ambitions N40)
  * without the page changing. A section whose phase isn't built says so: `unavailable: "N38"`.
  *
  * Everything here reads. It never calls a helper that fills in missing fields on the world.
@@ -148,8 +149,16 @@ function castSections(ctx: AdminContext, id: string, persona: NpcPersona, state:
     title: "Timeline",
     rows: timeline.slice(-25).reverse().map((e): [string, string] => [`Day ${e.day}, ${String(e.hour).padStart(2, "0")}:00`, `${e.kind}: ${e.details}${e.why ? ` (why: ${e.why})` : ""}`]),
   });
-  out.push({ title: "Ambitions", unavailable: "N40: what they want in life (their choices, and the options they weighed, are under Choices)" });
+  out.push(ambitionSection(ctx, id));
   return out;
+}
+
+/** What they want from their life (N40): the ambition, its ladder with the rung they are on, progress, rivals, and the career so far. */
+function ambitionSection(ctx: AdminContext, id: string): AdminSection {
+  const store = ctx.town().store;
+  if (!store) return { title: "Ambitions", unavailable: "N40: ambitions live in the database (no store is open)" };
+  const rows = ambitionRows(ctx.world().realm ?? null, store, id);
+  return { title: "Ambitions", rows: rows.length > 0 ? rows : [["Wants", "nothing worked out yet (a child, or their place's careers have not run)"]] };
 }
 
 const nameOfRefId = (ctx: AdminContext, raw: string): string => {
@@ -372,7 +381,7 @@ function townspersonCard(ctx: AdminContext, id: string): AdminCard | null {
   // Someone who has died is no longer on the map: their card is their life.
   if (gone) {
     const place = ctx.world().realm?.settlements[gone.site];
-    return { ref: `town:${id}`, kind: "townsperson", name: gone.name, subtitle: `${gone.cls} ${gone.job}${place ? ` of ${place.name}` : ""} (dead)`, alive: false, site: gone.site, siteName: place?.name ?? null, doing: "dead", sections: lifeSections(ctx, gone), follow: { site: gone.site, id: "" } };
+    return { ref: `town:${id}`, kind: "townsperson", name: gone.name, subtitle: `${gone.cls} ${gone.job}${place ? ` of ${place.name}` : ""} (dead)`, alive: false, site: gone.site, siteName: place?.name ?? null, doing: "dead", sections: [...lifeSections(ctx, gone), ambitionSection(ctx, gone.id)], follow: { site: gone.site, id: "" } };
   }
   // On a journey: out of their town's crowd, so the card is their road (unless they are visiting the town whose crowd they are in).
   if (row && row.away !== null && !ctx.town().whereNow(id)?.site) return awayCard(ctx, row);
@@ -420,6 +429,7 @@ function townspersonCard(ctx: AdminContext, id: string): AdminCard | null {
     ...(row ? [knowsSection(ctx, row)] : []),
     ...(row ? socialSections(ctx, row) : []),
     ...(row ? choiceSections(ctx, row.id) : []),
+    ...(row && !(persona && state) ? [ambitionSection(ctx, row.id)] : []),
     ...(row && !row.persona ? [outlookSection(ctx, row, world.realm!.settlements[row.site]?.leader ? world.realm!.figures[world.realm!.settlements[row.site]!.leader!] : undefined)] : []),
     ...(row && row.persona ? [] : [{ title: "Needs, emotions, goals", unavailable: "N25: townsfolk's needs and feelings are worked out by code (their outlook is above); they get a full set of their own once they talk to the player" } as AdminSection]),
   ];

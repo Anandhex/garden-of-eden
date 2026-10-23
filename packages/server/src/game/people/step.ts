@@ -283,6 +283,8 @@ export function stepSite(ctx: LifeCtx, site: string, day: number): SiteStep {
       stepped_day: day,
       outlook: null,
       away: null,
+      skill: null,
+      shop: null,
       rev: 0,
     };
     people.setSeq(site, { next_id: seq.next_id + 1, next_n: seq.next_n + 1 });

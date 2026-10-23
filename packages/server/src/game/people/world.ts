@@ -10,6 +10,7 @@ import { migrationDay } from "./migration.js";
 import { chatterDay } from "../chatter/day.js";
 import { gossipDay } from "../gossip/day.js";
 import { choiceDay } from "../choice/day.js";
+import { ambitionDay } from "../ambition/day.js";
 import { roadArrivals, roadTrips } from "../road/day.js";
 import { stepSite, type LifeCtx, type SiteStep } from "./step.js";
 
@@ -21,7 +22,7 @@ import { stepSite, type LifeCtx, type SiteStep } from "./step.js";
  * 2. The road (road/day.ts): journeys that ended are dealt with; moves between places, by household (people/migration.ts), set out as
  *    journeys and arrive days later; the day's trips go out and swap news.
  * 3. Each live place's people live the day (people/step.ts), then are reviewed (people/outlook.ts), then meet and quarrel and seek
- *    revenge (chatter/day.ts, N37), then gossip (gossip/day.ts), then choose what to do with the day (choice/day.ts, N38) — all of them in a batch (coarse), with the
+ *    revenge (chatter/day.ts, N37), then gossip (gossip/day.ts), then choose what to do with the day (choice/day.ts, N38), then their careers move (ambition/day.ts, N40) — all of them in a batch (coarse), with the
  *    ones the player is watching at full detail (their events keep their hours to be shown), except places
  *    marked lazy, which are only worked out when something needs them (`catchUp`): the same function over the
  *    same stored conditions, so the result is the same.
@@ -66,6 +67,7 @@ export function catchUp(ctx: LifeCtx, site: string, toDay: number): SiteStep[] {
         chatterDay(ctx, step, d);
         gossipDay(ctx, step, d);
         choiceDay(ctx, step, d);
+        ambitionDay(ctx, step, d);
         out.push(step);
       }
     });
@@ -120,6 +122,7 @@ export function lifeDay(ctx: LifeCtx, day: number, opts: LifeOptions = {}): DayL
       chatterDay(ctx, step, day, { hourly: watched.has(id) });
       gossipDay(ctx, step, day, { hourly: watched.has(id) });
       choiceDay(ctx, step, day);
+      ambitionDay(ctx, step, day);
       // A place whose people were never rolled keeps its number (ensureLivePeople makes them first).
       if (store.people.count(id) > 0) realm.settlements[id]!.population = store.people.livingCount(id);
     }

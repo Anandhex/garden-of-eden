@@ -14,7 +14,7 @@ const hashes = new Map<string, number>();
 function dailyUnit(seed: number, id: string, day: number, purpose = "pick"): number {
   let h = hashes.get(id);
   if (h === undefined) hashes.set(id, (h = seedFrom(id)));
-  let x = (h ^ Math.imul(day + 1, 0x9e3779b1) ^ seed ^ (purpose === "pick" ? 0 : 0x5bd1e995)) | 0;
+  let x = (h ^ Math.imul(day + 1, 0x9e3779b1) ^ seed ^ (purpose === "pick" ? 0 : purpose === "order" ? 0x5bd1e995 : seedFrom(purpose))) | 0;
   x = Math.imul(x ^ (x >>> 16), 0x85ebca6b);
   x = Math.imul(x ^ (x >>> 13), 0xc2b2ae35);
   x ^= x >>> 16;
@@ -30,6 +30,10 @@ import { ageFrom } from "../people/rules.js";
 import type { LifeCtx, SiteStep } from "../people/step.js";
 import { traitsOfRow } from "../people/traits.js";
 import { decide } from "./registry.js";
+import { decidersOf, holdsSeat } from "../ambition/seats.js";
+import { rivalsOf } from "../ambition/words.js";
+import { urgentOf } from "../ambition/situations.js";
+import type { AmbitionCtx } from "./types.js";
 import { reasonOf } from "./score.js";
 import type { ChoiceCtx, ChoiceHost, ChoiceLog, Deed, Other } from "./types.js";
 
@@ -50,6 +54,8 @@ export const CHOICE_DAY = {
   most: 60,
   /** Others in reach: the people they hold something against, plus more by the stream up to this many. */
   others: 5,
+  /** Share of the days someone who wants a seat looks at the menu (N40): their chance to sway whoever decides it. */
+  ambitious: 0.08,
 } as const;
 
 export interface DayChoices {
@@ -89,10 +95,34 @@ function otherOf(ctx: LifeCtx, me: PersonRow, you: PersonRow, day: number, siteD
     sameFaction: !!me.faction && me.faction === you.faction,
     sells: false,
     restless: o.mood <= -1 || (r <= 1 && siteDay.famine > 0.3),
+    holdsSeat: holdsSeat(ctx.store, you.id),
   };
 }
 
-function rowCtx(ctx: LifeCtx, me: PersonRow, day: number, siteDay: SiteDay, others: PersonRow[], fights: number, hates: Map<string, number>): ChoiceCtx {
+/** A townsperson's ambition as the menu reads it (N40): who decides its next rung, who else is after it. */
+export function ambitionCtxOf(ctx: LifeCtx, me: PersonRow, day: number): AmbitionCtx | undefined {
+  if (!config.ambitions) return undefined;
+  const amb = ctx.store.careers.ambitionOf(me.id);
+  if (!amb || (amb.kind === "quiet_life" && !amb.urgent)) return undefined;
+  const urgent = urgentOf(amb, day);
+  return {
+    kind: amb.kind,
+    step: amb.step,
+    target: amb.target,
+    progress: amb.progress,
+    strength: amb.strength,
+    deciders: decidersOf(ctx.store, ctx.realm, me, amb),
+    rivals: rivalsOf(ctx.store, me, amb).map((r) => r.id),
+    ...(me.job === "apprentice" && !me.master_id ? { needsMaster: true } : {}),
+    ...(amb.route ? { route: amb.route } : {}),
+    ...(urgent ? { urgent: urgent.kind } : {}),
+  };
+}
+
+/** Wanting a seat makes a person someone with something to decide most days they can sway it. */
+const SEATED = new Set(["guild_seat", "office", "knighthood"]);
+
+function rowCtx(ctx: LifeCtx, me: PersonRow, day: number, siteDay: SiteDay, others: PersonRow[], fights: number, hates: Map<string, number>, ambition?: AmbitionCtx): ChoiceCtx {
   const outlook = outlookOf(me);
   const t = temperOf(me);
   const rt = traitsOfRow(me);
@@ -130,6 +160,7 @@ function rowCtx(ctx: LifeCtx, me: PersonRow, day: number, siteDay: SiteDay, othe
     last: outlook.choice?.cd ?? {},
     streak: null,
     fights: { place: fights, hour: 0 },
+    ...(ambition ? { ambition } : {}),
   };
 }
 
@@ -168,7 +199,8 @@ function hostFor(ctx: LifeCtx, me: PersonRow, day: number, onDeed: () => void): 
       });
       const ref = eventRef(e.id);
       // Those it was done between and a few who saw it know of it (gossip carries it on from there).
-      if (config.gossip) for (const who of [d.actor, ...(d.target ? [d.target] : []), ...(d.witnesses ?? []).slice(0, 3)]) learn(ctx, who, ref, { day, source: "saw", accuracy: 1 });
+      // Small courtesies (flattery, a petition: N40) are not news: only deeds that matter are learned and passed on.
+      if (config.gossip && d.importance >= 2) for (const who of [d.actor, ...(d.target ? [d.target] : []), ...(d.witnesses ?? []).slice(0, 3)]) learn(ctx, who, ref, { day, source: "saw", accuracy: 1 });
       if (b) {
         adjustRel(store, b.id, a.id, { ...fx?.target, ...d.onTarget }, day);
         adjustRel(store, a.id, b.id, { ...fx?.actor, ...d.onActor }, day);
@@ -225,6 +257,7 @@ export function choiceDay(ctx: LifeCtx, step: Pick<SiteStep, "site">, day: numbe
     for (const r of everyone) {
       if (store.social.hasOpen(r.id)) wanting.push(r);
       else if (dailyUnit(realm.seed, r.id, day) < CHOICE_DAY.sample) rest.push(r);
+      else if (config.ambitions && SEATED.has(store.careers.ambitionOf(r.id)?.kind ?? "") && dailyUnit(realm.seed, r.id, day, "ambition") < CHOICE_DAY.ambitious) rest.push(r);
     }
     if (wanting.length + rest.length === 0) return out;
     // The same order wherever the place is worked out; when more want to choose than a place can in a day, a fair draw of them, not whoever's id sorts first.
@@ -243,13 +276,16 @@ export function choiceDay(ctx: LifeCtx, step: Pick<SiteStep, "site">, day: numbe
         const hates = new Map<string, number>();
         for (const g of open) hates.set(g.against, Math.min(2, (hates.get(g.against) ?? 0) + weightOn(g, day)));
         const grudges = open.map((g) => byId.get(g.against)).filter((r): r is PersonRow => !!r && r.id !== me.id);
-        const near: PersonRow[] = [...new Map(grudges.map((r) => [r.id, r])).values()];
+        const ambition = ambitionCtxOf(ctx, fresh, day);
+        // Whoever decides what they want is in reach too (they live here).
+        const deciders = (ambition?.deciders ?? []).map((id) => byId.get(id)).filter((r): r is PersonRow => !!r && r.id !== me.id);
+        const near: PersonRow[] = [...new Map([...grudges, ...deciders].map((r) => [r.id, r])).values()];
         for (let tries = 0; near.length < CHOICE_DAY.others && tries < 12; tries++) {
           const r = rows[Math.floor(pool() * rows.length)]!;
           if (r.id !== me.id && !near.some((n) => n.id === r.id)) near.push(r);
         }
         near.sort((a, b) => (a.id < b.id ? -1 : 1));
-        const c = rowCtx(ctx, fresh, day, sd, near, fights, hates);
+        const c = rowCtx(ctx, fresh, day, sd, near, fights, hates, ambition);
         const decision = decide(c, hostFor(ctx, fresh, day, () => void (fights += 1)), streamFor(realm.seed, "choice", me.id, day));
         if (!decision) continue;
         out.chose++;

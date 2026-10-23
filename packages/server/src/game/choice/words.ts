@@ -27,6 +27,9 @@ const DOING: Record<string, string> = {
   travel: "decided to leave",
   steal: "stole from",
   attack: "came to blows with",
+  flatter: "sought the favour of",
+  petition: "asked a favour of",
+  seek_master: "set out to find a master to learn from",
 };
 
 const PART_WORDS: Array<[RegExp, string]> = [
@@ -45,6 +48,9 @@ const PART_WORDS: Array<[RegExp, string]> = [
   [/^mood: anger$/, "a sour mood"],
   [/^warmth toward (.+)$/, "warmth toward $1"],
   [/^wants to be elsewhere$/, "wanting to be elsewhere"],
+  [/^ambition: (.+)$/, "wanting $1"],
+  [/^rival for (.+)$/, "a rivalry over $1"],
+  [/^currying favour$/, "wanting to stand well with those above them"],
 ];
 
 const words = (label: string): string => {

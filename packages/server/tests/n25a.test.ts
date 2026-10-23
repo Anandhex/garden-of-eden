@@ -187,7 +187,7 @@ describe("N25a depth from a townsperson's real family", () => {
     const roster = town.rosterAt(site, siteMap(realm.settlements[site]!, "village", realm))!;
     const adult = roster.people.find((x) => x.cls === "commoner" && x.job === "labourer")!;
     // A dead child of theirs, in the database: lost to a beast.
-    store.people.insertMany([{ id: "t_lost_1", site, n: 9000, name: "Little Wren", gender: "female", species: "human", born_day: -2000, cls: "commoner", job: "child", home: 0, work: null, master: null, master_id: null, faction: null, mother: adult.id, father: null, spouse: null, figure: null, persona: null, traits: null, death: JSON.stringify({ cause: "beast", day: -20, site: null }), expecting: null, last_birth: null, stepped_day: 0, outlook: null, away: null, rev: 0 }]);
+    store.people.insertMany([{ id: "t_lost_1", site, n: 9000, name: "Little Wren", gender: "female", species: "human", born_day: -2000, cls: "commoner", job: "child", home: 0, work: null, master: null, master_id: null, faction: null, mother: adult.id, father: null, spouse: null, figure: null, persona: null, traits: null, death: JSON.stringify({ cause: "beast", day: -20, site: null }), expecting: null, last_birth: null, stepped_day: 0, outlook: null, away: null, skill: null, shop: null, rev: 0 }]);
     const id = town.meetTownsperson(roster, adult)!;
     const p = town.personas[id]!;
     const sheet = factsFor({ realm, people: store.people, events: [], day: town.world.day, talkers: town.world.talkers! }, p);

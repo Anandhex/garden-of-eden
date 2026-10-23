@@ -161,6 +161,8 @@ export interface Townsperson {
   master: string | null;
   /** The townsperson id of their master, when that's one of the townsfolk. */
   masterId: string | null;
+  /** The building that is their own shop (N40): it bears their sign. */
+  shop?: number;
   color: string;
 }
 
@@ -222,7 +224,7 @@ export interface CrowdMap {
 /** What a townsperson set out to do today when they chose something other than their day's work (N38): where they go and to whom. */
 export interface CrowdIntent {
   id: string;
-  /** confront, insult, attack, steal, revenge, court, recruit (to a person's door); gossip (to the square); travel (to the gate). */
+  /** confront, insult, attack, steal, revenge, court, recruit, flatter, petition (to a person's door); gossip (to the square); travel (to the gate). */
   kind: string;
   /** The townsperson's id they go to. */
   target?: string;
@@ -900,6 +902,8 @@ const INTENT_WORDS: Record<string, string> = {
   revenge: "gone to settle with",
   court: "gone to call on",
   recruit: "gone to talk to",
+  flatter: "gone to pay their respects to",
+  petition: "gone to ask a favour of",
 };
 
 /** Where an intent takes someone: the target's door, the square, or the gate. */
