@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Realm (canvas)</title>
+<style>
+  body { margin: 0; font: 13px/1.4 system-ui, sans-serif; background: #15171c; color: #e8e2d4; }
+  #head, #actions, #road, #status { padding: 4px 8px; }
+  #status { color: #e0a64b; }
+  main { display: flex; gap: 8px; padding: 0 8px; flex-wrap: wrap; }
+  canvas { width: min(624px, 100%); image-rendering: pixelated; border: 1px solid #333; }
+  #left { flex: 0 1 624px; min-width: 0; }
+  #right { flex: 1 1 320px; min-width: 0; max-height: 92vh; overflow: auto; }
+  #feed { height: 140px; overflow: auto; border: 1px solid #333; padding: 4px; }
+  #log { max-height: 220px; overflow: auto; }
+  #modal, #prompt { position: fixed; top: 15%; left: 50%; transform: translateX(-50%); background: #23262e; border: 1px solid #555; padding: 12px; max-width: 520px; max-height: 70vh; overflow: auto; }
+  button { margin: 2px; }
+  h4 { margin: 8px 0 2px; }
+</style>
+</head>
+<body>
+<div id="head">…</div>
+<div id="actions"></div>
+<div id="status"></div>
+<main>
+  <div id="left">
+    <canvas id="world"></canvas>
+    <div id="road"></div>
+    <div id="feed"></div>
+  </div>
+  <div id="right">
+    <section id="chat" hidden>
+      <div id="who"></div>
+      <div id="log"></div>
+      <div id="streaming"></div>
+      <div id="offers"></div>
+      <form id="say"><select id="mode"></select><input id="line" autocomplete="off"><button>Send</button></form>
+      <div id="tools"></div>
+    </section>
+    <nav id="tabs"></nav>
+    <div id="sheet"></div>
+  </div>
+</main>
+<div id="modal" hidden></div>
+<div id="prompt" hidden></div>
+<script type="module" src="/src/adapter/canvas/main.ts"></script>
+</body>
+</html>

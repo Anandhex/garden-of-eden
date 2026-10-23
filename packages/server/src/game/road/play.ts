@@ -147,17 +147,6 @@ export class RoadPlay {
     return out;
   }
 
-  /** The journeys within `radius` of the player, in full, for the browser to place (it makes positions the same way the server does). */
-  journeysForClient(radius = 900): { minute: number; journeys: unknown[] } {
-    const realm = this.world.realm;
-    const road = this.world.player.road;
-    if (!realm || !road) return { minute: this.minute(), journeys: [] };
-    const m = this.minute();
-    // On the road now, or setting out within the hour.
-    const near = journeysNear(realm, landOf(realm).data, road, radius, m + 60).map((x) => x.journey);
-    return { minute: m, journeys: near };
-  }
-
   /** Steps one tile costs: walking is 1; a mount is quicker; weariness, hunger and bad weather slow it. */
   cost(): number {
     const p = this.world.player;

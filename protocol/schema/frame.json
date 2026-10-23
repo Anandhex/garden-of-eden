@@ -1,0 +1,623 @@
+{
+  "title": "Frame",
+  "version": 1,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "map": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "place",
+            "road"
+          ]
+        },
+        "w": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "h": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "kind",
+        "w",
+        "h"
+      ],
+      "additionalProperties": false
+    },
+    "box": {
+      "type": "object",
+      "properties": {
+        "x0": {
+          "type": "number"
+        },
+        "y0": {
+          "type": "number"
+        },
+        "x1": {
+          "type": "number"
+        },
+        "y1": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "x0",
+        "y0",
+        "x1",
+        "y1"
+      ],
+      "additionalProperties": false
+    },
+    "patches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "x0": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "y0": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "w": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "h": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "ground": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          },
+          "objects": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        "required": [
+          "key",
+          "x0",
+          "y0",
+          "w",
+          "h",
+          "ground",
+          "objects"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "buildings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          },
+          "w": {
+            "type": "number"
+          },
+          "h": {
+            "type": "number"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          },
+          "lit": {
+            "type": "boolean"
+          },
+          "label": {
+            "type": "string"
+          },
+          "tip": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "x",
+          "y",
+          "w",
+          "h",
+          "kind",
+          "color",
+          "lit",
+          "label",
+          "tip"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "lights": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "window",
+              "lamp",
+              "fire",
+              "torch",
+              "forge",
+              "magic"
+            ]
+          },
+          "on": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "x",
+          "y",
+          "kind",
+          "on"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "signs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          },
+          "text": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "exit",
+              "place"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "x",
+          "y",
+          "text",
+          "kind"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "actors": {
+      "type": "object",
+      "properties": {
+        "upsert": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "player",
+                  "npc",
+                  "folk",
+                  "traveller",
+                  "creature",
+                  "companion"
+                ]
+              },
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "facing": {
+                "type": "string",
+                "enum": [
+                  "n",
+                  "e",
+                  "s",
+                  "w"
+                ]
+              },
+              "look": {
+                "type": "object",
+                "properties": {
+                  "sprite": {
+                    "type": "string"
+                  },
+                  "tint": {
+                    "type": "string"
+                  },
+                  "trim": {
+                    "type": "string"
+                  },
+                  "size": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "sprite"
+                ],
+                "additionalProperties": false
+              },
+              "label": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "shortLabel": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "tip": {
+                "type": "string"
+              },
+              "hp": {
+                "type": "number"
+              },
+              "flags": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "hostile",
+                    "dead",
+                    "unconscious",
+                    "engaged",
+                    "quest",
+                    "busy",
+                    "inside",
+                    "noble",
+                    "lowborn"
+                  ]
+                }
+              },
+              "route": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "x",
+              "y",
+              "look",
+              "label",
+              "tip",
+              "flags"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "move": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "items": false,
+            "minItems": 3,
+            "maxItems": 3
+          }
+        },
+        "routes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "route": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              }
+            },
+            "required": [
+              "id",
+              "route"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "remove": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "upsert",
+        "remove"
+      ],
+      "additionalProperties": false
+    },
+    "player": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "const": "player"
+        },
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "x",
+        "y"
+      ],
+      "additionalProperties": false
+    },
+    "ambience": {
+      "type": "object",
+      "properties": {
+        "light": {
+          "type": "number"
+        },
+        "timeOfDay": {
+          "type": "string"
+        },
+        "weather": {
+          "type": "string"
+        },
+        "season": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "light",
+        "timeOfDay",
+        "weather",
+        "season"
+      ],
+      "additionalProperties": false
+    },
+    "prompt": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            },
+            "target": {
+              "type": "string"
+            },
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "tone": {
+              "type": "string",
+              "enum": [
+                "talk",
+                "fight",
+                "danger"
+              ]
+            }
+          },
+          "required": [
+            "text",
+            "target",
+            "x",
+            "y",
+            "tone"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "fight": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "secondsLeft": {
+              "type": "number"
+            },
+            "tick": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "secondsLeft",
+            "tick"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "chatter": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "a": {
+            "type": "string"
+          },
+          "b": {
+            "type": "string"
+          },
+          "lines": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "items": false,
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "hot": {
+            "type": "boolean"
+          },
+          "bow": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "a",
+          "b",
+          "lines",
+          "hot",
+          "bow"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "gossip": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "who": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "who",
+          "text"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "stepMs": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "map",
+    "box",
+    "actors",
+    "player",
+    "ambience",
+    "prompt",
+    "fight",
+    "stepMs"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "__schema0": {
+      "type": "object",
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

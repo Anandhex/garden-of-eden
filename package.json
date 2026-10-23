@@ -35,7 +35,10 @@
     "bench:reviews": "tsx --env-file-if-exists=.env packages/server/scripts/bench-reviews.ts",
     "gen": "tsx --env-file-if-exists=.env packages/server/scripts/generate-npc.ts",
     "check-npcs": "tsx packages/server/scripts/check-npcs.ts",
-    "bench:style": "tsx --env-file-if-exists=.env packages/server/scripts/bench-style.ts"
+    "bench:style": "tsx --env-file-if-exists=.env packages/server/scripts/bench-style.ts",
+    "schema": "tsx packages/shared/scripts/schema.ts",
+    "frames:record": "tsx packages/server/scripts/record-frames.ts",
+    "frames:play": "npm run dev -w @millbrook/client"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",

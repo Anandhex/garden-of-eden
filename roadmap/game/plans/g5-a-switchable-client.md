@@ -205,3 +205,64 @@ A plain `<canvas>` adapter (`client/src/adapter/canvas/`, no Phaser, squares and
 - Client prediction and lag smoothing beyond tweening.
 - New art, lighting or 2.5D: that is [G6](g6-the-look.md).
 - Porting the admin page.
+
+## Built (2026-10-23)
+
+Every step is built. The browser runs no simulation, terrain, placement, pathfinding, targeting or clock code.
+
+**Where it is:**
+- **The protocol:** [`shared/src/view/`](../../../packages/shared/src/view).
+  - `schema.ts`: zod schemas and `PROTOCOL_VERSION = 1`.
+  - `art.ts`: the art ids, which is G6 step 1.
+  - `jsonSchema.ts`: what `npm run schema` writes to `protocol/schema/`.
+- **The server side:** [`server/src/view/`](../../../packages/server/src/view).
+  - `host.ts`: what the view may call.
+  - `frame.ts`: the frame builder and diff.
+  - `ui.ts`: the UI model and its diff.
+  - `session.ts`: intents, walking, prompts and the clocks.
+  - `socket.ts`: `/ws`.
+- **The client:** [`client/src/core/`](../../../packages/client/src/core) is 326 lines. Next to it are
+  [`adapter/web/`](../../../packages/client/src/adapter/web) and
+  [`adapter/canvas/`](../../../packages/client/src/adapter/canvas), the canvas one about 300 lines with no
+  Phaser.
+- **Docs:** [`protocol/README.md`](../../../protocol/README.md) and [`ADAPTERS.md`](../../../protocol/ADAPTERS.md).
+- **Tooling:**
+  - `npm run frames:record`, which writes `protocol/recordings/*.jsonl`;
+  - `npm run frames:play`, which serves `/recordings/` from Vite so `?replay=` works with no game server;
+  - [`server/scripts/game-process.ts`](../../../packages/server/scripts/game-process.ts), a real server plus a
+    protocol-only client plus a fake Ollama, shared by the recorder and the tests.
+- **Tests:** `tests/g5.test.ts` (14 tests). `tests/server.test.ts` now plays over the socket. The old routes
+  `/api/act`, `/move`, `/tick`, `/new`, `/crowd`, `/road/*`, `/quote` and `/realm` are gone, and a test checks
+  that.
+
+**What differs from the plan:**
+- **Two more intents.** `panel` opens or closes a dialog on the server; `select` picks a place on the realm map.
+  The server then writes that place's text.
+- **Feed lines are their own message.** New lines come as `{ t: "feed" }`, so a step doesn't resend the feed.
+  `ui.feed` is whole only on connect.
+- **Frames split movers out.** Actors that only moved go as compact `actors.move` tuples (`[id, x, y]`), not
+  `upsert`, with routes in `actors.routes`. Only NPCs and creatures get a route. Townsfolk and travellers move a tile or two a minute and are drawn straight, as the browser drew
+  them before. This keeps a busy town's minute under 8 KB.
+- **More strings come from the server.** The Simulate speeds, with their labels, are part of `header.simulate`.
+  The voice settings dialog is the adapter's own, since it holds the browser's preferences. Its list of who
+  speaks comes from `ui.cast`.
+- **Test 8, "the same game with or without a view".** This is `VIEW_CHECK=1`: the session hashes the world before
+  and after building each frame and UI, and the test checks it never logs a difference. `server.ts` can't be
+  loaded in-process, so two runs couldn't be compared.
+- **Test 3, the loot prompt.** No model-free path reliably leaves a body, so the test drives the prompt mechanism
+  through `newGame`. That is the same code path, and loot uses it.
+- **Better at walking.** Moving the walk to the server showed two old browser habits; both are fixed. A step
+  refused because someone stepped into the way now re-plans the path, up to 4 times. A walk to talk to someone
+  follows them if they moved on, up to 4 times.
+- **Say waits its turn.** A `say` sent while the last reply is still coming waits (up to 30 s) instead of being
+  dropped.
+- **Shared code moved, not deleted.** The client keeps [`dom.ts`](../../../packages/client/src/dom.ts) and
+  [`realmMap.ts`](../../../packages/client/src/realmMap.ts) at `src/`, because the admin page uses them too. The
+  view package re-exports the speech helpers (`SentenceSplitter`, `speakable`, the voice types), so adapters
+  import only `@millbrook/shared/view`.
+
+**Not done here, and why:**
+- No Unity spike; the plan marked it optional.
+- The `?fps=1` 60 fps check wasn't redone by hand on a capital. The walking and naming work it measured is
+  unchanged in the adapter. The per-minute crowd burst now runs on the server, and `client/tests/frame.test.ts`
+  still times it against the budget.

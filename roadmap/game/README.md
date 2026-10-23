@@ -82,7 +82,7 @@ The big question: **where does the model run for players?**
 
 ## G5: A switchable client
 
-**Status:** ⬜ Planned 2026-10-23. **Build guide:** [plans/g5-a-switchable-client.md](plans/g5-a-switchable-client.md).
+**Status:** ✅ Built 2026-10-23. **Build guide:** [plans/g5-a-switchable-client.md](plans/g5-a-switchable-client.md) (with what was built and where it differs). **Protocol:** [protocol/](../../protocol/README.md).
 
 Goal: the client can be web, Unity or Unreal, with as little logic in it as possible. The server is the brain and decides everything; a client only draws and sends what the player wants.
 
@@ -91,14 +91,14 @@ Adapter (Phaser + DOM today; Unity, Unreal later)  ──WebSocket, JSON (schema
    draws, tweens, input → intents, voices                                                  ──▶  Ollama
 ```
 
-- [ ] One versioned protocol (zod in `shared/src/view/`, JSON Schema in `protocol/schema/`): frames, events, speech, UI model, prompts from the server; intents from the client
-- [ ] A WebSocket session per player that holds the view box, history, prompts, clocks and walks
-- [ ] The frame builder: crowd, travellers and terrain placed on the server for the view box only
-- [ ] Intents the server resolves: click, interact, fight, flee, walk to, travel
-- [ ] The clocks on the server: time flow, Simulate, the fight clock, the model check
-- [ ] Panels as data with every string written by the server; feed and chat history kept by the server
-- [ ] The web client split into `core/` and `adapter/web/`; the client's simulation, terrain, placement, pathfinding and clock code deleted; an import test guards the line
-- [ ] A recorder (`npm run frames:record`) and a second, plain-canvas adapter to prove the protocol; `protocol/ADAPTERS.md` for Unity and Unreal
+- [x] One versioned protocol (zod in `shared/src/view/`, JSON Schema in `protocol/schema/`): frames, events, speech, UI model, prompts from the server; intents from the client
+- [x] A WebSocket session per player that holds the view box, history, prompts, clocks and walks ([`server/src/view/`](../../packages/server/src/view))
+- [x] The frame builder: crowd, travellers and terrain placed on the server for the view box only
+- [x] Intents the server resolves: click, interact, fight, flee, walk to, travel
+- [x] The clocks on the server: time flow, Simulate, the fight clock, the model check
+- [x] Panels as data with every string written by the server; feed and chat history kept by the server
+- [x] The web client split into `core/` and `adapter/web/`; the client's simulation, terrain, placement, pathfinding and clock code deleted; an import test guards the line
+- [x] A recorder (`npm run frames:record`) and a second, plain-canvas adapter to prove the protocol; `protocol/ADAPTERS.md` for Unity and Unreal
 
 **Done when:** the web game plays as before with none of that logic in the browser, and the plain-canvas adapter can walk, talk, fight, travel and simulate through the protocol alone.
 

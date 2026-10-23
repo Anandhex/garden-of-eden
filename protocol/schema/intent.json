@@ -1,0 +1,407 @@
+{
+  "title": "Intent (adapter to server)",
+  "version": 1,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "t": {
+          "type": "string",
+          "const": "hello"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "view": {
+          "type": "object",
+          "properties": {
+            "w": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            "h": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "w",
+            "h"
+          ],
+          "additionalProperties": false
+        },
+        "engine": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "t",
+        "version",
+        "view",
+        "engine"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "t": {
+          "type": "string",
+          "const": "view"
+        },
+        "w": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "h": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "hidden": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "t"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "t": {
+          "type": "string",
+          "const": "step"
+        },
+        "dx": {
+          "anyOf": [
+            {
+              "type": "number",
+              "const": -1
+            },
+            {
+              "type": "number",
+              "const": 0
+            },
+            {
+              "type": "number",
+              "const": 1
+            }
+          ]
+        },
+        "dy": {
+          "anyOf": [
+            {
+              "type": "number",
+              "const": -1
+            },
+            {
+              "type": "number",
+              "const": 0
+            },
+            {
+              "type": "number",
+              "const": 1
+            }
+          ]
+        }
+      },
+      "required": [
+        "t",
+        "dx",
+        "dy"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "t": {
+          "type": "string",
+          "const": "moveTo"
+        },
+        "x": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "y": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "t",
+        "x",
+        "y"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "t": {
+          "type": "string",
+          "const": "click"
+        },
+        "x": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "y": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "t",
+        "x",
+        "y"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "t": {
+          "type": "string",
+          "const": "interact"
+        }
+      },
+      "required": [
+        "t"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "t": {
+          "type": "string",
+          "const": "fight"
+        }
+      },
+      "required": [
+        "t"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "t": {
+          "type": "string",
+          "const": "flee"
+        }
+      },
+      "required": [
+        "t"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "t": {
+          "type": "string",
+          "const": "say"
+        },
+        "mode": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 500
+        }
+      },
+      "required": [
+        "t",
+        "mode",
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "t": {
+          "type": "string",
+          "const": "act"
+        },
+        "action": {
+          "type": "string"
+        },
+        "args": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        }
+      },
+      "required": [
+        "t",
+        "action"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "t": {
+          "type": "string",
+          "const": "panel"
+        },
+        "panel": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "arg": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "t",
+        "panel"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "t": {
+          "type": "string",
+          "const": "select"
+        },
+        "what": {
+          "type": "string"
+        },
+        "id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "t",
+        "what",
+        "id"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "t": {
+          "type": "string",
+          "const": "close"
+        }
+      },
+      "required": [
+        "t"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "t": {
+          "type": "string",
+          "const": "answer"
+        },
+        "prompt": {
+          "type": "string"
+        },
+        "option": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "t",
+        "prompt",
+        "option"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "t": {
+          "type": "string",
+          "const": "time"
+        },
+        "flow": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "t",
+        "flow"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "t": {
+          "type": "string",
+          "const": "simulate"
+        },
+        "speed": {
+          "type": "string",
+          "enum": [
+            "off",
+            "slow",
+            "normal",
+            "fast",
+            "days"
+          ]
+        }
+      },
+      "required": [
+        "t",
+        "speed"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "t": {
+          "type": "string",
+          "const": "cancel"
+        }
+      },
+      "required": [
+        "t"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "t": {
+          "type": "string",
+          "const": "newGame"
+        }
+      },
+      "required": [
+        "t"
+      ],
+      "additionalProperties": false
+    }
+  ]
+}

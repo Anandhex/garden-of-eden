@@ -1,5 +1,5 @@
 /**
- * N19: the frame budget, in CI by proxy. Real frames per second need a GPU and a browser, so
+ * N19: the frame budget, in CI by proxy (since G5 the minute burst runs in the server's frame builder, the walking and names in the web adapter). Real frames per second need a GPU and a browser, so
  * this times the work the browser does for a capital's crowd outside drawing: the walkers'
  * positions and the nearest names every frame, and everyone's place once a game minute (one
  * minute is TIME_FLOW_SECONDS of real time, so a burst every ~120 frames). The real 60 fps
@@ -11,8 +11,8 @@ import { budgets, perfSlack } from "../../server/src/budgets.js";
 import { generateRealm } from "../../server/src/game/realm/generate.js";
 import { rosterFor } from "../../server/src/game/realm/townsfolk.js";
 import { siteMap } from "../../server/src/web/sites.js";
-import { crowd, freshTold, gossipBubble } from "../src/crowd";
-import { FrameMeter, fpsWanted, nearestShown, walkAt, type Walker } from "../src/world/frame";
+import { gossipBubble } from "../../server/src/view/frame.js";
+import { FrameMeter, fpsWanted, nearestShown, walkAt, type Walker } from "../src/adapter/web/world/fps";
 
 const CLEAR: CrowdDay = { weather: "clear", festival: false };
 /** 60 frames a second, and a game minute every 2 real seconds (config.timeFlowSeconds). */
@@ -49,10 +49,6 @@ describe("N19 the capital's crowd, per frame", () => {
     const perFrame: number[] = [];
     const bursts: number[] = [];
     let sink = 0;
-    // Four fresh things said in the place, by people of its roster (the server sends the last few; the layer shows each once).
-    crowd.sim = sim;
-    let told = 0;
-    const snapshotWithTold = { crowd: { map: "m", count: 0, day: CLEAR, told: roster.people.slice(0, 4).map((p, i) => ({ seq: i + 1, who: p.id, text: `${p.name} died of an illness` })) } } as unknown as Parameters<typeof freshTold>[0];
     for (let f = 0; f < 600; f++) {
       const start = performance.now();
       const now = f * FRAME_MS;
@@ -77,9 +73,6 @@ describe("N19 the capital's crowd, per frame", () => {
         if (r.done) walkers.delete(i);
       }
       sink += nearestShown(sprites, player, 3, 6).length;
-      // N33: gossip bubbles on. Each frame the layer asks what was said since the last bubble, and a new one comes every few seconds.
-      sink += freshTold(snapshotWithTold, told).length;
-      if (f % 180 === 0) told = (told + 1) % 1000;
       perFrame.push(performance.now() - start - (f > 0 && f % FRAMES_PER_MINUTE === 0 ? bursts.at(-1)! : 0));
     }
     expect(Number.isFinite(sink)).toBe(true);
@@ -104,15 +97,6 @@ describe("N33 gossip bubbles", () => {
   it("say what was told, short and in a speaker's words", () => {
     expect(gossipBubble("Wenna Tanner died of an illness")).toBe("Did you hear? Wenna Tanner died of an illness.");
     expect(gossipBubble("x".repeat(200)).length).toBeLessThanOrEqual(70);
-  });
-
-  it("shows only what is new, once, for people of the roster", () => {
-    const { sim, roster } = capital();
-    crowd.sim = sim;
-    const snap = { crowd: { map: "m", count: 0, day: CLEAR, told: [{ seq: 4, who: roster.people[0]!.id, text: "A fire." }, { seq: 5, who: "nobody", text: "A flood." }, { seq: 6, who: roster.people[2]!.id, text: "A wedding." }] } } as unknown as Parameters<typeof freshTold>[0];
-    expect(freshTold(snap, 0).map((t) => t.seq)).toEqual([4, 6]);
-    expect(freshTold(snap, 4).map((t) => t.seq)).toEqual([6]);
-    expect(freshTold(snap, 6)).toEqual([]);
   });
 });
 

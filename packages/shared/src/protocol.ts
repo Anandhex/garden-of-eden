@@ -1,6 +1,7 @@
 /**
- * The HTTP contract between the server (packages/server/src/web/server.ts) and the
- * browser client. The server builds `Snapshot` from game state; the client only reads it.
+ * The game as the server sees it for a view: `Snapshot` is what the view layer (server/src/view/) builds frames and
+ * the UI model from (and GET /api/state returns). Clients don't read it any more: they get the view protocol (G5,
+ * shared/src/view/).
  */
 import type { ChatterMark } from "./chatter.js";
 import type { CrowdDay, CrowdZone } from "./crowd.js";
@@ -261,7 +262,7 @@ export interface RoadNearby {
   offers: Array<{ op: string; label: string }>;
 }
 
-/** The player on the open road (N26): where, how far, what is near. The land itself is made in the browser from GET /api/road/data. */
+/** The player on the open road (N26): where, how far, what is near. The land itself goes to clients as frame patches (G5). */
 export interface RoadView {
   where: string;
   off: number | null;
@@ -298,11 +299,11 @@ export interface Snapshot {
   map: { id: string; name: string; w: number; h: number; tiles: TileKind[][]; buildings: MapBuilding[]; talkRange: number; exits: MapExit[]; zones: CrowdZone[] };
   /**
    * The townsfolk on this map (N16), or null where there are none (the localities, a world
-   * without a realm). Who they are is GET /api/crowd (CrowdRoster, fetched once per map);
+   * without a realm). Where each of them is, the server's frame builder works out (G5, server/src/view/frame.ts)
    * where they are is worked out from it and the clock (crowd.ts), with today's conditions here.
    */
   crowd: { map: string; count: number; day: CrowdDay; told?: GossipTold[]; marks?: ChatterMark[] } | null;
-  /** N16: real seconds per game minute while the player stands about (POST /api/tick), or 0 when time waits for the player. */
+  /** N16: real seconds per game minute while the player stands about (the view session's clock), or 0 when time waits for the player. */
   timeFlowSeconds: number;
   /**
    * Where the player is (N14), and the places the roads lead to from here; `area` is
@@ -335,7 +336,7 @@ export interface Snapshot {
   chronicle: { lore: string[]; log: Array<{ day: number; kind: string; ok: boolean; reason: string; proposal: string; event?: string }> };
   /** Marriages, courtships, children on the way and children born in play (N11.3), in words. */
   family: string[];
-  /** The wider realm (N13) in brief, or null in worlds without one; the whole of it is GET /api/realm (RealmView). */
+  /** The wider realm (N13) in brief, or null in worlds without one; the whole of it goes to clients as `ui.realm` (RealmView). */
   realm: { day: number; latest: string | null; wars: number } | null;
   /**
    * The player's guild membership and the dungeons in reach (N13.6). One is delved
@@ -360,7 +361,7 @@ export interface Snapshot {
 /** Note colours in the chat log. */
 export type NoteKind = "roll" | "combat" | "fail" | "quest" | "action" | "end" | "system";
 
-/** One line of the `POST /api/act` stream. */
+/** One event of an action's stream (the server's `runAct`; the view session turns them into protocol messages). */
 export type StreamEvent =
   | { t: "text"; npc: string; delta: string }
   | { t: "note"; kind: NoteKind | string; text: string; npc?: string }
@@ -376,20 +377,3 @@ export type StreamEvent =
   /** Something that happened, for the screen to animate (T13). */
   | { t: "event"; event: GameEvent }
   | { t: "done"; state: Snapshot };
-
-/** Response of `POST /api/tick` (N16): a minute passes while the player stands about. */
-export interface TickResponse {
-  ok: boolean;
-  log: string[];
-  events: GameEvent[];
-  state: Snapshot;
-}
-
-/** Response of `POST /api/move`. */
-export interface MoveResponse {
-  ok: boolean;
-  log: string[];
-  reason?: string;
-  events: GameEvent[];
-  state: Snapshot;
-}
