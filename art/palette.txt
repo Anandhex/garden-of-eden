@@ -1,0 +1,74 @@
+# The Millbrook palette (G6): one character per colour, used by every source in art/sprites/.
+# char  colour      name             [layer]
+# A layer tag sends that colour to a separate frame of a `split` sprite, drawn in greys so the adapter can tint it
+# (people's clothes by look.tint, hair by a stable pick, trim by look.trim). `.` is always transparent.
+#
+# outline and shadow
+k  #1b1820  outline
+K  #3a3240  soft-outline
+_  #00000059 shadow
+# stone
+q  #4a4a52  stone-dark
+Q  #6e6c70  stone
+r  #96928c  stone-light
+R  #c2bcb0  stone-highlight
+w  #f2ecdc  off-white
+W  #ffffff  white
+# wood
+d  #3d2a1e  wood-darkest
+D  #5e4030  wood-dark
+o  #8a5e3c  wood
+O  #b08050  wood-light
+# straw and thatch
+a  #6e5a2c  thatch-dark
+A  #a08440  thatch
+z  #c8aa5a  thatch-light
+Z  #e2cc84  straw
+# earth
+p  #6e5238  dirt-dark
+P  #94764f  dirt
+u  #b49668  dirt-light
+U  #d2ba8c  dirt-highlight
+n  #c9b27c  sand
+N  #e4d4a2  sand-light
+# greens
+G  #263f26  green-deepest
+g  #36602f  green-dark
+f  #4a823a  green
+F  #64a046  green-light
+l  #8cc060  green-highlight
+# water
+x  #1c3656  water-deep
+X  #2a5684  water
+i  #4a86b4  water-light
+I  #9ccbe6  foam
+# reds, fire and light
+m  #5e2620  brick-dark
+M  #8e3e2e  brick
+E  #c0644a  brick-light
+J  #b03a20  fire-red
+j  #e8782c  fire-orange
+y  #f0c24e  gold
+Y  #fff0a0  lamp
+# flowers
+L  #8a72c0  lilac
+# people
+s  #f0c49a  skin
+S  #c88a64  skin-shadow
+e  #2a1e2a  eye
+b  #3a2a22  boot
+B  #5c4434  boot-light
+# tinted by the adapter: clothes (look.tint), hair (a stable pick), trim (look.trim)
+1  #5a5a5a  cloth-dark      cloth
+2  #8e8e8e  cloth           cloth
+3  #c6c6c6  cloth-light     cloth
+4  #f0f0f0  cloth-highlight cloth
+5  #6c6c6c  hair-dark       hair
+6  #a8a8a8  hair            hair
+7  #e2e2e2  hair-light      hair
+8  #b4b4b4  trim-dark       trim
+9  #ffffff  trim            trim
+# glow and mist (for fx)
+:  #ffffff40 mist-thin
+;  #ffffff80 mist
+*  #ffffffc8 mist-thick

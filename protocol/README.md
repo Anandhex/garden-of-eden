@@ -70,14 +70,20 @@ Positions are **tiles** (world units), not pixels. Travellers on the road may st
   `TERRAIN_IDS`) and `objects` (indices into `OBJECT_IDS`, 0 = nothing) from
   [`art.ts`](../packages/shared/src/view/art.ts). **A patch is sent once per map: keep a cache.** A new map clears it.
 - `buildings`, `lights`, `signs`: the ones in the box, sent whole whenever they change. Whether a window is `lit`
-  is a fact (someone is home after dark); how it glows is up to the adapter.
+  is a fact (someone is home after dark); how it glows is up to the adapter. A building names its `template`
+  (G6: how it is dressed, from [`templates.json`](../packages/shared/src/view/templates.json); `dress()` in
+  [`templates.ts`](../packages/shared/src/view/templates.ts) stretches it to the building) and its `door` tile.
+  `lights` (G6) are facts too: one `window` per window of the template (`win:<building>:<n>`, on while someone is
+  home after dark), the template's `lamp`s (on after dark), `fire`s (while someone is in; a camp's always) and
+  `forge` (by day, or while the smith is in).
 - `actors`:
   - `upsert`: actors new or changed in more than their place, sent whole.
   - `move`: actors that only moved, as compact `[id, x, y]` (a busy town moves hundreds a minute).
   - `routes`: `{ id, route }` for some of the movers: the tiles to walk through, so an adapter never pathfinds.
   - `remove`: actors gone from the box.
 
-  An actor carries what to draw (`look.sprite`, an art id, with a `tint`, a `trim` and a `size`), `label`,
+  An actor carries what to draw (`look.sprite`, an art id, with a `tint`, a `trim` and a `size`), `facing`
+  (G6: set while two are in a conversation, so they face each other; otherwise face the way they walk), `label`,
   `shortLabel` (shown from afar), `tip` (hover text, already written), `hp` (0–1) and `flags`.
 - `player`: where the camera follows.
 - `ambience`: `light` (0 night … 1 day), time of day, weather, season.

@@ -1,0 +1,126 @@
+{
+ "type": "map",
+ "version": "1.10",
+ "tiledversion": "1.11.0",
+ "orientation": "orthogonal",
+ "renderorder": "right-down",
+ "width": 1,
+ "height": 2,
+ "tilewidth": 64,
+ "tileheight": 64,
+ "infinite": false,
+ "compressionlevel": -1,
+ "properties": [
+  {
+   "name": "kinds",
+   "type": "string",
+   "value": "loot"
+  },
+  {
+   "name": "slice",
+   "type": "string",
+   "value": "0,0,1,1"
+  },
+  {
+   "name": "door",
+   "type": "string",
+   "value": "buildings/loot"
+  },
+  {
+   "name": "porch",
+   "type": "string",
+   "value": "buildings/loot"
+  },
+  {
+   "name": "roofTint",
+   "type": "bool",
+   "value": false
+  }
+ ],
+ "tilesets": [
+  {
+   "firstgid": 1,
+   "source": "../buildings.tsj"
+  }
+ ],
+ "layers": [
+  {
+   "id": 1,
+   "name": "roof",
+   "type": "tilelayer",
+   "width": 1,
+   "height": 2,
+   "x": 0,
+   "y": 0,
+   "opacity": 1,
+   "visible": true,
+   "data": [
+    0,
+    0
+   ]
+  },
+  {
+   "id": 2,
+   "name": "walls",
+   "type": "tilelayer",
+   "width": 1,
+   "height": 2,
+   "x": 0,
+   "y": 0,
+   "opacity": 1,
+   "visible": true,
+   "data": [
+    0,
+    53
+   ]
+  },
+  {
+   "id": 3,
+   "name": "props",
+   "type": "objectgroup",
+   "draworder": "topdown",
+   "x": 0,
+   "y": 0,
+   "opacity": 1,
+   "visible": true,
+   "objects": []
+  },
+  {
+   "id": 4,
+   "name": "lights",
+   "type": "objectgroup",
+   "draworder": "topdown",
+   "x": 0,
+   "y": 0,
+   "opacity": 1,
+   "visible": true,
+   "objects": []
+  },
+  {
+   "id": 5,
+   "name": "marks",
+   "type": "objectgroup",
+   "draworder": "topdown",
+   "x": 0,
+   "y": 0,
+   "opacity": 1,
+   "visible": true,
+   "objects": [
+    {
+     "id": 1,
+     "name": "door",
+     "type": "door",
+     "x": 32.0,
+     "y": 96.0,
+     "width": 0,
+     "height": 0,
+     "rotation": 0,
+     "visible": true,
+     "point": true
+    }
+   ]
+  }
+ ],
+ "nextlayerid": 6,
+ "nextobjectid": 2
+}

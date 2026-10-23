@@ -1,0 +1,210 @@
+# Creatures (G6): seen from the side, facing east, two frames of a trot; west is east mirrored (north and south
+# keep the last side they faced). Drawn in their own colours, so they are not tinted, except the beast: the
+# stand-in for a kind without art, in greys for the creature's colour.
+
+== creature/wolf/e0 20x13 foot=10,12
+..............k.k...
+.............kQkQk..
+kk..........kQQrQQk.
+kQk.........kQrrerk.
+.kQk.kkkkkkkQrrrrRRk
+..kQkQQQQQQQQrrrkkkk
+...kQQQQQQQQQQrrk...
+...kQQQqQQQQQQQrk...
+...kqQQqqQQQQQQQk...
+....kqqrrrrrrrqqk...
+...kqk..kqk.kqk..kqk
+...kkk..kkk.kkk..kkk
+..________________..
+
+== creature/wolf/e1 20x13 foot=10,12
+..............k.k...
+.............kQkQk..
+............kQQrQQk.
+kk..........kQrrerk.
+kQk..kkkkkkkQrrrrRRk
+.kQkkQQQQQQQQrrrkkkk
+..kkQQQQQQQQQQrrk...
+...kQQQqQQQQQQQrk...
+...kqQQqqQQQQQQQk...
+....kqqrrrrrrrqqk...
+....kqkkqk...kqkkqk.
+....kkkkkk...kkkkkk.
+..________________..
+
+== creature/bear/e0 22x16 foot=11,15
+................kk.kk.
+...............kDDkDDk
+....kkkkkkkkk.kDooooDk
+...kDDDDDDDDDkDoooeoDk
+..kDooDDDDDDDDDooooOOk
+.kDooooDDDDDDDDDooOkkk
+.kDoooooDDDDDDDDDoooDk
+.kDooooooDDDDDDDDooDk.
+.kdDoooooooDDDDDDoDdk.
+.kddDDooooooooDDDDddk.
+..kddddDDDDDDDDDDddk..
+..kddk.kddk..kddk.kddk
+..kddk.kddk..kddk.kddk
+..kddk.kddk..kddk.kddk
+..kkkk.kkkk..kkkk.kkkk
+..____________________
+
+== creature/bear/e1 22x16 foot=11,15
+................kk.kk.
+...............kDDkDDk
+....kkkkkkkkk.kDooooDk
+...kDDDDDDDDDkDoooeoDk
+..kDooDDDDDDDDDooooOOk
+.kDooooDDDDDDDDDooOkkk
+.kDoooooDDDDDDDDDoooDk
+.kDooooooDDDDDDDDooDk.
+.kdDoooooooDDDDDDoDdk.
+.kddDDooooooooDDDDddk.
+..kddddDDDDDDDDDDddk..
+...kddkkddk...kddkkddk
+...kddkkddk...kddkkddk
+...kddkkddk...kddkkddk
+...kkkkkkkk...kkkkkkkk
+..____________________
+
+== creature/boar/e0 18x12 foot=9,11
+....k.k.k.........
+...kDkDkDkkk......
+..kDDDDDDDDDk.kk..
+.kDDoDDDDDDDDkDDk.
+.kDooDDDDDDDDDDeDk
+kDDooDDDDDDDDDDDDk
+kDooooDDDDDDDDDOOk
+kdDoooooDDDDDDOkwk
+.kddDDDDDDDDDddkk.
+..kdk.kdk.kdk.kdk.
+..kkk.kkk.kkk.kkk.
+.________________.
+
+== creature/boar/e1 18x12 foot=9,11
+....k.k.k.........
+...kDkDkDkkk......
+..kDDDDDDDDDk.kk..
+.kDDoDDDDDDDDkDDk.
+.kDooDDDDDDDDDDeDk
+kDDooDDDDDDDDDDDDk
+kDooooDDDDDDDDDOOk
+kdDoooooDDDDDDOkwk
+.kddDDDDDDDDDddkk.
+...kdkkdk...kdkkdk
+...kkkkkk...kkkkkk
+.________________.
+
+== creature/spider/e0 16x12 foot=8,11
+................
+..k..........k..
+...k..kkkk..k...
+k...kkKKKKkk...k
+.k.kKKqKKqKKk.k.
+..kkKKKKKKKKkk..
+kk.kKKKKKKKKk.kk
+..kkKKKKKKJJkk..
+.k.kkKKKKKKkk.k.
+k...k.kkkk.k...k
+...k........k...
+..____________..
+
+== creature/spider/e1 16x12 foot=8,11
+................
+...k........k...
+..k...kkkk...k..
+.k..kkKKKKkk..k.
+k..kKKqKKqKKk..k
+..kkKKKKKKKKkk..
+.k.kKKKKKKKKk.k.
+k.kkKKKKKKJJkk.k
+..kkkKKKKKKkkk..
+.k..k.kkkk.k..k.
+k..............k
+..____________..
+
+== creature/horse/e0 24x20 foot=12,19
+....................kk..
+...................kdOk.
+..................kddOOk
+.................kdOOeOk
+................kddOOOOk
+...............kddOOOOwk
+..............kddOOkkkk.
+..kkk........kddOOk.....
+.kdddk.kkkkkkkddOOk.....
+.kddk.kOOOOOOOOdOOk.....
+..kdkkOOOOOOOOOOOOOk....
+...kdOOOOOOOOOOOOOOk....
+....kOoOOOOOOOOOOOOk....
+....koooOOOOOOOOOOok....
+....kok.kok....kok.kok..
+....kok.kok....kok.kok..
+....kok.kok....kok.kok..
+....kdk.kdk....kdk.kdk..
+....kkk.kkk....kkk.kkk..
+...________________.....
+
+== creature/horse/e1 24x20 foot=12,19
+....................kk..
+...................kdOk.
+..................kddOOk
+.................kdOOeOk
+................kddOOOOk
+...............kddOOOOwk
+..............kddOOkkkk.
+..kkk........kddOOk.....
+.kdddk.kkkkkkkddOOk.....
+.kddk.kOOOOOOOOdOOk.....
+..kdkkOOOOOOOOOOOOOk....
+...kdOOOOOOOOOOOOOOk....
+....kOoOOOOOOOOOOOOk....
+....koooOOOOOOOOOOok....
+...kok..kok...kok..kok..
+...kok...kok.kok...kok..
+..kok....kok.kok....kok.
+..kdk....kdk.kdk....kdk.
+..kkk....kkk.kkk....kkk.
+...________________.....
+
+== creature/beast/e0 18x12 foot=9,11
+....k.k...........
+...kQkQk..........
+..kQQQQQkkkkkk....
+.kQQrQQQQQQQQQkk..
+.kQrrQQQQQQQQQQeQk
+kQQrrQQQQQQQQQQQQk
+kQrrrrQQQQQQQQQrrk
+kqQrrrrrQQQQQQrkkk
+.kqqQQQQQQQQQqqk..
+..kqk.kqk.kqk.kqk.
+..kkk.kkk.kkk.kkk.
+.________________.
+
+== creature/beast/e1 18x12 foot=9,11
+....k.k...........
+...kQkQk..........
+..kQQQQQkkkkkk....
+.kQQrQQQQQQQQQkk..
+.kQrrQQQQQQQQQQeQk
+kQQrrQQQQQQQQQQQQk
+kQrrrrQQQQQQQQQrrk
+kqQrrrrrQQQQQQrkkk
+.kqqQQQQQQQQQqqk..
+...kqkkqk...kqkkqk
+...kkkkkk...kkkkkk
+.________________.
+
+== creature/wolf/w0 mirror=creature/wolf/e0
+== creature/wolf/w1 mirror=creature/wolf/e1
+== creature/bear/w0 mirror=creature/bear/e0
+== creature/bear/w1 mirror=creature/bear/e1
+== creature/boar/w0 mirror=creature/boar/e0
+== creature/boar/w1 mirror=creature/boar/e1
+== creature/spider/w0 mirror=creature/spider/e0
+== creature/spider/w1 mirror=creature/spider/e1
+== creature/horse/w0 mirror=creature/horse/e0
+== creature/horse/w1 mirror=creature/horse/e1
+== creature/beast/w0 mirror=creature/beast/e0
+== creature/beast/w1 mirror=creature/beast/e1

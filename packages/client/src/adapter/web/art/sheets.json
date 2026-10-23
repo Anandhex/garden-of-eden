@@ -1,0 +1,2574 @@
+{
+ "tile": 16,
+ "scale": 4,
+ "sheets": [
+  "terrain",
+  "buildings",
+  "props",
+  "people",
+  "creatures",
+  "fx"
+ ],
+ "frames": {
+  "terrain/grass_0": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "terrain/grass_1": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "terrain/grass_2": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "terrain/grass_3": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "terrain/path_0": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "terrain/path_1": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "terrain/path_2": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "terrain/road_0": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "terrain/road_1": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "terrain/road_2": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "terrain/water_0": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "terrain/water_1": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "terrain/sand_0": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "terrain/hill_0": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "terrain/marsh_0": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "terrain/field_0": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "terrain/ford_0": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "terrain/bridge_0": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "terrain/town_0": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "terrain/yard_0": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "terrain/wang/path_0": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/path",
+    "mask": "0"
+   }
+  },
+  "terrain/wang/path_1": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/path",
+    "mask": "1"
+   }
+  },
+  "terrain/wang/path_2": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/path",
+    "mask": "2"
+   }
+  },
+  "terrain/wang/path_3": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/path",
+    "mask": "3"
+   }
+  },
+  "terrain/wang/path_4": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/path",
+    "mask": "4"
+   }
+  },
+  "terrain/wang/path_5": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/path",
+    "mask": "5"
+   }
+  },
+  "terrain/wang/path_6": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/path",
+    "mask": "6"
+   }
+  },
+  "terrain/wang/path_7": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/path",
+    "mask": "7"
+   }
+  },
+  "terrain/wang/path_8": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/path",
+    "mask": "8"
+   }
+  },
+  "terrain/wang/path_9": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/path",
+    "mask": "9"
+   }
+  },
+  "terrain/wang/path_10": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/path",
+    "mask": "10"
+   }
+  },
+  "terrain/wang/path_11": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/path",
+    "mask": "11"
+   }
+  },
+  "terrain/wang/path_12": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/path",
+    "mask": "12"
+   }
+  },
+  "terrain/wang/path_13": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/path",
+    "mask": "13"
+   }
+  },
+  "terrain/wang/path_14": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/path",
+    "mask": "14"
+   }
+  },
+  "terrain/wang/path_15": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/path",
+    "mask": "15"
+   }
+  },
+  "terrain/wang/road_0": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/road",
+    "mask": "0"
+   }
+  },
+  "terrain/wang/road_1": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/road",
+    "mask": "1"
+   }
+  },
+  "terrain/wang/road_2": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/road",
+    "mask": "2"
+   }
+  },
+  "terrain/wang/road_3": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/road",
+    "mask": "3"
+   }
+  },
+  "terrain/wang/road_4": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/road",
+    "mask": "4"
+   }
+  },
+  "terrain/wang/road_5": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/road",
+    "mask": "5"
+   }
+  },
+  "terrain/wang/road_6": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/road",
+    "mask": "6"
+   }
+  },
+  "terrain/wang/road_7": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/road",
+    "mask": "7"
+   }
+  },
+  "terrain/wang/road_8": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/road",
+    "mask": "8"
+   }
+  },
+  "terrain/wang/road_9": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/road",
+    "mask": "9"
+   }
+  },
+  "terrain/wang/road_10": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/road",
+    "mask": "10"
+   }
+  },
+  "terrain/wang/road_11": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/road",
+    "mask": "11"
+   }
+  },
+  "terrain/wang/road_12": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/road",
+    "mask": "12"
+   }
+  },
+  "terrain/wang/road_13": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/road",
+    "mask": "13"
+   }
+  },
+  "terrain/wang/road_14": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/road",
+    "mask": "14"
+   }
+  },
+  "terrain/wang/road_15": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/road",
+    "mask": "15"
+   }
+  },
+  "terrain/wang/water_0": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/water",
+    "mask": "0"
+   }
+  },
+  "terrain/wang/water_1": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/water",
+    "mask": "1"
+   }
+  },
+  "terrain/wang/water_2": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/water",
+    "mask": "2"
+   }
+  },
+  "terrain/wang/water_3": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/water",
+    "mask": "3"
+   }
+  },
+  "terrain/wang/water_4": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/water",
+    "mask": "4"
+   }
+  },
+  "terrain/wang/water_5": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/water",
+    "mask": "5"
+   }
+  },
+  "terrain/wang/water_6": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/water",
+    "mask": "6"
+   }
+  },
+  "terrain/wang/water_7": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/water",
+    "mask": "7"
+   }
+  },
+  "terrain/wang/water_8": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/water",
+    "mask": "8"
+   }
+  },
+  "terrain/wang/water_9": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/water",
+    "mask": "9"
+   }
+  },
+  "terrain/wang/water_10": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/water",
+    "mask": "10"
+   }
+  },
+  "terrain/wang/water_11": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/water",
+    "mask": "11"
+   }
+  },
+  "terrain/wang/water_12": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/water",
+    "mask": "12"
+   }
+  },
+  "terrain/wang/water_13": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/water",
+    "mask": "13"
+   }
+  },
+  "terrain/wang/water_14": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/water",
+    "mask": "14"
+   }
+  },
+  "terrain/wang/water_15": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/water",
+    "mask": "15"
+   }
+  },
+  "terrain/wang/sand_0": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/sand",
+    "mask": "0"
+   }
+  },
+  "terrain/wang/sand_1": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/sand",
+    "mask": "1"
+   }
+  },
+  "terrain/wang/sand_2": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/sand",
+    "mask": "2"
+   }
+  },
+  "terrain/wang/sand_3": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/sand",
+    "mask": "3"
+   }
+  },
+  "terrain/wang/sand_4": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/sand",
+    "mask": "4"
+   }
+  },
+  "terrain/wang/sand_5": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/sand",
+    "mask": "5"
+   }
+  },
+  "terrain/wang/sand_6": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/sand",
+    "mask": "6"
+   }
+  },
+  "terrain/wang/sand_7": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/sand",
+    "mask": "7"
+   }
+  },
+  "terrain/wang/sand_8": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/sand",
+    "mask": "8"
+   }
+  },
+  "terrain/wang/sand_9": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/sand",
+    "mask": "9"
+   }
+  },
+  "terrain/wang/sand_10": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/sand",
+    "mask": "10"
+   }
+  },
+  "terrain/wang/sand_11": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/sand",
+    "mask": "11"
+   }
+  },
+  "terrain/wang/sand_12": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/sand",
+    "mask": "12"
+   }
+  },
+  "terrain/wang/sand_13": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/sand",
+    "mask": "13"
+   }
+  },
+  "terrain/wang/sand_14": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/sand",
+    "mask": "14"
+   }
+  },
+  "terrain/wang/sand_15": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wang": "terrain/wang/sand",
+    "mask": "15"
+   }
+  },
+  "buildings/thatch_top_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/thatch_mid_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/thatch_near_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/thatch_top_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/thatch_top_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/thatch_mid_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/thatch_mid_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/thatch_near_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/thatch_near_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/shingle_top_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/shingle_mid_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/shingle_near_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/shingle_top_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/shingle_top_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/shingle_mid_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/shingle_mid_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/shingle_near_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/shingle_near_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/canvas_top_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/canvas_mid_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/canvas_near_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/canvas_top_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/canvas_top_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/canvas_mid_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/canvas_mid_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/canvas_near_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/canvas_near_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/plaster_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/plaster_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/plaster_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/plaster_win": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "window": true,
+    "glow": "fx/window_glow"
+   }
+  },
+  "buildings/door_wood": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "door": true
+   }
+  },
+  "buildings/stone_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/stone_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/stone_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/stone_win": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "window": true,
+    "glow": "fx/window_glow_arch"
+   }
+  },
+  "buildings/door_stone": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "door": true
+   }
+  },
+  "buildings/forge_mouth": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "forge": true
+   }
+  },
+  "buildings/plank_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/plank_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/plank_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/plank_win": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "window": true,
+    "glow": "fx/window_glow_small"
+   }
+  },
+  "buildings/door_barn": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "door": true
+   }
+  },
+  "buildings/stall_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/stall_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/stall_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/stall_goods": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/tent_front": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "door": true
+   }
+  },
+  "buildings/tent_side": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/campfire": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "fire": true
+   }
+  },
+  "buildings/cart_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/cart_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/loot": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/heap": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/wall_face": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wall": "face"
+   }
+  },
+  "buildings/wall_top": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "wall": "top"
+   }
+  },
+  "buildings/door": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/gate": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/porch": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "props/tree_0": {
+   "sheet": "props",
+   "w": 20,
+   "h": 20,
+   "foot": [
+    10,
+    19
+   ]
+  },
+  "props/tree_1": {
+   "sheet": "props",
+   "w": 16,
+   "h": 19,
+   "foot": [
+    8,
+    18
+   ]
+  },
+  "props/rock": {
+   "sheet": "props",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "props/reeds": {
+   "sheet": "props",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "props/milestone": {
+   "sheet": "props",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "props/signpost": {
+   "sheet": "props",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "props/shrine": {
+   "sheet": "props",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    18
+   ]
+  },
+  "props/farmhouse": {
+   "sheet": "props",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "props/bar": {
+   "sheet": "props",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "props/thatch": {
+   "sheet": "props",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "props/chimney": {
+   "sheet": "props",
+   "w": 8,
+   "h": 11,
+   "foot": [
+    4,
+    11
+   ]
+  },
+  "props/chimney_stone": {
+   "sheet": "props",
+   "w": 8,
+   "h": 11,
+   "foot": [
+    4,
+    11
+   ]
+  },
+  "props/sign_inn": {
+   "sheet": "props",
+   "w": 12,
+   "h": 10,
+   "foot": [
+    6,
+    0
+   ]
+  },
+  "props/sign_forge": {
+   "sheet": "props",
+   "w": 12,
+   "h": 10,
+   "foot": [
+    6,
+    0
+   ]
+  },
+  "props/anvil": {
+   "sheet": "props",
+   "w": 12,
+   "h": 8,
+   "foot": [
+    6,
+    7
+   ]
+  },
+  "props/barrel": {
+   "sheet": "props",
+   "w": 10,
+   "h": 12,
+   "foot": [
+    5,
+    11
+   ]
+  },
+  "props/crate": {
+   "sheet": "props",
+   "w": 12,
+   "h": 12,
+   "foot": [
+    6,
+    11
+   ]
+  },
+  "props/lamp_wall": {
+   "sheet": "props",
+   "w": 8,
+   "h": 10,
+   "foot": [
+    4,
+    0
+   ]
+  },
+  "props/lamp_post": {
+   "sheet": "props",
+   "w": 8,
+   "h": 24,
+   "foot": [
+    4,
+    23
+   ]
+  },
+  "props/hay": {
+   "sheet": "props",
+   "w": 14,
+   "h": 10,
+   "foot": [
+    7,
+    9
+   ]
+  },
+  "props/banner": {
+   "sheet": "props",
+   "w": 8,
+   "h": 11,
+   "foot": [
+    4,
+    0
+   ]
+  },
+  "people/body/s0.body": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/s0.cloth": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/s0.hair": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/s0.trim": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/s1.body": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/s1.cloth": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/s1.hair": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/s1.trim": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/s2.body": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/s2.cloth": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/s2.hair": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/s2.trim": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/n0.body": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/n0.cloth": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/n0.hair": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/n0.trim": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/n1.body": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/n1.cloth": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/n1.hair": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/n1.trim": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/n2.body": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/n2.cloth": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/n2.hair": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/n2.trim": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/e0.body": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/e0.cloth": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/e0.hair": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/e0.trim": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/e1.body": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/e1.cloth": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/e1.hair": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/e1.trim": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/e2.body": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/e2.cloth": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/e2.hair": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/e2.trim": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/w0.body": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/w0.cloth": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/w0.hair": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/w0.trim": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/w1.body": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/w1.cloth": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/w1.hair": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/w1.trim": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/w2.body": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/w2.cloth": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/w2.hair": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "people/body/w2.trim": {
+   "sheet": "people",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "creature/wolf/e0": {
+   "sheet": "creatures",
+   "w": 20,
+   "h": 13,
+   "foot": [
+    10,
+    12
+   ]
+  },
+  "creature/wolf/e1": {
+   "sheet": "creatures",
+   "w": 20,
+   "h": 13,
+   "foot": [
+    10,
+    12
+   ]
+  },
+  "creature/bear/e0": {
+   "sheet": "creatures",
+   "w": 22,
+   "h": 16,
+   "foot": [
+    11,
+    15
+   ]
+  },
+  "creature/bear/e1": {
+   "sheet": "creatures",
+   "w": 22,
+   "h": 16,
+   "foot": [
+    11,
+    15
+   ]
+  },
+  "creature/boar/e0": {
+   "sheet": "creatures",
+   "w": 18,
+   "h": 12,
+   "foot": [
+    9,
+    11
+   ]
+  },
+  "creature/boar/e1": {
+   "sheet": "creatures",
+   "w": 18,
+   "h": 12,
+   "foot": [
+    9,
+    11
+   ]
+  },
+  "creature/spider/e0": {
+   "sheet": "creatures",
+   "w": 16,
+   "h": 12,
+   "foot": [
+    8,
+    11
+   ]
+  },
+  "creature/spider/e1": {
+   "sheet": "creatures",
+   "w": 16,
+   "h": 12,
+   "foot": [
+    8,
+    11
+   ]
+  },
+  "creature/horse/e0": {
+   "sheet": "creatures",
+   "w": 24,
+   "h": 20,
+   "foot": [
+    12,
+    19
+   ]
+  },
+  "creature/horse/e1": {
+   "sheet": "creatures",
+   "w": 24,
+   "h": 20,
+   "foot": [
+    12,
+    19
+   ]
+  },
+  "creature/beast/e0": {
+   "sheet": "creatures",
+   "w": 18,
+   "h": 12,
+   "foot": [
+    9,
+    11
+   ]
+  },
+  "creature/beast/e1": {
+   "sheet": "creatures",
+   "w": 18,
+   "h": 12,
+   "foot": [
+    9,
+    11
+   ]
+  },
+  "creature/wolf/w0": {
+   "sheet": "creatures",
+   "w": 20,
+   "h": 13,
+   "foot": [
+    10,
+    12
+   ]
+  },
+  "creature/wolf/w1": {
+   "sheet": "creatures",
+   "w": 20,
+   "h": 13,
+   "foot": [
+    10,
+    12
+   ]
+  },
+  "creature/bear/w0": {
+   "sheet": "creatures",
+   "w": 22,
+   "h": 16,
+   "foot": [
+    11,
+    15
+   ]
+  },
+  "creature/bear/w1": {
+   "sheet": "creatures",
+   "w": 22,
+   "h": 16,
+   "foot": [
+    11,
+    15
+   ]
+  },
+  "creature/boar/w0": {
+   "sheet": "creatures",
+   "w": 18,
+   "h": 12,
+   "foot": [
+    9,
+    11
+   ]
+  },
+  "creature/boar/w1": {
+   "sheet": "creatures",
+   "w": 18,
+   "h": 12,
+   "foot": [
+    9,
+    11
+   ]
+  },
+  "creature/spider/w0": {
+   "sheet": "creatures",
+   "w": 16,
+   "h": 12,
+   "foot": [
+    8,
+    11
+   ]
+  },
+  "creature/spider/w1": {
+   "sheet": "creatures",
+   "w": 16,
+   "h": 12,
+   "foot": [
+    8,
+    11
+   ]
+  },
+  "creature/horse/w0": {
+   "sheet": "creatures",
+   "w": 24,
+   "h": 20,
+   "foot": [
+    12,
+    19
+   ]
+  },
+  "creature/horse/w1": {
+   "sheet": "creatures",
+   "w": 24,
+   "h": 20,
+   "foot": [
+    12,
+    19
+   ]
+  },
+  "creature/beast/w0": {
+   "sheet": "creatures",
+   "w": 18,
+   "h": 12,
+   "foot": [
+    9,
+    11
+   ]
+  },
+  "creature/beast/w1": {
+   "sheet": "creatures",
+   "w": 18,
+   "h": 12,
+   "foot": [
+    9,
+    11
+   ]
+  },
+  "fx/grave": {
+   "sheet": "fx",
+   "w": 16,
+   "h": 20,
+   "foot": [
+    8,
+    19
+   ]
+  },
+  "fx/shadow": {
+   "sheet": "fx",
+   "w": 14,
+   "h": 5,
+   "foot": [
+    7,
+    5
+   ]
+  },
+  "fx/marker": {
+   "sheet": "fx",
+   "w": 7,
+   "h": 5,
+   "foot": [
+    3.5,
+    5
+   ]
+  },
+  "fx/drop": {
+   "sheet": "fx",
+   "w": 1,
+   "h": 6,
+   "foot": [
+    0.5,
+    6
+   ]
+  },
+  "fx/flake": {
+   "sheet": "fx",
+   "w": 3,
+   "h": 3,
+   "foot": [
+    1.5,
+    3
+   ]
+  },
+  "fx/ripple": {
+   "sheet": "fx",
+   "w": 8,
+   "h": 2,
+   "foot": [
+    4,
+    2
+   ]
+  },
+  "fx/spark": {
+   "sheet": "fx",
+   "w": 2,
+   "h": 2,
+   "foot": [
+    1,
+    2
+   ]
+  },
+  "fx/window_glow": {
+   "sheet": "fx",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "fx/window_glow_arch": {
+   "sheet": "fx",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "fx/window_glow_small": {
+   "sheet": "fx",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "fx/glow": {
+   "sheet": "fx",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "fx/firefly": {
+   "sheet": "fx",
+   "w": 3,
+   "h": 3,
+   "foot": [
+    1.5,
+    3
+   ]
+  },
+  "fx/dust": {
+   "sheet": "fx",
+   "w": 2,
+   "h": 2,
+   "foot": [
+    1,
+    2
+   ]
+  },
+  "fx/fog": {
+   "sheet": "fx",
+   "w": 32,
+   "h": 12,
+   "foot": [
+    16,
+    12
+   ]
+  },
+  "fx/shaft": {
+   "sheet": "fx",
+   "w": 16,
+   "h": 32,
+   "foot": [
+    8,
+    32
+   ]
+  },
+  "fx/leaves": {
+   "sheet": "fx",
+   "w": 32,
+   "h": 16,
+   "foot": [
+    16,
+    16
+   ]
+  }
+ }
+}

@@ -1,8 +1,9 @@
 /**
- * Every picture in the world view, drawn once at start-up. There are no image files:
- * the look is the old canvas prototype's, made into textures Phaser can batch.
+ * The fallback pictures (G6): drawn in code once at start-up, the old canvas prototype's look. The art is the packed
+ * sheets (public/art, `npm run art`); these are drawn only for an id whose sheet or frame is missing (art.ts).
  */
 import * as Phaser from "phaser";
+import { GRASS_VARIANTS, PATH_VARIANTS } from "../art";
 
 export const TILE = 32;
 
@@ -14,8 +15,6 @@ export const ORIGINS = {
   grave: [8 / 16, 16 / 28],
 } as const;
 
-export const GRASS_VARIANTS = 4;
-export const PATH_VARIANTS = 3;
 
 /** A stable 0–1 number per tile, so the ground doesn't shimmer between redraws. */
 export const tileHash = (x: number, y: number): number => {

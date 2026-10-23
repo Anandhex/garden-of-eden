@@ -17,7 +17,7 @@
     "voices:install": "tsx packages/server/scripts/voices.ts install",
     "voices": "tsx packages/server/scripts/voices.ts serve",
     "build": "npm run build -w @millbrook/client",
-    "typecheck": "tsc --noEmit -p packages/shared && tsc --noEmit -p packages/server && tsc --noEmit -p packages/client",
+    "typecheck": "tsc --noEmit -p packages/shared && tsc --noEmit -p packages/server && tsc --noEmit -p packages/client && tsc --noEmit -p art",
     "test": "vitest run",
     "test:live": "LIVE=1 vitest run packages/server/tests/live.test.ts",
     "bench": "tsx packages/server/scripts/bench.ts",
@@ -37,6 +37,7 @@
     "check-npcs": "tsx packages/server/scripts/check-npcs.ts",
     "bench:style": "tsx --env-file-if-exists=.env packages/server/scripts/bench-style.ts",
     "schema": "tsx packages/shared/scripts/schema.ts",
+    "art": "tsx art/pack.ts",
     "frames:record": "tsx packages/server/scripts/record-frames.ts",
     "frames:play": "npm run dev -w @millbrook/client"
   },

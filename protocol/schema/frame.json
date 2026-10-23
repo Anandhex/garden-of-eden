@@ -159,6 +159,19 @@
           },
           "tip": {
             "type": "string"
+          },
+          "template": {
+            "type": "string"
+          },
+          "door": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/__schema0"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [

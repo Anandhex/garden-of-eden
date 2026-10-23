@@ -106,16 +106,16 @@ Adapter (Phaser + DOM today; Unity, Unreal later)  ──WebSocket, JSON (schema
 
 ## G6: The look
 
-**Status:** ⬜ Planned 2026-10-23. **Build guide:** [plans/g6-the-look.md](plans/g6-the-look.md).
+**Status:** 🟡 Built 2026-10-23 (uncommitted); the renderer checkpoint is decided: stay on Phaser for now. **Build guide:** [plans/g6-the-look.md](plans/g6-the-look.md) ([Built](plans/g6-the-look.md#built-2026-10-23) and [checkpoint](plans/g6-the-look.md#checkpoint-step-7-decided-stay-on-phaser)).
 
 Goal: crisp pixel art now, built so the 2.5D HD look (upright sprites in a lit scene with depth blur) is a renderer swap later.
 
-- [ ] Art looked up by id (`shared/src/view/art.ts`), a manifest per adapter, code-drawn art as the fallback
-- [ ] An art pipeline: 64 px source shown at 32 px, Tiled tilesets with autotiles and building templates (the maps stay generated)
-- [ ] The first art pass: terrain, buildings, tinted people with four-way walks, creatures
-- [ ] Four layers (ground, buildings, props, actors) and roofs that fade
-- [ ] Light2D: ambient light by time and weather, lit windows, lamps and fires sent by the server as facts
-- [ ] Depth and atmosphere: y-sorting, foreground parallax, blur, weather effects, at 60 fps
-- [ ] Checkpoint: stay on Phaser, or prototype 2.5D HD in Three.js or Unity against G5 recordings
+- [x] Art looked up by id (`shared/src/view/art.ts`), a manifest per adapter, code-drawn art as the fallback
+- [x] An art pipeline: 64 px source shown at 32 px, Tiled tilesets with autotiles and building templates (the maps stay generated; sources are 16 px text art packed ×4)
+- [~] The first art pass: terrain, buildings, tinted people with four-way walks, creatures (one template per kind except houses, which have three)
+- [x] Four layers (ground, buildings, props, actors) and roofs that fade
+- [x] Light2D: ambient light by time and weather, lit windows, lamps and fires sent by the server as facts
+- [~] Depth and atmosphere: y-sorting, foreground parallax, blur, weather effects, at 60 fps (frame time measured by stepping the loop; the `?fps=1` check on the test laptop is still to do)
+- [x] Checkpoint: stay on Phaser, or prototype 2.5D HD in Three.js or Unity against G5 recordings (decided 2026-10-23: stay on Phaser; Three.js first when the HD look is wanted)
 
 **Done when:** the game looks like real pixel art with light at night, and the renderer checkpoint is decided and written down.

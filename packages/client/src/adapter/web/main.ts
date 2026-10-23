@@ -113,6 +113,18 @@ class WebAdapter implements EngineAdapter {
       if (t) this.panels.setTab(t);
     });
     $("voice-btn").onclick = () => this.panels.voices(() => this.core.ui && this.panels.render(this.core.ui, ["header"]));
+    // The look (G6): atmosphere is drawing only, so it's this browser's setting, not the server's.
+    const look = $("look-btn");
+    const showLook = () => {
+      const on = this.world.lookNow.atmosphere;
+      look.textContent = on ? "✨ Atmosphere" : "✨ Atmosphere off";
+      look.classList.toggle("off", !on);
+    };
+    look.onclick = () => {
+      this.world.setLook({ atmosphere: !this.world.lookNow.atmosphere });
+      showLook();
+    };
+    showLook();
     $("modal-close").onclick = () => this.panels.closeModal();
     $<HTMLDialogElement>("modal").addEventListener("cancel", (e) => {
       e.preventDefault();

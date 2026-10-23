@@ -1,0 +1,720 @@
+{
+ "type": "tileset",
+ "version": "1.10",
+ "tiledversion": "1.11.0",
+ "name": "buildings",
+ "image": "buildings.png",
+ "imagewidth": 1024,
+ "imageheight": 256,
+ "tilewidth": 64,
+ "tileheight": 64,
+ "margin": 0,
+ "spacing": 0,
+ "columns": 16,
+ "tilecount": 59,
+ "tiles": [
+  {
+   "id": 0,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/thatch_top_m"
+    }
+   ]
+  },
+  {
+   "id": 1,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/thatch_mid_m"
+    }
+   ]
+  },
+  {
+   "id": 2,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/thatch_near_m"
+    }
+   ]
+  },
+  {
+   "id": 3,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/thatch_top_l"
+    }
+   ]
+  },
+  {
+   "id": 4,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/thatch_top_r"
+    }
+   ]
+  },
+  {
+   "id": 5,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/thatch_mid_l"
+    }
+   ]
+  },
+  {
+   "id": 6,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/thatch_mid_r"
+    }
+   ]
+  },
+  {
+   "id": 7,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/thatch_near_l"
+    }
+   ]
+  },
+  {
+   "id": 8,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/thatch_near_r"
+    }
+   ]
+  },
+  {
+   "id": 9,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/shingle_top_m"
+    }
+   ]
+  },
+  {
+   "id": 10,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/shingle_mid_m"
+    }
+   ]
+  },
+  {
+   "id": 11,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/shingle_near_m"
+    }
+   ]
+  },
+  {
+   "id": 12,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/shingle_top_l"
+    }
+   ]
+  },
+  {
+   "id": 13,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/shingle_top_r"
+    }
+   ]
+  },
+  {
+   "id": 14,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/shingle_mid_l"
+    }
+   ]
+  },
+  {
+   "id": 15,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/shingle_mid_r"
+    }
+   ]
+  },
+  {
+   "id": 16,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/shingle_near_l"
+    }
+   ]
+  },
+  {
+   "id": 17,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/shingle_near_r"
+    }
+   ]
+  },
+  {
+   "id": 18,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/canvas_top_m"
+    }
+   ]
+  },
+  {
+   "id": 19,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/canvas_mid_m"
+    }
+   ]
+  },
+  {
+   "id": 20,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/canvas_near_m"
+    }
+   ]
+  },
+  {
+   "id": 21,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/canvas_top_l"
+    }
+   ]
+  },
+  {
+   "id": 22,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/canvas_top_r"
+    }
+   ]
+  },
+  {
+   "id": 23,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/canvas_mid_l"
+    }
+   ]
+  },
+  {
+   "id": 24,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/canvas_mid_r"
+    }
+   ]
+  },
+  {
+   "id": 25,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/canvas_near_l"
+    }
+   ]
+  },
+  {
+   "id": 26,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/canvas_near_r"
+    }
+   ]
+  },
+  {
+   "id": 27,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/plaster_m"
+    }
+   ]
+  },
+  {
+   "id": 28,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/plaster_l"
+    }
+   ]
+  },
+  {
+   "id": 29,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/plaster_r"
+    }
+   ]
+  },
+  {
+   "id": 30,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/plaster_win"
+    },
+    {
+     "name": "window",
+     "type": "bool",
+     "value": true
+    },
+    {
+     "name": "glow",
+     "type": "string",
+     "value": "fx/window_glow"
+    }
+   ]
+  },
+  {
+   "id": 31,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/door_wood"
+    },
+    {
+     "name": "door",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 32,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/stone_m"
+    }
+   ]
+  },
+  {
+   "id": 33,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/stone_l"
+    }
+   ]
+  },
+  {
+   "id": 34,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/stone_r"
+    }
+   ]
+  },
+  {
+   "id": 35,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/stone_win"
+    },
+    {
+     "name": "window",
+     "type": "bool",
+     "value": true
+    },
+    {
+     "name": "glow",
+     "type": "string",
+     "value": "fx/window_glow_arch"
+    }
+   ]
+  },
+  {
+   "id": 36,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/door_stone"
+    },
+    {
+     "name": "door",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 37,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/forge_mouth"
+    },
+    {
+     "name": "forge",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 38,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/plank_m"
+    }
+   ]
+  },
+  {
+   "id": 39,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/plank_l"
+    }
+   ]
+  },
+  {
+   "id": 40,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/plank_r"
+    }
+   ]
+  },
+  {
+   "id": 41,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/plank_win"
+    },
+    {
+     "name": "window",
+     "type": "bool",
+     "value": true
+    },
+    {
+     "name": "glow",
+     "type": "string",
+     "value": "fx/window_glow_small"
+    }
+   ]
+  },
+  {
+   "id": 42,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/door_barn"
+    },
+    {
+     "name": "door",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 43,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/stall_m"
+    }
+   ]
+  },
+  {
+   "id": 44,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/stall_l"
+    }
+   ]
+  },
+  {
+   "id": 45,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/stall_r"
+    }
+   ]
+  },
+  {
+   "id": 46,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/stall_goods"
+    }
+   ]
+  },
+  {
+   "id": 47,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/tent_front"
+    },
+    {
+     "name": "door",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 48,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/tent_side"
+    }
+   ]
+  },
+  {
+   "id": 49,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/campfire"
+    },
+    {
+     "name": "fire",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 50,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/cart_l"
+    }
+   ]
+  },
+  {
+   "id": 51,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/cart_r"
+    }
+   ]
+  },
+  {
+   "id": 52,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/loot"
+    }
+   ]
+  },
+  {
+   "id": 53,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/heap"
+    }
+   ]
+  },
+  {
+   "id": 54,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/wall_face"
+    },
+    {
+     "name": "wall",
+     "type": "string",
+     "value": "face"
+    }
+   ]
+  },
+  {
+   "id": 55,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/wall_top"
+    },
+    {
+     "name": "wall",
+     "type": "string",
+     "value": "top"
+    }
+   ]
+  },
+  {
+   "id": 56,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/door"
+    }
+   ]
+  },
+  {
+   "id": 57,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/gate"
+    }
+   ]
+  },
+  {
+   "id": 58,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/porch"
+    }
+   ]
+  }
+ ],
+ "wangsets": [
+  {
+   "name": "walls",
+   "type": "edge",
+   "tile": 54,
+   "colors": [
+    {
+     "name": "wall",
+     "color": "#6e6c70",
+     "tile": 54,
+     "probability": 1
+    }
+   ],
+   "wangtiles": [
+    {
+     "tileid": 54,
+     "wangid": [
+      1,
+      0,
+      1,
+      0,
+      0,
+      0,
+      1,
+      0
+     ]
+    },
+    {
+     "tileid": 55,
+     "wangid": [
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0
+     ]
+    }
+   ]
+  }
+ ]
+}

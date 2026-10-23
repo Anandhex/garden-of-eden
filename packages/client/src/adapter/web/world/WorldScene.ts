@@ -1,16 +1,25 @@
 /**
- * The world view of the web adapter (G5), in Phaser 3. It draws only what the server sends: terrain from the
- * frame's patches, buildings, signs and lights, and every actor where the frame puts it, walking along the route
- * the server gives. Speech, crowd chatter and the typed events (T13) become bubbles and animations. A click is a
- * tile sent to the server; what it means is the server's to decide.
+ * The world view of the web adapter (G5, G6), in Phaser 3. It draws only what the server sends: terrain from the
+ * frame's patches, buildings dressed in their templates, signs, lights, and every actor where the frame puts it,
+ * walking along the route the server gives. Four layers (depth.ts): the ground; props, front walls and people
+ * y-sorted together; roofs over them; names and bubbles on top. Light2D lights it all by the frame's `ambience`
+ * and `lights`. Speech, crowd chatter and the typed events (T13) become bubbles and animations. A click is a tile
+ * sent to the server; what it means is the server's to decide.
  */
 import * as Phaser from "phaser";
-import type { Actor as ActorData, Frame, GameEvent } from "@millbrook/shared/view";
+import type { Frame, GameEvent } from "@millbrook/shared/view";
 import type { Core, FrameChange } from "../../../core";
 import { shortCoins } from "../../../dom";
-import { lookOf, textureFor } from "../art";
+import { SHEET_NAMES, sheetsLoaded } from "../art";
+import { Bubble, DPR, font, Sprite } from "./actors";
+import { Atmosphere } from "./atmosphere";
+import { BuildingLayer } from "./buildings";
+import { DEPTH } from "./depth";
 import { fpsWanted, mountFpsOverlay, nearestShown } from "./fps";
-import { hexColor, makeTextures, ORIGINS, TILE, tileHash } from "./textures";
+import { GroundLayer } from "./ground";
+import { LIGHT_BUDGET, Lighting } from "./lighting";
+import { lookPrefs, saveLook, type LookPrefs } from "./look";
+import { makeTextures, TILE } from "./textures";
 
 /** The view: 26 by 18 tiles, following the player round bigger places. */
 export const VIEW_W = 26;
@@ -18,231 +27,11 @@ export const VIEW_H = 18;
 /** The ground drawn: the view and a little more, so the edges never show while the camera catches up. */
 const POOL_W = VIEW_W + 6;
 const POOL_H = VIEW_H + 6;
-/** How long a tile's walk takes on screen, by who's walking. */
-const WALK_MS: Record<ActorData["kind"], number> = { player: 90, npc: 150, companion: 90, creature: 200, folk: 450, traveller: 450 };
 /** Townsfolk names shown at once, nearest the player, and how near. */
 const FOLK_LABELS = 6;
 const FOLK_LABEL_RANGE = 3;
 
 const MOOD_EMOTE: Record<string, string> = { happy: "😊", neutral: "😐", annoyed: "😒", angry: "😠", afraid: "😨", sad: "😢" };
-const DPR = Math.min(2, window.devicePixelRatio || 1);
-const font = (size: number, color = "#ffffff", bold = true): Phaser.Types.GameObjects.Text.TextStyle => ({
-  fontFamily: "system-ui, sans-serif",
-  fontSize: `${size}px`,
-  fontStyle: bold ? "bold" : "normal",
-  color,
-  stroke: "rgba(0,0,0,0.75)",
-  strokeThickness: 3,
-});
-
-/** One character on the map: a container that walks along tiles, with its label, HP bar and speech bubble. */
-class Sprite {
-  readonly c: Phaser.GameObjects.Container;
-  private body: Phaser.GameObjects.Image;
-  private head: Phaser.GameObjects.Image | null = null;
-  private label: Phaser.GameObjects.Text | null = null;
-  private bar: Phaser.GameObjects.Graphics | null = null;
-  private look: string | null = null;
-  private tint = 0xffffff;
-  private path: Array<{ x: number; y: number }> = [];
-  private speed = 0.25;
-  private walkClock = 0;
-  bubble: Bubble | null = null;
-  data: ActorData;
-
-  constructor(
-    private readonly scene: WorldScene,
-    a: ActorData,
-  ) {
-    this.data = a;
-    const p = scene.px(a.x, a.y);
-    const shadow = scene.add.image(0, 12, "shadow");
-    this.body = scene.add.image(0, 4.5, "body");
-    this.c = scene.add.container(p.x, p.y, [shadow, this.body]);
-    this.set(a);
-  }
-
-  /** New facts from the server: how it looks, its HP. */
-  set(a: ActorData): void {
-    this.data = a;
-    const tint = a.look.tint ? hexColor(a.look.tint) : 0xffffff;
-    const key = `${a.look.sprite}|${a.look.trim ?? ""}|${a.kind}`;
-    if (key !== this.look || tint !== this.tint) {
-      this.look = key;
-      this.tint = tint;
-      this.head?.destroy();
-      this.head = null;
-      this.c.list.filter((o) => o.name === "extra").forEach((o) => o.destroy());
-      const kind = lookOf(a.look.sprite);
-      const tex = textureFor(a.look.sprite);
-      if (kind === "grave") this.body.setTexture(tex).setOrigin(...ORIGINS.grave).setPosition(0, 4).clearTint();
-      else if (kind === "beast") this.body.setTexture(tex).setOrigin(...ORIGINS.beast).setPosition(0, 2).setTint(tint);
-      else {
-        this.body.setTexture(tex).setOrigin(...ORIGINS.body).setPosition(0, 4.5).setTint(tint);
-        this.head = this.scene.add.image(0, -9, "head").setOrigin(...ORIGINS.head);
-        if (a.look.trim) this.head.setTint(hexColor(a.look.trim));
-        this.c.addAt(this.head, 2);
-        if (a.kind === "player") {
-          this.c.addAt(this.scene.add.graphics().lineStyle(2, 0xffd27a).strokeRoundedRect(-8, -4, 16, 17, 5).setName("extra"), 2);
-          this.c.add(this.scene.add.image(0, -36, "marker").setName("extra"));
-        }
-      }
-      this.c.setScale(a.look.size ?? 1);
-    }
-    this.setHp(a.hp ?? 1);
-  }
-
-  setLabel(text: string | null, highlight: boolean): void {
-    if (!text) return void this.label?.setVisible(false);
-    if (!this.label) {
-      this.label = this.scene.add.text(0, -20, "", font(this.data.kind === "folk" ? 10 : 11)).setOrigin(0.5, 1).setResolution(DPR);
-      this.c.add(this.label);
-    }
-    if (this.label.text !== text) this.label.setText(text);
-    this.label.setVisible(true).setColor(highlight ? "#ffd27a" : this.data.flags.includes("noble") ? "#ffd27a" : this.data.flags.includes("lowborn") ? "#b9b2a6" : "#ffffff");
-    this.label.setY(lookOf(this.data.look.sprite) === "beast" ? -14 : -20).setScale(1 / (this.data.look.size ?? 1));
-  }
-
-  private setHp(share: number): void {
-    if (share >= 1 || lookOf(this.data.look.sprite) === "grave") return void this.bar?.clear();
-    if (!this.bar) {
-      this.bar = this.scene.add.graphics();
-      this.c.add(this.bar);
-    }
-    this.bar.clear();
-    this.bar.fillStyle(0x000000, 0.65).fillRect(-12, 15, 24, 4);
-    this.bar.fillStyle(0xe0675b).fillRect(-12, 15, 24 * Math.max(0, share), 4);
-  }
-
-  /** Walk to where the server says, along its route if it gave one; far jumps (a new spot, a fast travel) are instant. */
-  goTo(a: ActorData, jump = false): void {
-    const to = this.scene.px(a.x, a.y);
-    const from = { x: this.c.x, y: this.c.y };
-    const far = Math.hypot(to.x - from.x, to.y - from.y) / TILE;
-    if (jump || (far > 6 && !a.route)) {
-      this.path = [];
-      this.c.setPosition(to.x, to.y);
-      return;
-    }
-    this.path = (a.route ?? [{ x: a.x, y: a.y }]).map((t) => this.scene.px(t.x, t.y));
-    this.speed = TILE / (this.data.kind === "player" ? Math.min(WALK_MS.player, this.scene.core.frame.stepMs) : WALK_MS[this.data.kind]);
-  }
-
-  get walking(): boolean {
-    return this.path.length > 0;
-  }
-
-  update(delta: number): void {
-    let budget = this.speed * delta;
-    while (this.path.length > 0 && budget > 0) {
-      const next = this.path[0]!;
-      const dx = next.x - this.c.x;
-      const dy = next.y - this.c.y;
-      const d = Math.hypot(dx, dy);
-      if (d <= budget) {
-        this.c.setPosition(next.x, next.y);
-        this.path.shift();
-        budget -= d;
-      } else {
-        this.c.setPosition(this.c.x + (dx / d) * budget, this.c.y + (dy / d) * budget);
-        budget = 0;
-      }
-    }
-    // A little bob while walking.
-    this.walkClock = this.walking ? this.walkClock + delta : 0;
-    const bob = this.walking ? Math.abs(Math.sin(this.walkClock / 70)) * -2 : 0;
-    const kind = lookOf(this.data.look.sprite);
-    if (kind !== "grave") this.body.setY((kind === "beast" ? 2 : 4.5) + bob);
-    this.head?.setY(-9 + bob);
-    this.c.setDepth(10 + this.c.y / TILE);
-    this.bubble?.follow(this.c.x, this.c.y);
-  }
-
-  flash(): void {
-    this.body.setTintFill(0xffffff);
-    this.scene.time.delayedCall(90, () => (lookOf(this.data.look.sprite) === "grave" ? this.body.clearTint() : this.body.setTint(this.tint)));
-  }
-
-  /** Lean towards a point and back: an attack. */
-  lunge(toX: number, toY: number): void {
-    const d = Math.hypot(toX - this.c.x, toY - this.c.y) || 1;
-    this.scene.tweens.add({ targets: this.body, x: ((toX - this.c.x) / d) * 6, y: this.body.y + ((toY - this.c.y) / d) * 6, duration: 70, yoyo: true, onComplete: () => this.body.setX(0) });
-  }
-
-  destroy(): void {
-    this.bubble?.destroy();
-    this.c.destroy();
-  }
-}
-
-/** A speech bubble: what someone says as it streams, "…" while they think, or a line of the crowd's chatter. */
-class Bubble {
-  private readonly c: Phaser.GameObjects.Container;
-  private readonly bg: Phaser.GameObjects.Graphics;
-  private readonly text: Phaser.GameObjects.Text;
-  private thinking = false;
-  private dots = 0;
-  private hideTimer: Phaser.Time.TimerEvent | null = null;
-  lift = 0;
-
-  constructor(
-    private readonly scene: Phaser.Scene,
-    small = false,
-  ) {
-    this.bg = scene.add.graphics();
-    this.text = scene.add.text(0, 0, "", { fontFamily: "system-ui, sans-serif", fontSize: small ? "11px" : "12px", color: "#1d2026", wordWrap: { width: small ? 150 : 170 } }).setResolution(DPR).setOrigin(0.5, 1);
-    this.c = scene.add.container(0, 0, [this.bg, this.text]).setDepth(small ? 950 : 1000);
-  }
-
-  show(text: string | null, opts: { done?: boolean; italic?: boolean; hot?: boolean; ms?: number } = {}): void {
-    this.hideTimer?.remove();
-    this.hideTimer = null;
-    this.c.setAlpha(1).setVisible(true);
-    this.thinking = text === null;
-    if (text !== null) {
-      const clean = text.replace(/\s+/g, " ").trim();
-      this.setText(clean.length > 110 ? `…${clean.slice(-108)}` : clean || "…", opts.italic === true, opts.hot === true);
-    } else this.setText("…", false, false);
-    const ms = opts.ms ?? (opts.done ? 3500 + Math.min(4000, text?.length ?? 0) * 25 : null);
-    if (ms !== null) this.hideTimer = this.scene.time.delayedCall(ms, () => this.scene.tweens.add({ targets: this.c, alpha: 0, duration: 400, onComplete: () => this.c.setVisible(false) }));
-  }
-
-  get visible(): boolean {
-    return this.c.visible;
-  }
-
-  tick(time: number): void {
-    if (!this.thinking) return;
-    const dots = Math.floor(time / 350) % 4;
-    if (dots !== this.dots) {
-      this.dots = dots;
-      this.setText(".".repeat(dots || 1).padEnd(3, " "), false, false);
-    }
-  }
-
-  private setText(text: string, italic: boolean, hot: boolean): void {
-    this.text.setText(text).setFontStyle(italic || text.startsWith("*") ? "italic" : "normal");
-    const w = Math.max(28, this.text.width + 14);
-    const h = this.text.height + 10;
-    this.bg.clear();
-    this.bg.fillStyle(0xf3e9d2, 0.96).fillRoundedRect(-w / 2, -h - 6, w, h, 7);
-    this.bg.fillTriangle(-5, -7, 5, -7, 0, 0);
-    // A hostile exchange (N37) has a red edge.
-    this.bg.lineStyle(hot ? 2 : 1, hot ? 0xb03a2e : 0x000000, hot ? 1 : 0.25).strokeRoundedRect(-w / 2, -h - 6, w, h, 7);
-    this.text.setPosition(0, -11);
-  }
-
-  follow(x: number, y: number): void {
-    const half = (this.text.width + 14) / 2;
-    const v = this.scene.cameras.main.worldView;
-    this.c.setPosition(Phaser.Math.Clamp(x, v.x + half + 2, v.right - half - 2), Math.max(v.y + this.text.height + 18, y - 30 - this.lift));
-  }
-
-  destroy(): void {
-    this.hideTimer?.remove();
-    this.c.destroy();
-  }
-}
 
 export class WorldScene extends Phaser.Scene {
   core!: Core;
@@ -252,16 +41,12 @@ export class WorldScene extends Phaser.Scene {
   private mapId: string | null = null;
   /** The tile drawn at the scene's (0, 0): the road's tiles are far from it, and the GPU wants small numbers. */
   origin = { x: 0, y: 0 };
-  private ground: Phaser.GameObjects.Image[] = [];
-  private objects: Phaser.GameObjects.Image[] = [];
-  private groundAt = { x: Number.NaN, y: Number.NaN };
-  private groundDirty = true;
-  private buildingGfx!: Phaser.GameObjects.Graphics;
-  private buildingText: Phaser.GameObjects.Text[] = [];
+  private ground!: GroundLayer;
+  private buildings!: BuildingLayer;
+  private lighting!: Lighting;
+  private atmosphere!: Atmosphere;
+  private look: LookPrefs = lookPrefs();
   private signs = new Map<string, Phaser.GameObjects.Text>();
-  private night!: Phaser.GameObjects.Rectangle;
-  private rain!: Phaser.GameObjects.Particles.ParticleEmitter;
-  private snow!: Phaser.GameObjects.Particles.ParticleEmitter;
   private hover!: Phaser.GameObjects.Graphics;
   private hoverTile: { x: number; y: number } | null = null;
   private prompt!: Phaser.GameObjects.Text;
@@ -276,28 +61,52 @@ export class WorldScene extends Phaser.Scene {
     super("world");
   }
 
+  /** The packed sheets (`npm run art`); one that fails to load leaves its ids on their code-drawn fallbacks. */
+  preload(): void {
+    const failed = new Set<string>();
+    this.load.on("loaderror", (f: Phaser.Loader.File) => failed.add(f.key));
+    for (const sheet of SHEET_NAMES) this.load.atlas(sheet, `art/${sheet}.png`, `art/${sheet}.json`);
+    this.load.once("complete", () => {
+      const ok = SHEET_NAMES.filter((n) => !failed.has(n) && this.textures.exists(n));
+      // Pixel art stays crisp: nearest-neighbour for the sheets (the text keeps its smoothing).
+      for (const n of ok) this.textures.get(n).setFilter(Phaser.Textures.FilterMode.NEAREST);
+      sheetsLoaded(ok);
+      if (ok.length < SHEET_NAMES.length) console.warn(`[art] sheets missing: ${SHEET_NAMES.filter((n) => !ok.includes(n)).join(", ")}; drawing their fallbacks`);
+    });
+  }
+
+  /** Light an object (Light2D, when WebGL is there). */
+  lit<T extends Phaser.GameObjects.GameObject & { setPipeline(p: string): unknown }>(o: T): T {
+    return this.lighting ? this.lighting.lit(o) : o;
+  }
+
+  /** Atmosphere and its blur, on or off (the header's ✨ button). */
+  setLook(p: Partial<LookPrefs>): LookPrefs {
+    this.look = { ...this.look, ...p };
+    saveLook(this.look);
+    this.atmosphere?.setOn(this.look.atmosphere, this.look.blur);
+    return this.look;
+  }
+
+  get lookNow(): LookPrefs {
+    return this.look;
+  }
+
   create(): void {
     makeTextures(this);
     this.sprites = new Map();
     this.player = null;
     this.mapId = null;
-    this.ground = [];
-    this.objects = [];
-    for (let i = 0; i < POOL_W * POOL_H; i++) {
-      this.ground.push(this.add.image(0, 0, "grass0").setOrigin(0).setDepth(0));
-      this.objects.push(this.add.image(0, 0, "tree").setOrigin(0).setVisible(false));
-    }
-    this.buildingGfx = this.add.graphics().setDepth(2);
-    this.night = this.add.rectangle(0, 0, this.scale.width, this.scale.height, 0x0a1030, 0).setOrigin(0).setDepth(500).setScrollFactor(0);
-    this.rain = this.add.particles(0, -10, "drop", { x: { min: 0, max: this.scale.width + 120 }, speedY: { min: 380, max: 480 }, speedX: { min: -90, max: -60 }, lifespan: 1600, quantity: 3, frequency: 25, alpha: { start: 0.7, end: 0.3 }, emitting: false });
-    this.rain.setDepth(600).setScrollFactor(0);
-    this.snow = this.add.particles(0, -10, "flake", { x: { min: 0, max: this.scale.width }, speedY: { min: 30, max: 60 }, speedX: { min: -20, max: 20 }, lifespan: 12000, quantity: 1, frequency: 90, scale: { min: 0.5, max: 1 }, alpha: 0.85, emitting: false });
-    this.snow.setDepth(600).setScrollFactor(0);
-    this.hover = this.add.graphics().setDepth(5);
-    this.prompt = this.add.text(0, 0, "", font(13, "#ffd27a")).setOrigin(0.5, 0).setDepth(700).setResolution(DPR);
-    this.clock = this.add.graphics().setDepth(700);
-    this.clockText = this.add.text(0, 0, "", font(11)).setOrigin(0.5, 0).setDepth(700).setResolution(DPR);
-    this.tip = this.add.text(0, 0, "", { ...font(11, "#f3e9d2", false), backgroundColor: "#000000b0", padding: { x: 5, y: 3 }, wordWrap: { width: 300 } }).setDepth(1200).setResolution(DPR).setVisible(false);
+    this.cameras.main.setRoundPixels(true);
+    this.lighting = new Lighting(this);
+    this.ground = new GroundLayer(this, POOL_W, POOL_H);
+    this.buildings = new BuildingLayer(this);
+    this.atmosphere = new Atmosphere(this, this.look);
+    this.hover = this.add.graphics().setDepth(DEPTH.hover);
+    this.prompt = this.add.text(0, 0, "", font(13, "#ffd27a")).setOrigin(0.5, 0).setDepth(DEPTH.prompt).setResolution(DPR);
+    this.clock = this.add.graphics().setDepth(DEPTH.prompt);
+    this.clockText = this.add.text(0, 0, "", font(11)).setOrigin(0.5, 0).setDepth(DEPTH.prompt).setResolution(DPR);
+    this.tip = this.add.text(0, 0, "", { ...font(11, "#f3e9d2", false), backgroundColor: "#000000b0", padding: { x: 5, y: 3 }, wordWrap: { width: 300 } }).setDepth(DEPTH.tip).setResolution(DPR).setVisible(false);
     for (let i = 0; i < 14; i++) this.chatter.push(new Bubble(this, true));
 
     this.input.on("pointerdown", (p: Phaser.Input.Pointer) => {
@@ -342,23 +151,26 @@ export class WorldScene extends Phaser.Scene {
       this.origin = m.map.kind === "road" ? { x: m.player.x, y: m.player.y } : { x: 0, y: 0 };
       if (m.map.kind === "place" && m.map.w && m.map.h) this.cameras.main.setBounds(0, 0, m.map.w * TILE, m.map.h * TILE);
       else this.cameras.main.removeBounds();
-      change = { ...change, added: [...m.actors.keys()], buildings: true, signs: true };
-      this.groundDirty = true;
+      change = { ...change, added: [...m.actors.keys()], buildings: true, lights: true, signs: true };
+      this.buildings.invalidate();
+      this.lighting.clear();
+      this.ground.dirty = true;
     } else if (m.map.kind === "road" && me && (Math.abs(me.x - this.origin.x) > 2500 || Math.abs(me.y - this.origin.y) > 2500)) {
       // Far from the origin: move it, and everything with it.
       this.origin = { x: me.x, y: me.y };
       for (const s of this.sprites.values()) s.goTo(s.data, true);
-      change = { ...change, buildings: true, signs: true };
-      this.groundDirty = true;
+      change = { ...change, buildings: true, lights: true, signs: true };
+      this.buildings.invalidate();
+      this.ground.dirty = true;
     }
-    if (change.patches.length > 0) this.groundDirty = true;
+    if (change.patches.length > 0) this.ground.dirty = true;
     for (const id of change.removed) {
       const s = this.sprites.get(id);
       if (!s) continue;
       this.sprites.delete(id);
       s.bubble?.destroy();
       s.bubble = null;
-      this.tweens.add({ targets: s.c, alpha: 0, duration: 300, onComplete: () => s.destroy() });
+      s.fadeOut();
     }
     for (const id of change.added) {
       const a = m.actors.get(id);
@@ -369,10 +181,7 @@ export class WorldScene extends Phaser.Scene {
       if (id === "player") {
         this.player = s;
         this.cameras.main.startFollow(s.c, true, 0.18, 0.18);
-      } else {
-        s.c.setAlpha(0);
-        this.tweens.add({ targets: s.c, alpha: 1, duration: 300 });
-      }
+      } else s.fadeIn();
     }
     for (const id of [...change.updated, ...change.moved]) {
       const a = m.actors.get(id);
@@ -381,58 +190,21 @@ export class WorldScene extends Phaser.Scene {
       s.set(a);
       s.goTo(a);
     }
-    if (change.buildings) this.drawBuildings();
+    if (change.buildings && this.buildings.draw(m.buildings)) {
+      this.ground.dressedDoors = this.buildings.doors;
+      this.ground.dirty = true;
+      change = { ...change, lights: true };
+    }
     if (change.signs) this.drawSigns();
-    this.setSky();
+    this.lighting.setAmbience(m.ambience);
+    this.atmosphere.setAmbience(m.ambience);
+    if (change.lights) this.buildings.setLights(m.lights);
+    // The nearest lights change as the player walks, so they are picked again every frame.
+    this.lighting.setLights(m.lights, m.player);
     if (f?.chatter?.length) this.showChatter(f.chatter);
     for (const g of f?.gossip ?? []) this.say(g.who, g.text, 0, 5200, false);
     this.labels();
     if (this.hoverTile) this.hoverAt(this.hoverTile);
-  }
-
-  /** The ground round the camera, from the patches (unknown tiles show grass until theirs comes). */
-  private drawGround(cx: number, cy: number): void {
-    if (!this.groundDirty && cx === this.groundAt.x && cy === this.groundAt.y) return;
-    this.groundDirty = false;
-    this.groundAt = { x: cx, y: cy };
-    const m = this.core.frame;
-    const x0 = cx - Math.floor(POOL_W / 2);
-    const y0 = cy - Math.floor(POOL_H / 2);
-    for (let j = 0; j < POOL_H; j++) {
-      for (let i = 0; i < POOL_W; i++) {
-        const gx = x0 + i;
-        const gy = y0 + j;
-        const k = j * POOL_W + i;
-        const t = m.tileAt(gx, gy);
-        const sx = (gx - this.origin.x) * TILE;
-        const sy = (gy - this.origin.y) * TILE;
-        const off = m.map?.kind === "place" && (gx < 0 || gy < 0 || gx >= (m.map.w ?? 0) || gy >= (m.map.h ?? 0));
-        this.ground[k]!.setTexture(textureFor(t?.ground ?? "terrain/grass", tileHash(gx, gy))).setPosition(sx, sy).setVisible(!off);
-        const obj = this.objects[k]!;
-        if (t?.object && !off) obj.setTexture(textureFor(t.object, tileHash(gx, gy))).setPosition(sx, sy).setDepth(t.object === "buildings/wall" || t.object === "buildings/door" ? 3 : 10 + gy - this.origin.y + 0.4).setVisible(true);
-        else obj.setVisible(false);
-      }
-    }
-  }
-
-  private drawBuildings(): void {
-    const g = this.buildingGfx.clear();
-    for (const t of this.buildingText) t.destroy();
-    this.buildingText = [];
-    for (const b of this.core.frame.buildings) {
-      const bx = (b.x - this.origin.x) * TILE;
-      const by = (b.y - this.origin.y) * TILE;
-      const bw = b.w * TILE;
-      const bh = b.h * TILE;
-      g.fillStyle(0x6a5a48).fillRect(bx, by, bw, bh);
-      g.fillStyle(hexColor(b.color)).fillRect(bx, by, bw, bh - 10);
-      g.fillStyle(0x000000, 0.2);
-      for (let i = 0; i < bw; i += 8) g.fillRect(bx + i, by, 2, bh - 10);
-      g.lineStyle(2, 0x000000, 0.45).strokeRect(bx + 1, by + 1, bw - 2, bh - 2);
-      // A lit window after dark (the server says who is home).
-      if (b.lit) g.fillStyle(0xffd27a, 0.9).fillRect(bx + bw / 2 - 4, by + bh - 9, 8, 6);
-      if (b.label) this.buildingText.push(this.add.text(bx + bw / 2, by + (bh - 10) / 2, b.label, font(12, "#f3e9d2")).setOrigin(0.5, 0.5).setDepth(4).setResolution(DPR));
-    }
   }
 
   private drawSigns(): void {
@@ -443,7 +215,7 @@ export class WorldScene extends Phaser.Scene {
       let t = this.signs.get(s.id);
       if (!t) {
         t = s.kind === "exit" ? this.add.text(0, 0, s.text, { ...font(11, "#ffd27a"), backgroundColor: "#00000088", padding: { x: 4, y: 2 } }) : this.add.text(0, 0, s.text, { fontFamily: "system-ui, sans-serif", fontSize: "13px", fontStyle: "bold", color: "#ffe9b0", stroke: "#000000", strokeThickness: 3 });
-        t.setDepth(s.kind === "exit" ? 450 : 460).setResolution(DPR);
+        t.setDepth(s.kind === "exit" ? DEPTH.signs : DEPTH.signs + 1).setResolution(DPR);
         this.signs.set(s.id, t);
       }
       const p = this.px(s.x, s.y);
@@ -453,18 +225,6 @@ export class WorldScene extends Phaser.Scene {
         t.setOrigin(left ? 0 : right ? 1 : 0.5, top ? 0 : bottom ? 1 : 0.5).setPosition(left ? TILE * 1.1 : right ? (m.map.w - 1.1) * TILE : p.x, top ? TILE * 1.1 : bottom ? (m.map.h - 1.1) * TILE : p.y);
       } else t.setOrigin(0.5, 1).setPosition(p.x, p.y - TILE / 2);
     }
-  }
-
-  /** Night falls and weather comes in. */
-  private setSky(): void {
-    const a = this.core.frame.ambience;
-    const dark = (1 - a.light) * 0.45;
-    if (Math.abs(this.night.fillAlpha - dark) > 0.01) this.tweens.add({ targets: this.night, fillAlpha: dark, duration: 800 });
-    const rainy = a.weather === "rain" || a.weather === "storm";
-    if (rainy !== this.rain.emitting) rainy ? this.rain.start() : this.rain.stop();
-    const snowy = a.weather === "snow";
-    if (snowy !== this.snow.emitting) snowy ? this.snow.start() : this.snow.stop();
-    this.rain.frequency = a.weather === "storm" ? 10 : 25;
   }
 
   /** Who shows a name: the player, the NPCs, the one the prompt is under, the townsfolk nearest and the one pointed at; others their short label. */
@@ -506,7 +266,7 @@ export class WorldScene extends Phaser.Scene {
     b.lift = lift;
     b.show(line.length > 70 ? `${line.slice(0, 68)}…` : line, { ms, hot });
     b.follow(s.c.x, s.c.y);
-    (b as Bubble & { who?: string }).who = who;
+    b.who = who;
   }
 
   private showChatter(list: NonNullable<Frame["chatter"]>): void {
@@ -526,14 +286,14 @@ export class WorldScene extends Phaser.Scene {
   private float(who: string, text: string, color: string, dy = 0): void {
     const a = this.actorFor(who);
     if (!a) return;
-    const t = this.add.text(a.c.x, a.c.y - 26 + dy, text, font(12, color)).setOrigin(0.5).setDepth(1100).setResolution(DPR);
+    const t = this.add.text(a.c.x, a.c.y - 26 + dy, text, font(12, color)).setOrigin(0.5).setDepth(DEPTH.float).setResolution(DPR);
     this.tweens.add({ targets: t, y: t.y - 26, alpha: 0, duration: 1400, ease: "Cubic.easeOut", onComplete: () => t.destroy() });
   }
 
   private emote(who: string, symbol: string, size = 18): void {
     const a = this.actorFor(who);
     if (!a) return;
-    const t = this.add.text(a.c.x + 12, a.c.y - 34, symbol, { fontSize: `${size}px` }).setOrigin(0.5).setDepth(1100).setResolution(DPR);
+    const t = this.add.text(a.c.x + 12, a.c.y - 34, symbol, { fontSize: `${size}px` }).setOrigin(0.5).setDepth(DEPTH.float).setResolution(DPR);
     this.tweens.add({ targets: t, y: t.y - 14, duration: 500, ease: "Back.easeOut" });
     this.tweens.add({ targets: t, alpha: 0, delay: 1600, duration: 400, onComplete: () => t.destroy() });
   }
@@ -608,14 +368,22 @@ export class WorldScene extends Phaser.Scene {
 
   update(time: number, delta: number): void {
     this.fps?.update(time, delta, this.game.loop.actualFps);
+    this.lighting.update(time, delta);
+    this.atmosphere.update(time, delta, this.lighting.tint);
+    // Off the map's edge is the grass colour, darkened like the lit world round it.
+    const t = this.lighting.tint;
+    this.cameras.main.setBackgroundColor((((0x2d * ((t >> 16) & 255)) / 255) << 16) | (((0x4a * ((t >> 8) & 255)) / 255) << 8) | ((0x2b * (t & 255)) / 255));
     if (!this.player) return;
-    this.drawGround(Math.round(this.player.c.x / TILE - 0.5) + this.origin.x, Math.round(this.player.c.y / TILE - 0.5) + this.origin.y);
+    const before = this.ground.trees;
+    this.ground.draw(Math.round(this.player.c.x / TILE - 0.5) + this.origin.x, Math.round(this.player.c.y / TILE - 0.5) + this.origin.y, time);
+    if (this.ground.trees !== before) this.atmosphere.setTrees(this.ground.trees, this.origin);
+    this.buildings.update({ x: this.player.c.x / TILE - 0.5 + this.origin.x, y: this.player.c.y / TILE - 0.5 + this.origin.y }, delta);
     for (const s of this.sprites.values()) {
       s.update(delta);
       s.bubble?.tick(time);
     }
     for (const b of this.chatter) {
-      const who = (b as Bubble & { who?: string }).who;
+      const who = b.who;
       const s = who ? this.sprites.get(who) : undefined;
       if (b.visible && s) b.follow(s.c.x, s.c.y);
     }
@@ -654,6 +422,8 @@ export function startWorld(parent: HTMLElement, core: Core): WorldScene {
   parent.replaceChildren();
   const scene = new WorldScene();
   scene.core = core;
+  // `?debug=1`: the scene on `window.world`, to look at the layers and lights from the console.
+  if (new URLSearchParams(location.search).has("debug")) Object.assign(window, { world: scene });
   new Phaser.Game({
     type: Phaser.AUTO,
     parent,
@@ -663,7 +433,8 @@ export function startWorld(parent: HTMLElement, core: Core): WorldScene {
     // Keys are read by the page (so typing in the chat box never moves you); Phaser only gets the mouse.
     input: { keyboard: false },
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_HORIZONTALLY },
-    render: { antialias: true, roundPixels: true },
+    // Light2D's limit per camera: the nearest lights get a real one (lighting.ts), the rest glow without.
+    render: { antialias: true, roundPixels: true, maxLights: LIGHT_BUDGET },
     banner: false,
     scene: [scene],
   });
