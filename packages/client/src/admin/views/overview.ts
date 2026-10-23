@@ -110,18 +110,34 @@ export class OverviewView implements View {
     } else {
       right.append(emptyP("Click a place on the map for its card."));
     }
-    right.append(el("h3", { textContent: "At war" }));
+    // Wars, treaties and factions: a panel each, one row per item (what it is, then the detail in grey).
+    const panel = (title: string, items: Array<[string, string, string?]>, none: string) => {
+      const box = el("section", { className: "panel" });
+      box.append(el("h3", { textContent: title }));
+      if (items.length === 0) box.append(emptyP(none));
+      const ul = el("ul", { className: "list" });
+      for (const [head, detail, tag] of items) {
+        const li = el("li");
+        const top = el("div", { className: "list-head" });
+        top.append(el("span", { textContent: head }));
+        if (tag) top.append(el("span", { className: "tag", textContent: tag }));
+        li.append(top, el("div", { className: "muted", textContent: detail }));
+        ul.append(li);
+      }
+      if (items.length > 0) box.append(ul);
+      right.append(box);
+    };
     const wars = r.wars.filter((w) => w.end === null);
-    if (wars.length === 0) right.append(emptyP("Peace, for now."));
-    for (const w of wars) right.append(emptyP(`${w.attackers.join(" & ")} against ${w.defenders.join(" & ")} (${w.cause}), from day ${w.start}: ${w.battles} battles, score ${w.score}.`));
-    right.append(el("h3", { textContent: `Treaties in force (${r.treaties.length})` }));
-    for (const x of r.treaties.slice(0, 10)) right.append(emptyP(`${x.kind.replace("_", " ")}: ${x.a} and ${x.b} (${x.why}), until day ${x.until}.`));
-    right.append(el("h3", { textContent: `Factions (${r.factions.length})` }));
-    for (const f of r.factions) right.append(emptyP(`${f.name} [${f.kind}]${f.parent ? `, split from ${f.parent}` : ""}: ${f.size} members, led by ${f.leader ?? "no one"}.`));
+    panel("At war", wars.map((w) => [`${w.attackers.join(" & ")} against ${w.defenders.join(" & ")}`, `${w.cause}, from day ${w.start}: ${w.battles} battles, score ${w.score}`, "war"]), "Peace, for now.");
+    panel(`Treaties in force (${r.treaties.length})`, r.treaties.slice(0, 10).map((x) => [`${x.a} and ${x.b}`, `${x.why}, until day ${x.until}`, x.kind.replace("_", " ")]), "None.");
+    panel(`Factions (${r.factions.length})`, r.factions.map((f) => [f.name, `${f.size} members (${f.named} named, ${f.sworn} townsfolk), led by ${f.leader ?? "no one"}${f.parent ? `; split from ${f.parent}` : ""}`, f.kind]), "None.");
 
     const top = el("div", { className: "split" });
     top.append(left, right);
-    this.el.append(top, el("h3", { textContent: "Every place" }), this.table(o));
+    const places = el("section", { className: "panel wide" });
+    places.append(el("h3", { textContent: `Every place (${r.settlements.length})` }), el("div", { className: "table-wrap" }));
+    places.lastElementChild!.append(this.table(o));
+    this.el.append(top, places);
   }
 
   private table(o: AdminOverview): HTMLElement {
@@ -143,11 +159,11 @@ export class OverviewView implements View {
         el("td", { textContent: `${s.abandoned ? "abandoned " : ""}${s.kind}` }),
         el("td", { textContent: kingdom(s.kingdom) }),
         el("td", { className: "num", textContent: s.population.toLocaleString() }),
-        el("td", { className: "muted", textContent: classes ? Object.entries(classes).map(([c, n]) => `${c} ${n}`).join(", ") : "…" }),
+        el("td", { className: "muted small", textContent: classes ? Object.entries(classes).map(([c, n]) => `${c} ${n}`).join(", ") : "…" }),
         el("td", { className: "num", textContent: String(s.prosperity) }),
         el("td", { className: "num", textContent: String(s.food) }),
-        el("td", { className: "num", textContent: coins(s.treasury) }),
-        el("td", { textContent: s.leader ?? "no one" }),
+        el("td", { className: "num nowrap", textContent: coins(s.treasury) }),
+        el("td", { className: "nowrap", textContent: s.leader ?? "no one" }),
         el("td", { textContent: [s.atWar ? "at war" : "", s.raided ? "raided" : "", s.project ?? ""].filter(Boolean).join(", ") }),
       );
       table.append(tr);

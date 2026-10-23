@@ -151,6 +151,51 @@ export function successionDay(realm: Realm, day: number, rng: Rng): void {
   refreshHierarchy(realm);
 }
 
+/**
+ * The court seats a kingdom's crown keeps besides the heads of places: a noble house at the capital and the
+ * city, and a captain at the capital, the city and each town (as `generateRealm` seats them).
+ */
+export function courtSeats(s: Settlement): Array<"noble" | "captain"> {
+  return s.kind === "capital" || s.kind === "city" ? ["noble", "captain"] : s.kind === "town" ? ["captain"] : [];
+}
+
+/** A day's chance an empty court seat is filled: a story-day thing, not a yearly one (about four days). */
+const COURT_FILL_CHANCE = 0.25;
+/** Who may be made captain: those who already bear arms. */
+const CAPTAIN_FROM: Figure["role"][] = ["guard", "adventurer", "hunter"];
+
+/**
+ * Empty court seats filled (sworn to the crown): a noble's grown child takes up the house, else the crown raises a
+ * new one; a captain is the most standing of the place's guards, adventurers and hunters, else one is sent.
+ * Without this a crown only ever shrinks: the dead leave it and only the heads of places were replaced.
+ */
+export function courtDay(realm: Realm, day: number, rng: Rng): void {
+  for (const s of Object.values(realm.settlements).sort((a, b) => a.id.localeCompare(b.id))) {
+    const kingdom = s.kingdom ? realm.kingdoms[s.kingdom] : undefined;
+    const crown = kingdom ? realm.factions[kingdom.crown] : undefined;
+    if (s.abandoned || !crown || crown.dissolved) continue;
+    const here = residents(realm, s.id);
+    for (const role of courtSeats(s)) {
+      if (here.some((f) => f.role === role && f.faction === crown.id)) continue;
+      if (rng() >= COURT_FILL_CHANCE) continue;
+      const free = here.filter((f) => !f.faction && !f.talks && f.life.stage !== "young" && f.id !== s.leader);
+      const nobleBorn = (f: Figure) => (f.parents ?? []).some((p) => ["noble", "ruler", "lord"].includes(realm.figures[p]?.role ?? ""));
+      const pool = free.filter((f) => (role === "noble" ? nobleBorn(f) : CAPTAIN_FROM.includes(f.role))).sort((a, b) => standing(b) - standing(a));
+      const raised = pool[0];
+      const tiers: Tier[] = role === "captain" && s.kind !== "town" ? ["D", "C"] : ["E", "D"];
+      const f = raised ?? makeFigure(realm, rng, { role, home: s.id, tier: tiers[Math.floor(rng() * tiers.length)]!, age: 25 + Math.floor(rng() * 25), renown: 20, rose: "crowd" }, day);
+      f.role = role;
+      join(realm, f, crown);
+      addRenown(f, 5);
+      addDeed(f, role === "noble" ? `took up a noble house in ${s.name}` : `was made captain of ${s.name}`);
+      here.push(f);
+      tally(realm, "court");
+      realmNews(realm, day, s.id, "court", role === "noble" ? `${f.name} ${raised ? "takes up" : "is raised to"} a noble house in ${s.name}, sworn to ${crown.name}.` : `${f.name} is made captain of ${s.name} for ${crown.name}.`, 3, [f.name, s.name], { why: raised ? (role === "noble" ? "a noble's child came of age to an empty house" : "the most standing of those who bear arms there") : "no one there fit the seat, so the crown sent someone" });
+    }
+  }
+  refreshHierarchy(realm);
+}
+
 /** Make someone head of a settlement (and ruler of its kingdom, at a capital). */
 export function install(realm: Realm, s: Settlement, f: Figure, day: number): void {
   s.leader = f.id;

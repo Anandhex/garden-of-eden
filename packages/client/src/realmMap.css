@@ -1,0 +1,18 @@
+/* The realm map (N13.9), drawn by realmMap.ts on the game's Realm tab and the admin page. Uses the page's colour tokens. */
+.realm-map { width: 100%; height: auto; background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; margin: 6px 0; }
+.realm-map .road { stroke: var(--line); stroke-width: 3; }
+.realm-map .road.liege { stroke: var(--muted); stroke-dasharray: 4 3; }
+.realm-map .place { cursor: pointer; }
+.realm-map .place text { fill: var(--text); font-size: 30px; font-weight: 600; paint-order: stroke; stroke: var(--panel2); stroke-width: 6px; pointer-events: none; }
+.realm-map .place circle { stroke: var(--bg, #111); stroke-width: 1.5; }
+.realm-map .place.selected circle:last-of-type { stroke: var(--info); stroke-width: 3; }
+.realm-map .place.abandoned { opacity: .35; }
+.realm-map .war-ring { fill: none; stroke: var(--bad); stroke-width: 5; }
+.realm-map .raid-ring { fill: none; stroke: #d9a441; stroke-width: 4; }
+.realm-map .dungeon rect { fill: #6b4f8f; stroke: #c8b6e2; stroke-width: 1; }
+.realm-map .dungeon.cleared rect { fill: #3d3550; }
+.realm-legend { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.realm-legend .chip { border: 2px solid var(--line); border-radius: 999px; padding: 1px 8px; font-size: 12px; color: var(--muted); }
+.realm-map .place.here circle:last-of-type { stroke: #ffd27a; stroke-width: 5; }
+
+.realm-legend .key { flex-basis: 100%; font-size: 12px; color: var(--muted); }
