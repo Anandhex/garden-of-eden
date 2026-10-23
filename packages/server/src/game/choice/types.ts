@@ -52,6 +52,28 @@ export interface Other {
   sells: boolean;
   /** Sour enough with their lot to listen to a recruiter. */
   restless: boolean;
+  /** Holds a seat (a guild's, the council's, the captaincy: N40), so is worth currying favour with. */
+  holdsSeat?: boolean;
+}
+
+/** What someone wants from their life (N40), as the menu reads it: the kind, how far up its ladder, who decides the next rung, who else wants it. */
+export interface AmbitionCtx {
+  kind: string;
+  step: number;
+  target: string | null;
+  progress: number;
+  /** People whose say decides the next rung (a guild's master and officers, the head of the place). */
+  deciders: readonly string[];
+  /** Others after the same thing. */
+  rivals: readonly string[];
+  /** An apprentice with no master to learn from here. */
+  needsMaster?: boolean;
+  /** How much they want it now, 0..1 (N40 follow-up): it scales what wanting adds to a score. */
+  strength: number;
+  /** How they are going about it (game/ambition/situations.ts `Route`). */
+  route?: string;
+  /** A short-term want that pushes it aside while it lasts: "get_by", "grieve", "keep_safe". */
+  urgent?: string;
 }
 
 export interface Temperament {
@@ -120,6 +142,8 @@ export interface ChoiceCtx {
   fights: { place: number; hour: number };
   /** Only these actions exist (tests, the proto rollout). */
   only?: readonly string[];
+  /** Their ambition (N40), if they have one. */
+  ambition?: AmbitionCtx;
 }
 
 /** What a chosen action did to the world, through the host. */

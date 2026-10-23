@@ -41,6 +41,11 @@ import type { DirectorLogEntry } from "../director/validator.js";
 import { addLore, learnLore, worldLore, type Certainty } from "../npc/knowledge.js";
 import { bindActiveSite, creaturesOf, siteIdOf, siteState, type SiteState } from "./site.js";
 import { registerTalker, talkerIdsAt, talkerSite } from "./talkers.js";
+import { careerRole, talkerAmbition } from "./ambition/words.js";
+import { rankOf } from "./ambition/careers.js";
+
+/** What of a place's lives the player sees happen where they are: births, deaths, weddings, and the turns of careers (N40). */
+const LIFE_NEWS = new Set(["birth", "death", "marriage", "opened-shop", "seat-won", "promoted", "knighted", "freed", "bought-land", "apprenticed"]);
 import { applyStory, deepen, factsFor, fallbackDepth } from "../npc/depth/index.js";
 import { LifeReviews, shockFromEvent, shocksFromStep } from "./reviews.js";
 import { writeStory } from "../npc/depth/story.js";
@@ -270,6 +275,33 @@ export class Town {
   private hookRecall(id: string): void {
     const store = this.store;
     if (store) this.agents[id]!.recall = async (line) => (await store.recall(id, line, 2)).map((r) => `on day ${r.day}, ${r.text}.`);
+    // What they want from their life (N40): their row's ambition, or one kept under their persona id.
+    if (store && config.ambitions) {
+      this.agents[id]!.ambition = () => {
+        const agent = this.agents[id];
+        if (!agent) return null;
+        return talkerAmbition(this.world.realm ?? null, store, agent.persona, talkerSite(this.world, id) ?? this.site(), this.world.day);
+      };
+    }
+  }
+
+  /**
+   * Talkers from the crowd rise through the same ladder as everyone (N40): when their row's rank in their trade moves, their file's role
+   * says so ("a journeyman smith of Harton" becomes "a master smith of Harton"), and they are told it in their system prompt from then on.
+   */
+  private syncCareerRoles(): void {
+    const store = this.store;
+    const realm = this.world.realm;
+    if (!store || !realm || !config.ambitions) return;
+    for (const id of [...this.ids].sort()) {
+      const agent = this.agents[id];
+      const row = store.people.get(id);
+      if (!agent || agent.isDead || !row || row.death !== null) continue;
+      const place = realm.settlements[row.site]?.name;
+      if (!place || !/^an? [a-z' -]+ of /.test(agent.persona.role)) continue;
+      const role = careerRole(row, rankOf(row, store.careers.openJobs(id)), place);
+      if (role && role !== agent.persona.role) this.replaceNpc({ ...agent.persona, role });
+    }
   }
 
   /** A new talker joins the registry and the town: a file, an agent, a state, a name. */
@@ -959,6 +991,7 @@ export class Town {
       if (step.day !== day) continue;
       this.afterSiteStep(step, step.site === here);
     }
+    this.syncCareerRoles();
   }
 
   private afterSiteStep(step: SiteStep, watched: boolean): void {
@@ -979,7 +1012,7 @@ export class Town {
     }
     if (!watched) return;
     for (const e of step.events) {
-      if (e.kind === "birth" || e.kind === "death" || e.kind === "marriage") this.lifeNews.push({ day: e.day, hour: e.hour, site: step.site, text: e.details });
+      if (LIFE_NEWS.has(e.kind)) this.lifeNews.push({ day: e.day, hour: e.hour, site: step.site, text: e.details });
     }
     if (this.lifeNews.length > 200) this.lifeNews.splice(0, this.lifeNews.length - 200);
   }

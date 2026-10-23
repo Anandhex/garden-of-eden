@@ -28,7 +28,10 @@ import { chosenPlan } from "./memory.js";
 export { chosenPlan };
 import { reasonOf } from "./score.js";
 import { clockOf } from "./guards.js";
-import type { ChoiceCtx, ChoiceHost, ChoiceLog, Deed, Other, Part } from "./types.js";
+import type { AmbitionCtx, ChoiceCtx, ChoiceHost, ChoiceLog, Deed, Other, Part } from "./types.js";
+import { decidersOf, holdsSeat } from "../ambition/seats.js";
+import { rivalsOf } from "../ambition/words.js";
+import { urgentOf } from "../ambition/situations.js";
 
 /**
  * The hourly menu for talkers (N38). Each hour, ahead of it being lived, every talker in the player's place scores what they could do
@@ -128,6 +131,26 @@ function otherOf(env: TalkerEnv, rowOf: RowOf, me: VillageMember, you: VillageMe
     sameFaction: !!myRow?.faction && myRow.faction === yourRow?.faction,
     sells: (plan.activity === "work" || plan.activity === "socialise") && ["stew", "bread loaf", "ale"].some((k) => you.persona.prices[k] !== undefined),
     restless: unhappy,
+    holdsSeat: !!env.store && holdsSeat(env.store, you.id),
+  };
+}
+
+/** A talker's ambition as the menu reads it (N40): their row's, or the one kept under their persona id. */
+function ambitionOfTalker(env: TalkerEnv, me: VillageMember, row: PersonRow | null): AmbitionCtx | undefined {
+  if (!env.store || !config.ambitions) return undefined;
+  const amb = env.store.careers.ambitionOf(me.id);
+  if (!amb || (amb.kind === "quiet_life" && !amb.urgent)) return undefined;
+  const urgent = urgentOf(amb, env.at.day);
+  return {
+    kind: amb.kind,
+    step: amb.step,
+    target: amb.target,
+    progress: amb.progress,
+    strength: amb.strength,
+    ...(amb.route ? { route: amb.route } : {}),
+    ...(urgent ? { urgent: urgent.kind } : {}),
+    deciders: row && env.realm ? decidersOf(env.store, env.realm, row, amb) : [],
+    rivals: row ? rivalsOf(env.store, row, amb).map((r) => r.id) : [],
   };
 }
 
@@ -187,6 +210,7 @@ export function talkerCtx(env: TalkerEnv, me: VillageMember, plans: Map<string, 
   const eatsOut = schedule.find((b) => b.activity === "eat" && b.place !== "home");
   const gatherings = [...count.entries()].map(([place, n]) => ({ place, count: n })).sort((a, b) => b.count - a.count || (a.place < b.place ? -1 : 1));
   const mem = state.choice;
+  const ambition = ambitionOfTalker(env, me, row ?? null);
   return {
     who: me.id,
     name: persona.name,
@@ -219,6 +243,7 @@ export function talkerCtx(env: TalkerEnv, me: VillageMember, plans: Map<string, 
     streak: mem?.streak ?? null,
     fights: fightsSoFar(env.world, env.at),
     ...(env.only ? { only: env.only } : {}),
+    ...(ambition ? { ambition } : {}),
   };
 }
 

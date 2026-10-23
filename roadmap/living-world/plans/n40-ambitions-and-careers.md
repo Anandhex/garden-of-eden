@@ -116,3 +116,16 @@ Steps 1–3 and 5 for the start town and its liege town.
 ## Out of scope
 
 Adventurer grades (N42 owns the `grade` ladder). Military ranks (N55). Inheritance of shops (N45). The player's own career (N66).
+
+## What was done (2026-10-23)
+
+Built as planned in `server/src/game/ambition/` (the stage file's **Built** and **What differs** list every file). Steps 1–6 in one go, for the slice (the start town and its liege) and every live place. The numbers that came out of the first runs:
+
+- **Seed 1, the slice, eight 48-day years:** a town of ~440 and its village. On the first day 23 shops are found open (as many as the town's custom keeps) and the council, captaincy and guild seats are held. Over eight years: ~80 rises in rank, ~40 apprentices taken on, ~14 shops opened (as old masters die or retire), ~12 plots bought, a few seats contested; three apprentices of the first day went all the way to a shop of their own.
+- **Freedom and wealth were too fast at first** (most serfs were freed within six years, merchants had trading houses in ten): freedom now needs 10 years of service (15 for a slave) and then a master's leave of a few in a hundred a season; a caravan takes about 8 years of a merchant's trade and a trading house 15 more.
+- **A place's first people share a birthday** (`rowOfTownsperson` makes everyone's `born_day` from their age on day 1), so yearly rules keyed to birthdays all fired on one day; careers use a **career year day** spread by id instead (`careerYearDay`).
+- **Cost:** the career day is part of N25's daily step; eight years of the slice (two places) run in about 8 s with everything else.
+
+### Follow-up: ambitions that live (2026-10-23)
+
+Asked for after the build: things should change with the situation, not walk a fixed path. Added `ambition/situations.ts` (strength, frustration and what it turns into, routes, urgent wants, the numbers in `LIVING`) and schema 9 (`ambitions.strength`, `frustration`, `route`, `urgent`); the career day applies it and passes shops and land on. Two things it found: unlicensed shops piled up past what custom keeps until capped at one per trade per place; and the townsfolk menu must read the day being worked out, not the realm's clock (a lazy place caught up later would otherwise see a different urgent want).

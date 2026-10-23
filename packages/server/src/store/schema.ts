@@ -11,11 +11,11 @@ import type { DatabaseSync } from "node:sqlite";
 
 /** Columns of each state table, in order: what export and the world hash read, and what import checks. */
 export const TABLES = {
-  people: ["id", "site", "n", "name", "gender", "species", "born_day", "cls", "job", "home", "work", "master", "master_id", "faction", "mother", "father", "spouse", "figure", "persona", "traits", "death", "expecting", "last_birth", "stepped_day", "outlook", "away", "rev"],
+  people: ["id", "site", "n", "name", "gender", "species", "born_day", "cls", "job", "home", "work", "master", "master_id", "faction", "mother", "father", "spouse", "figure", "persona", "traits", "death", "expecting", "last_birth", "stepped_day", "outlook", "away", "skill", "shop", "rev"],
   relationships: ["a", "b", "trust", "affection", "respect", "fear", "since"],
   knowledge: ["who", "ref", "learned_day", "source", "accuracy", "variant"],
   grievances: ["id", "who", "against", "cause_ref", "weight", "since", "settled"],
-  ambitions: ["who", "kind", "target", "progress", "since"],
+  ambitions: ["who", "kind", "target", "progress", "since", "step", "strength", "frustration", "route", "urgent"],
   jobs_held: ["who", "job", "site", "from_day", "to_day"],
   events: ["id", "day", "hour", "kind", "actor", "target", "details", "importance", "place", "witnesses", "known_by", "why", "caused_by", "site", "kingdom", "seq"],
   memories: ["id", "npc", "day", "kind", "text", "importance", "embedder", "vector"],
@@ -160,6 +160,31 @@ const MIGRATIONS: Array<(db: DatabaseSync) => void> = [
       CREATE INDEX IF NOT EXISTS grievances_who ON grievances(who) WHERE settled IS NULL;
       CREATE INDEX IF NOT EXISTS grievances_against ON grievances(against) WHERE settled IS NULL;
     `);
+  },
+  // 8 (N40): ambitions and careers. `people.skill` (0..5, untrained to master: null until their first career day sets it from their job and
+  // age), `people.shop` (the building of a shop of their own, by index into the place's map), `ambitions.step` (the rung of their ladder
+  // reached), and indexes on `jobs_held` (a career's history, and the seats people hold: game/ambition/).
+  (db) => {
+    const have = new Set((db.prepare("PRAGMA table_info(people)").all() as Array<{ name: string }>).map((c) => c.name));
+    if (!have.has("skill")) db.exec("ALTER TABLE people ADD COLUMN skill INTEGER");
+    if (!have.has("shop")) db.exec("ALTER TABLE people ADD COLUMN shop INTEGER");
+    const amb = new Set((db.prepare("PRAGMA table_info(ambitions)").all() as Array<{ name: string }>).map((c) => c.name));
+    if (!amb.has("step")) db.exec("ALTER TABLE ambitions ADD COLUMN step INTEGER NOT NULL DEFAULT 0");
+    db.exec(`
+      CREATE INDEX IF NOT EXISTS jobs_held_who ON jobs_held(who, from_day);
+      CREATE INDEX IF NOT EXISTS jobs_held_open ON jobs_held(site, job) WHERE to_day IS NULL;
+    `);
+  },
+  // 9 (N40 follow-up): ambitions that live. `ambitions.strength` (how much they want it now, 0..1: opportunities raise it, setbacks and age
+  // lower it), `frustration` (0..1: being blocked builds it, and at a head it turns into a grudge, a slander, a shortcut, leaving or giving
+  // up), `route` (how they are going about it: by custom, taking over a shop, marrying into one, wandering, without the guild's leave...) and
+  // `urgent` (JSON, a short-term want that takes over while it lasts: getting by in a famine, grief). Rows from before get the defaults.
+  (db) => {
+    const amb = new Set((db.prepare("PRAGMA table_info(ambitions)").all() as Array<{ name: string }>).map((c) => c.name));
+    if (!amb.has("strength")) db.exec("ALTER TABLE ambitions ADD COLUMN strength REAL NOT NULL DEFAULT 0.6");
+    if (!amb.has("frustration")) db.exec("ALTER TABLE ambitions ADD COLUMN frustration REAL NOT NULL DEFAULT 0");
+    if (!amb.has("route")) db.exec("ALTER TABLE ambitions ADD COLUMN route TEXT");
+    if (!amb.has("urgent")) db.exec("ALTER TABLE ambitions ADD COLUMN urgent TEXT");
   },
 ];
 

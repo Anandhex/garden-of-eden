@@ -56,6 +56,10 @@ export interface PersonRow {
   outlook: string | null;
   /** JSON { journey, since, purpose, returns } while they are on a journey (N26 Part E): `site` stays where they live, the road says where they are. */
   away: string | null;
+  /** How good they are at their work, 0 (untrained) .. 5 (a master of it) (N40); null until their first career day sets it. */
+  skill: number | null;
+  /** A shop of their own (N40): the building on the place's map, by index, that bears their sign. */
+  shop: number | null;
   /** Bumped by every flush that writes the row. */
   rev: number;
 }
@@ -86,7 +90,7 @@ const COLUMNS = TABLES.people;
 const INSERT = `INSERT OR REPLACE INTO people (${COLUMNS.join(", ")}) VALUES (${COLUMNS.map(() => "?").join(", ")})`;
 
 /** Columns whose change leaves a place's roster as it was. */
-const QUIET = new Set(["persona", "traits", "expecting", "last_birth", "stepped_day", "spouse", "mother", "father", "figure", "outlook"]);
+const QUIET = new Set(["persona", "traits", "expecting", "last_birth", "stepped_day", "spouse", "mother", "father", "figure", "outlook", "skill"]);
 const values = (r: PersonRow) => COLUMNS.map((c) => r[c]) as Array<string | number | null>;
 const escapeLike = (q: string) => q.replace(/[\\%_]/g, (c) => `\\${c}`);
 

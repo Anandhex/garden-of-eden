@@ -78,6 +78,8 @@ export const config = {
   gossip: (process.env.GOSSIP ?? "on") !== "off",
   /** Townsfolk who meet greet, snub, insult and quarrel, and a wronged person may seek revenge (N37). CHATTER=off turns it off. */
   chatter: (process.env.CHATTER ?? "on") !== "off",
+  /** Everyone grown wants something from their life, and careers move: apprentices rise, shops open, seats are fought over (N40). AMBITIONS=off turns it off. */
+  ambitions: (process.env.AMBITIONS ?? "on") !== "off",
   // NPCs as living players (N38, game/choice/): who scores an action menu and picks by a weighted roll. CHOICE: "off", "proto" (the talkers
   // named in CHOICE_PROTO), "talkers" (every talker, an hour at a time), "all" (and the townsfolk, a day at a time). Violent actions (steal,
   // attack, and the hired-men way of revenge) are offered only with CHOICE_VIOLENCE=on.

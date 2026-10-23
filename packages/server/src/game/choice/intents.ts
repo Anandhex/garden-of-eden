@@ -17,6 +17,9 @@ const KIND: Record<string, string> = {
   rumour: "gossip",
   "changed-mind": "travel",
   slight: "gossip",
+  flattery: "flatter",
+  petition: "petition",
+  "new-goal": "travel",
 };
 
 export function intentsOn(store: Pick<WorldStore, "choiceDeeds">, site: string, day: number): CrowdIntent[] {

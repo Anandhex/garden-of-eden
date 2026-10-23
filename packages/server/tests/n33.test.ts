@@ -1,3 +1,4 @@
+import { CLASS_RANK, type SocialClass } from "@millbrook/shared";
 /**
  * N33: gossip for everyone. Every person keeps a short list of what they know (a row per item, how accurate their version is, who told
  * them); people who are together pass items on; news enters a place only by someone arriving with it; and a townsperson who becomes a
@@ -260,11 +261,18 @@ describe("N33 step 4: news enters with people", () => {
     // The death comes a few days before the first tax day, when the tax clerk goes up to the liege town (TAX_DAYS: 24 at 48 days a
     // year): news is told for TELL_WINDOW days after it is heard, so a death weeks before is stale by the time the clerk goes.
     const dies = TAX_DAYS - 4;
+    // Someone of standing: their death is worth telling over the realm's other news of the day (whose freshness to the teller depends on
+    // who met whom, which careers move: N40).
+    const notable = (x: ReturnType<typeof world>) => {
+      const rows = (x.store.people.loadSite(x.start, "full") as PersonRow[]).filter((r) => r.job !== "child" && r.persona === null && !r.away);
+      const best = rows.reduce((b, r, i) => ((CLASS_RANK[r.cls as SocialClass] ?? 2) > (CLASS_RANK[rows[b]!.cls as SocialClass] ?? 2) ? i : b), 0);
+      return best;
+    };
     // With no one on the road it never arrives.
     noRoads();
     let w = world(2);
     advanceWorld(w.realm, w.store, dies, { live: w.live });
-    let k = killAt(w, w.start, dies);
+    let k = killAt(w, w.start, dies, notable(w));
     advanceWorld(w.realm, w.store, dies + 14, { live: w.live });
     expect(holdersAt(w, k.ref, w.liege)).toEqual([]);
 
@@ -272,7 +280,7 @@ describe("N33 step 4: news enters with people", () => {
     for (const key of Object.keys(TRIPS)) (TRIPS as Record<string, { cap: number }>)[key]!.cap = trips[key]!;
     w = world(2);
     advanceWorld(w.realm, w.store, dies, { live: w.live });
-    k = killAt(w, w.start, dies);
+    k = killAt(w, w.start, dies, notable(w));
     // Day by day: whoever learned it in the liege town that day was told by someone from elsewhere who is out on the road.
     let first: { day: number; rows: ReturnType<typeof holdersAt> } | null = null;
     for (let d = dies + 1; d <= dies + 12 && !first; d++) {

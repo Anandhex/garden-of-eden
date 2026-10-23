@@ -55,6 +55,13 @@ export const W = {
   violence: 1.0,
   /** Buying: coin to spend, a gathering with a seller. */
   coin: 0.3,
+  /** Ambition (N40): what wanting something adds to working toward it, to flattering and petitioning whoever decides it, to going to find a
+   * master, and to a hostile act against a rival for it. Each is scaled by (0.4 + their ambition trait). */
+  ambitionWork: 0.15,
+  flatter: 0.35,
+  petition: 0.4,
+  seekMaster: 0.45,
+  rival: 0.12,
   /** A repeat of the same non-habit action is damped by this per time in a row. */
   loop: 0.35,
 } as const;
@@ -71,6 +78,8 @@ export const HOUR_COOLDOWNS: Record<string, number> = {
   recruit: 24,
   travel: 24 * seasonDays(),
   gossip: 1,
+  flatter: 24,
+  petition: 24 * seasonDays(),
 };
 
 /** In days (day grain). `travel` is once a season (both grains). */
@@ -84,6 +93,9 @@ export const DAY_COOLDOWNS: Record<string, number> = {
   recruit: 4,
   travel: seasonDays(),
   gossip: 0,
+  flatter: 2,
+  petition: seasonDays(),
+  seek_master: seasonDays(),
 };
 
 /** Violent deeds a place may see in a day, and in the player's place per hour. */

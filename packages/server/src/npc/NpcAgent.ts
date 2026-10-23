@@ -84,6 +84,9 @@ function equippedWeaponSkill(player: WorldSnapshot["player"]): Skill {
 }
 
 /** In-game minutes a repair takes. */
+
+/** The player asks what someone wants from life (N40). */
+export const WANT_TALK = /\b(what (do|would) you (want|wish|hope)|what are you (after|hoping|aiming)|your (ambition|dream|hopes?)|want (out of|from) life|what drives you|what's your goal)\b/i;
 export const REPAIR_MINUTES = 30;
 
 /** Tools that make an offer whose terms the game sets or checks. */
@@ -129,6 +132,11 @@ export class NpcAgent {
    * relevant to what the player just said. Set by the game when a store is open.
    */
   recall?: (line: string) => Promise<string[]>;
+  /**
+   * What they want from their life (N40, game/ambition/): the line they are told ("What you want from life: …") and what they say of it
+   * when the model is not there to answer a question about it. Set by the game when a store is open.
+   */
+  ambition?: () => { line: string; say: string } | null;
   /**
    * The model's own count of the last request (Ollama's prompt_eval_count), and how many
    * history messages it covered. Used with the estimate to keep requests under budget.
@@ -212,7 +220,8 @@ export class NpcAgent {
       setMood(this.state, mood, traitsOf(this.persona, this.state));
     }
     const recalled = this.recall && !this.state.inCombat ? await this.recall(playerLine).catch(() => []) : [];
-    const extra = [...triggered.lines, ...social.lines, ...(recalled.length > 0 ? [`From earlier talks with them you recall: ${recalled.join(" ")}`] : [])];
+    const want = this.state.inCombat ? null : (this.ambition?.() ?? null);
+    const extra = [...triggered.lines, ...social.lines, ...(want ? [want.line] : []), ...(recalled.length > 0 ? [`From earlier talks with them you recall: ${recalled.join(" ")}`] : [])];
     const fighting = this.state.inCombat;
     const dilemma = fighting || this.state.pendingDilemma ? undefined : dilemmasFor(this.persona, this.state, playerLine)[0];
     const turn = await this.withTopic(topic, () =>
@@ -1040,7 +1049,9 @@ export class NpcAgent {
         } catch {
           // Retry once, but only if the player hasn't seen any of the reply: a retry would repeat it.
           if (attempt < config.llmRetries && !(streamed && !hold)) continue;
-          const fallback = this.persona.fallbackLine ?? "I need a moment before I can answer that.";
+          // Asked what they want, they can say it without the model: it is code's (N40).
+          const wanted = WANT_TALK.test(this.playerLine) ? this.ambition?.()?.say : undefined;
+          const fallback = wanted ?? this.persona.fallbackLine ?? "I need a moment before I can answer that.";
           emit(text ? ` ${fallback}` : fallback);
           this.history.push({ role: "assistant", content: fallback });
           return { text, actions, fallback: true };

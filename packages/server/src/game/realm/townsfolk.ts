@@ -206,6 +206,8 @@ export function rowOfTownsperson(p: Townsperson, site: string, day: number): Per
     stepped_day: 0,
     outlook: null,
     away: null,
+    skill: null,
+    shop: null,
     rev: 0,
   };
 }
@@ -228,6 +230,7 @@ export function townspersonOfRow(r: PersonRow, realm: Realm, day: number, fallba
     work,
     master: r.master,
     masterId: r.master_id,
+    ...(r.shop !== null && r.shop !== undefined && r.shop < buildings ? { shop: r.shop } : {}),
     color: shade(CLASS_COLORS[r.cls as SocialClass], hashStr(r.id)),
   };
 }
