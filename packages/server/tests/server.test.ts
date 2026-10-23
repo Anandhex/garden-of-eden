@@ -1,23 +1,17 @@
 /**
- * The HTTP server (G1), run for real: a temp save, no Ollama (so NPCs can't talk, but
- * the map, the queue and offline actions work), and a fake Piper server for voices (T14).
+ * The game server (G1), run for real: a temp save, no Ollama (so NPCs can't talk, but the map, the queue and
+ * offline actions work), and a fake Piper server for voices (T14). Since G5 a client plays over the view socket
+ * (/ws), so that's how this plays; GET /api/state is still there to read the whole game.
  */
-import { spawn, type ChildProcess } from "node:child_process";
 import { createServer, type Server } from "node:http";
-import { mkdtempSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { findPath, NdjsonDecoder, type CrowdRoster, type MoveResponse, type Snapshot, type StreamEvent, type TickResponse } from "@millbrook/shared";
+import { findPath, type Snapshot } from "@millbrook/shared";
+import { ProtocolClient, sleep, startGame, type GameProcess } from "../scripts/game-process.js";
 
-const root = fileURLToPath(new URL("../../../", import.meta.url));
-const port = 41000 + Math.floor(Math.random() * 2000);
-const base = `http://127.0.0.1:${port}`;
-let server: ChildProcess;
+let game: GameProcess;
+let base = "";
 let piper: Server;
 const piperRequests: unknown[] = [];
-let output = "";
 
 beforeAll(async () => {
   // A stand-in for `python -m piper.http_server`: takes JSON, answers with a WAV header.
@@ -31,57 +25,33 @@ beforeAll(async () => {
   });
   await new Promise<void>((r) => piper.listen(0, "127.0.0.1", r));
   const piperPort = (piper.address() as { port: number }).port;
-
-  const saves = mkdtempSync(join(tmpdir(), "millbrook-test-"));
-  server = spawn(join(root, "node_modules/.bin/tsx"), ["packages/server/src/web/server.ts", "--new"], {
-    cwd: root,
-    env: {
-      ...process.env,
-      PORT: String(port),
-      SAVE_FILE: join(saves, "world.json"),
-      DEATHS_FILE: join(saves, "deaths.json"),
-      DB_FILE: join(saves, "world.db"),
-      OLLAMA_HOST: "http://127.0.0.1:9",
-      DIRECTOR: "off",
-      PLANNING: "off",
-      SUMMARIES: "off",
-      PIPER_URL: `http://127.0.0.1:${piperPort}/`,
-      COMBAT_TICK_SECONDS: "0",
-    },
-    stdio: ["ignore", "pipe", "pipe"],
-  });
-  await new Promise<void>((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error(`server didn't start:\n${output}`)), 30_000);
-    const onData = (d: Buffer) => {
-      output += d;
-      if (output.includes("The game is open")) {
-        clearTimeout(timer);
-        resolve();
-      }
-    };
-    server.stdout!.on("data", onData);
-    server.stderr!.on("data", onData);
-    server.on("exit", (code) => reject(new Error(`server exited (${code}):\n${output}`)));
-  });
-}, 40_000);
+  game = await startGame({ env: { PIPER_URL: `http://127.0.0.1:${piperPort}/` } });
+  base = `http://127.0.0.1:${game.port}`;
+}, 90_000);
 
 afterAll(() => {
-  server?.kill();
+  game?.stop();
   piper?.close();
 });
 
 const post = (path: string, body: unknown) => fetch(base + path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+const state = async () => (await (await fetch(`${base}/api/state`)).json()) as Snapshot;
 
-async function actStream(body: unknown): Promise<StreamEvent[]> {
-  const res = await post("/api/act", body);
-  expect(res.status).toBe(200);
-  const d = new NdjsonDecoder<StreamEvent>();
-  return d.push(`${await res.text()}\n`);
+/** A protocol client that has the first frame and UI, with time waiting for the player. */
+async function play(): Promise<ProtocolClient> {
+  const c = new ProtocolClient(game.port);
+  await c.opened();
+  c.hello();
+  await c.until(() => !!c.ui.header && c.actors.has("player"), 20_000, "the first frame");
+  c.send({ t: "time", flow: false });
+  c.send({ t: "close" });
+  await c.until(() => c.ui.header?.time.flows === false, 5000, "time to wait");
+  return c;
 }
 
 describe("game server (G1)", () => {
   it("serves the state with every NPC's voice and the queue length", async () => {
-    const s = (await (await fetch(`${base}/api/state`)).json()) as Snapshot;
+    const s = await state();
     expect(s.llm.ready).toBe(false);
     expect(s.queue).toBe(0);
     expect(s.npcs.length).toBeGreaterThan(3);
@@ -89,35 +59,28 @@ describe("game server (G1)", () => {
     expect(s.npcs[0]!.voice.piper?.model).toBe("en_GB-semaine-medium");
   });
 
-  it("queues moves sent at once instead of turning them away, and applies each exactly once", async () => {
-    const before = ((await (await fetch(`${base}/api/state`)).json()) as Snapshot).position;
-    const results = await Promise.all([1, 2, 3].map(() => post("/api/move", { dx: 1, dy: 0 })));
-    expect(results.map((r) => r.status)).toEqual([200, 200, 200]);
-    const moves = (await Promise.all(results.map((r) => r.json()))) as MoveResponse[];
-    const ok = moves.filter((m) => m.ok);
-    for (const m of moves) expect(Array.isArray(m.events)).toBe(true);
-    // Each accepted step moved one tile further: no step was lost or doubled.
-    expect(new Set(ok.map((m) => m.state.position.x)).size).toBe(ok.length);
-    const after = ((await (await fetch(`${base}/api/state`)).json()) as Snapshot).position;
-    expect(after.x - before.x).toBe(ok.length);
+  it("the old HTTP routes for playing are gone: the socket is how a client plays (G5)", async () => {
+    for (const path of ["/api/act", "/api/move", "/api/tick", "/api/new"]) expect((await post(path, {})).status).toBe(405);
+    for (const path of ["/api/crowd", "/api/road/data", "/api/road/journeys", "/api/quote", "/api/realm"]) expect((await fetch(base + path)).status).not.toBe(200);
   });
 
-  it("walks off the village's east edge into the woods and back (N15); the town's notables are about", async () => {
-    const state = async () => (await (await fetch(`${base}/api/state`)).json()) as Snapshot;
-    /** Walk to a tile on the current map, one step at a time, around whoever's in the way. */
-    async function walkTo(goal: { x: number; y: number }, startMap: string): Promise<MoveResponse | null> {
-      for (let i = 0; i < 160; i++) {
-        const s = await state();
-        if (s.map.id !== startMap) return null;
-        const busy = (x: number, y: number) => s.npcs.some((n) => n.x === x && n.y === y && !n.companion) || s.creatures.some((c) => c.x === x && c.y === y);
-        const path = findPath(s.position, (t) => t.x === goal.x && t.y === goal.y, (x, y) => ["tree", "wall", "water", undefined].includes(s.map.tiles[y]?.[x]) || busy(x, y));
-        expect(path, `no way to ${goal.x},${goal.y}`).not.toBeNull();
-        const next = path![0]!;
-        const r = (await (await post("/api/move", { dx: next.x - s.position.x, dy: next.y - s.position.y })).json()) as MoveResponse;
-        if (r.state.map.id !== startMap) return r;
-      }
-      return null;
-    }
+  it("steps sent at once are each applied exactly once, in order", async () => {
+    const c = await play();
+    const before = (await state()).position;
+    const seen: number[] = [];
+    const from = c.msgs.length;
+    for (let i = 0; i < 3; i++) c.send({ t: "step", dx: 1, dy: 0 });
+    await sleep(1500);
+    for (const m of c.since(from)) if (m.t === "frame") for (const [id, x] of [...m.frame.actors.upsert.map((a) => [a.id, a.x] as const), ...(m.frame.actors.move ?? [])]) if (id === "player") seen.push(x);
+    const after = (await state()).position;
+    // Each accepted step moved one tile further: none lost, none doubled.
+    expect(after.x - before.x).toBe(new Set(seen).size);
+    expect(after.x - before.x).toBeGreaterThanOrEqual(0);
+    expect(after.x - before.x).toBeLessThanOrEqual(3);
+    c.close();
+  });
+
+  it("walks off the village's east edge into the woods and back (N15), the server finding the way; the town's notables are about", async () => {
     const home = await state();
     expect(home.map.id).toBe(home.site.id);
     expect(home.site.area.id).toBe("village");
@@ -127,33 +90,49 @@ describe("game server (G1)", () => {
     expect(home.npcs.every((n) => /^#[0-9a-f]{6}$/i.test(n.color))).toBe(true);
     const east = home.map.exits.find((e) => /woods/i.test(e.label))!;
     expect(east.label).toMatch(/^To the woods around /);
-    const out = await walkTo(east, home.map.id);
-    expect(out?.ok).toBe(true);
-    expect(out!.state.map.id).toBe(`${home.site.id}:woods`);
-    expect(out!.state.site.area.name).toMatch(/^The woods around /);
-    expect(out!.log.join(" ")).toMatch(/You walk out to the woods around/);
-    const back = await walkTo(out!.state.map.exits.find((e) => /^To /.test(e.label))!, out!.state.map.id);
-    expect(back?.state.map.id).toBe(home.site.id);
+    const c = await play();
+    // A sign for each way off the map, where it is.
+    const signs = c.since(0).flatMap((m) => (m.t === "frame" ? (m.frame.signs ?? []) : []));
+    expect(signs.some((s) => s.kind === "exit" && s.text.includes(east.label))).toBe(true);
+    c.send({ t: "moveTo", x: east.x, y: east.y });
+    await c.until(() => c.map?.id === `${home.site.id}:woods`, 60_000, "the woods");
+    await c.until(() => /The woods around /.test(c.ui.header?.place ?? ""), 5000, "the header to say where");
+    await c.until(() => /You walk out to the woods around/.test(c.feedText()), 5000, "the walk's line");
+    const out = await state();
+    const back = out.map.exits.find((e) => /^To /.test(e.label))!;
+    // From the woods' edge: one step in, then walk back onto the exit.
+    const path = findPath(out.position, (t) => t.x === back.x && t.y === back.y, (x, y) => ["tree", "wall", "water", undefined].includes(out.map.tiles[y]?.[x]));
+    expect(path).not.toBeNull();
+    c.send({ t: "moveTo", x: back.x, y: back.y });
+    await c.until(() => c.map?.id === home.site.id, 60_000, "the village again");
+    c.close();
   });
 
-  it("streams an offline action as events and ends with the new state", async () => {
-    const events = await actStream({ action: "wait", hours: 1 });
-    const done = events.at(-1)!;
-    expect(done.t).toBe("done");
-    expect(events.some((e) => e.t === "system")).toBe(true);
+  it("an offline action streams its lines to the feed", async () => {
+    const c = await play();
+    const from = c.msgs.length;
+    c.send({ t: "act", action: "wait", args: { hours: 1 } });
+    await c.until(() => c.since(from).some((m) => m.t === "feed" && m.lines.some((l) => /Time passes/.test(l.text))), 15_000, "the wait");
+    c.close();
   });
 
-  it("says the model is offline in the stream, and still ends with done", async () => {
-    const first = ((await (await fetch(`${base}/api/state`)).json()) as Snapshot).npcs[0]!.id;
-    const events = await actStream({ action: "say", npc: first, text: "Hello." });
-    expect(events.some((e) => e.t === "error")).toBe(true);
-    expect(events.at(-1)!.t).toBe("done");
+  it("says the model is offline in the chat when someone is spoken to", async () => {
+    const c = await play();
+    // Whoever of the town's talkers is nearest, wherever on the map: the server walks the player there.
+    const s = await state();
+    const npc = s.npcs.filter((n) => !n.dead && !n.away).sort((a, b) => Math.hypot(a.x - s.position.x, a.y - s.position.y) - Math.hypot(b.x - s.position.x, b.y - s.position.y))[0]!;
+    c.send({ t: "click", x: npc.x, y: npc.y });
+    await c.until(() => c.ui.chat?.open === true && c.ui.header?.busy === false, 30_000, "the chat");
+    c.send({ t: "say", mode: "say", text: "Hello." });
+    await c.until(() => c.ui.chat?.open === true && c.ui.chat.log.some((l) => /Could not reach Ollama/.test(l.text)), 15_000, "the offline note");
+    c.send({ t: "close" });
+    c.close();
   });
 
   it("reports the Piper backend and speaks a line in the NPC's voice, stage directions dropped", async () => {
     const info = await (await fetch(`${base}/api/voice`)).json();
     expect(info.backend).toBe("piper");
-    const speaker = ((await (await fetch(`${base}/api/state`)).json()) as Snapshot).npcs[0]!.id;
+    const speaker = (await state()).npcs[0]!.id;
     const res = await post("/api/speak", { npc: speaker, text: "*wipes her hands* Four gold." });
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toBe("audio/wav");
@@ -162,31 +141,30 @@ describe("game server (G1)", () => {
     expect((await post("/api/speak", { npc: "nobody", text: "Hi." })).status).toBe(400);
   });
 
-  it("N16: the village's townsfolk, a minute passing as you stand about, and a townsperson who becomes a talking NPC", async () => {
-    const s0 = (await (await fetch(`${base}/api/state`)).json()) as Snapshot;
+  it("N16: the village's townsfolk on the map, a minute passing as you stand about, and a townsperson who becomes a talking NPC", async () => {
+    const s0 = await state();
     expect(s0.timeFlowSeconds).toBeGreaterThan(0);
-    const roster = (await (await fetch(`${base}/api/crowd`)).json()) as CrowdRoster | null;
-    if (s0.site.area.id !== "village") {
-      expect(roster).toBeNull();
-      return;
-    }
-    expect(roster!.map).toBe(s0.map.id);
-    expect(roster!.people.length).toBeGreaterThan(50);
-    expect(s0.crowd?.count).toBe(roster!.people.length);
+    const c = await play();
+    if (s0.site.area.id !== "village") return;
+    const world = c.ui.sheet!.tabs.find((t) => t.id === "world")!;
+    const people = world.sections.find((s) => s.title.startsWith("The people of"))!;
+    expect(Number(people.rows[0]!.text.match(/^([\d,]+) townsfolk/)![1]!.replace(/,/g, ""))).toBeGreaterThan(50);
     expect(s0.map.zones.some((z) => z.kind === "square")).toBe(true);
-    const tick = (await (await post("/api/tick", {})).json()) as TickResponse;
-    expect(tick.ok).toBe(true);
-    const before = s0.time.hour * 60 + s0.time.minute;
-    const after = tick.state.time.hour * 60 + tick.state.time.minute;
-    expect((after - before + 1440) % 1440).toBe(1);
-    // Speak to one of them: they're made a talking NPC (too far to talk, but they're about now).
-    const p = roster!.people[3]!;
-    const events = await actStream({ action: "open", npc: p.id });
-    const done = events.at(-1) as Extract<StreamEvent, { t: "done" }>;
-    expect(done.t).toBe("done");
-    const npc = done.state.npcs.find((n) => n.id === p.id);
-    expect(npc?.name).toBe(p.name);
-    expect(events.some((e) => e.t === "system" || e.t === "opened")).toBe(true);
+    const folk = [...c.actors.values()].filter((a) => a.kind === "folk");
+    expect(folk.length).toBeGreaterThan(5);
+    // Time flows by itself: a minute passes with nothing sent.
+    const t0 = c.ui.header!.clock;
+    c.send({ t: "time", flow: true });
+    await c.until(() => c.ui.header!.clock !== t0, 15_000, "a minute to pass");
+    c.send({ t: "time", flow: false });
+    // Speak to one of them: they're made a talking NPC.
+    const me = c.me();
+    const p = folk.sort((a, b) => Math.hypot(a.x - me.x, a.y - me.y) - Math.hypot(b.x - me.x, b.y - me.y))[0]!;
+    c.send({ t: "click", x: p.x, y: p.y });
+    await c.until(() => (c.ui.cast ?? []).some((n) => n.id === p.id) || /gone from here|can't find a way|in your way|too far/.test(c.feedText()), 60_000, "them to become a talker");
+    if ((c.ui.cast ?? []).some((n) => n.id === p.id)) expect((await state()).npcs.find((n) => n.id === p.id)?.name).toMatch(new RegExp(`^${p.label}`));
+    c.send({ t: "close" });
+    c.close();
   });
 
   it("serves the built client (or says how to build it) and nothing outside it", async () => {

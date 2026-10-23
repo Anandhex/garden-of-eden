@@ -113,6 +113,11 @@ import { townEventsOn } from "../game/events-calendar.js";
 import type { AdminContext } from "../admin/context.js";
 import { timed } from "../metrics/timing.js";
 import { adminAllowed, handleAdmin, refuseAdmin } from "./routes/admin.js";
+import { createHash } from "node:crypto";
+import { landOf } from "../game/road/ground.js";
+import { journeysNear } from "../game/road/journeys.js";
+import type { ViewHost } from "../view/host.js";
+import { attachViews } from "../view/socket.js";
 
 const PORT = Number(process.env.PORT ?? 3000);
 // The browser game, built by `npm run build` (packages/client). `npm run dev` serves it from Vite instead.
@@ -1486,6 +1491,7 @@ function combatTick(): void {
     for (const text of lines) pushNews({ t: "note", kind: "combat", text });
   }
   persist();
+  for (const fn of newsListeners) fn();
 }
 
 setInterval(combatTick, 250);
@@ -1497,7 +1503,7 @@ const queue = new ActionQueue(config.maxQueuedRequests);
 
 // ---- The admin view (N17): read-only, and the clock ----
 
-/** Paused from the admin view: the game's clock stops running on its own (POST /api/tick does nothing). Not saved. */
+/** Paused from the admin view: the game's clock stops running on its own (time doesn't flow for the view). Not saved. */
 let adminPaused = false;
 const adminCtx: AdminContext = {
   world: () => world,
@@ -1515,6 +1521,110 @@ const adminCtx: AdminContext = {
         return log;
       }),
   },
+};
+
+// ---- What the player does, for the view socket (G5) ----
+
+/** What the player does (G5): only the view socket calls these now; each goes through the queue. */
+
+/** One step, through the queue. */
+function runMove(dx: number, dy: number) {
+  return queue.run(() => {
+    lastPlayerAction = Date.now();
+    const before = captureFrame(world, agents);
+    const r = move(dx, dy);
+    if (r.ok) persist();
+    const events: GameEvent[] = turnEvents(before, captureFrame(world, agents));
+    return { ...r, events, state: snapshot() };
+  });
+}
+
+/** A minute passes while the player stands about (N16), or null when it can't (a fight, paused, time waits). */
+function runTick() {
+  if (queue.busy || queue.length > 0) return Promise.resolve(null);
+  return queue.run(() => {
+    const fighting = Object.values(agents).some((a) => a.state.inCombat && !a.isDead) || (engaged !== null && !!creatureById(engaged) && !creatureById(engaged)!.outcome);
+    if (fighting || config.timeFlowSeconds === 0 || adminPaused) return null;
+    const before = captureFrame(world, agents);
+    const hour = absoluteHour(world);
+    const log = walkMinutes(1);
+    if (!town.road.onRoad()) wander();
+    if (absoluteHour(world) !== hour || (world.minute ?? 0) % 10 === 0) persist();
+    return { log, events: turnEvents(before, captureFrame(world, agents)), state: snapshot() };
+  });
+}
+
+function runNew(): Promise<void> {
+  return queue.run(() => startGame(true));
+}
+
+/** An action, streamed through `emit`, ending with `done` and the new state. Through the queue. */
+async function runAct(body: Record<string, unknown>, emit: Emit): Promise<void> {
+  if (queue.length >= config.maxQueuedRequests) return void emit({ t: "error", text: "Too much going on at once. Try again in a moment." });
+  await queue.run(
+    async () => {
+      town.playerActs(); // background work (plans, summaries, the chronicle) makes way
+      lastPlayerAction = Date.now(); // acting (or a reply streaming) uses up the turn's clock
+      const before = captureFrame(world, agents);
+      turnActions = [];
+      try {
+        // Waiting, opening a chat and fighting creatures need no model.
+        const offline = ["travel", "wait", "open", "hunt", "escape", "equip", "unequip", "look", "retrieve", "raise", "join", "dismiss", "forage", "craft", "sneak", "loot", "payfine", "surrender", "joinguild", "delve", "situation", "camp", "fasttravel", "coach", "joinjourney", "rob", "roadplace", "eat", "drink", "mount", "insult", "confront"].includes(String(body.action));
+        if (!llmReady && !offline) await checkLlm();
+        if (!llmReady && !offline) emit({ t: "error", text: llmError });
+        else await act(body, emit);
+        persist();
+      } catch (err) {
+        emit({ t: "error", text: (err as Error).message });
+      } finally {
+        // What happened, for the screen to animate (T13).
+        const npc = typeof body.npc === "string" && agents[body.npc] ? body.npc : undefined;
+        for (const event of turnEvents(before, captureFrame(world, agents), { npc, playerAction: String(body.action ?? ""), actions: turnActions })) emit({ t: "event", event });
+        town.resume();
+        lastPlayerAction = Date.now(); // the clock for the next turn starts once the reply is done
+        emit({ t: "done", state: snapshot() });
+      }
+    },
+    (position) => emit({ t: "queued", position }),
+  );
+}
+
+/** The view layer's way into the game (G5): the socket's sessions see the game only through this. */
+const newsListeners: Array<() => void> = [];
+const viewHost: ViewHost = {
+  snapshot,
+  act: runAct,
+  move: runMove,
+  tick: runTick,
+  newGame: runNew,
+  crowd: crowdHere,
+  land: () => (world.realm ? landOf(world.realm) : null),
+  roadData: () => (world.realm ? roadDataOf(world.realm) : null),
+  journeysNear: (radius) => {
+    const realm = world.realm;
+    const road = world.player.road;
+    if (!realm || !road) return [];
+    return journeysNear(realm, landOf(realm).data, road, radius + 10, town.road.minute()).map((x) => x.journey);
+  },
+  placeName: (id) => world.realm?.settlements[id]?.name ?? id,
+  realm: () => (world.realm ? realmView(world.realm, { here: town.site(), heard: (id) => town.siteHere().newsSeen.includes(id) }) : null),
+  quoteTraining: (id, skillName, hours) => {
+    const skill = parseSkill(skillName);
+    if (!personas[id] || !skill) return { ok: false, message: "Unknown NPC or skill.", hours: 0, money: world.player.money };
+    const quote = quoteTraining(personas[id]!, agents[id]!.state, world, skill, Math.max(1, Math.min(MAX_SESSION_HOURS, hours || DEFAULT_SESSION_HOURS)));
+    return { ok: quote.ok, message: quote.message, hours: quote.hours, money: world.player.money };
+  },
+  quoteCoach: (to) => {
+    const q = town.road.coachQuote(to);
+    return { ok: q.ok, message: q.message, price: q.price ?? 0 };
+  },
+  checkLlm,
+  paused: () => adminPaused,
+  busy: () => queue.busy || queue.length > 0,
+  timeFlowSeconds: config.timeFlowSeconds,
+  saveFile: config.saveFile,
+  worldHash: () => createHash("sha1").update(JSON.stringify(world)).digest("hex"),
+  onNews: (fn) => void newsListeners.push(fn),
 };
 
 function readBody(req: IncomingMessage): Promise<Record<string, unknown>> {
@@ -1570,39 +1680,15 @@ function serveStatic(url: string, res: ServerResponse): void {
 const server = createServer(async (req, res) => {
   const url = (req.url ?? "/").split("?")[0]!;
   try {
-    if (req.method === "GET" && url === "/api/state") {
-      // Fight polling (?poll=1) skips the model check so it stays fast.
-      const polling = new URL(req.url!, "http://x").searchParams.has("poll");
-      if (!llmReady && !queue.busy && !polling) await checkLlm();
-      return json(res, 200, snapshot());
-    }
-
-    if (req.method === "GET" && url === "/api/quote") {
-      const q = new URL(req.url!, "http://x").searchParams;
-      const id = q.get("npc") ?? "";
-      const skill = parseSkill(q.get("skill") ?? "");
-      if (!personas[id] || !skill) return json(res, 400, { ok: false, message: "Unknown NPC or skill." });
-      const hours = Math.max(1, Math.min(MAX_SESSION_HOURS, Number(q.get("hours") ?? DEFAULT_SESSION_HOURS)));
-      const quote = quoteTraining(personas[id]!, agents[id]!.state, world, skill, hours);
-      return json(res, 200, { ...quote, money: world.player.money });
-    }
+    // The game as a whole, read-only: for tests and debugging (the view socket is how a client plays, G5).
+    if (req.method === "GET" && url === "/api/state") return json(res, 200, snapshot());
 
     // The admin page and its data (N17): this machine only; nothing under /api/admin changes the game except the clock.
     if (req.method === "GET" && (url === "/admin" || url === "/admin/" || url === "/admin.html")) return adminAllowed(req) ? serveStatic("/admin.html", res) : void refuseAdmin(res);
     if (await handleAdmin(req, res, adminCtx)) return;
 
+    // NPC voices (T14), beside the socket: audio is a blob, not a message (G5 decision 10).
     if (req.method === "GET" && url === "/api/voice") return json(res, 200, voice.info);
-    // The land between places (N26): the roads, rivers and places the browser makes its chunks from (fetched once).
-    if (req.method === "GET" && url === "/api/road/coach") {
-      const q = town.road.coachQuote(new URL(req.url!, "http://x").searchParams.get("to") ?? "");
-      return json(res, 200, { ok: q.ok, message: q.message, price: q.price });
-    }
-    if (req.method === "GET" && url === "/api/road/journeys") return json(res, 200, town.road.journeysForClient());
-    if (req.method === "GET" && url === "/api/road/data") return json(res, 200, world.realm ? roadDataOf(world.realm) : null);
-    // Everyone who lives on the map the player is on (N16): fetched once per map; where they are is worked out from the clock.
-    if (req.method === "GET" && url === "/api/crowd") return json(res, 200, crowdHere()?.roster ?? null);
-    if (req.method === "GET" && url === "/api/realm") return json(res, 200, world.realm ? realmView(world.realm, { here: town.site(), heard: (id) => town.siteHere().newsSeen.includes(id) }) : null);
-
     if (req.method === "POST" && url === "/api/speak") {
       // Speech runs beside the action queue: Piper is its own process, and a line already said can't change the game.
       const body = await readBody(req);
@@ -1613,81 +1699,6 @@ const server = createServer(async (req, res) => {
       const audio = await voice.tts.synthesize(text, persona.voice ?? DEFAULT_VOICE);
       res.writeHead(200, { "content-type": "audio/wav", "content-length": audio.length, "cache-control": "no-store" });
       return void res.end(audio);
-    }
-
-    if (req.method === "POST" && url === "/api/tick" && (queue.busy || queue.length > 0)) return json(res, 200, { ok: false, log: [], events: [], state: null });
-    if (req.method === "POST" && (url === "/api/move" || url === "/api/new" || url === "/api/act") && queue.length >= config.maxQueuedRequests) {
-      return json(res, 429, { ok: false, reason: "Too much going on at once. Try again in a moment." });
-    }
-
-    if (req.method === "POST" && url === "/api/move") {
-      const body = await readBody(req);
-      const result = await queue.run(() => {
-        lastPlayerAction = Date.now();
-        const before = captureFrame(world, agents);
-        const r = move(Number(body.dx ?? 0), Number(body.dy ?? 0));
-        if (r.ok) persist();
-        const events: GameEvent[] = turnEvents(before, captureFrame(world, agents));
-        return { ...r, events, state: snapshot() };
-      });
-      return json(res, 200, result);
-    }
-
-    // A minute passes while the player stands about (N16), so the townsfolk keep moving.
-    if (req.method === "POST" && url === "/api/tick") {
-      const result = await queue.run(() => {
-        const fighting = Object.values(agents).some((a) => a.state.inCombat && !a.isDead) || (engaged !== null && !!creatureById(engaged) && !creatureById(engaged)!.outcome);
-        if (fighting || config.timeFlowSeconds === 0 || adminPaused) return { ok: false, log: [], events: [], state: snapshot() };
-        const before = captureFrame(world, agents);
-        const hour = absoluteHour(world);
-        const log = walkMinutes(1);
-        if (!town.road.onRoad()) wander();
-        if (absoluteHour(world) !== hour || (world.minute ?? 0) % 10 === 0) persist();
-        return { ok: true, log, events: turnEvents(before, captureFrame(world, agents)), state: snapshot() };
-      });
-      return json(res, 200, result);
-    }
-
-    if (req.method === "POST" && url === "/api/new") {
-      const state = await queue.run(() => {
-        startGame(true);
-        return snapshot();
-      });
-      return json(res, 200, { state });
-    }
-
-    if (req.method === "POST" && url === "/api/act") {
-      const body = await readBody(req);
-      res.writeHead(200, { "content-type": "application/x-ndjson", "cache-control": "no-store" });
-      const emit: Emit = (event) => res.write(`${JSON.stringify(event)}\n`);
-      await queue.run(
-        async () => {
-          town.playerActs(); // background work (plans, summaries, the chronicle) makes way
-          lastPlayerAction = Date.now(); // acting (or a reply streaming) uses up the turn's clock
-          const before = captureFrame(world, agents);
-          turnActions = [];
-          try {
-            // Waiting, opening a chat and fighting creatures need no model.
-            const offline = ["travel", "wait", "open", "hunt", "escape", "equip", "unequip", "look", "retrieve", "raise", "join", "dismiss", "forage", "craft", "sneak", "loot", "payfine", "surrender", "joinguild", "delve", "situation", "camp", "fasttravel", "coach", "joinjourney", "rob", "roadplace", "eat", "drink", "mount"].includes(String(body.action));
-            if (!llmReady && !offline) await checkLlm();
-            if (!llmReady && !offline) emit({ t: "error", text: llmError });
-            else await act(body, emit);
-            persist();
-          } catch (err) {
-            emit({ t: "error", text: (err as Error).message });
-          } finally {
-            // What happened, for the screen to animate (T13).
-            const npc = typeof body.npc === "string" && agents[body.npc] ? body.npc : undefined;
-            for (const event of turnEvents(before, captureFrame(world, agents), { npc, playerAction: String(body.action ?? ""), actions: turnActions })) emit({ t: "event", event });
-            town.resume();
-            lastPlayerAction = Date.now(); // the clock for the next turn starts once the reply is done
-            emit({ t: "done", state: snapshot() });
-            res.end();
-          }
-        },
-        (position) => emit({ t: "queued", position }),
-      );
-      return;
     }
 
     if (req.method === "GET") return serveStatic(url, res);
@@ -1707,6 +1718,7 @@ try {
   console.error(err.message);
   process.exit(1);
 }
+attachViews(server, viewHost);
 server.listen(PORT, "127.0.0.1", () => {
   console.log(`The game is open at http://localhost:${PORT}`);
 });

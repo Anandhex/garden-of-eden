@@ -1,4 +1,4 @@
-/** Reading newline-delimited JSON as it streams in (`POST /api/act`). */
+/** Reading newline-delimited JSON as it streams in (a fake model's replies in tests, recordings). */
 export class NdjsonDecoder<T = unknown> {
   private buffer = "";
 

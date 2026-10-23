@@ -23,7 +23,7 @@ Each track has its own folder (see **Where things are** below). Mark items `[x]`
 | Tooling track (T1–T15) | [roadmap/tooling/](roadmap/tooling/README.md) | 🟡 Tests, simulation, checks and evals |
 | Game track (G1–G6) | [roadmap/game/](roadmap/game/README.md) | 🟡 The browser client, game feel, performance, shipping, a switchable client, the look; build guides in [roadmap/game/plans/](roadmap/game/plans/) |
 
-**Next up:** the [vertical slice](roadmap/living-world/README.md#milestone-the-vertical-slice) is under way: N17 (the admin world view), N18 (scale and storage), N19 (budgets), N25 (townsfolk lives), N25a (a world without a centre), N25b (lives that change), N26 (the open road) and N33 (gossip for everyone), N37 (chatter with consequences) and N38 (NPCs as living players) are built; next is N40 for the start town, its liege town and the road between. Detailed build guides for every living-world phase (N17–N68) are in [roadmap/living-world/plans/](roadmap/living-world/plans/README.md). **Next (decided 2026-10-23):** first [G5, a switchable client](roadmap/game/plans/g5-a-switchable-client.md) (the server decides everything; web, Unity or Unreal clients only draw and send intents), then [G6, the look](roadmap/game/plans/g6-the-look.md) (pixel art with layers and lights, built so 2.5D HD is a renderer swap), then the [migration to one 48-day year](roadmap/living-world/plans/migration-2026-10-23-one-year-ageless-player.md) (part A, alone, judged by `sim:lives`), then back to features with [N40](roadmap/living-world/plans/n40-ambitions-and-careers.md), ambitions and careers.
+**Next up:** the [vertical slice](roadmap/living-world/README.md#milestone-the-vertical-slice) is under way: N17 (the admin world view), N18 (scale and storage), N19 (budgets), N25 (townsfolk lives), N25a (a world without a centre), N25b (lives that change), N26 (the open road) and N33 (gossip for everyone), N37 (chatter with consequences) and N38 (NPCs as living players) are built; next is N40 for the start town, its liege town and the road between. Detailed build guides for every living-world phase (N17–N68) are in [roadmap/living-world/plans/](roadmap/living-world/plans/README.md). **Next (decided 2026-10-23):** [G5, a switchable client](roadmap/game/plans/g5-a-switchable-client.md) is built (the server decides everything; web, Unity or Unreal clients only draw and send intents, see [protocol/](protocol/README.md)); next is [G6, the look](roadmap/game/plans/g6-the-look.md) (pixel art with layers and lights, built so 2.5D HD is a renderer swap), then the [migration to one 48-day year](roadmap/living-world/plans/migration-2026-10-23-one-year-ageless-player.md) (part A, alone, judged by `sim:lives`), then back to features with [N40](roadmap/living-world/plans/n40-ambitions-and-careers.md), ambitions and careers.
 
 ## Status
 
@@ -108,8 +108,8 @@ Each track has its own folder (see **Where things are** below). Mark items `[x]`
 | Game | [G2 Game feel](roadmap/game/README.md#g2-game-feel-and-guardrails) | 🟡 Partly done (filler lines on a slow first token added) |
 | Game | [G3 Performance](roadmap/game/README.md#g3-performance-on-8-gb) | 🟡 Mostly done (first-token time and memory pressure now measured by `npm run bench:voice`) |
 | Game | [G4 Ship](roadmap/game/README.md#g4-ship) | ⬜ |
-| Game | [G5 A switchable client](roadmap/game/README.md#g5-a-switchable-client) | ⬜ Planned 2026-10-23 ([plan](roadmap/game/plans/g5-a-switchable-client.md)); build next |
-| Game | [G6 The look](roadmap/game/README.md#g6-the-look) | ⬜ Planned 2026-10-23 ([plan](roadmap/game/plans/g6-the-look.md)); after G5 |
+| Game | [G5 A switchable client](roadmap/game/README.md#g5-a-switchable-client) | ✅ Built 2026-10-23 ([plan](roadmap/game/plans/g5-a-switchable-client.md), [protocol](protocol/README.md)) |
+| Game | [G6 The look](roadmap/game/README.md#g6-the-look) | ⬜ Planned 2026-10-23 ([plan](roadmap/game/plans/g6-the-look.md)); build next |
 
 ## Setup
 

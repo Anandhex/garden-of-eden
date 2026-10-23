@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_VOICE } from "@millbrook/shared";
-import { pickVoice } from "../src/voice/pick";
+import { pickVoice } from "../src/adapter/web/voice/pick";
 
 const mac = [
   { name: "Samantha", lang: "en-US", localService: true },

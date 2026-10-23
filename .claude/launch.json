@@ -13,17 +13,31 @@
     {
       "name": "web-test",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "web", "--", "--new"],
+      "runtimeArgs": [
+        "run",
+        "web",
+        "--",
+        "--new"
+      ],
       "port": 3123,
       "env": {
         "PORT": "3123",
-        "SAVE_FILE": "/private/tmp/claude-501/-Users-anandpatil-Documents-Projects-web-game-llm-game/9db52bc0-a628-450b-9caa-b65caf5cf787/scratchpad/test-world.json",
-        "DB_FILE": "/private/tmp/claude-501/-Users-anandpatil-Documents-Projects-web-game-llm-game/9db52bc0-a628-450b-9caa-b65caf5cf787/scratchpad/test-world.db",
-        "DEATHS_FILE": "/private/tmp/claude-501/-Users-anandpatil-Documents-Projects-web-game-llm-game/9db52bc0-a628-450b-9caa-b65caf5cf787/scratchpad/test-deaths.json",
+        "SAVE_FILE": "/private/tmp/claude-501/-Users-anandpatil-Documents-Projects-web-game-llm-game/c88beb39-9845-4a35-bf3b-69d705c0c2f1/scratchpad/test-world.json",
+        "DB_FILE": "/private/tmp/claude-501/-Users-anandpatil-Documents-Projects-web-game-llm-game/c88beb39-9845-4a35-bf3b-69d705c0c2f1/scratchpad/test-world.db",
+        "DEATHS_FILE": "/private/tmp/claude-501/-Users-anandpatil-Documents-Projects-web-game-llm-game/c88beb39-9845-4a35-bf3b-69d705c0c2f1/scratchpad/test-deaths.json",
         "PLANNING": "off",
         "SUMMARIES": "off",
         "DIRECTOR": "off"
       }
+    },
+    {
+      "name": "replay",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "frames:play"
+      ],
+      "port": 5173
     }
   ]
 }
