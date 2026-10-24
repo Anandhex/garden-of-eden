@@ -2,6 +2,8 @@
 
 # N49 plan: Setbacks instead of game over
 
+> **N26J (planned 2026-10-24) builds decisions 1–3 of this plan for one case only:** captured by bandits (escape, ransom, rescue, labour, joining). If N26J is built, add the other setbacks to its chooser and chapter instead of writing new ones.
+
 **In one line:** when the player would die or lose everything, code picks a **setback** from who beat them and where (robbed and left, captured for ransom, sold to slavers, imprisoned by a crown, left for dead and found, exiled, in debt to someone dangerous, maimed); each setback is a **chapter** with its own state, its own exits (escape, ransom, working it off, earning freedom, a friend's or faction's rescue) and lasting marks (a scar, a lost limb, a criminal record, a reputation); when the player really dies they come back (plans README §5a: a day later where they last slept or at a temple, what they carried left where they fell).
 
 **Read first:** [plans README](README.md) sections 2, 3, 13. Needs N48 (prisons, sentences, records), the slave and serf laws (N16), N26 (being moved along roads). Uses N8 (injuries), N34 (friends hear and may come), N42 (rescue jobs on the board), N57 (the player's faction ransoms them), N59 (escape paths for slaves; this phase gives the player a slave's escape; N59 later gives NPC slaves the same), N66 (heirs on real death).

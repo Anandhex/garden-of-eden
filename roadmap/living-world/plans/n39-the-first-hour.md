@@ -2,6 +2,8 @@
 
 # N39 plan: The first hour
 
+> **Note from the 2026-10-24 playtest phases:** with N26H, a commoner start in a city finds the noble quarter and the castle closed. The first hour should show one way in early (a summons, an errand for a noble household, a friend in service there), so a closed gate reads as a goal, not a wall.
+
 **In one line:** a new game lets the player choose the start town (or take the seed's pick); code then scans that town's real state for things already brewing (a grudge near breaking, a sick elder, a theft, a stranger, a pack at the fields, a raid due), picks one **opening incident** whose conditions hold, places the player where it will break within a few minutes, and offers a choice whose effects run on the normal systems: a grudge, a debt or a friendship that gossip spreads and someone acts on.
 
 **Read first:** [plans README](README.md) sections 2, 4, 12 (no authored places or people), 13, 19 (`incident-line`). Needs N33 (gossip spreads the player's choice), N37 (grudges, relationships for anyone), N38 (people who then act on it). Uses N26's situation format ([`data/situations/`](../../../packages/server/src/data/situations/), [`road/situations.ts`](../../../packages/server/src/game/road/situations.ts)): actors, choices, effects.
