@@ -170,11 +170,18 @@ const CAPTAIN_FROM: Figure["role"][] = ["guard", "adventurer", "hunter"];
  * Without this a crown only ever shrinks: the dead leave it and only the heads of places were replaced.
  */
 export function courtDay(realm: Realm, day: number, rng: Rng): void {
+  const byHome = new Map<string, Figure[]>();
+  for (const f of Object.values(realm.figures)) {
+    if (!f.alive || f.home === null || f.role === "beast") continue;
+    const at = byHome.get(f.home);
+    if (at) at.push(f);
+    else byHome.set(f.home, [f]);
+  }
   for (const s of Object.values(realm.settlements).sort((a, b) => a.id.localeCompare(b.id))) {
     const kingdom = s.kingdom ? realm.kingdoms[s.kingdom] : undefined;
     const crown = kingdom ? realm.factions[kingdom.crown] : undefined;
-    if (s.abandoned || !crown || crown.dissolved) continue;
-    const here = residents(realm, s.id);
+    if (s.abandoned || !crown || crown.dissolved || courtSeats(s).length === 0) continue;
+    const here = byHome.get(s.id) ?? [];
     for (const role of courtSeats(s)) {
       if (here.some((f) => f.role === role && f.faction === crown.id)) continue;
       if (rng() >= COURT_FILL_CHANCE) continue;
