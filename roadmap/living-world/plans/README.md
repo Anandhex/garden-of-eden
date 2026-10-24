@@ -24,6 +24,11 @@ Read this page first. It holds the rules every phase shares; the phase plans ass
 | N25a | [A world without a centre](n25a-a-world-without-a-centre.md) | N18, N25 (N24 step 2b, or absorbs it) | ✅ before N26 (built) |
 | N25b | [Lives that change](n25b-lives-that-change.md) | N18, N19, N25, N25a | ✅ the two towns (built) |
 | N26 | [The open road](n26-the-open-road.md) | N18, N19, N25, N25a | ✅ built (all four parts; the whole realm walkable, see the stage file for what differs) · Part E (real travellers, news by people) ✅ built 2026-10-14 |
+| N26F | [A road worth walking](n26f-a-road-worth-walking.md) | N26 (Part E) | planned 2026-10-24 (asked after playing: the road felt dead); brings forward parts of N27 and N28 |
+| N26G | [Fields outside the village](n26g-fields-outside-the-village.md) | N26, N26F | planned 2026-10-24; makes N30's food curve come from real plots |
+| N26H | [Districts, access and buildings to scale](n26h-districts-access-and-buildings-to-scale.md) | N16, N25, N37, N38 (N32 steps 1–2 as step 0) | planned 2026-10-24 |
+| N26I | [Fallen places, lairs and strongholds](n26i-fallen-places-lairs-and-strongholds.md) | N25, N26 (Part E), N26F, N26G, N26H | planned 2026-10-24 |
+| N26J | [Rough justice and being taken](n26j-rough-justice-and-being-taken.md) | N38 (steps 1–2), N26I (step 3); a stand-in for parts of N48 and N49 | planned 2026-10-24 |
 | N27 | [The wilds](n27-the-wilds.md) | N26 | |
 | N28 | [Fauna and flora](n28-fauna-and-flora.md) | N26, N27 | |
 | N29 | [A soundscape](n29-a-soundscape.md) | N16, N26 (N28, N36 when built) | |
@@ -184,7 +189,7 @@ Added 2026-10-14 with the N29–N68 plans. Everything in sections 1–10 still h
 
 ## 11. Where things stand, and the pieces that are missing
 
-**Built (2026-10-23):** N17, N18, N19, N25, N25a, N25b, N26, N33, N37, N38 and N40 (see each stage file's **What differs**). **Not built:** N20–N24 (except `player.known`, `playerKnows` and `playerLearns`, built as N33's step 0 in `game/playerKnowledge.ts`), N27 and N28.
+**Built (2026-10-23):** N17, N18, N19, N25, N25a, N25b, N26, N33, N37, N38 and N40 (see each stage file's **What differs**). **The vertical slice is built**, and the first play of it (2026-10-24) produced N26F–N26J (Part 3). **Not built:** N20–N24 (except `player.known`, `playerKnows` and `playerLearns`, built as N33's step 0 in `game/playerKnowledge.ts`), N27 and N28.
 
 **N26 Part E is built on top of N26 (2026-10-14, save v14)** ([plan](n26-the-open-road.md#part-e-everyone-on-the-road-is-someone-rework-asked-for-2026-10-14), asked for 2026-10-14): every traveller is a real person row (`people.away` while on a journey), migrants arrive on the day their journey does, the messenger relay (`relay.ts`) is deleted, and **news spreads by people**: travellers carry what their place knew when they left (`journey.carries`) and swap it with places at every stop, inns most of all; `reachesAt(news, site)` becomes "the day the place first heard it, or not yet". **The N29–N68 plans assume Part E, which is built.** Where the plans say `SiteState.newsSeen` with a day, read `realm.heard[site][newsId]` (see the stage file's What differs). Where a plan says a journey, a traveller or a carrier, it means a real person on a Part E journey; where it says a place heard news, it means Part E's `newsSeen` day. N33 then makes that knowledge per person instead of per place. Several later plans lean on small parts of those phases. **The rule:** if a phase needs a part that doesn't exist yet, it builds that part (only that part, as written in its own plan) as **step 0**, and says so in the stage file. It doesn't build its own version.
 
@@ -306,8 +311,78 @@ Every name the model invents goes through the invented-name check (`inventedWord
 
 ## 20. Suggested order, and when to stop and play
 
-1. **Finish the vertical slice:** N33 → N37 → N38 → N40 (with N24 steps 1–3 and N20 step 1 as their step 0s). Then **play it and revise this track** (the overview's milestone). Don't start N29+ phases outside the slice before that playtest; the playtest may cut or merge them.
-2. Then Stage 2's rest (N27, N28, N29–N32, N34–N36), with N20–N24 where the plans need them.
-3. Then Stages 3–7 in order. Stop and play after each stage, write down what feels alive and what is noise, and change the next stage's plans from that before building it.
+**Reworked 2026-10-24.** The vertical slice (N17 → N18 → N25 → N25a → N25b → N26 → N33 → N37 → N38 → N40) is built, and the first play of it found the world too thin outside the town: a dead road, fields inside the village, no districts, buildings out of scale, and attacks that never change anything. Those come first now, before the rest of Stage 2 and before N69.
 
-The plans for N29–N68 were written before the slice was played. They are a good starting point, not a contract: if a playtest shows a phase is noise, cut it and record why in the stage file.
+**Playtest pack 1 (N26F–N26J), in this order:**
+
+| # | What | Why here |
+|---|---|---|
+| 1 | [N26F step 0b](n26f-a-road-worth-walking.md#step-0b-nobody-made-up): nobody made up | Fixes the six places that break the user's tracking rule today (§21) and adds the guard test every later step must pass. Small. |
+| 2 | Foundations: the [N22](n22-long-run-balance.md) cut (`sim:years`, the bounds runner, §22), the `bench:busy` full-realm budget (§23), and the `transfer` ledger helper (§24) | Every later step adds state that can spiral, cost time or leak coin. The checks go in before the systems do. |
+| 3 | [N26F](n26f-a-road-worth-walking.md): a road worth walking (with step 0c, pack beasts as rows) | The user's first complaint. Territories, beasts and commutes are used by everything after it. |
+| 4 | [N26G](n26g-fields-outside-the-village.md): fields outside the village | Lays out the land around every place. N26I farms and ruins it. |
+| 5 | [N26J](n26j-rough-justice-and-being-taken.md) steps 1–2: crimes and sentences, bribes found out | N26H's bribes, trespass and forced gates need consequences. |
+| 6 | [N26H](n26h-districts-access-and-buildings-to-scale.md): districts, access and buildings to scale (with N32 steps 1–2) | Rebuilds every settlement map, so it goes after N26G has taken the fields out. N26I's strongholds use its posts and access. |
+| 7 | [N26I](n26i-fallen-places-lairs-and-strongholds.md): fallen places, lairs and strongholds, with N26J step 3 (the player taken) | Needs all of the above. |
+| 8 | **Play again** (playtest 2) | Run `sim:years` on several seeds, play a few in-game months, write down what feels alive and what is noise, and revise this list. |
+
+**Save:** the five share **one save version**, bumped once at step 1 or 3 and added to by the rest while they're built in a row (§16 allows this). Old saves are disposable (user decision 2026-10-13), so it can be a clean break; confirm with the user when the bump is made.
+
+**After playtest 2**, in this order unless the playtest says otherwise:
+
+1. [N69](n69-offices-treasuries-and-renown.md) offices, treasuries and renown (builds full ledgers on §24's helper; was "right after N40", moved behind the pack).
+2. [N39](n39-the-first-hour.md) the first hour (with N26H's note: show one way into a closed district early).
+3. The rest of Stage 2: [N30](n30-seasons-and-the-farming-year.md) (regional weather; its food curve now comes from N26G), [N27](n27-the-wilds.md) (off-road, on top of N26F's POIs), [N28](n28-fauna-and-flora.md) (species files on top of N26F's wildlife), N31, N32 steps 3+, N34, N35, N36, N29, with N20, N21, N23 and N24 where the plans need them.
+4. Then Stages 3–7 in order, minus what the pack already built (parts of N48 and N49 as N26J's stand-ins). Stop and play after each stage, write down what feels alive and what is noise, and change the next stage's plans from that before building it.
+
+The plans for N27–N68 were written before the slice was played. They are a good starting point, not a contract: if a playtest shows a phase is noise, cut it and record why in the stage file.
+
+# Part 3: rules for the playtest phases (N26F–N26J)
+
+Added 2026-10-24. The vertical slice is built, and the user's first play of it asked for a road worth walking, fields outside the village, districts with real access, buildings to scale, and places that fall to beasts and bandits. Those became **N26F–N26J**. Everything in Parts 1 and 2 still holds. These rules apply to all five, and to every later phase that touches the same systems.
+
+## 21. Every person is tracked (user rule, 2026-10-24)
+
+"Every NPC needs to be tracked in the game; there shouldn't be an NPC that doesn't exist." Anyone who walks, talks, fights, works, guards, robs, is hired, is captured or dies is a `people` row or a realm figure, picked by job and place. Nothing makes a person for a scene; hiring moves a row, it never makes one. Pack beasts are tracked too (a `beasts` row each, which can rise to a named figure). Only unowned light wildlife (deer, hares, crows) is seeded and untracked until hunted, and livestock is a count per household. **[N26F step 0b](n26f-a-road-worth-walking.md#step-0b-nobody-made-up)** fixes the places that break this today and adds the `nobody-made-up` guard test, which every later phase keeps passing.
+
+## 22. The world must not spiral (long-run balance first)
+
+These phases add many ways for things to get worse: crop damage, packs growing in lairs, places falling, raids emptying the next place. So **before N26G**, build the cut of [N22](n22-long-run-balance.md) the playtest phases need: one runner (`npm run sim:years`) that runs a fixed-seed realm for 5 and 10 game years with the model off, and checks every phase's bounds at the end. Each of N26F–N26J adds its bounds there. The bounds that matter most:
+
+- `fallen-band` (no more than a tenth of places fallen at once) and `fallen-turn-over` (some are retaken and resettled within 5 years);
+- `fields-feed` (a normal place feeds itself in a normal year) and `famine-band` (famines happen, but not in most places at once);
+- `packs-band` (no pack larger than three times its cap; packs regrow after culls);
+- `population-band` (the realm's population stays within a band over 10 years);
+- `coin-conserved` (section 24).
+
+When a bound fails, **tune the answers** (lords, bounties, hunters, resettlement, patrols), not hard caps.
+
+## 23. Speed and memory budget
+
+The new tracked state (plots and field events, beasts, captives, district maps, guard rotas) must fit the target machine (section 9). Extend N19's `bench:busy` with a **full realm running all five systems**, and set the budget there: a game day for the whole realm in under 2 seconds on the target machine, and the browser at 60 fps in a capital's busiest district. Each phase reports its share in its stage file's **What differs**. The rule for staying inside it: compute from seeds and pure functions where possible, store only what happened (events), and run full detail only near the player (section 17).
+
+## 24. Coin and goods are moved, never made
+
+Tribute, ransoms, sellswords' wages, tolls, fenced loot, bounties, harvest shares and tithes all **move** coin or goods from one holder (a treasury, a household, a gang's stores, the player) to another. Nothing creates coin except the places the economy already mints it (wages from work, sales to the outside), and nothing destroys it except what the economy already sinks. Every transfer goes through one helper (`transfer(realm, from, to, amount, why)`, in `game/realm/ledger.ts`) that writes a ledger line. N69 later builds offices and full ledgers on it. The `coin-conserved` bound checks that the realm's total coin changes only by what the mint and the sinks say. This starts on [realism gap 2](../README.md#realism-gaps-review-2026-10-23).
+
+## 25. Who knows what
+
+Facts the playtest phases create (where a camp is, that a captive is held, that a wolf has a name, that a field was burned, who took a bribe) are **knowledge** (N33), not public truth. Each plan says who learns each fact and how: witnesses, the people they tell, an escaped captive, the news at an inn. Quests are posted only by someone who knows; talkers mention only what they know; the player's map shows only what the player knows (N27's rule). The admin view sees everything. A test in each phase checks that a fact nobody has heard of isn't in any quest, line or map.
+
+## 26. What talkers are told
+
+A talking NPC's context (the persona and the turn's facts) must carry the new state that's theirs: their district and home, being a captive (and of whom) or a captor, gang membership, the field they hold and what happened to it, the named beasts and strongholds they know of (section 25), their post and rota if they're a guard. Add these to the talker context builder so the model can't contradict the world. Each new fact is a few words, so it fits N19's budgets. With the model off, the template lines read the same facts.
+
+## 27. Skipping doesn't skip the world
+
+Fast travel, the coach, sleep and "wait until" (N35) must pass through the same systems off screen: territories and hostiles (as N26F's off-screen meetings), field damage and harvest (N26G), raids and captives (N26I). Skipping is never a way round danger, and things that happened while skipping are told when the player stops ("While you slept, raiders took the Webbs' daughter").
+
+## 28. Every phase brings its admin page, its art list and its stand-ins
+
+- **Admin:** each phase adds the admin view that shows its state (territories, fields, districts and posts, fallen places and captives). These systems can only be tuned by looking at them.
+- **Art:** each plan lists the sprites it needs for the G6 pipeline (`npm run art`), and the phase isn't done until they're drawn. Placeholders (tinted tiles) are fine while building.
+- **Stand-ins for missing phases:** where a playtest phase needs a later phase that isn't built, it builds the smallest stand-in, named in the plan, and the later phase replaces it. For law and capture, that's [N26J](n26j-rough-justice-and-being-taken.md). For seasons, use the built 48-day calendar and today's realm-wide `weatherOn` until N30's regional weather. For coin, section 24's helper until N69.
+
+## 29. How dark it gets (default, user may change)
+
+Slavery, kidnapping, children raised in a gang, ransom and assassination are in the game. **Default:** shown plainly and with consequences (grief, grievances, news), never graphically; no cruelty in close detail, no harm to children on screen (a child may be taken and must be rescued or ransomed, and stories may say a child died of hunger or illness, as N25 already does). The model's prompts carry the same limits.

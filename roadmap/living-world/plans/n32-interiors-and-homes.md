@@ -2,6 +2,8 @@
 
 # N32 plan: Interiors and homes
 
+> **N26H (planned 2026-10-24) builds steps 1 and 2 of this plan as its step 0**, with real building footprints (a cottage 4×3, a castle keep in a 30×24 bailey, a palace a 40×30 compound) and an access rule on every door (a home is private: only the household and people they let in). If N26H is built first, start this plan at step 3 and build trespass on N26H's `canEnter`.
+
 **In one line:** every building's door leads to an interior map generated from (place seed, building index, kind, the household's class, wealth and trade); a household's belongings are a few compact rows that become real items only when touched; the crowd already knows who is home, so the interior shows them eating, sleeping or working; trespass is noticed by whoever is inside.
 
 **Read first:** [plans README](README.md) sections 2, 9, 15, 18. Needs N16 (the roster: homes, workplaces, classes, jobs; the crowd's positions), N18 (people rows), N31 (fixed layouts, so building index *i* is always the same building; marks show damage inside). Hooks for N46 (secrets in a drawer), N48 (prisons), N66 (the player's home).

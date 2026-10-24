@@ -2,6 +2,8 @@
 
 # N27 plan: The wilds
 
+> **N26F (planned 2026-10-24) brings parts of this plan forward:** decision 3 and step 8 (the woods, camp and mine move onto the road, their maps kept as interiors), step 1 for places near a road (`roadsidePlaces`, using this plan's `Poi` type and ids), and step 2 for packs and gangs as road territories (a pack's den is a cave in its territory). If N26F is built first, build the rest of this plan on top of it: extend `poi.ts` off-road and reuse its territories for lairs and camps.
+
 **In one line:** the chunk world from N26 extends off the road; points of interest are placed by seed and by the realm's real state (a pack's lair where the pack is, a gang's camp where the gang is); the player finds them, can get lost, and nothing is on their map until they find it or hear of it.
 
 **Read first:** [plans README](README.md) sections 2, 3 (the player's map is knowledge), 7. Needs N26 (chunks, `chunkAt`, the time scale, the player's needs, `player.road` position) and N24 (`playerKnows`/`playerLearns`).

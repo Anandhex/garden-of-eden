@@ -2,6 +2,8 @@
 
 # N48 plan: Law and trials
 
+> **N26J (planned 2026-10-24) is a stand-in for the start of this plan:** a crime table, `sentence()` by the head's or lord's traits, lock-up, stocks, fines, banishment and bounties. If N26J is built, put trials in front of its `sentence` instead of writing a second one.
+
 **In one line:** each kingdom has a **law book** (which acts are crimes, the punishment range for each, who judges, and how much a person's word weighs by class), kept as kingdom policies; a crime known to the authorities becomes a **case** for anyone (NPCs and the player, not only the player as today); a **trial** is decided in code from the evidence (witnesses and their credibility, documents and secrets, the accused's and accuser's class and standing, the judge's traits and relationships, bribes, leverage) and a sentence is carried out (fine, flogging, stocks, prison, exile, execution, forced labour) unless pardoned; the model only writes the hearing.
 
 **Read first:** [plans README](README.md) sections 2, 13, 14 (the law book is policies), 19 (`hearing`). Needs N45 (the policy mechanism), N46 (secrets as evidence and leverage), N47 (bribery, corruption, arrests from crackdowns). Uses N32 (prison interiors), N37 (false accusation as a wrong), N49 (sentences on the player become setbacks), N58 (harsh rulers punish more).

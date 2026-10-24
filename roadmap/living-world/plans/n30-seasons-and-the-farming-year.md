@@ -2,6 +2,8 @@
 
 # N30 plan: Seasons and the farming year
 
+> **N26G (planned 2026-10-24) changes decision 3:** food comes from real plots outside each place (sown, grown, damaged and reaped by real people), not a curve. If N26G is built first, this plan keeps the calendar, regional weather, prices, festivals and the look of the seasons, and its harvest step reads N26G's harvested totals.
+
 **In one line:** one calendar module says where in the year a day falls; the realm's food becomes a farming year (sown in spring, grown in summer, harvested in autumn, eaten through winter); weather becomes regional (colder north and high up); and prices, the crowd's day, roads, beasts, festivals and the map all read the season.
 
 **Read first:** [plans README](README.md) sections 5 (a year is 48 days: this phase switches it), 7, 17 (what a daily rule may read). Needs N25 (people who starve read `site_days`), N26 with Part E (roads with terrain along them, journeys of real people, news swapped at inns). N28 already reads `seasonOf`/`dayOfYear`, so keep those names working.
