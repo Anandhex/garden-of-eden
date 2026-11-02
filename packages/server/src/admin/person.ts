@@ -1,3 +1,5 @@
+import { plotsOf } from "../game/farm/fields.js";
+import { plotTiles } from "../game/farm/day.js";
 import { findCreature } from "../game/site.js";
 import type { AdminCard, AdminHour, AdminPinned, AdminSection } from "@millbrook/shared";
 import { CLASS_WORDS, JOB_INFO } from "@millbrook/shared";
@@ -531,7 +533,59 @@ function placeCard(ctx: AdminContext, id: string): AdminCard | null {
       { title: "Away from here", rows: trips.away.slice(0, 25).map((x): [string, string, string] => [x.row.name, `${x.journey.where}: ${x.journey.text}`, `town:${x.row.id}`]) },
       { title: "Visiting", rows: trips.visiting.slice(0, 25).map((x): [string, string, string] => [`${x.row.name} (of ${realm.settlements[x.row.site]?.name ?? x.row.site})`, x.journey.text, `town:${x.row.id}`]) },
       { title: "Factions here", rows: factions.map((f): [string, string] => [f.name, `${f.kind}${f.seat === id ? ", seated here" : ", a branch"}`]) },
+      fieldsSection(ctx, s),
+      watchSection(ctx, s),
       { title: "Lately", rows: events(ctx, { site: id, limit: 15 }).events.map((e): [string, string] => [`Day ${e.day}`, `${e.text}${e.why ? ` (why: ${e.why})` : ""}`]) },
+    ],
+  };
+}
+
+/** A place's fields (N26G): plots by holder and crop, how they stand, and what happened to them lately. */
+function fieldsSection(ctx: AdminContext, s: Settlement): AdminSection {
+  const realm = ctx.world().realm!;
+  const store = ctx.store;
+  if (!store || !s.fields?.kept) return { title: "Fields", unavailable: "Its fields aren't kept as plots (its people aren't rows, or FIELDS=off): its food is the old formula." };
+  const day = ctx.world().day;
+  const plots = plotsOf(realm, s, day);
+  const rows = store.farm.plotsOf(s.id);
+  const holders = new Map<string, number>();
+  let healthy = 0;
+  let marked = 0;
+  let tiles = 0;
+  for (const p of plots) {
+    const h = rows.get(p.id)?.holder ?? "?";
+    holders.set(h, (holders.get(h) ?? 0) + 1);
+    for (const t of plotTiles(realm, store, s, p, day)) {
+      tiles++;
+      if (t >= 10) marked++;
+      else if (t >= 1 && t <= 5) healthy++;
+    }
+  }
+  const name = (h: string) => (h.startsWith("hh:") ? `the household at house ${h.split(":")[2]}` : h.startsWith("lord:") ? `the lord (${realm.figures[h.slice(5)]?.name ?? "?"})` : h.startsWith("temple:") ? "the temple" : "the commons");
+  const recent = store.farm.eventsOf(s.id).filter((e) => e.kind !== "sow" && e.kind !== "weed").slice(-12).reverse();
+  return {
+    title: "Fields",
+    rows: [
+      ["Plots", `${plots.length} (${plots.filter((p) => p.kind === "strip").length} strips, ${plots.filter((p) => p.kind === "close").length} closes, ${plots.filter((p) => p.kind === "paddock").length} paddocks, ${plots.filter((p) => p.kind === "meadow").length} meadow)`],
+      ["Standing", `${healthy} tiles growing, ${marked} damaged, of ${tiles}`],
+      ...[...holders.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8).map(([h, n]): [string, string] => [name(h), `${n} plot${n === 1 ? "" : "s"}`]),
+      ...recent.map((e): [string, string] => [`Day ${e.day}`, `${e.kind} on ${e.plot} (${e.tiles.length || "all"} tiles) by ${e.by}${e.kind === "harvest" ? `: ${e.amount} reaped` : ""}`]),
+    ],
+  };
+}
+
+/** A place's mine watch (N26F decision 13). */
+function watchSection(ctx: AdminContext, s: Settlement): AdminSection {
+  const w = s.watch;
+  if (!w) return { title: "Mine watch", unavailable: "No working mine, or not yet checked." };
+  const people = ctx.store?.people;
+  const realm = ctx.world().realm!;
+  return {
+    title: "Mine watch",
+    rows: [
+      ["Level", String(w.level)],
+      ...w.guards.map((g): [string, string, string] => [people?.get(g)?.name ?? g, "guard on the watch", `town:${g}`]),
+      ...w.hired.map((h): [string, string, string] => [people?.get(h.person)?.name ?? h.person, `hired from ${realm.settlements[h.from]?.name ?? h.from}, ${h.wage} a day until day ${h.until}`, `town:${h.person}`]),
     ],
   };
 }

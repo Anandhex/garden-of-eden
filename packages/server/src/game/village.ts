@@ -15,6 +15,7 @@ import { restock } from "./economy.js";
 import { spreadIllness, ILLNESSES } from "./health.js";
 import { payWages } from "./party.js";
 import { actOnRevenge } from "../director/revenge.js";
+import type { Who } from "./spawning.js";
 import { failOverdueQuests } from "./quests.js";
 import { isGuard, reportCrimes } from "./crime.js";
 
@@ -111,10 +112,10 @@ export function villageHour(members: VillageMember[], world: WorldSnapshot, rng:
  * The village's midnight (N8.2, N12.2): companions are paid (or not), and NPCs act
  * on revenge goals strong enough. Spawn rules for hired ambushes go into the world.
  */
-export function villageMidnight(members: VillageMember[], world: WorldSnapshot): string[] {
+export function villageMidnight(members: VillageMember[], world: WorldSnapshot, partyFor?: (personaId: string) => Who[]): string[] {
   const log = payWages(members.filter((m) => m.state.companion), world);
   for (const m of members) {
-    const act = actOnRevenge(m.persona, m.state, world);
+    const act = actOnRevenge(m.persona, m.state, world, partyFor?.(m.id));
     if (!act) continue;
     log.push(...act.log);
     if (act.spawn) (world.extraSpawnRules ??= []).push(act.spawn);
@@ -131,7 +132,17 @@ export function passVillage(
   world: WorldSnapshot,
   hours: number,
   rng: Rng,
-  { talkingTo, choose }: { talkingTo?: string; /** Called before each hour is lived with the hour that is about to be (N38: talkers choose what to do). */ choose?: (at: { day: number; hour: number }) => void } = {},
+  {
+    talkingTo,
+    choose,
+    partyFor,
+  }: {
+    talkingTo?: string;
+    /** Called before each hour is lived with the hour that is about to be (N38: talkers choose what to do). */
+    choose?: (at: { day: number; hour: number }) => void;
+    /** Who comes with a talker to settle a score (N26F step 0b): real people, the talker first. */
+    partyFor?: (personaId: string) => Who[];
+  } = {},
 ): string[] {
   const log: string[] = [];
   world.events ??= [];
@@ -149,7 +160,7 @@ export function passVillage(
     members.forEach((m, i) => log.push(...passMinutes(m.persona, m.state, clocks[i]!, 60, rng, { talking: m.id === talkingTo })));
     const at: WorldSnapshot = { ...world, day: clocks[0]?.day ?? world.day, hour: clocks[0]?.hour ?? world.hour, minute: clocks[0]?.minute ?? world.minute, timeOfDay: clocks[0]?.timeOfDay ?? world.timeOfDay };
     log.push(...villageHour(members, at, rng));
-    if (at.hour === 0) log.push(...villageMidnight(members, at));
+    if (at.hour === 0) log.push(...villageMidnight(members, at, partyFor));
     log.push(...failOverdueQuests(world.player, givers, at));
     log.push(...reportCrimes(at, personas, guards));
   }

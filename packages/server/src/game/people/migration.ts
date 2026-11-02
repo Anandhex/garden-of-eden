@@ -1,3 +1,5 @@
+import { homeDistrict, type SocialClass } from "@millbrook/shared";
+import { siteMap } from "../../web/sites.js";
 import type { PersonRow } from "../../store/peopleStore.js";
 import { speciesOf } from "../../world/species.js";
 import { streamFor, type Rng } from "../dice.js";
@@ -94,7 +96,8 @@ function roomiestHome(occupancy: Map<number, number>): number {
 export function departHouseholds(ctx: LifeCtx, from: Settlement, to: Settlement, count: number, rng: Rng, day: number, opts: { everyone?: boolean } = {}): number {
   const { realm, store } = ctx;
   const people = store.people;
-  const homes = householdsOf((people.loadSite(from.id, "full") as PersonRow[]).filter((r) => r.away === null), day, !!opts.everyone);
+  // Captives don't leave with the rest (N26I): they're held.
+  const homes = householdsOf((people.loadSite(from.id, "full") as PersonRow[]).filter((r) => r.away === null && !r.captive), day, !!opts.everyone);
   if (homes.length === 0) return 0;
   // Who goes: households in an order of the day's dice, while the count isn't reached.
   // A household with someone who has come to want to leave (a review's outcome, N25b) goes before the others: the same one die each, the order shifts.
@@ -132,12 +135,22 @@ function applyMove(ctx: LifeCtx, members: PersonRow[], from: Settlement, to: Set
   const people = store.people;
   void from;
   void everyone;
-  void realm;
   const occupancy = new Map<number, number>();
   for (const r of people.loadSite(to.id, "full") as PersonRow[]) if (r.home !== null) occupancy.set(r.home, (occupancy.get(r.home) ?? 0) + 1);
   const seq = people.seq(to.id);
   let nextN = seq.next_n;
-  const home = roomiestHome(occupancy);
+  // A house in the district their class and trade put them in (N26H decision 4), the emptiest there.
+  const head = [...members].sort((a, b) => a.born_day - b.born_day)[0];
+  const map = siteMap(to, "village", realm);
+  const dlist = map.districts.map((r) => r.district);
+  const want = head && dlist.length > 0 ? `d:${homeDistrict(dlist, head.cls as SocialClass, head.job)}` : null;
+  const houses = map.buildings.map((b, i) => ({ b, i })).filter((x) => x.b.kind === "house");
+  const inDistrict = houses.filter((x) => x.b.district === want);
+  // Failing a house there, any house outside the closed quarters (the high-born may take one inside).
+  const high = head ? ["gentry", "noble", "royal"].includes(head.cls) : false;
+  const open = houses.filter((x) => high || !["d:noble", "d:palace", "d:castle"].includes(x.b.district ?? ""));
+  const pool = (inDistrict.length > 0 ? inDistrict : open.length > 0 ? open : houses).map((x) => x.i);
+  const home = pool.length > 0 ? pool.reduce((best, i) => ((occupancy.get(i) ?? 0) < (occupancy.get(best) ?? 0) ? i : best), pool[0]!) : roomiestHome(occupancy);
   for (const m0 of members) {
     const m = people.get(m0.id) ?? m0;
     if (m.death !== null) continue;

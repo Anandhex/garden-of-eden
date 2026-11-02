@@ -1,0 +1,53 @@
+{
+ "id": "hunters_on_the_road",
+ "title": "Hunters on the road",
+ "where": [
+  "road",
+  "forest",
+  "hills"
+ ],
+ "when": {
+  "night": false
+ },
+ "chance": 0.08,
+ "actors": [
+  {
+   "role": "hunter"
+  }
+ ],
+ "text": "{a}, a hunter, is coming the other way with a bow over one shoulder, and stops to look you over. \"Going on? Then you'd best know what's on this road.\"",
+ "choices": [
+  {
+   "id": "ask",
+   "label": "Ask what they've seen",
+   "effects": [
+    {
+     "type": "territories"
+    }
+   ]
+  },
+  {
+   "id": "trade",
+   "label": "Buy a haunch of venison (20 copper)",
+   "requires": {
+    "money": 20
+   },
+   "effects": [
+    {
+     "type": "money",
+     "amount": -20
+    },
+    {
+     "type": "item",
+     "item": "venison",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "id": "go",
+   "label": "Nod and go on",
+   "effects": []
+  }
+ ]
+}

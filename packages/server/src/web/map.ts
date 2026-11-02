@@ -17,6 +17,12 @@ export interface Building {
   kind?: string;
   /** The tile outside its door, where people come and go (N16). */
   front?: { x: number; y: number };
+  /** The district it stands in (N26H): `d:<kind>`. */
+  district?: string;
+  /** A house's kind by its people's class (N26H): hovel, cottage, craft (house and shop), merchant. */
+  style?: string;
+  /** A compound (N26H): its outer wall and the gate in it (a post), for a castle, a palace or a manor. */
+  compound?: { x: number; y: number; w: number; h: number; gate: { x: number; y: number } };
 }
 
 export interface NpcSpot {
@@ -69,6 +75,13 @@ export const CREATURE_COLORS: Record<string, string> = {
   bear: "#5b3a24",
   boar: "#7a5a40",
   spider: "#3a3a46",
+  // Light wildlife by the road (N26F).
+  deer: "#a0703c",
+  hare: "#9c8a6a",
+  fox: "#c4622d",
+  crow: "#26262c",
+  heron: "#9aa4ad",
+  adder: "#5c5a32",
 };
 
 export function distance(a: { x: number; y: number }, b: { x: number; y: number }): number {

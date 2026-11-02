@@ -30,6 +30,11 @@ export function heldBy(s: Snapshot): string | null {
   return fighter ? `${fighter.name} is in a fight` : null;
 }
 
+/** How far a walk's route search may look: the whole map (towns are bigger since N26H), with a floor for the road. */
+const pathBudget = (s: Snapshot): number => Math.max(3000, s.map.w * s.map.h);
+/** Steps walked toward someone before looking again where they are. */
+const APPROACH_LEG = 10;
+
 export class ViewSession {
   private socket: Sock | null = null;
   readonly id = Math.random().toString(36).slice(2, 10);
@@ -504,7 +509,7 @@ export class ViewSession {
         const began = Date.now();
         if (!(await this.step(next.x - pos.x, next.y - pos.y))) {
           const s = this.snap();
-          const again = goal && replans-- > 0 ? findPath(s.position, goal, this.playerBlocked(s), 3000) : null;
+          const again = goal && replans-- > 0 ? findPath(s.position, goal, this.playerBlocked(s), pathBudget(s)) : null;
           if (!again) {
             if (goal) {
               this.feed("Someone's in your way.");
@@ -538,7 +543,7 @@ export class ViewSession {
     const range = s.map.talkRange;
     const d = (p: { x: number; y: number }) => tileDistance(s.position, p);
     const blocked = this.playerBlocked(s);
-    const goTo = (goal: (t: Tile) => boolean, then?: () => Promise<void> | void, max = 3000) => {
+    const goTo = (goal: (t: Tile) => boolean, then?: () => Promise<void> | void, max = pathBudget(s)) => {
       const path = findPath(s.position, goal, blocked, max);
       if (!path) return void this.feed("You can't find a way there.");
       void this.walk(path, then, goal);
@@ -589,7 +594,7 @@ export class ViewSession {
   }
 
   /** Walk up to someone and talk. They may walk on while the player comes: follow them a few times, then talk if in reach. */
-  private approach(id: string, tries = 4): void {
+  private approach(id: string, tries = 12): void {
     const s = this.host.snapshot();
     this.last = s;
     const at = this.whereIs(s, id);
@@ -597,9 +602,10 @@ export class ViewSession {
     const range = s.map.talkRange;
     if (tileDistance(s.position, at) <= range || tries <= 0) return void this.openChat(id);
     const goal = (c: Tile) => tileDistance(c, at) <= range;
-    const path = findPath(s.position, goal, this.playerBlocked(s), 3000);
+    const path = findPath(s.position, goal, this.playerBlocked(s), pathBudget(s));
     if (!path) return void (this.feed("You can't find a way there."), this.push());
-    void this.walk(path, () => this.approach(id, tries - 1), goal);
+    // A leg of at most APPROACH_LEG steps, then look again where they are: someone across a big town walks on meanwhile.
+    void this.walk(path.slice(0, APPROACH_LEG), () => this.approach(id, tries - 1), goal);
   }
 
   private async openChat(id: string): Promise<void> {

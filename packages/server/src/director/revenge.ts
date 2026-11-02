@@ -4,7 +4,7 @@ import { provokeLimit, traitsOf } from "../npc/traits.js";
 import type { NpcPersona, NpcState, WorldSnapshot } from "../npc/types.js";
 import { recordEvent } from "../game/events.js";
 import { factionOf } from "../game/factions.js";
-import type { SpawnRule } from "../game/spawning.js";
+import type { SpawnRule, Who } from "../game/spawning.js";
 import { hearRumour } from "../game/rumours.js";
 
 /**
@@ -93,7 +93,7 @@ export const AMBUSH_DAYS = 2;
  * Midnight: act on a revenge goal strong enough, once. Returns what they did, or null.
  * The caller adds any spawn rule to the world.
  */
-export function actOnRevenge(persona: NpcPersona, state: NpcState, world: WorldSnapshot): RevengeAct | null {
+export function actOnRevenge(persona: NpcPersona, state: NpcState, world: WorldSnapshot, party?: Who[]): RevengeAct | null {
   if (state.outcome === "dead" || state.dormant) return null;
   const goal = state.goals.find((g) => g.kind === "revenge" && g.acted === undefined && g.strength >= ACT_AT);
   if (!goal) return null;
@@ -104,8 +104,17 @@ export function actOnRevenge(persona: NpcPersona, state: NpcState, world: WorldS
   let spawn: SpawnRule | undefined;
   switch (goal.plan) {
     case "ambush": {
-      spawn = { id: `revenge_${persona.id}_${world.day}`, creature: "bandit", count: 2, place: "road_ambush", hours: [6, 21], untilDay: world.day + AMBUSH_DAYS, ambush: true };
-      log.push(`${persona.name} has sent men to settle the score with you.`);
+      // They come themselves, with real people who'd go for them (N26F step 0b): kin, friends, or a gang they paid. Nobody is made up:
+      // without a party (no people table, as in the bare CLI), it's a quarrel to have out face to face instead.
+      if (party && party.length > 0) {
+        spawn = { id: `revenge_${persona.id}_${world.day}`, creature: "bandit", count: party.length, who: party, place: "road_ambush", hours: [6, 21], untilDay: world.day + AMBUSH_DAYS, ambush: true };
+        const helpers = party.filter((w) => w.person !== persona.id);
+        log.push(`${persona.name} means to settle the score with you on the road${helpers.length ? `, with ${helpers.map((w) => w.name).join(" and ")}` : ""}.`);
+      } else {
+        state.provocations = Math.max(state.provocations, provokeLimit(t) - 1);
+        state.mood = "angry";
+        log.push(`${persona.name} has been asking where you sleep.`);
+      }
       remember(state, { id: `revenge-${world.day}`, day: world.day, text: `you sent your men after them for what they did: ${goal.reason}`, importance: 6, valence: -1 }, t);
       break;
     }

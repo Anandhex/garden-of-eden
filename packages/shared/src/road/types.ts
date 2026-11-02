@@ -28,11 +28,19 @@ export const Ground = {
   bar: 19,
   gate: 20,
   thatch: 21,
+  // Beside the road (N26F decision 8).
+  stones: 22,
+  ruin: 23,
+  cave: 24,
+  herbs: 25,
+  ore: 26,
+  // The way into a village's woods, its mine and a gang's camp (N26F decision 9).
+  path: 27,
 } as const;
 export type GroundKind = (typeof Ground)[keyof typeof Ground];
 
 /** A tile a walker can't enter. */
-const SOLID = new Set<number>([Ground.tree, Ground.rock, Ground.water, Ground.wall, Ground.milestone, Ground.signpost, Ground.shrine, Ground.farmhouse, Ground.bar, Ground.thatch]);
+const SOLID = new Set<number>([Ground.tree, Ground.rock, Ground.water, Ground.wall, Ground.milestone, Ground.signpost, Ground.shrine, Ground.farmhouse, Ground.bar, Ground.thatch, Ground.stones, Ground.ruin, Ground.ore]);
 export const isSolidGround = (g: number): boolean => SOLID.has(g);
 
 /** Names of tiles for hover text. */
@@ -59,6 +67,12 @@ export const GROUND_NAMES: Record<number, string> = {
   [Ground.bar]: "a toll bar",
   [Ground.gate]: "a gate",
   [Ground.thatch]: "a roof",
+  [Ground.stones]: "standing stones",
+  [Ground.ruin]: "an old wall",
+  [Ground.cave]: "a cave mouth",
+  [Ground.herbs]: "herbs",
+  [Ground.ore]: "an ore outcrop",
+  [Ground.path]: "a path",
 };
 
 export interface RoadPoint {
@@ -119,7 +133,7 @@ export interface Crossing {
   toll?: number;
 }
 
-export type PlaceKind = "waystation" | "farmstead" | "shrine" | "milestone" | "signpost" | "tollgate" | "bridge" | "ferry";
+export type PlaceKind = "waystation" | "farmstead" | "shrine" | "milestone" | "signpost" | "tollgate" | "bridge" | "ferry" | "stones" | "ruin" | "cave" | "herbs" | "ore" | "woods" | "mine" | "camp" | "watchpost";
 
 /** Something beside the road. */
 export interface RoadPlace {
@@ -139,6 +153,8 @@ export interface RoadPlace {
   toll?: number;
   /** The kingdom whose border it marks, for a toll gate. */
   kingdom?: string;
+  /** A place's own map entered from here (N26F decision 9): the settlement whose woods, mine or camp it is, and which area. */
+  area?: { site: string; id: string };
 }
 
 /** A settlement's terrain, as the land around it. */

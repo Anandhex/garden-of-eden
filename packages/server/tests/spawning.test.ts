@@ -159,7 +159,8 @@ describe("defeat quests", () => {
     expect(describeObjective(quest)).toBe("kill or drive off 3 bandits");
     const creatures: Record<string, Creature> = {};
     const log = applySpawnRules(fixtureSpawnRules(), templates, creatures, {}, { ...world, hour: 12, recentEvents: [] }, rng);
-    expect(log).toContain("3 bandits turn up.");
+    // The quarry is people with names (N26F step 0b): the fixture's own outlaws.
+    expect(log).toContain("Kell Stone, Lam Dyer, Mott Fenn turn up.");
     expect(alive(creatures, "bandit")).toHaveLength(3);
   });
 

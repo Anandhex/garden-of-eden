@@ -8,6 +8,8 @@
  *   npm run bench:busy -- --extra quest-flavor=40,plan=30   # push the queue with extra jobs every day
  *   npm run bench:busy -- --live             # the real model (Ollama), one compressed day: needs `ollama serve`
  *
+ *   npm run bench:busy -- --realm            # the full realm's day (plans README §23): everyone living, every system; under 2 s a day
+ *
  * Exits 1 if the player's first word is slower than the target, a protected kind (talk, summary) was dropped,
  * or a kind went over its cap. The stand-in's numbers come from budgets.ts and G3's measurements.
  */
@@ -21,6 +23,36 @@ const value = (name: string, fallback: string) => {
   const i = args.indexOf(`--${name}`);
   return i >= 0 && args[i + 1] ? args[i + 1]! : fallback;
 };
+
+if (flag("realm")) {
+  // The whole realm, everyone living, a day at a time (plans README §23): the 95th-percentile day against the budget.
+  const { runYears } = await import("../src/balance/run.js");
+  const { perfSlack } = await import("../src/budgets.js");
+  const n = Number(value("days", "48"));
+  const times: number[] = [];
+  let last = performance.now();
+  runYears({
+    seed: Number(value("seed", "1")),
+    years: n / 48,
+    live: "all",
+    onDay: () => {
+      const now = performance.now();
+      times.push(now - last);
+      last = now;
+    },
+  });
+  times.sort((a, b) => a - b);
+  const p50 = Math.round(times[Math.floor(times.length / 2)]!);
+  const p95 = Math.round(times[Math.floor(times.length * 0.95)]!);
+  const limit = budgets.tick.realmDayMs * perfSlack();
+  console.log(`The whole realm, ${times.length} days with everyone living: median ${p50} ms a day, 95th ${p95} ms (budget ${budgets.tick.realmDayMs} ms${perfSlack() === 1 ? "" : `, slack ×${perfSlack()}`}).`);
+  if (p95 > limit) {
+    console.error(`Over budget: a realm day took ${p95} ms at the 95th percentile.`);
+    process.exit(1);
+  }
+  console.log("The realm's day is inside its budget.");
+  process.exit(0);
+}
 
 const days = Number(value("days", flag("live") ? "1" : "7"));
 const slow = Number(value("slow", "1"));

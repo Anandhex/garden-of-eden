@@ -1,0 +1,24 @@
+{
+  "id": "oats",
+  "name": "oats",
+  "sow": [
+    4,
+    10
+  ],
+  "grow": 24,
+  "ripe": 6,
+  "yield": 2.2,
+  "likes": [
+    "hills",
+    "forest",
+    "marsh"
+  ],
+  "dislikes": [],
+  "eatenBy": [
+    "deer",
+    "crows"
+  ],
+  "frost": false,
+  "flood": false,
+  "on": "field"
+}

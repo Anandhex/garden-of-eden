@@ -89,6 +89,8 @@ export function makeFigure(realm: Realm, rng: Rng, o: NewFigure, day: number): F
     since: day,
   };
   realm.figures[id] = f;
+  // Their savings come into the realm's books with them (plans README section 24).
+  if (f.wealth > 0 && realm.coin) realm.coin.minted += f.wealth;
   return f;
 }
 

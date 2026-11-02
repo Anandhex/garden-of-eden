@@ -143,8 +143,12 @@ export interface Creature {
   pack?: Record<ItemKey, number>;
   /** Made a name for itself (N13.7): it's a realm figure now (that figure's id). */
   figure?: string;
+  /** A person of the `people` table on the map as a creature (N26F step 0b): their row's id. Their death is that row's death. */
+  person?: string;
   /** One of a realm pack's beasts, on another place's map (N15): the pack's id. */
   packId?: string;
+  /** Which of the pack's beasts it is (N26F decision 14): its `beasts` row. What happens to it is written back there. */
+  beast?: string;
   /** Where it roams when that isn't its kind's or its spawn rule's den (N15: another place's woods or camp). */
   den?: string;
 }

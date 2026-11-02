@@ -2,6 +2,8 @@
 
 # N32 plan: Interiors and homes
 
+> **Not built by [N26H](n26h-districts-access-and-buildings-to-scale.md) (2026-10-24):** N26H's districts and access were built on one map per place without interiors; steps 1 and 2 here are still to do, and `canEnter`'s private and escort rules wait for them.
+
 > **N26H (planned 2026-10-24) builds steps 1 and 2 of this plan as its step 0**, with real building footprints (a cottage 4×3, a castle keep in a 30×24 bailey, a palace a 40×30 compound) and an access rule on every door (a home is private: only the household and people they let in). If N26H is built first, start this plan at step 3 and build trespass on N26H's `canEnter`.
 
 **In one line:** every building's door leads to an interior map generated from (place seed, building index, kind, the household's class, wealth and trade); a household's belongings are a few compact rows that become real items only when touched; the crowd already knows who is home, so the interior shows them eating, sleeping or working; trespass is noticed by whoever is inside.

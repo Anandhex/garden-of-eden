@@ -1,3 +1,4 @@
+import { surrenderToJustice } from "./game/crime.js";
 import { describeHours, destinations } from "./game/realm/travel.js";
 import { areasOf, areaWords, PLAIN_VILLAGE, siteMap } from "./web/sites.js";
 import { AREA_WALK_MINUTES } from "./web/map.js";
@@ -1055,7 +1056,7 @@ while (!world.player.death) {
     }
     if (line === "/payfine") console.log(`  ${payFine(world.player).message}`);
     else {
-      const r = surrender(world.player);
+      const r = world.realm && world.player.site ? surrenderToJustice(world.realm, world.player, world.player.site, world.day, town.actionRng()) : surrender(world.player);
       console.log(`  ${r.message}`);
       if (r.ok) for (const entry of passAll(r.hours)) console.log(`  ${entry}`);
     }

@@ -25,6 +25,7 @@ export const ITEMS: Record<string, ItemDef> = {
   dagger: { value: 150, tier: "E", weapon: { die: 6, skill: "one_handed" }, durability: 30 },
   "iron sword": { value: 400, tier: "D", weapon: { die: 8, skill: "one_handed" }, durability: 50 },
   cudgel: { value: 80, tier: "F", weapon: { die: 6, skill: "blunt" }, durability: 25 },
+  "miner's pick": { value: 150, tier: "F", weapon: { die: 5, skill: "blunt" }, durability: 60 },
   "forge hammer": { value: 600, tier: "C", weapon: { die: 8, skill: "blunt" }, durability: 80 },
   // What a child (or anyone with nothing better) swings: barely a weapon.
   stick: { value: 2, tier: "G", weapon: { die: 3, skill: "blunt" }, durability: 10 },
@@ -50,6 +51,13 @@ export const ITEMS: Record<string, ItemDef> = {
   "boar hide": { value: 60, tier: "F" },
   "spider silk": { value: 150, tier: "E" },
   "bear pelt": { value: 300, tier: "D" },
+  // Game from the roadside (N26F decision 7)
+  venison: { value: 45, tier: "G" },
+  "deer hide": { value: 70, tier: "F" },
+  "hare meat": { value: 15, tier: "G" },
+  "fox pelt": { value: 60, tier: "F" },
+  "adder skin": { value: 40, tier: "F" },
+  feathers: { value: 6, tier: "G" },
   // Medicine
   "healing salve": { value: 120, tier: "E", heal: 20 },
 };

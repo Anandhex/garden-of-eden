@@ -1,3 +1,4 @@
+import { homeDistrict, type District } from "@millbrook/shared";
 import { CLASS_COLORS, CLASS_RANK, CLASS_WORDS, type CrowdRoster, hashStr, honorific, JOB_INFO, type Job, seeded, type SocialClass, type Townsperson } from "@millbrook/shared";
 import { parsePersona } from "../../npc/personaSchema.js";
 import { assemblePersona, fallbackIdentity, rollTemplate, type NpcTemplate, type Where } from "../../npc/templates.js";
@@ -299,6 +300,9 @@ function rollPeople(realm: Realm, site: Site, facs: RealmFaction[], laws: { slav
   const gang = facs.find((f) => f.kind === "gang");
   const rebels = facs.find((f) => f.kind === "rebels");
   const zone = (z: string) => site.zones.has(z);
+  // The districts (N26H): which ones the place has, and its houses in each.
+  const dlist: District[] = [...new Set(buildings.map((b) => b.district).filter((d): d is string => !!d))].map((id) => ({ id, kind: id.slice(2) as District["kind"], name: id, access: { level: "open" } }));
+  const housesIn = (k: string) => houses.filter((i) => buildings[i]!.district === `d:${k}`);
 
   // Class shares (the laws first: no slaves or serfs where they're not allowed; their share goes to commoners).
   const shares = { ...SHARES[s.kind] };
@@ -389,6 +393,8 @@ function rollPeople(realm: Realm, site: Site, facs: RealmFaction[], laws: { slav
               ["beggar", s.kind === "town" || s.kind === "city" || s.kind === "capital" ? 0.04 : 0],
               ["adventurer", guild("adventurers") || guildhalls.length > 0 ? 0.03 : 0],
               ["weaver", 0.04],
+              // Fighters for hire (N26F decision 13): a few in cities, and in towns with a barracks.
+              ["sellsword", s.kind === "city" || s.kind === "capital" || (s.kind === "town" && barracks.length > 0) ? 0.02 : 0],
             ];
             const total = options.reduce((a, [, w]) => a + w, 0);
             let r = jr * total;
@@ -413,12 +419,21 @@ function rollPeople(realm: Realm, site: Site, facs: RealmFaction[], laws: { slav
     }
     jobs[job] = (jobs[job] ?? 0) + 1;
     // Home: royals in the palace, nobles and gentry in manors, clergy at the temple, guards in barracks; bondsmen with their master.
-    let home = post?.home ?? anyHome[Math.floor(rng() * anyHome.length)]!;
+    // A house in the district their class and trade put them in (N26H decision 4), else any.
+    const own = dlist.length > 0 ? housesIn(homeDistrict(dlist, cls, job)) : [];
+    const highBorn = cls === "gentry" || cls === "noble" || cls === "royal";
+    const openHomes = highBorn ? anyHome : anyHome.filter((i) => !["d:noble", "d:palace", "d:castle"].includes(buildings[i]!.district ?? ""));
+    const pool = own.length > 0 ? own : openHomes.length > 0 ? openHomes : anyHome;
+    let home = post?.home ?? pool[Math.floor(rng() * pool.length)]!;
     let master: string | null = null;
     let masterId: string | null = null;
     if (!post?.home) {
       if ((cls === "royal" || job === "courtier") && halls.length > 0) home = halls[0]!;
-      else if ((cls === "noble" || cls === "gentry") && manors.length > 0) home = manors[Math.floor(rng() * manors.length)]!;
+      else if ((cls === "noble" || cls === "gentry") && manors.length > 0) {
+        const quarter = manors.filter((i) => ["d:noble", "d:castle", "d:palace", "d:manor"].includes(buildings[i]!.district ?? ""));
+        const from = quarter.length > 0 ? quarter : manors;
+        home = from[Math.floor(rng() * from.length)]!;
+      }
       else if (cls === "clergy" && temples.length > 0) home = temples[Math.floor(rng() * temples.length)]!;
       else if (job === "guard" && barracks.length > 0) home = barracks[Math.floor(rng() * barracks.length)]!;
     }
@@ -484,7 +499,8 @@ function workOf(job: Job, p: Places, rng: Rng): string {
   const one = (list: number[]) => (list.length > 0 ? `front:${list[Math.floor(rng() * list.length)]}` : null);
   switch (job) {
     case "farmer":
-      return p.zone("fields") ? "zone:fields" : "streets";
+      // Out through the gate to the household's plots (N26G: the fields are outside the village now; road/commute.ts says where).
+      return p.zone("exit_road") ? "out:exit_road" : p.zone("fields") ? "zone:fields" : "streets";
     case "labourer":
     case "porter":
       return "streets";
@@ -508,6 +524,7 @@ function workOf(job: Job, p: Places, rng: Rng): string {
     case "server":
       return one(p.inns) ?? "zone:square";
     case "guard":
+    case "sellsword":
       return rng() < 0.6 ? "zone:gate" : "streets";
     case "knight":
       return one(p.barracks) ?? one(p.halls) ?? "zone:gate";
@@ -557,6 +574,7 @@ const JOB_GOALS: Partial<Record<Job, string[]>> = {
   apprentice: ["Learn the trade well enough to set up on their own", "Stay on the master's good side"],
   server: ["Get through the evening rush", "Save their tips"],
   guard: ["Get through the watch without trouble", "Be made sergeant"],
+  sellsword: ["Find a lord who pays on time", "Live to spend it"],
   knight: ["Win renown in the lord's service", "Keep their horse and arms in good order"],
   priest: ["Keep the temple full and the gods content", "Comfort the sick"],
   acolyte: ["Be ordained a priest", "Learn every rite by heart"],
@@ -597,6 +615,7 @@ const JOB_SPEECH: Partial<Record<Job, string>> = {
   miner: "Gruff, coughing now and then; talks about the dark and the seams.",
   hunter: "Few words, watchful; talks about tracks and weather.",
   adventurer: "Boastful and restless, always asking about work.",
+  sellsword: "Blunt and wary, sizing up who pays; talks about wages, roads and who's hiring.",
 };
 
 const TEMPLATE_FOR: Partial<Record<Job, string>> = {
@@ -611,6 +630,7 @@ const TEMPLATE_FOR: Partial<Record<Job, string>> = {
   smith: "smith",
   guard: "guard",
   knight: "guard",
+  sellsword: "guard",
   child: "child",
 };
 

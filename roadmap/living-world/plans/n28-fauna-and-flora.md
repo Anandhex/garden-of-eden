@@ -2,6 +2,8 @@
 
 # N28 plan: Fauna and flora
 
+> **Partly built by [N26F](n26f-a-road-worth-walking.md) (2026-10-24):** light wildlife (decision 2: `shared/road/wildlife.ts`) for deer, hares, foxes, crows, herons, adders and lone boars, promoted to a creature when hunted (decision 3). Species files, plants, the bestiary and new skills are still this phase's.
+
 > **N26F (planned 2026-10-24) brings decisions 2 and 3 forward** for seven roadside animals (deer, hare, fox, crow, heron, adder, lone boar): `wildlifeAt` in `packages/shared/src/road/wildlife.ts`, promotion to a creature when hunted, and a `taken` list. If N26F is built first, this plan turns those into species files and generalises `wildlifeAt` off the road instead of writing a second one.
 
 **In one line:** animals and plants are data files; where they are on a map is a pure function of seed, terrain, season and the realm's populations, computed in shared code on server and client; most are light (drawn, never simulated) until hunted, gathered, provoked or tamed; their products feed health, crafting and the economy; the player learns them in a bestiary and herbarium.

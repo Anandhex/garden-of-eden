@@ -1,3 +1,5 @@
+import { broken } from "../../balance/break.js";
+import { mint, sink } from "./ledger.js";
 import type { Rng } from "../dice.js";
 import { perDay, seasonDays, seasonOf } from "../weather.js";
 import { addDeed, addRenown, residents, titled } from "./figures.js";
@@ -45,6 +47,10 @@ export const FLEEING_SHARE = 0.24;
 export const BETTER_SHARE = 0.036;
 /** Below this, people starve. */
 export const FAMINE = 12;
+/** Share of what people eat that comes out of the granary (the rest is gardens, livestock, game and market): N26G. */
+export const FROM_STORES = 0.7;
+/** Food points (100 is a year's stores for everyone) eaten from the granary in a year, where the fields are kept (N26G). */
+export const EATEN_PER_YEAR = 100 * FROM_STORES;
 
 const level = (s: Settlement, b: BuildingId) => s.buildings[b] ?? 0;
 const sumLevels = (s: Settlement) => Object.values(s.buildings).reduce<number>((a, b) => a + (b ?? 0), 0);
@@ -124,18 +130,19 @@ export function economyDay(realm: Realm, day: number, rng: Rng, live: ReadonlySe
     // conditions (food, prosperity, crowding) their lives read, and counts the heads afterwards.
     const own = live.has(s.id);
     // Food.
+    // Where the fields are kept (N26G), food is what they yield, on harvest days, less what is eaten every day; else the old formula.
     const ratio = foodRatio(realm, s, day);
-    let delta = (ratio - 1) * perDay(FOOD_SWING);
+    let delta = s.fields?.kept ? -perDay(EATEN_PER_YEAR) : (ratio - 1) * perDay(FOOD_SWING);
     if (seasonOf(day) === "winter") delta += (level(s, "granary") * GRANARY_WINTER) / seasonDays();
     s.food = clamp(s.food + delta);
     // Short of food, a place with coin buys it from its neighbours.
-    if (s.food < 30 && s.treasury > s.population) {
-      const cost = Math.round(s.population * 0.8);
-      s.treasury -= cost;
+    if (s.food < 30 && s.treasury > s.population && !broken("no-famine-relief")) {
+      sink(realm, `s:${s.id}`, Math.round(s.population * 0.8), "grain bought in", undefined, day);
       s.food = clamp(s.food + 8);
     }
-    // Coin.
-    s.treasury = Math.max(0, s.treasury + income(realm, s, day) - upkeep(s));
+    // Coin: what its people earn comes in; the upkeep of its buildings and watch goes out.
+    mint(realm, `s:${s.id}`, income(realm, s, day), "the day's earnings", undefined, day);
+    sink(realm, `s:${s.id}`, upkeep(s), "upkeep", undefined, day);
     // Prosperity drifts toward its target, 2 points a day at most.
     const target = prosperityTarget(realm, s, day);
     s.prosperity = clamp(s.prosperity + Math.max(-2, Math.min(2, (target - s.prosperity) * 0.2)));
@@ -168,7 +175,7 @@ function housesDay(realm: Realm, s: Settlement, day: number): void {
   const add = Math.max(1, Math.ceil(housesOf(s) * 0.06));
   const cost = Math.round(add * HOUSE_COST * KIND_SCALE[s.kind]);
   if (s.treasury < cost * 2) return;
-  s.treasury -= cost;
+  sink(realm, `s:${s.id}`, cost, "new houses", undefined, day);
   s.houses = housesOf(s) + add;
   tally(realm, "houses", add);
   realmNews(realm, day, s.id, "building", `${s.name} has built ${add === 1 ? "a new house" : `${add} new houses`} for its growing people.`, 1, [s.name]);
@@ -194,7 +201,7 @@ function build(realm: Realm, s: Settlement, day: number): void {
   if (!need) return;
   const cost = buildCost(s, need.building);
   if (s.treasury < cost * 1.2) return;
-  s.treasury -= cost;
+  sink(realm, `s:${s.id}`, cost, `building ${need.building}`, undefined, day);
   s.project = { building: need.building, done: day + 4 + level(s, need.building) * 3, cost };
   tally(realm, "projects");
   realmNews(realm, day, s.id, "building", `${s.name} has started ${need.building === "farms" ? "clearing new fields" : `building ${BUILDING_WORDS[need.building]}`} ${need.why}.`, 2, [s.name], { why: need.why });

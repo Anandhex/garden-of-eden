@@ -83,6 +83,15 @@ export const config = {
   // NPCs as living players (N38, game/choice/): who scores an action menu and picks by a weighted roll. CHOICE: "off", "proto" (the talkers
   // named in CHOICE_PROTO), "talkers" (every talker, an hour at a time), "all" (and the townsfolk, a day at a time). Violent actions (steal,
   // attack, and the hired-men way of revenge) are offered only with CHOICE_VIOLENCE=on.
+  /**
+   * Long-run balance (N22, src/balance/): break switches that turn one stabiliser off, only to prove the bounds catch a broken
+   * world (tests and `BALANCE_BREAK=no-famine-relief,no-war-fatigue npm run sim:years`). Players never set these.
+   */
+  /** Fields outside the villages (N26G): plots worked by their households, food from the harvest. FIELDS=off keeps the old food formula. */
+  fields: (process.env.FIELDS ?? "on") !== "off",
+  balance: {
+    break: new Set((process.env.BALANCE_BREAK ?? "").split(",").map((x) => x.trim()).filter(Boolean)),
+  },
   choice: {
     mode: (process.env.CHOICE ?? "all") as "off" | "proto" | "talkers" | "all",
     proto: (process.env.CHOICE_PROTO ?? "").split(",").map((s) => s.trim()).filter(Boolean),

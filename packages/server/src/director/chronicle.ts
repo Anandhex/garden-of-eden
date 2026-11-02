@@ -195,7 +195,7 @@ export async function runChronicle(ctx: ChronicleContext, day: number): Promise<
         const s = states[v.value.giver]!;
         s.questBoard.push(v.value.quest);
         if (v.value.quest.objective.type === "defeat") {
-          const rule: SpawnRule = { id: `dq_${v.value.quest.id}`, creature: v.value.quest.objective.creature, count: v.value.quest.objective.qty, quest: v.value.quest.id };
+          const rule: SpawnRule = { id: `dq_${v.value.quest.id}`, creature: v.value.quest.objective.creature, count: v.value.quest.objective.qty, quest: v.value.quest.id, ...(v.value.who ? { who: v.value.who } : {}) };
           (world.extraSpawnRules ??= []).push(rule);
         }
         decide(true, "accepted");

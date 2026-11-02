@@ -3,6 +3,9 @@ import { formatMoney } from "./money.js";
 import type { GameEvent } from "./events.js";
 import { factionOf, shiftStanding, STANDING } from "./factions.js";
 import { note } from "./journal.js";
+import type { Realm } from "./realm/types.js";
+import type { Rng } from "./dice.js";
+import { sentencePlayer } from "./law/justice.js";
 
 /**
  * Crimes (N7): attacking, killing, stealing or looting in a place. A crime only
@@ -98,6 +101,24 @@ export function payFine(player: PlayerState): { ok: boolean; message: string; pa
   settleAll(player);
   shiftStanding(player, "guard", STANDING.finePaid);
   return { ok: true, paid: owed, message: `You paid ${formatMoney(owed)} in fines. The guard calls it settled.` };
+}
+
+/** The crime of N26J's table each kind of the player's crimes is. */
+export const LAW_CRIME: Record<CrimeKind, string> = { assault: "assault", murder: "killing", theft: "theft", looting: "theft" };
+
+/**
+ * Give yourself up where the realm has a head to judge you (N26J): the place's head sentences you for the gravest of your
+ * open crimes, by the crime and their temper (a fine, the lock-up, the stocks, a flogging, banishment), and the slate is
+ * clean. Returns the lines and the hours to pass.
+ */
+export function surrenderToJustice(realm: Realm, player: PlayerState, place: string, day: number, rng: Rng): { ok: boolean; message: string; hours: number } {
+  const open = openCrimes(player);
+  if (bountyOf(player) <= 0 || open.length === 0) return { ok: false, hours: 0, message: "You're not wanted for anything." };
+  const order: CrimeKind[] = ["murder", "looting", "assault", "theft"];
+  const worst = [...open].sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind))[0]!;
+  settleAll(player);
+  const r = sentencePlayer(realm, player, LAW_CRIME[worst.kind], place, day, rng);
+  return { ok: true, hours: r.hours, message: [`You give yourself up for the ${worst.kind} of ${worst.victimName}.`, ...r.lines].join(" ") };
 }
 
 /** Give yourself up (/surrender): hours in the cells instead of coin. Returns the hours to pass. */

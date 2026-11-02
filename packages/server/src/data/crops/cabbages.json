@@ -1,0 +1,23 @@
+{
+  "id": "cabbages",
+  "name": "cabbages",
+  "sow": [
+    6,
+    12
+  ],
+  "grow": 20,
+  "ripe": 8,
+  "yield": 2.1,
+  "likes": [
+    "coast",
+    "valley"
+  ],
+  "dislikes": [],
+  "eatenBy": [
+    "deer",
+    "boar"
+  ],
+  "frost": false,
+  "flood": true,
+  "on": "field"
+}

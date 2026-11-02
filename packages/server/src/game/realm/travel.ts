@@ -1,3 +1,5 @@
+import { transfer } from "./ledger.js";
+import { lose } from "./beasts.js";
 import { plural } from "./names.js";
 import type { PlayerState } from "../../npc/types.js";
 import type { Rng } from "../dice.js";
@@ -7,12 +9,13 @@ import { playerGainXp, QUEST_TIER_XP } from "../levels.js";
 import { formatMoney } from "../money.js";
 import { recordCreatureDefeat } from "../quests.js";
 import { atWar } from "./economy.js";
-import { figurePower } from "./figures.js";
+import { figurePower, killFigure } from "./figures.js";
 import { TRAVEL_PER_DAY } from "./generate.js";
 import { realmNews, tally } from "./log.js";
 import { gangSide } from "./military.js";
 import type { Realm } from "./types.js";
 import { packSide, playerPower } from "./wilds.js";
+import { gangMembers } from "./who.js";
 
 /**
  * Travel (N14): the player walks the realm's roads. Where they are is
@@ -120,6 +123,8 @@ export interface Foe {
   kind: "pack" | "gang" | "war";
   id: string;
   species?: string;
+  /** The people met, by figure id (N26F step 0b): gang members present, deserters of a real army. Losses fall on them. */
+  who?: string[];
 }
 
 /**
@@ -156,9 +161,40 @@ export function packFoe(realm: Realm, p: Realm["packs"][string]): Foe {
   return { name: side.name, power: Math.min(p.count, 4) * (3 + tierIndex(p.tier as Tier) * 3) + side.fighters.reduce((a, f) => a + figurePower(f), 0), tier: p.tier as Tier, kind: "pack", id: p.id, species: p.species };
 }
 
-/** The gang as a foe on the road (N26: met at its ambush). */
-export function gangFoe(realm: Realm, g: Realm["factions"][string]): Foe {
-  return { name: g.name, power: gangSide(realm, g.id).strength * 0.25, tier: "E", kind: "gang", id: g.id };
+/** Most of a gang out on the road at once. */
+export const GANG_ON_ROAD = 4;
+
+/**
+ * The gang as a foe on the road (N26: met at its ambush): the members who are out, by name (N26F step 0b), never a
+ * number. Their power is theirs; a gang with nobody about isn't met.
+ */
+export function gangFoe(realm: Realm, g: Realm["factions"][string], rng: Rng = () => 0.5): Foe | null {
+  const about = gangMembers(realm, g.id);
+  if (about.length === 0) return null;
+  const n = Math.min(about.length, 2 + Math.floor(rng() * (GANG_ON_ROAD - 1)));
+  const out = about.slice(about.length > n ? 1 : 0).slice(0, n); // the chief stays at the camp unless they're all there is
+  return { name: `${out.map((f) => f.name).slice(0, 2).join(" and ")}${out.length > 2 ? " and their friends" : ""} of ${g.name}`, power: out.reduce((a, f) => a + figurePower(f), 0) + out.length * 3, tier: "E", kind: "gang", id: g.id, who: out.map((f) => f.id) };
+}
+
+/**
+ * Deserters from a war (N26F step 0b): soldiers of the side at war with this place's kingdom, real figures of it who
+ * fight, marked deserted. If none can be found, nobody is met.
+ */
+export function desertersNear(realm: Realm, s: Realm["settlements"][string], day: number, rng: Rng): Foe | null {
+  const war = realm.wars.find((w) => w.end === undefined && [...w.attackers, ...w.defenders].some((p) => p === `k:${s.kingdom}` || p === `s:${s.id}`));
+  if (!war) return null;
+  const mine = (p: string) => p === `k:${s.kingdom}` || p === `s:${s.id}`;
+  const enemy = war.attackers.some(mine) ? war.defenders : war.attackers;
+  const kingdoms = new Set(enemy.filter((p) => p.startsWith("k:")).map((p) => p.slice(2)));
+  const sites = new Set(enemy.filter((p) => p.startsWith("s:")).map((p) => p.slice(2)));
+  const soldiers = Object.values(realm.figures)
+    .filter((f) => f.alive && !f.talks && !f.away && (f.role === "guard" || f.role === "captain") && f.home && (sites.has(f.home) || kingdoms.has(realm.settlements[f.home]?.kingdom ?? "")))
+    .sort((a, b) => (a.id < b.id ? -1 : 1));
+  if (soldiers.length === 0) return null;
+  const start = Math.floor(rng() * soldiers.length);
+  const out = [soldiers[start]!, ...(soldiers.length > 1 ? [soldiers[(start + 1) % soldiers.length]!] : [])];
+  for (const f of out) if (!f.deeds.includes(`deserted on day ${day}`)) f.deeds.push(`deserted on day ${day}`);
+  return { name: `deserters (${out.map((f) => f.name).join(" and ")})`, power: out.reduce((a, f) => a + figurePower(f), 0) + 6, tier: "E", kind: "war", id: s.id, who: out.map((f) => f.id) };
 }
 
 function encounterAt(realm: Realm, id: string, rng: Rng): Foe | null {
@@ -168,10 +204,11 @@ function encounterAt(realm: Realm, id: string, rng: Rng): Foe | null {
   }
   for (const g of gangsNear(realm, id)) {
     if (rng() >= 0.3) continue;
-    return gangFoe(realm, g);
+    const foe = gangFoe(realm, g, rng);
+    if (foe) return foe;
   }
   const s = realm.settlements[id]!;
-  if (atWar(realm, s) && rng() < 0.15) return { name: "deserters from the war", power: 22, tier: "E", kind: "war", id: s.id };
+  if (atWar(realm, s) && rng() < 0.15) return desertersNear(realm, s, realm.day, rng);
   return null;
 }
 
@@ -185,7 +222,7 @@ export function fightOnRoad(realm: Realm, player: PlayerState, foe: Foe, near: s
     lines.push(`You win through (+${xp} XP${levels > 0 ? `, level ${player.level}!` : ""}).`);
     if (foe.kind === "pack") {
       const p = realm.packs[foe.id];
-      if (p) p.count = Math.max(0, p.count - (1 + Math.floor(rng() * 2)));
+      if (p) lose(p, 1 + Math.floor(rng() * 2), day, `killed by ${player.name} on the road near ${near}`, "player");
       if (foe.species === "wolf") {
         const k = itemKey("wolf pelt");
         player.inventory[k] = (player.inventory[k] ?? 0) + 1;
@@ -193,11 +230,15 @@ export function fightOnRoad(realm: Realm, player: PlayerState, foe: Foe, near: s
       }
     } else if (foe.kind === "gang") {
       const g = realm.factions[foe.id];
-      const coin = Math.min(g?.wealth ?? 0, 20 + Math.floor(rng() * 60));
-      if (g) g.wealth -= coin;
-      player.money += coin;
+      const coin = g ? transfer(realm, `f:${g.id}`, "player", 20 + Math.floor(rng() * 60), "dropped by outlaws on the road", player, day) : 0;
       if (coin > 0) lines.push(`They leave ${formatMoney(coin)} behind as they scatter.`);
       lines.push(...recordCreatureDefeat(player, "bandit"));
+    }
+    // The losses fall on the people who were there: one of them may not get up again.
+    const fallen = (foe.who ?? []).map((id) => realm.figures[id]).filter((f) => f?.alive);
+    if (fallen.length > 0 && rng() < 0.5) {
+      const f = fallen[Math.floor(rng() * fallen.length)]!;
+      if (killFigure(realm, f, day, `killed by ${player.name} on the road near ${near}`)) lines.push(`${f.name} doesn't get up again.`);
     }
     tally(realm, "road_wins");
     realmNews(realm, day, null, "road", `${player.name} beat off ${foe.name} on the road near ${near}.`, 3, [player.name, near]);
@@ -207,10 +248,8 @@ export function fightOnRoad(realm: Realm, player: PlayerState, foe: Foe, near: s
   player.hp = Math.max(1, player.hp - hurt);
   lines.push(`It goes badly: you take a beating (−${hurt} HP) and get away.`);
   if (foe.kind === "gang") {
-    const taken = Math.floor(player.money * 0.3);
-    player.money -= taken;
     const g = realm.factions[foe.id];
-    if (g) g.wealth += taken;
+    const taken = g ? transfer(realm, "player", `f:${g.id}`, Math.floor(player.money * 0.3), "robbed on the road", player, day) : 0;
     if (taken > 0) lines.push(`They take ${formatMoney(taken)} from your purse.`);
   }
   tally(realm, "road_losses");

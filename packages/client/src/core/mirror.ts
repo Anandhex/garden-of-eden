@@ -63,8 +63,16 @@ export class Mirror {
       change.moved.push(id);
     }
     for (const id of f.actors.remove) if (this.actors.delete(id)) change.removed.push(id);
-    if (f.buildings) this.buildings = f.buildings;
-    if (f.lights) this.lights = f.lights;
+    if (f.drop) {
+      // Changes only: drop what left the view, then put in the new and changed by id.
+      this.buildings = mergeById(this.buildings, f.buildings ?? [], f.drop.buildings);
+      this.lights = mergeById(this.lights, f.lights ?? [], f.drop.lights);
+      change.buildings = !!f.buildings?.length || f.drop.buildings.length > 0;
+      change.lights = !!f.lights?.length || f.drop.lights.length > 0;
+    } else {
+      if (f.buildings) this.buildings = f.buildings;
+      if (f.lights) this.lights = f.lights;
+    }
     if (f.signs) this.signs = f.signs;
     this.player = f.player;
     this.ambience = f.ambience;
@@ -117,4 +125,14 @@ export class Mirror {
     const all = [...(this.ui.feed?.lines ?? []), ...lines];
     this.ui.feed = { lines: all.slice(-200) };
   }
+}
+
+/** A list with `gone` taken out and `upsert` put in by id (in place where it was, at the end if new). */
+function mergeById<T extends { id: K }, K>(list: T[], upsert: T[], gone: K[]): T[] {
+  const drop = new Set(gone);
+  const byId = new Map(upsert.map((x) => [x.id, x]));
+  const out = list.filter((x) => !drop.has(x.id)).map((x) => byId.get(x.id) ?? x);
+  const have = new Set(out.map((x) => x.id));
+  for (const x of upsert) if (!have.has(x.id)) out.push(x);
+  return out;
 }

@@ -1,3 +1,4 @@
+import { bookOf } from "../realm/ledger.js";
 import type { Journey } from "@millbrook/shared";
 import { timed } from "../../metrics/timing.js";
 import { arriveHouseholds, type Catcher } from "../people/migration.js";
@@ -31,10 +32,17 @@ export function roadArrivals(ctx: LifeCtx, day: number, ensureCurrent: Catcher):
   realm.transit = realm.transit.filter((t) => {
     if (!t.journey) return true;
     const j = journeysOf(realm).find((x) => x.id === t.journey);
-    if (j?.ended) return false;
+    // A clerk who turned back brings the coin home again.
+    const back = j?.ended ? realm.settlements[t.from] : undefined;
+    if (j?.ended) {
+      if (back) back.treasury += t.amount;
+      else bookOf(realm).sunk += t.amount;
+      return false;
+    }
     if (j && !(j.turn && j.turn.arrive < today)) return true;
     const to = realm.settlements[t.to];
     if (to) to.treasury += t.amount;
+    else bookOf(realm).sunk += t.amount;
     return false;
   });
   for (const j of journeysOf(realm)) {

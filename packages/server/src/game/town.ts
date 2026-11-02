@@ -51,7 +51,7 @@ import { LifeReviews, shockFromEvent, shocksFromStep } from "./reviews.js";
 import { writeStory } from "../npc/depth/story.js";
 import { checkStory } from "../npc/depth/validate.js";
 import { catchUp } from "./catchup.js";
-import { siteMap } from "../web/sites.js";
+import { areaWords, siteMap } from "../web/sites.js";
 import { advanceRealm } from "./realm/day.js";
 import { lazySites, liveSites } from "./people/live.js";
 import { ensureLivePeople } from "../store/materialise.js";
@@ -87,7 +87,13 @@ import { HOSTILE } from "./chatter/types.js";
 import { writeChatterLine } from "./chatter/words.js";
 import { weatherOn } from "./weather.js";
 import { townEventsOn } from "./events-calendar.js";
-import { settleHaunts, stockHaunts } from "./realm/haunts.js";
+import { beastCreature, settleHaunts, stockHaunts } from "./realm/haunts.js";
+import { afterFight } from "./realm/beasts.js";
+import { territoriesNow } from "./road/territories.js";
+import { payDuty } from "./road/watch.js";
+import { captiveDay, isCaptive, maybeTake } from "./law/taken.js";
+import { helpersOf, pickFighters, stillThere } from "./realm/who.js";
+import type { Who } from "./spawning.js";
 import { killFigure, titled } from "./realm/figures.js";
 import { realmNews } from "./realm/log.js";
 import type { Figure, RealmNews } from "./realm/types.js";
@@ -445,14 +451,113 @@ export class Town {
   stockHaunts(): void {
     const realm = this.world.realm;
     if (!realm) return;
-    stockHaunts(realm, this.creaturesHere(), this.site(), this.templates, this.world.day, this.rngFor("haunts", this.site(), this.world.day), (f) => !!f.talks && !!this.personas[f.talks]);
+    stockHaunts(realm, this.creaturesHere(), this.site(), this.templates, this.world.day, this.rngFor("haunts", this.site(), this.world.day), (f) => !!f.talks && !!this.personas[f.talks], this.store?.beasts);
   }
 
   /** After a fight: the dead go back to the realm (a pack one fewer, a bounty share, a named death). Returns lines. */
   settleHaunts(): string[] {
     const realm = this.world.realm;
     if (!realm) return [];
-    return settleHaunts(realm, this.creaturesHere(), this.site(), this.world.player, this.world.day);
+    this.settlePeople();
+    return settleHaunts(realm, this.creaturesHere(), this.site(), this.world.player, this.world.day, this.store?.beasts, this.templates);
+  }
+
+  /** People on the map as creatures (raiders, ambushers, lookouts) who fell: their rows and figures die too (N26F step 0b). */
+  private settlePeople(): void {
+    const realm = this.world.realm;
+    if (!realm) return;
+    for (const c of Object.values(this.creaturesHere())) {
+      if (c.outcome !== "dead") continue;
+      const byPlayer = !c.deathCause || c.deathCause === this.world.player.name;
+      if (c.person && this.store) killPerson(realm, this.store, c.person, { cause: byPlayer ? "murder" : causeFromWords(c.deathCause ?? "killed"), day: this.world.day, hour: this.world.hour, ...(byPlayer ? { killer: "player" } : {}), note: c.deathCause ?? "killed" });
+      const f = c.figure ? realm.figures[c.figure] : undefined;
+      if (f?.alive && !c.packId) killFigure(realm, f, this.world.day, `killed by ${c.deathCause ?? this.world.player.name}`);
+    }
+  }
+
+  // ---- The road's creatures (N26F step 2): not saved; who is out is rebuilt from the territories as the player walks. ----
+
+  /** Hostiles and hunted wildlife on the road near the player, by uid. */
+  readonly roadCreatures: Record<string, Creature> = {};
+  /** Which territory each road creature came out of. */
+  readonly roadTerritoryOf = new Map<string, string>();
+  /** Territories whose people the player has already been told they see. */
+  readonly roadSighted = new Set<string>();
+  /** Road creatures holding back (a gang waiting on its toll). */
+  readonly roadHeld = new Set<string>();
+  /** The game hour hostiles were last rolled for. */
+  roadHourRolled = "";
+  /** The road creature the player is fighting (the server sets it). */
+  roadEngaged: string | null = null;
+
+  /** The creatures where the player is: the road's, or the place's. */
+  creaturesNow(): Record<string, Creature> {
+    return this.world.player.road ? this.roadCreatures : this.creaturesHere();
+  }
+
+  /** A road creature goes back to the wild (or its body is left behind). */
+  dropRoadCreature(uid: string): void {
+    delete this.roadCreatures[uid];
+    this.roadTerritoryOf.delete(uid);
+    this.roadHeld.delete(uid);
+    if (this.roadEngaged === uid) this.roadEngaged = null;
+  }
+
+  /** After a fight on the road: the dead and the hurt go back to the realm, as on a place's map. */
+  settleRoad(): string[] {
+    const realm = this.world.realm;
+    if (!realm) return [];
+    const lines: string[] = [];
+    const byNear = new Map<string, Record<string, Creature>>();
+    for (const c of Object.values(this.roadCreatures)) {
+      const tid = this.roadTerritoryOf.get(c.uid);
+      const near = tid ? (territoriesNow(realm).find((t) => t.id === tid)?.near ?? this.site()) : this.site();
+      const m = byNear.get(near) ?? {};
+      m[c.uid] = c;
+      byNear.set(near, m);
+    }
+    for (const [near, group] of byNear) {
+      const ids = Object.keys(group);
+      lines.push(...settleHaunts(realm, group, near, this.world.player, this.world.day, this.store?.beasts, this.templates));
+      // settleHaunts removes the dead and the fled from its map: they're gone from the road too.
+      for (const uid of ids) if (!group[uid]) this.dropRoadCreature(uid);
+    }
+    return lines;
+  }
+
+  /** A pack's beast named by a spawn rule, as a creature from its row. */
+  private beastFor(t: CreatureTemplate, w: Who, uid: string): Creature | null {
+    const realm = this.world.realm;
+    const row = w.beast ? this.store?.beasts.get(w.beast) : null;
+    if (!realm || !row || row.died !== null) return null;
+    return beastCreature(realm, t, row, uid, this.world.day, this.rngFor("beast", uid));
+  }
+
+  /** A beast that beat the player won a fight: it's the same beast tomorrow, and it remembers. */
+  beastWon(c: Creature): string[] {
+    const realm = this.world.realm;
+    if (!realm || !c.beast || !this.store) return [];
+    return afterFight(realm, this.store.beasts, c.beast, { hpShare: 1, won: true, survived: true }, this.world.day);
+  }
+
+  /** Who comes with a talker to settle a score with the player: themselves, then kin, friends or a gang (N26F step 0b). */
+  revengeParty(personaId: string): Who[] {
+    const realm = this.world.realm;
+    if (!realm || !this.store) return [];
+    const persona = this.personas[personaId];
+    const fig = Object.values(realm.figures).find((f) => f.talks === personaId);
+    const row = this.store.people.get(personaId);
+    const lead: Who | null = row && row.death === null ? { name: row.name, person: row.id, ...(row.figure ? { figure: row.figure } : {}) } : fig?.alive ? { name: fig.name, figure: fig.id } : null;
+    if (!lead || !persona) return [];
+    const helpers = row ? helpersOf(realm, this.store.people, this.store.social, row.id, 2, this.world.day) : [];
+    return [lead, ...helpers];
+  }
+
+  /** Fighters of a place, as its people, for a raid that came from it. */
+  private raidersFrom(from: string, n: number, seed: string, kind: "people" | "beasts" = "people"): Who[] {
+    if (!this.store) return [];
+    if (kind === "beasts") return this.store.beasts.living(from).filter((b) => b.figure !== this.world.realm?.packs[from]?.alpha).slice(0, n).map((b) => ({ name: b.species, beast: b.id }));
+    return pickFighters(this.store.people, from, n, this.world.day, seed);
   }
 
   /** The place a talker lives in now: their row says (people move and are born), else the registry. */
@@ -816,10 +921,55 @@ export class Town {
     const realm = this.world.realm;
     const here = realm?.settlements[this.site()];
     if (!realm || !here) return ["There's no road out of here."];
+    if (isCaptive(this.world.player)) return ["You're held here; you can't just walk out."];
+    // Out of a woods, camp or mine entered from the road (N26F): back on the road where the track left it.
+    const back = this.world.player.roadBack;
+    if (back && this.world.player.area) {
+      delete this.world.player.area;
+      delete this.world.player.roadBack;
+      this.world.player.road = { ...back, steps: 0, ...(toward ? { dest: toward } : {}) };
+      return [`You come back out onto the road.`];
+    }
     const state = startRoad(realm, this.world.player, here.id, toward);
     if (!state) return [`There's no road out of ${here.name}.`];
     const dest = toward ? realm.settlements[toward] : undefined;
     return [dest ? `You leave ${here.name} on the road toward ${dest.name}.` : `You leave ${here.name} by the open road.`];
+  }
+
+  /**
+   * From the road into a place's woods, camp or mine (N26F decision 9): its own map, the same as ever, entered from where its
+   * track leaves the road. The place it belongs to is where the player is now (its creatures, its haunts), and leaving puts
+   * them back on the road at the same spot.
+   */
+  enterFromRoad(site: string, area: AreaId): string[] {
+    const realm = this.world.realm;
+    const s = realm?.settlements[site];
+    const p = this.world.player;
+    if (!realm || !s || !p.road) return ["There's nothing to go into here."];
+    const from = this.site();
+    if (from !== site) this.deactivate(from);
+    commitTrack(realm, p);
+    p.roadBack = { ...p.road, steps: 0 };
+    delete p.road;
+    arrive(p, s.id);
+    p.area = area;
+    const lines = this.activate(s.id);
+    return [`You leave the road for ${areaWords(realm, { id: s.id, name: s.name } as never, area).location}.`, ...lines];
+  }
+
+  /** Beaten by a gang's people: the chooser decides whether they're taken (N26J step 3). Returns lines, and whether they were. */
+  maybeTaken(gang: string): { taken: boolean; lines: string[] } {
+    const realm = this.world.realm;
+    if (!realm) return { taken: false, lines: [] };
+    const p = this.world.player;
+    const home = p.road?.from ?? this.site();
+    const from = this.site();
+    const r = maybeTake(realm, p, gang, home, this.world.day, this.actionRng());
+    if (!r.taken) return r;
+    commitTrack(realm, p);
+    if (from !== p.site) this.deactivate(from);
+    for (const uid of Object.keys(this.roadCreatures)) this.dropRoadCreature(uid);
+    return { taken: true, lines: [...r.lines, ...this.activate(p.site!)] };
   }
 
   /** The player arrives: they're at the gate of the new place, and its people are about. Returns lines. */
@@ -869,7 +1019,7 @@ export class Town {
     if (away >= 1) catchUp(folk, away);
     syncTalkers(realm, folk, site, this.world.day);
     this.world.atWar = atWar(realm, realm.settlements[site]!);
-    log.push(...applyArrivals(realm, this.world, site, folk, Object.keys(this.templates)));
+    log.push(...applyArrivals(realm, this.world, site, folk, Object.keys(this.templates), (f, n, k, kind) => this.raidersFrom(f, n, k, kind)));
     log.push(...deliverNews(realm, this.world, site, folk));
     this.stockHaunts();
     castCrowd(realm, this.creaturesHere(), this.world.day, site);
@@ -954,8 +1104,13 @@ export class Town {
       // The road (N26): journeys, trips and news are part of everyone's day (people/world.ts); the ones that are done are dropped.
       pruneJourneys(realm, d * 1440);
       for (const line of dueLater(this, d)) this.tell(line);
+      // Held captive (N26J): someone from home may come for them.
+      log.push(...captiveDay(realm, this.world.player, d, this.rngFor("rescue", d)));
+      // A day's hire the player stood (N26F): the place pays.
+      const pay = payDuty(realm, this.world.player, d);
+      if (pay) log.push(pay);
       this.world.atWar = atWar(realm, realm.settlements[site]!);
-      log.push(...applyArrivals(realm, this.world, site, this.members(), Object.keys(this.templates)));
+      log.push(...applyArrivals(realm, this.world, site, this.members(), Object.keys(this.templates), (f, n, k, kind) => this.raidersFrom(f, n, k, kind)));
       const before2 = new Set(siteState(this.world, site).newsSeen);
       log.push(...deliverNews(realm, this.world, site, this.members()));
       // Big news from away, retold by the model in the background (code's words stand if it fails).
@@ -1109,12 +1264,12 @@ export class Town {
 
   /** Spawn rules in play here: the ones the realm makes for the place, plus those made during play (director quests, ambushes). */
   rules(): SpawnRule[] {
-    return allSpawnRules(rulesFor(this.world.realm, this.site()), this.siteHere(), this.world.day);
+    return allSpawnRules(rulesFor(this.world.realm, this.site(), this.store?.beasts), this.siteHere(), this.world.day);
   }
 
   /** Creatures due now turn up, ended groups move on. `keep`: creatures in a fight. */
   respawn(keep: string[] = []): string[] {
-    return applySpawnRules(this.rules(), this.templates, this.creaturesHere(), this.siteHere().spawns, this.world, this.rngFor("spawn"), new Set(keep));
+    return applySpawnRules(this.rules(), this.templates, this.creaturesHere(), this.siteHere().spawns, this.world, this.rngFor("spawn"), new Set(keep), stillThere(this.world.realm, this.store?.people, this.store?.beasts), (t, w, uid) => this.beastFor(t, w, uid));
   }
 
   /** Where an NPC is now (null when they're not out: asleep, at home, dead, away). */
@@ -1155,7 +1310,7 @@ export class Town {
   private passHoursNow(hours: number, { talkingTo, keep = [] }: { talkingTo?: string; keep?: string[] }): string[] {
     const start = { day: this.world.day, hour: this.world.hour };
     const site = this.site();
-    const log = passVillage(this.members(), this.world, hours, this.rngFor("village"), { ...(talkingTo ? { talkingTo } : {}), ...this.talkersChoose(talkingTo) });
+    const log = passVillage(this.members(), this.world, hours, this.rngFor("village"), { ...(talkingTo ? { talkingTo } : {}), ...this.talkersChoose(talkingTo), partyFor: (id) => this.revengeParty(id) });
     log.push(...passCreatureTime(this.templates, this.creaturesHere(), start, hours, this.rngFor("creatures")).filter(isNotable));
     log.push(...passVillageNights(this.templates, this.creaturesHere(), this.members(), this.world, start, hours, this.rngFor("nights")));
     if (this.world.realm) log.push(...castCrowd(this.world.realm, this.creaturesHere(), this.world.day, site));

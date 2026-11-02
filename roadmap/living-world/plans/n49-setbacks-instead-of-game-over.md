@@ -2,6 +2,8 @@
 
 # N49 plan: Setbacks instead of game over
 
+> **Stand-in built by [N26J](n26j-rough-justice-and-being-taken.md) (2026-10-24):** the player taken by bandits (`game/law/taken.ts`: `player.chapter`, escape, ransom, rescue, labour, joining). This phase adds its other setbacks to the chooser.
+
 > **N26J (planned 2026-10-24) builds decisions 1–3 of this plan for one case only:** captured by bandits (escape, ransom, rescue, labour, joining). If N26J is built, add the other setbacks to its chooser and chapter instead of writing new ones.
 
 **In one line:** when the player would die or lose everything, code picks a **setback** from who beat them and where (robbed and left, captured for ransom, sold to slavers, imprisoned by a crown, left for dead and found, exiled, in debt to someone dangerous, maimed); each setback is a **chapter** with its own state, its own exits (escape, ransom, working it off, earning freedom, a friend's or faction's rescue) and lasting marks (a scar, a lost limb, a criminal record, a reputation); when the player really dies they come back (plans README §5a: a day later where they last slept or at a temple, what they carried left where they fell).

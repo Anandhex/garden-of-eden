@@ -63,8 +63,22 @@ function roadArt(g: number): [number, number] {
     case Ground.bar: return [T("terrain/road"), O("props/bar")];
     case Ground.gate: return [T("terrain/road"), O("buildings/gate")];
     case Ground.thatch: return [T("terrain/yard"), O("props/thatch")];
+    case Ground.stones: return [T("terrain/grass"), O("props/milestone")];
+    case Ground.ruin: return [T("terrain/yard"), O("buildings/wall")];
+    case Ground.cave: return [T("terrain/hill"), O("props/rock")];
+    case Ground.herbs: return [T("terrain/field"), O("props/reeds")];
+    case Ground.ore: return [T("terrain/hill"), O("props/rock")];
+    case Ground.path: return [T("terrain/path"), 0];
     default: return [T("terrain/grass"), 0];
   }
+}
+
+/** A plot tile by its stage (N26G): bare earth, green shoots, tall grain, gold, stubble; and the marks of what happened. */
+function fieldArt(stage: number): [number, number] {
+  if (stage >= 10) return [T("terrain/yard"), 0];
+  if (stage === 0 || stage === 6 || stage === 7) return [T("terrain/path"), 0];
+  if (stage >= 4) return [T("terrain/field"), O("props/reeds")];
+  return [T("terrain/field"), 0];
 }
 
 /** A map tile (a place, N15/N16) as terrain and object art. */
@@ -213,6 +227,8 @@ export function travellersNow(host: ViewHost, s: Snapshot, radius: number): Trav
       out.push({ id: who.person, x: p.x, y: p.y, name: who.name, role: who.role, kind: j.kind, purpose: j.purpose, from: host.placeName(j.path[0]!), to: host.placeName(j.path.at(-1)!), journey: j.id });
     });
   }
+  // People going to and from work along the road (N26F): drawn and talked to like travellers.
+  for (const c of host.commuters?.(radius) ?? []) if (Math.hypot(c.x - s.position.x, c.y - s.position.y) <= radius) out.push(c);
   return out;
 }
 
@@ -298,11 +314,14 @@ export function buildFrame(f: FrameInput): Frame {
       const w = s.road ? PATCH : Math.min(PATCH, s.map.w - x0);
       const h = s.road ? PATCH : Math.min(PATCH, s.map.h - y0);
       if (w <= 0 || h <= 0) continue;
+      // The fields in this patch (N26G): drawn by crop and stage, damage where it happened.
+      const fields = s.road ? host.fieldStages?.(x0, y0, w, h) : undefined;
       const ground: number[] = [];
       const objects: number[] = [];
       for (let y = y0; y < y0 + h; y++) {
         for (let x = x0; x < x0 + w; x++) {
-          const [g, o] = land ? roadArt(groundAt(land, x, y)) : placeArt(s.map.tiles[y]?.[x], s.map.buildings.some((b) => x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h));
+          const field = fields?.get(`${x},${y}`);
+          const [g, o] = field !== undefined ? fieldArt(field) : land ? roadArt(groundAt(land, x, y)) : placeArt(s.map.tiles[y]?.[x], s.map.buildings.some((b) => x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h));
           ground.push(g);
           objects.push(o);
         }
@@ -473,8 +492,8 @@ export class SentFrame {
   map: string | null = null;
   patches = new Set<string>();
   actors = new Map<string, { json: string; x: number; y: number }>();
-  buildings = "";
-  lights = "";
+  buildings = new Map<number, string>();
+  lights = new Map<string, string>();
   signs = "";
   rest = "";
 
@@ -482,7 +501,9 @@ export class SentFrame {
     this.map = null;
     this.patches.clear();
     this.actors.clear();
-    this.buildings = this.lights = this.signs = this.rest = "";
+    this.buildings.clear();
+    this.lights.clear();
+    this.signs = this.rest = "";
   }
 }
 
@@ -526,19 +547,32 @@ export function diffFrame(sent: SentFrame, full: Frame, solid: (x: number, y: nu
   const remove = [...sent.actors.keys()].filter((id) => !seen.has(id));
   for (const id of remove) sent.actors.delete(id);
   const frame: Frame = { ...full, actors: { upsert, move, routes, remove } };
-  const same = (k: "buildings" | "lights" | "signs") => {
-    const json = JSON.stringify(full[k] ?? []);
-    if (json === sent[k] && !whole) delete frame[k];
-    sent[k] = json;
+  // Buildings and lights by id: a whole frame sends the lists, any other only what changed and the ids gone from view.
+  const changed = <T extends { id: K }, K>(list: T[], had: Map<K, string>): { upsert: T[]; gone: K[] } => {
+    const now = new Map(list.map((x) => [x.id, JSON.stringify(x)]));
+    const upsert = list.filter((x) => had.get(x.id) !== now.get(x.id));
+    const gone = [...had.keys()].filter((id) => !now.has(id));
+    had.clear();
+    for (const [id, json] of now) had.set(id, json);
+    return { upsert, gone };
   };
-  same("buildings");
-  same("lights");
-  same("signs");
+  const b = changed(full.buildings ?? [], sent.buildings);
+  const l = changed(full.lights ?? [], sent.lights);
+  if (!whole) {
+    if (b.upsert.length) frame.buildings = b.upsert;
+    else delete frame.buildings;
+    if (l.upsert.length) frame.lights = l.upsert;
+    else delete frame.lights;
+    if (b.upsert.length || b.gone.length || l.upsert.length || l.gone.length) frame.drop = { buildings: b.gone, lights: l.gone };
+  }
+  const signs = JSON.stringify(full.signs ?? []);
+  if (signs === sent.signs && !whole) delete frame.signs;
+  sent.signs = signs;
   if (!frame.patches?.length) delete frame.patches;
   if (!frame.chatter?.length) delete frame.chatter;
   if (!frame.gossip?.length) delete frame.gossip;
   const rest = JSON.stringify([full.box, full.player, full.ambience, full.prompt, full.fight, full.map]);
-  const empty = !whole && upsert.length === 0 && move.length === 0 && remove.length === 0 && !frame.patches && !frame.buildings && !frame.lights && !frame.signs && !frame.chatter && !frame.gossip && rest === sent.rest;
+  const empty = !whole && upsert.length === 0 && move.length === 0 && remove.length === 0 && !frame.patches && !frame.buildings && !frame.lights && !frame.drop && !frame.signs && !frame.chatter && !frame.gossip && rest === sent.rest;
   sent.rest = rest;
   if (move.length === 0) delete frame.actors.move;
   if (routes.length === 0) delete frame.actors.routes;

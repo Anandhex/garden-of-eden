@@ -1,3 +1,5 @@
+import { bookOf, mint, payOut, transfer } from "./ledger.js";
+import { bear, lose } from "./beasts.js";
 import { plural } from "./names.js";
 import { launch, departureOn, journeysOf } from "../road/journeys.js";
 import { roadDataOf } from "../road/generateRoads.js";
@@ -63,26 +65,22 @@ export function packsDay(realm: Realm, day: number, rng: Rng): void {
     if (!near) continue;
     // Births in spring and summer, while there's room.
     if (p.count >= 2 && p.count < p.cap && (season === "spring" || season === "summer") && rng() < 0.3) {
-      const born = 1 + Math.floor(rng() * 2);
-      p.count = Math.min(p.cap + 2, p.count + born);
+      const born = Math.min(p.cap + 2 - p.count, 1 + Math.floor(rng() * 2));
+      bear(p, born, day);
       tally(realm, "beasts_born", born);
     }
     // More than the land feeds: some starve or wander off.
-    if (p.count > p.cap && rng() < 0.4) p.count -= 1;
-    // A pair wanders into empty woods now and then.
-    if (p.count === 0 && rng() < 0.02) p.count = 2;
+    if (p.count > p.cap && rng() < 0.4) lose(p, 1, day, rng() < 0.5 ? "starved" : "wandered off");
+    // A pair wanders into empty woods now and then (new rows, from nowhere the realm keeps: they were in the deep wild).
+    if (p.count === 0 && rng() < 0.02) bear(p, 2, day);
     // Hunters thin them; a bounty brings more out.
     const hunters = Object.values(realm.figures).filter((f) => f.alive && !f.talks && f.home === p.near && (f.role === "hunter" || f.role === "adventurer"));
     for (const h of hunters) {
       if (p.count <= 1 || rng() >= (p.bounty > 0 ? 0.2 : 0.07)) continue;
-      p.count -= 1;
+      lose(p, 1, day, `hunted by ${h.name}`, h.id);
       tally(realm, "culled");
       figureOvercomes(h, 8, { kind: "hunt", rank: p.tier as Tier, what: `hunting a ${p.species}` }, day);
-      if (p.bounty > 0) {
-        const paid = Math.min(p.bounty, 60);
-        p.bounty -= paid;
-        h.wealth += paid;
-      }
+      if (p.bounty > 0) p.bounty -= payOut(realm, `p:${h.id}`, Math.min(p.bounty, 60), `pack ${p.id}`, undefined, day);
     }
     // A beast rises to lead the pack.
     if (!p.alpha && p.count >= 5 && rng() < 0.02) crownAlpha(realm, p, day, rng, "beating its rivals for the lead of the pack");
@@ -110,14 +108,16 @@ function attackFrom(realm: Realm, p: Pack, day: number, rng: Rng): void {
   p.lastAttack = day;
   const side = packSide(realm, p);
   const r = fight(realm, side, settlementSide(realm, s), day, rng, `the ${p.species} attack on ${s.name}`);
-  p.count = Math.max(0, p.count - r.lost.attackers);
+  lose(p, r.lost.attackers, day, `killed in the attack on ${s.name}`, s.id);
   casualty(realm, s, "beast", r.lost.defenders, `beasts:${day}:${s.id}`, day);
   if (r.hero && r.hero.role === "beast" && !p.alpha) crownAlpha(realm, p, day, rng, `leading the attack on ${s.name}`, r.hero);
   if (r.attackerWon) {
     s.food = Math.max(0, s.food - 8);
     s.lastRaided = day;
+    // A pack that wins may break the place (N26I): the day's step sees whether it falls.
+    (realm.falls.length < 50 ? realm.falls : []).push({ site: s.id, to: "pack", id: p.id, day, how: `overrun by ${side.name}` });
   }
-  sendArrival(realm, s.id, { day, kind: "beasts", count: Math.max(1, Math.min(4, Math.round(p.count / 3))), by: p.species });
+  sendArrival(realm, s.id, { day, kind: "beasts", count: Math.max(1, Math.min(4, Math.round(p.count / 3))), by: p.species, from: p.id });
   tally(realm, "beast_attacks");
   realmNews(realm, day, s.id, "beast", r.attackerWon ? `${cap(side.name)} came out of the wild and savaged ${s.name}'s flocks and fields.` : `${s.name} beat off ${side.name}.`, 5, [s.name, ...(p.alpha ? [realm.figures[p.alpha]!.name] : [])]);
 }
@@ -238,9 +238,10 @@ export function delve(realm: Realm, d: Dungeon, party: Figure[], day: number, rn
   const living = party.filter((f) => f.alive);
   const guild = living[0]?.faction ? realm.factions[living[0].faction] : undefined;
   const cut = guild ? Math.round(loot * 0.2) : 0;
-  if (guild) guild.wealth += cut;
+  // Treasure brought up out of the deep is new coin in the realm.
+  if (guild) mint(realm, `f:${guild.id}`, cut, `treasure from ${d.name}`, undefined, day);
   for (const f of living) {
-    f.wealth += Math.floor((loot - cut) / Math.max(1, living.length));
+    mint(realm, `p:${f.id}`, Math.floor((loot - cut) / Math.max(1, living.length)), `treasure from ${d.name}`, undefined, day);
     if (cleared > 0) {
       lines.push(...figureOvercomes(f, 15 * cleared, { kind: "fight", rank: d.tier as Tier, what: `delving ${d.name}` }, day));
       addRenown(f, 3 * cleared);
@@ -250,7 +251,7 @@ export function delve(realm: Realm, d: Dungeon, party: Figure[], day: number, rn
   if (cleared === d.depth) {
     d.clearedUntil = day + 25 + Math.floor(rng() * 20);
     d.danger = 0;
-    for (const f of living) f.wealth += Math.floor(d.bounty / Math.max(1, living.length));
+    for (const f of living) d.bounty -= payOut(realm, `p:${f.id}`, Math.floor(d.bounty / Math.max(1, living.length)), `dungeon ${d.id}`, undefined, day);
     d.bounty = 0;
     tally(realm, "cleared");
     realmNews(realm, day, d.near, "dungeon", `${who} cleared ${d.name}, and came out with ${Math.round(loot / 100)} gold of treasure.`, 6, [d.name, ...names]);
@@ -300,9 +301,8 @@ export function joinGuild(realm: Realm, player: PlayerState): { ok: boolean; mes
   if (!g || g.dissolved) return { ok: false, message: "There's no adventurers' guild to join any more." };
   if (inGuild(player)) return { ok: false, message: `You're already a member of ${g.name}.` };
   if (player.money < GUILD_FEE) return { ok: false, message: `Joining ${g.name} costs ${formatMoney(GUILD_FEE)}, and you're short.` };
-  player.money -= GUILD_FEE;
+  transfer(realm, "player", `f:${g.id}`, GUILD_FEE, "guild fee", player);
   (player.factions ??= []).push(ADVENTURERS);
-  g.wealth += GUILD_FEE;
   return { ok: true, message: `You paid ${formatMoney(GUILD_FEE)} and joined ${g.name}. You can delve now: ${dungeonsInReach(realm, playerSite(player)).map((d) => d.name).join(", ") || "nothing in reach"}.` };
 }
 
@@ -375,6 +375,8 @@ export function playerDelve(realm: Realm, player: PlayerState, query: string, da
     d.danger = 0;
     money += d.bounty;
     if (d.bounty > 0) lines.push(`You claim the ${formatMoney(d.bounty)} bounty on it.`);
+    // The bounty leaves the realm's books for the player's purse (paid below with the treasure).
+    if (d.bounty > 0) bookOf(realm).sunk += d.bounty;
     d.bounty = 0;
     lines.push(`You've cleared ${d.name}!`);
     lines.push(...recordClear(player, d.id));

@@ -1,5 +1,5 @@
 import { itemKey } from "../items.js";
-import type { SpawnRule } from "../spawning.js";
+import type { SpawnRule, Who } from "../spawning.js";
 import { siteState, type SiteWorld } from "../site.js";
 import type { NpcPersona, NpcState, WorldSnapshot } from "../../npc/types.js";
 import type { Arrival, Realm } from "./types.js";
@@ -45,7 +45,15 @@ const WINDOW: Record<Arrival["kind"], number> = { raid: 1, beasts: 1, refugees: 
  * Apply what is waiting for a place, once each. Due ones happen on its map (spawn rules, stock); ones whose time
  * has passed leave their aftermath. Returns lines for the player.
  */
-export function applyArrivals(realm: Realm, world: WorldSnapshot & SiteWorld, site: string, folk: Talking[], creatureKinds: string[]): string[] {
+export function applyArrivals(
+  realm: Realm,
+  world: WorldSnapshot & SiteWorld,
+  site: string,
+  folk: Talking[],
+  creatureKinds: string[],
+  /** Real people of a place to fill a raid that came from it (N26F step 0b): its fighting-age rows. Without it, only named figures come. */
+  pick: (from: string, n: number, seed: string, kind?: "people" | "beasts") => Who[] = () => [],
+): string[] {
   const lines: string[] = [];
   const state = siteState(world, site);
   const queue = realm.arrivals?.[site];
@@ -60,16 +68,25 @@ export function applyArrivals(realm: Realm, world: WorldSnapshot & SiteWorld, si
         state.lastRaidDay = Math.max(state.lastRaidDay ?? -1, e.day);
         lines.push(`Raiders from ${e.by} came through ${world.day - e.day} day(s) ago.`);
       } else if (creatureKinds.includes("bandit")) {
-        rules.push({ id: `realm_raid_${e.day}_${realm.next++}`, creature: "bandit", count: Math.max(1, Math.min(5, e.count)), place: "gate_road", hours: [20, 4], untilDay: e.day + 1 });
-        lines.push(`Raiders from ${e.by} are on the road tonight.`);
+        // The raiders are the people who went: the named fighters, and the rest from the place they came from.
+        const want = Math.max(1, Math.min(5, e.count));
+        const named: Who[] = (e.who ?? []).map((id) => realm.figures[id]).filter((f) => !!f && f.alive && !f.talks).slice(0, want).map((f) => ({ name: f!.name, figure: f!.id }));
+        const rest = e.from && named.length < want ? pick(e.from, want - named.length, `raid:${e.day}:${site}`) : [];
+        const who = [...named, ...rest];
+        if (who.length > 0) {
+          rules.push({ id: `realm_raid_${e.day}_${realm.next++}`, creature: "bandit", count: who.length, who, place: "gate_road", hours: [20, 4], untilDay: e.day + 1 });
+          lines.push(`Raiders from ${e.by} are on the road tonight: ${who.slice(0, 3).map((w) => w.name).join(", ")}${who.length > 3 ? " and others" : ""}.`);
+        } else lines.push(`Raiders from ${e.by} came by night and were gone by morning.`);
       }
     } else if (e.kind === "beasts" && !over) {
       const kind = creatureKinds.includes(e.by) ? e.by : "wolf";
-      if (creatureKinds.includes(kind)) rules.push({ id: `realm_beasts_${e.day}_${realm.next++}`, creature: kind, count: Math.max(1, Math.min(4, e.count)), place: "woods_edge", hours: [19, 5], untilDay: e.day + 1 });
+      // The pack's own beasts, by row where the rows are kept.
+      const who = e.from ? pick(e.from, Math.max(1, Math.min(4, e.count)), `beasts:${e.day}:${site}`, "beasts") : [];
+      if (creatureKinds.includes(kind)) rules.push({ id: `realm_beasts_${e.day}_${realm.next++}`, creature: kind, count: Math.max(1, Math.min(4, e.count)), place: "woods_edge", hours: [19, 5], untilDay: e.day + 1, ...(who.length > 0 ? { who } : {}) });
       lines.push(`${e.by === "wolf" ? "Wolves" : "Beasts"} have been seen at the edge of the woods.`);
-    } else if (e.kind === "refugees" && !over && creatureKinds.includes("villager")) {
-      rules.push({ id: `realm_refugees_${e.day}_${realm.next++}`, creature: "villager", count: Math.max(1, Math.min(4, e.count)), place: "gate_road", hours: [6, 20], untilDay: e.day + 2 });
-      lines.push(`Folk from ${e.by} are coming up the road with their bundles.`);
+    } else if (e.kind === "refugees" && !over) {
+      // The refugees themselves are rows on a journey (N26 Part E): they walk in on the road and live here now. Nobody is made up for the gate.
+      lines.push(`Folk from ${e.by} have come up the road with their bundles.`);
     } else if (e.kind === "caravan") {
       const baker = folk.find((m) => m.state.outcome !== "dead" && !m.state.dormant && m.persona.prices["bread loaf"] !== undefined);
       if (baker) {

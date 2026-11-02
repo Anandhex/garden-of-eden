@@ -21,7 +21,8 @@ const ODDS: Record<Season, Record<Weather, number>> = {
 
 /** Day of the year, 0-based. */
 export function dayOfYear(day: number): number {
-  return (day - 1) % config.daysPerYear;
+  // Days before the first (day 0, "yesterday" on day 1) wrap into the year before.
+  return (((day - 1) % config.daysPerYear) + config.daysPerYear) % config.daysPerYear;
 }
 
 /** The season on a day: the year splits into four equal parts, spring first. */

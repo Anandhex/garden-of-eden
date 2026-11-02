@@ -7,6 +7,7 @@ import type { Tier } from "../life.js";
 import { formatMoney } from "../money.js";
 import { siteState, type SiteWorld } from "../site.js";
 import { needsOf, type Need } from "./director.js";
+import { gangMembers } from "./who.js";
 import { tally } from "./log.js";
 import type { Talking } from "./arrivals.js";
 import type { Realm } from "./types.js";
@@ -55,6 +56,14 @@ const JOBS: Record<Need, NeedJob> = {
       return { title: `Clear out ${d.name}`, description: `Things are crawling about down in ${d.name}, and sooner or later they'll come up the road. Go down and clear it, every level.`, objective: { type: "clear", dungeon: d.id, name: d.name, qty: 1 }, value: 150 * (ITEM_TIERS.indexOf(d.tier) + 1) * d.depth, tier };
     },
   },
+  stronghold: {
+    giver: (m) => isHead(m) || !!m.persona.guard,
+    quest: (realm, site) => {
+      const hold = realm.settlements[site]!.roads.map((id) => realm.settlements[id]).find((x) => x?.fallen?.to === "gang")!;
+      const g = realm.factions[hold.fallen!.id];
+      return { title: `Break ${g?.name ?? "the bandits"} at ${hold.name}`, description: `${g?.name ?? "Bandits"} hold ${hold.name} behind a palisade, and they've carried off our people. Go there and cut down two of them, and the chief won't sleep easy.`, objective: { type: "defeat", creature: "bandit", qty: 2 }, value: 500, tier: tierOfAsk("defeat", 0, "D", 2) };
+    },
+  },
   food: {
     giver: (m) => m.persona.prices.stew !== undefined || m.persona.prices["bread loaf"] !== undefined,
     quest: () => ({ title: "Something for the pot", description: "Stores are low and folk are hungry. Bring five handfuls of wild herbs to stretch the stew.", objective: { type: "deliver", item: "wild herbs", qty: 5 }, value: ITEMS["wild herbs"]!.value * 5, tier: tierOfAsk("deliver", ITEMS["wild herbs"]!.value * 5) }),
@@ -92,7 +101,19 @@ export function postNeedQuests(realm: Realm, world: WorldSnapshot & SiteWorld, s
     if (money <= 0) continue;
     const id = `rq_${need}_${world.day}`;
     giver.state.questBoard.push({ id, title: q.title, description: `${q.description} (${why}.)`, tier: q.tier, minTrust: 0, objective: q.objective, reward: { money }, director: true });
-    if (q.objective.type === "defeat") state.rules.push({ id: `rq_${id}`, creature: q.objective.creature, count: q.objective.qty, quest: id, place: q.objective.creature === "bandit" ? "gate_road" : "deep_woods" });
+    if (q.objective.type === "defeat") {
+      // The quarry are real (N26F step 0b): a gang's members by name (the nearest gang, or the one holding the stronghold); beasts are the pack's.
+      const people = q.objective.creature === "bandit";
+      const hold = need === "stronghold" ? realm.settlements[site]!.roads.map((r) => realm.settlements[r]).find((x) => x?.fallen?.to === "gang") : undefined;
+      const near = Object.values(realm.factions).find((f) => f.kind === "gang" && f.dissolved === undefined && (f.seat === site || realm.settlements[site]?.roads.includes(f.seat ?? "")));
+      const gang = people ? (hold?.fallen?.id ?? near?.id) : undefined;
+      const who = gang ? gangMembers(realm, gang).slice(0, q.objective.qty).map((f) => ({ name: f.name, figure: f.id })) : [];
+      if (people && who.length < q.objective.qty) {
+        giver.state.questBoard.pop();
+        continue;
+      }
+      state.rules.push({ id: `rq_${id}`, creature: q.objective.creature, count: q.objective.qty, quest: id, place: people ? "gate_road" : "deep_woods", ...(people ? { who } : {}) });
+    }
     state.needCooldowns[need] = world.day;
     tally(realm, "home_quests");
     lines.push(`${giver.persona.name} has work: "${q.title}" (${formatMoney(money)}), because ${why}.`);

@@ -129,9 +129,10 @@ describe("N15.2 localities around a place", () => {
       const m = map(area);
       expect(m.id).toBe(area === "village" ? s.id : `${s.id}:${area}`);
       for (const e of m.exits) {
-        // The west gate leads out onto the open road (N26): that is the realm's map, not another area's.
+        // The west gate leads out onto the open road (N26), and so does the far end of the track to the camp and the mine
+        // (N26F decision 9): that is the realm's map, not another area's.
         if (e.to === "realm") {
-          expect(e.x).toBe(0);
+          if (area === "village") expect(e.x).toBe(0);
           continue;
         }
         const next = map(e.to);
@@ -145,8 +146,10 @@ describe("N15.2 localities around a place", () => {
         for (const key of Object.keys(m.dens)) expect(inDen(m, key).some((t) => reachable(m, e.inward, t)), `${area}:${key}`).toBe(true);
       }
     }
-    expect(map("village").exits.map((e) => e.to).sort()).toEqual(["realm", "road", "woods"]);
-    expect(map("road").exits.map((e) => e.to).sort()).toEqual(["camp", "mine", "village"]);
+    // N26F decision 9: the village's only way out is the open road; the woods, the camp and the mine are entered from it.
+    expect(map("village").exits.map((e) => e.to).sort()).toEqual(["realm"]);
+    expect(map("road").exits.map((e) => e.to).sort()).toEqual(["camp", "mine", "realm"]);
+    expect(map("woods").exits.map((e) => e.to)).toEqual(["realm"]);
   });
 
   it("every place gets the woods, and a road to a camp or a mine only when there's one", () => {

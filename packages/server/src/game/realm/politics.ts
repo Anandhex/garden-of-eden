@@ -1,3 +1,4 @@
+import { bookOf } from "./ledger.js";
 import { config } from "../../config.js";
 import type { Rng } from "../dice.js";
 import { tierIndex, type Tier } from "../life.js";
@@ -34,6 +35,7 @@ export function settleTransit(realm: Realm, day: number): void {
     else {
       const to = realm.settlements[t.to];
       if (to) to.treasury += t.amount;
+      else bookOf(realm).sunk += t.amount;
     }
   }
   realm.transit = keep;

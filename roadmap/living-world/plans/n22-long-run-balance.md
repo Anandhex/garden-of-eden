@@ -2,6 +2,8 @@
 
 # N22 plan: Long-run balance tests
 
+> **Cut built 2026-10-24 (playtest pack 1):** `src/balance/` (sample, bounds, run, break switches), `npm run sim:years`, `tests/n22.test.ts`. Not built: the nightly workflow, liveness and chain bounds (N20). Finding: `no-war-fatigue` trips nothing in 5 years (wars end by the score or a side destroyed), so `food-band` with `no-famine-relief` is the proven break.
+
 **In one line:** `npm run sim:years` runs the realm (and, after N25, every person) for years over several seeds with no model, checks every number against bounds that each phase adds, and fails CI when the world collapses or stalls.
 
 **Read first:** [plans README](README.md) sections 2 (determinism), 5 (**a year is 48 days**: "10 years" is 480 days), 10 (long tests). Needs N18 (deterministic streams), N20 (liveness metrics); gets much more useful after N25 (people) but should be built before it so N25 is tuned with it.

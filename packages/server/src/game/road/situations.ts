@@ -16,7 +16,8 @@ import type { Realm } from "../realm/types.js";
 import type { Town } from "../town.js";
 import { groundAt, landOf } from "./ground.js";
 import { needsOf, tickNeeds } from "./needs.js";
-import { waypointsOf } from "./walk.js";
+import { territoriesNow } from "./territories.js";
+import { playerLearns } from "../playerKnowledge.js";
 
 /**
  * Situations, not just fights (N26 C2): a broken cart, someone hurt, a toll on a lane, a flooded ford, a beast, a child
@@ -31,7 +32,7 @@ import { waypointsOf } from "./walk.js";
 
 const Effect: z.ZodType<EffectDef> = z.lazy(() =>
   z.object({
-    type: z.enum(["time", "money", "item", "hp", "xp", "trust", "reputation", "needs", "fight", "check", "later", "say", "rumour", "standing"]),
+    type: z.enum(["time", "money", "item", "hp", "xp", "trust", "reputation", "needs", "fight", "check", "later", "say", "rumour", "standing", "territories"]),
     text: z.string().optional(),
     minutes: z.number().optional(),
     amount: z.number().optional(),
@@ -64,7 +65,7 @@ const Effect: z.ZodType<EffectDef> = z.lazy(() =>
 );
 
 export interface EffectDef {
-  type: "time" | "money" | "item" | "hp" | "xp" | "trust" | "reputation" | "needs" | "fight" | "check" | "later" | "say" | "rumour" | "standing";
+  type: "time" | "money" | "item" | "hp" | "xp" | "trust" | "reputation" | "needs" | "fight" | "check" | "later" | "say" | "rumour" | "standing" | "territories";
   text?: string | undefined;
   minutes?: number | undefined;
   amount?: number | undefined;
@@ -138,6 +139,8 @@ export function loadSituations(dir: URL = DIR): SituationDef[] {
 
 /** The chance a stretch of road has something on it today. */
 export const SITUATION_CHANCE = 0.5;
+/** Tiles of road a stretch is (N26F decision 10): about a fifth of a day's walk. */
+export const STRETCH = 1200;
 
 export interface Rolled {
   key: string;
@@ -185,10 +188,10 @@ export function rollSegment(realm: Realm, data: RoadData, road: RoadPath & { cum
 }
 
 function rollNow(realm: Realm, data: RoadData, road: RoadPath & { cum?: number[] }, seg: number, day: number, key: string, people?: PeopleStore): Rolled | null {
-  const wp = waypointsOf(data, road);
-  const lo = wp[seg];
-  const hi = wp[seg + 1];
-  if (lo === undefined || hi === undefined || hi - lo < 500) return null;
+  // Fixed stretches along each road (N26F decision 10), whatever its waypoints: every stretch is rolled once a day.
+  const lo = seg * STRETCH;
+  const hi = Math.min(road.length, lo + STRETCH);
+  if (hi - lo < 500) return null;
   const rng = streamFor(realm.seed, "situation", road.id, seg, day);
   if (rng() >= SITUATION_CHANCE) return null;
   const t = lo + 200 + rng() * (hi - lo - 400);
@@ -208,12 +211,18 @@ function rollNow(realm: Realm, data: RoadData, road: RoadPath & { cum?: number[]
   // The people in it are really there (N26 Part E decision 8): travellers whose journeys are near this stretch today, else the people of
   // the nearest roadside inn. If nobody suitable is near, nothing happens here today.
   const actors = actorsFor(realm, data, road, at, t, day, def.actors.map((a) => a.role), rng, people);
-  if (!actors) return null;
-  return { key, def, t, actors, road: road.id };
+  if (actors) return { key, def, t, actors, road: road.id };
+  // Nobody to be in it: something that needs nobody instead (a tree down, a flooded ford, a washed-out road), not nothing.
+  const alone = ok.filter((d) => d.actors.length === 0);
+  if (alone.length === 0 || !people) return null;
+  const sum = alone.reduce((a, d) => a + d.chance, 0);
+  let k = rng() * sum;
+  const fallback = alone.find((d) => (k -= d.chance) < 0) ?? alone[0]!;
+  return { key, def: fallback, t, actors: [], road: road.id };
 }
 
 const TRADERS = ["merchant", "stallholder", "innkeeper", "baker", "weaver", "potter", "cobbler", "tailor", "smith"];
-const ROLE_JOBS: Record<string, string[]> = { carter: ["porter", "labourer", "farmer", "hunter"], merchant: TRADERS, guard: ["guard"], captain: ["guard"] };
+const ROLE_JOBS: Record<string, string[]> = { carter: ["porter", "labourer", "farmer", "hunter"], merchant: TRADERS, guard: ["guard"], captain: ["guard"], herder: ["farmer", "labourer"], hunter: ["hunter"] };
 
 /** Real people for a situation's roles, or null if any can't be found. */
 function actorsFor(realm: Realm, data: RoadData, road: RoadPath, at: { x: number; y: number }, t: number, day: number, roles: string[], rng: Rng, people?: PeopleStore): Traveller[] | null {
@@ -251,7 +260,7 @@ const fill = (text: string, actors: Traveller[]) => text.replace(/\{a\}/g, actor
 /** The player's state has a pending situation: what to show. */
 export function viewOf(realm: Realm, data: RoadData, town: Town): SituationView | null {
   const pend = town.world.player.road?.pending;
-  if (!pend) return null;
+  if (!pend || pend.kind !== "situation") return null;
   const rolled = findRolled(realm, data, pend.key, town.store?.people);
   if (!rolled) return null;
   const p = town.world.player;
@@ -286,9 +295,7 @@ export function meet(town: Town, data: RoadData, road: RoadPath & { cum: number[
   const realm = town.world.realm!;
   const state = town.world.player.road!;
   const day = town.world.day;
-  const wp = waypointsOf(data, road);
-  let seg = 0;
-  while (seg + 2 < wp.length && t > wp[seg + 1]!) seg++;
+  const seg = Math.floor(t / STRETCH);
   const rolled = rollSegment(realm, data, road, seg, day, town.store?.people);
   if (!rolled || Math.abs(t - rolled.t) > 12 || state.seen[rolled.key] === day || state.pending) return [];
   const night = town.world.hour >= 20 || town.world.hour < 5;
@@ -312,7 +319,7 @@ export function resolve(town: Town, choiceId: string, now: number): Resolved {
   const realm = world.realm;
   const p = world.player;
   const pend = p.road?.pending;
-  if (!realm || !pend) return { ok: false, lines: ["There's nothing to decide."] };
+  if (!realm || !pend || pend.kind !== "situation") return { ok: false, lines: ["There's nothing to decide."] };
   const data = landOf(realm).data;
   const rolled = findRolled(realm, data, pend.key, town.store?.people);
   const choice = rolled?.def.choices.find((c) => c.id === choiceId);
@@ -399,6 +406,10 @@ function apply(c: Ctx, e: EffectDef): void {
     case "rumour":
       say(c, e.text);
       break;
+    case "territories":
+      // Someone who knows this country says which stretches the packs and gangs keep to (N26F): the real ones, and the player learns them.
+      tellTerritories(c);
+      break;
     case "fight":
       fight(c, e.species ?? "bandit");
       break;
@@ -473,13 +484,37 @@ function trust(c: Ctx, amount: number): void {
   agent.state.knownName ??= c.town.world.player.name;
 }
 
+/** What a hunter or herder knows of the packs and gangs on the roads round about, told, and learned by the player. */
+function tellTerritories(c: Ctx): void {
+  const realm = c.town.world.realm!;
+  const p = c.town.world.player;
+  const at = p.road!;
+  const data = landOf(realm).data;
+  const near = territoriesNow(realm, data)
+    .map((t) => ({ t, road: data.roads.find((r) => r.id === t.road)! }))
+    .filter((x) => x.road && x.road.pts.some((q) => Math.abs(q.x - at.x) + Math.abs(q.y - at.y) < 3500))
+    .slice(0, 3);
+  const who = c.rolled.actors[0]?.name ?? "They";
+  if (near.length === 0) {
+    c.lines.push(`${who} says the roads hereabouts are quiet, as far as they know.`);
+    return;
+  }
+  for (const { t, road } of near) {
+    const toward = realm.settlements[road.a === t.near ? road.b : road.a]?.name ?? "the next place";
+    const whose = t.kind === "pack" ? `${realm.packs[t.owner]?.species ?? "beast"}s` : (realm.factions[t.owner]?.name ?? "outlaws");
+    c.lines.push(`${who}: "${whose[0]!.toUpperCase()}${whose.slice(1)} keep to the road from ${realm.settlements[t.near]?.name ?? "there"} toward ${toward}, a good way out."`);
+    playerLearns(p, `terr:${t.id}`, "told", c.town.world.day, { from: c.rolled.actors[0]?.person ?? "road" });
+  }
+}
+
 function fight(c: Ctx, species: string): void {
   const realm = c.town.world.realm!;
   const p = c.town.world.player;
+  // A lone boar (nobody's animal), or the people at the rope (the situation's actors, real rows).
   const foe: Foe =
-    species === "wolf"
-      ? { name: "a wolf and its pack", power: 14, tier: "F", kind: "pack", id: `x:${c.rolled.key}`, species: "wolf" }
-      : { name: "the men at the rope", power: 16, tier: "E", kind: "gang", id: `x:${c.rolled.key}` };
+    species === "boar" || species === "wolf"
+      ? { name: "the boar", power: 12, tier: "F", kind: "pack", id: `x:${c.rolled.key}`, species: "boar" }
+      : { name: c.rolled.actors.map((a) => a.name).join(" and ") || "the men at the rope", power: 16, tier: "E", kind: "gang", id: `x:${c.rolled.key}` };
   c.lines.push(...fightOnRoad(realm, p, foe, realm.settlements[p.road!.from]?.name ?? "the road", c.town.world.day, c.rng, c.town.companionPower()));
 }
 

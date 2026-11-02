@@ -93,7 +93,7 @@ export interface Journey {
   /** Arrival has been dealt with (the move applied, the people home). */
   closed?: boolean;
   /** A caravan that was robbed or a party that was stopped never arrives. */
-  ended?: { minute: number; why: string };
+  ended?: { minute: number; why: string; /** Who died there (N26F: a grave by the road). */ dead?: string[] };
   /** The people are guards, or armed (a patrol, adventurers): bandits weigh them. */
   guards?: number;
 }

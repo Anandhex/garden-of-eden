@@ -1,3 +1,4 @@
+import { mint, sink, transfer } from "./ledger.js";
 import type { Rng } from "../dice.js";
 import { tierIndex, type Tier } from "../life.js";
 import { addDeed, addRenown, titled } from "./figures.js";
@@ -86,12 +87,14 @@ export function foundFaction(realm: Realm, rng: Rng, o: Founding, day: number): 
     members: [o.founder.id],
     seat: o.seat,
     branches: o.seat && o.kind !== "gang" ? [o.seat] : [],
-    wealth: Math.min(o.founder.wealth, 400) + 100,
+    wealth: 0,
     founded: day,
     ...(o.parent ? { parent: o.parent } : {}),
     stances: {},
   });
-  o.founder.wealth = Math.max(0, o.founder.wealth - 400);
+  // The founder puts in what they can (up to 400), and the first members' dues make up a stake of 100.
+  transfer(realm, `p:${o.founder.id}`, `f:${id}`, 400, "founding stake", undefined, day);
+  mint(realm, `f:${id}`, 100, "first dues", undefined, day);
   o.founder.faction = id;
   o.founder.role = roleFor(o.kind, true, o.founder.role);
   o.founder.superior = null;
@@ -165,8 +168,8 @@ export function factionsDay(realm: Realm, day: number, rng: Rng): void {
       continue;
     }
     // Income: guilds and associations from their members' work, more with halls.
-    if (fac.kind === "guild" || fac.kind === "association" || fac.kind === "order" || fac.kind === "cult") fac.wealth += ms.length * 4 + fac.branches.length * 8;
-    if (fac.kind === "rebels") fac.wealth += ms.length * 2;
+    if (fac.kind === "guild" || fac.kind === "association" || fac.kind === "order" || fac.kind === "cult") mint(realm, `f:${fac.id}`, ms.length * 4 + fac.branches.length * 8, "members' dues", undefined, day);
+    if (fac.kind === "rebels") mint(realm, `f:${fac.id}`, ms.length * 2, "members' dues", undefined, day);
     // A new leader when theirs is gone; two close rivals and the loser may split.
     if (!fac.leader || !realm.figures[fac.leader]?.alive) succeed(realm, fac, ms, day, rng);
     // Recruit.
@@ -185,7 +188,7 @@ export function factionsDay(realm: Realm, day: number, rng: Rng): void {
       const at = options[Math.floor(rng() * options.length)];
       if (at) {
         fac.branches.push(at.id);
-        fac.wealth -= 800;
+        sink(realm, `f:${fac.id}`, 800, `a hall in ${at.name}`, undefined, day);
         tally(realm, "branches");
         realmNews(realm, day, at.id, "faction", `${cap(fac.name)} has opened a hall in ${at.name}.`, 3, [fac.name, at.name]);
       }
@@ -234,9 +237,7 @@ export function split(realm: Realm, fac: RealmFaction, rebel: Figure, day: numbe
   const seat = rebel.home ?? fac.seat;
   const out = foundFaction(realm, rng, { kind, ...(fac.trade ? { trade: fac.trade } : {}), founder: rebel, seat, creed: fac.kind === "crown" ? `a new rule, under ${rebel.name}` : `${fac.creed}, done right`, why, parent: fac.id }, day);
   for (const f of followers) join(realm, f, out);
-  const share = Math.round(fac.wealth * 0.3);
-  fac.wealth -= share;
-  out.wealth += share;
+  transfer(realm, `f:${fac.id}`, `f:${out.id}`, Math.round(fac.wealth * 0.3), "the split", undefined, day);
   if (fac.kind === "guild" || fac.kind === "association") {
     const takes = fac.branches.filter((b) => b !== fac.seat && followers.some((f) => f.home === b));
     out.branches = [...new Set([...out.branches, ...takes])];

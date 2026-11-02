@@ -1,4 +1,7 @@
-import { type Creature, type CreatureTemplate, spawnCreature } from "../creatures.js";
+import { payOut } from "./ledger.js";
+import { type Creature, type CreatureTemplate, creatureStats, spawnCreature } from "../creatures.js";
+import { type BeastRow, type BeastStore, woundsOf } from "../../store/beastStore.js";
+import { afterFight, ageOfRow, killBeast, lifeOfRow } from "./beasts.js";
 import type { Rng } from "../dice.js";
 import type { Life } from "../life.js";
 import { formatMoney } from "../money.js";
@@ -7,7 +10,7 @@ import { speciesOf } from "../../world/species.js";
 import { killFigure, titled } from "./figures.js";
 import { realmNews, tally } from "./log.js";
 import { plural } from "./names.js";
-import type { Figure, Realm } from "./types.js";
+import type { Figure, Pack, Realm } from "./types.js";
 
 /**
  * The beasts and outlaws of a place, on its maps (N15, N25a). The realm keeps packs and gangs as numbers and
@@ -32,35 +35,13 @@ export const gangOf = (realm: Realm, site: string) => Object.values(realm.factio
  * members on the map, no more than there are (thinned off-screen, they're gone).
  * `talking`: figures who are talking NPCs there already, not creatures.
  */
-export function stockHaunts(realm: Realm, creatures: Record<string, Creature>, site: string, templates: Record<string, CreatureTemplate>, day: number, rng: Rng, talking: (f: Figure) => boolean = () => false): Creature[] {
+export function stockHaunts(realm: Realm, creatures: Record<string, Creature>, site: string, templates: Record<string, CreatureTemplate>, day: number, rng: Rng, talking: (f: Figure) => boolean = () => false, beasts?: BeastStore): Creature[] {
   if (!realm.settlements[site]) return [];
   const here = creatures;
   const isHaunt = (c: Creature) => !!c.packId || c.den === GANG_DEN;
   for (const [uid, c] of Object.entries(here)) if (c.outcome && isHaunt(c)) delete here[uid];
-  // The pack (or packs) that roam its woods.
-  for (const p of Object.values(realm.packs).filter((x) => x.near === site)) {
-    const t = templates[p.species];
-    if (!t) continue;
-    const mine = Object.values(here).filter((c) => c.packId === p.id);
-    const want = Math.min(p.count, MAX_ON_MAP);
-    for (const c of mine.slice(want)) delete here[c.uid];
-    const alpha = p.alpha ? realm.figures[p.alpha] : undefined;
-    for (let i = mine.length; i < want; i++) {
-      const c = spawnCreature(t, `${site}-${p.species}-${realm.next++}`, day, rng, `${t.name} ${i + 1}`);
-      c.packId = p.id;
-      c.den = BEAST_DEN;
-      here[c.uid] = c;
-    }
-    // The named alpha leads them: one of them is it.
-    const pack = Object.values(here).filter((c) => c.packId === p.id);
-    for (const c of pack) if (c.figure && c.figure !== alpha?.id) delete c.figure;
-    if (alpha?.alive && pack.length > 0 && !pack.some((c) => c.figure === alpha.id)) {
-      const lead = pack[0]!;
-      lead.figure = alpha.id;
-      lead.name = alpha.name;
-      lead.life = structuredClone(alpha.life) as Life;
-    }
-  }
+  // The pack (or packs) that roam its woods: its own beasts, by row, where the rows are kept.
+  for (const p of Object.values(realm.packs).filter((x) => x.near === site)) stockPack(realm, here, p, `${site}`, templates, day, rng, beasts, BEAST_DEN);
   // The gang in its camp, by name.
   const gang = gangOf(realm, site);
   const members = gang
@@ -84,28 +65,103 @@ export function stockHaunts(realm: Realm, creatures: Record<string, Creature>, s
   return Object.values(here).filter(isHaunt);
 }
 
+/** A pack's beast as a creature: its row's life, hurt and name. */
+export function beastCreature(realm: Realm, t: CreatureTemplate, b: BeastRow, uid: string, day: number, rng: Rng): Creature {
+  const f = b.figure ? realm.figures[b.figure] : undefined;
+  const age = ageOfRow(b, day);
+  const young = age < speciesOf(b.species).adultAge;
+  const c = spawnCreature(t, uid, day, rng, f?.alive ? f.name : `${young ? "young " : b.sex === "f" ? "she-" : ""}${t.name}${woundsOf(b).scars.length ? " (scarred)" : ""}`);
+  c.life = structuredClone(f?.alive ? f.life : lifeOfRow(b)) as Life;
+  c.hp = Math.max(1, Math.round(c.hp * woundsOf(b).hp));
+  c.beast = b.id;
+  c.packId = b.pack;
+  if (f?.alive) c.figure = f.id;
+  return c;
+}
+
+/**
+ * Put a pack's beasts on a map (the woods, a den, the road): up to `max`, never more than it has, the alpha among them,
+ * each a row where the rows are kept (else nameless, by count, for a world with no database).
+ */
+export function stockPack(realm: Realm, here: Record<string, Creature>, p: Pack, prefix: string, templates: Record<string, CreatureTemplate>, day: number, rng: Rng, beasts: BeastStore | undefined, den: string, max = MAX_ON_MAP): Creature[] {
+  const t = templates[p.species];
+  if (!t) return [];
+  const mine = Object.values(here).filter((c) => c.packId === p.id);
+  if (beasts) {
+    const living = beasts.living(p.id);
+    const lead = living.find((b) => b.figure && b.figure === p.alpha);
+    const wanted = [...(lead ? [lead] : []), ...living.filter((b) => b !== lead && woundsOf(b).hp >= 0.5).sort((a, b) => b.wins - a.wins || (a.id < b.id ? -1 : 1))].slice(0, max);
+    const ids = new Set(wanted.map((b) => b.id));
+    for (const c of mine) if (!c.beast || !ids.has(c.beast)) delete here[c.uid];
+    for (const b of wanted) {
+      if (Object.values(here).some((c) => c.beast === b.id)) continue;
+      const c = beastCreature(realm, t, b, `${prefix}-${b.id}`, day, rng);
+      c.den = den;
+      here[c.uid] = c;
+    }
+    return Object.values(here).filter((c) => c.packId === p.id);
+  }
+  const want = Math.min(p.count, max);
+  for (const c of mine.slice(want)) delete here[c.uid];
+  const alpha = p.alpha ? realm.figures[p.alpha] : undefined;
+  for (let i = mine.length; i < want; i++) {
+    const c = spawnCreature(t, `${prefix}-${p.species}-${realm.next++}`, day, rng, `${t.name} ${i + 1}`);
+    c.packId = p.id;
+    c.den = den;
+    here[c.uid] = c;
+  }
+  // The named alpha leads them: one of them is it.
+  const pack = Object.values(here).filter((c) => c.packId === p.id);
+  for (const c of pack) if (c.figure && c.figure !== alpha?.id) delete c.figure;
+  if (alpha?.alive && pack.length > 0 && !pack.some((c) => c.figure === alpha.id)) {
+    const lead = pack[0]!;
+    lead.figure = alpha.id;
+    lead.name = alpha.name;
+    lead.life = structuredClone(alpha.life) as Life;
+  }
+  return pack;
+}
+
 /**
  * After a fight on another place's map: the dead go back to the realm. A beast is one
  * fewer in its pack, with a share of the bounty on it for the player; a named one
  * (the alpha, a gang member) is a realm death, with news. Those who ran are gone
  * until the next visit. Returns lines for the player.
  */
-export function settleHaunts(realm: Realm, creatures: Record<string, Creature>, site: string, player: PlayerState, day: number): string[] {
+export function settleHaunts(realm: Realm, creatures: Record<string, Creature>, site: string, player: PlayerState, day: number, beasts?: BeastStore, templates?: Record<string, CreatureTemplate>): string[] {
   const here = creatures;
   const lines: string[] = [];
   const s = realm.settlements[site];
   for (const [uid, c] of Object.entries(here)) {
-    if (!c.outcome || (!c.packId && c.den !== GANG_DEN)) continue;
+    if (!c.packId && c.den !== GANG_DEN) continue;
+    // A beast still standing carries its hurt home (it's the same beast next time).
+    if (!c.outcome) {
+      if (c.beast && beasts) {
+        const t = templates?.[c.template];
+        const max = t ? creatureStats(t, c).maxHp : c.hp;
+        if (c.hp < max) afterFight(realm, beasts, c.beast, { hpShare: c.hp / Math.max(1, max), won: false, survived: false }, day);
+      }
+      continue;
+    }
     delete here[uid];
-    if (c.outcome !== "dead") continue;
+    if (c.outcome !== "dead") {
+      // Driven off: it lived through a fight with a person, and limps for it.
+      if (c.beast && beasts) {
+        const t = templates?.[c.template];
+        lines.push(...afterFight(realm, beasts, c.beast, { hpShare: t ? c.hp / Math.max(1, creatureStats(t, c).maxHp) : 0.5, won: false, survived: true, ...(c.hp < (t ? creatureStats(t, c).maxHp * 0.3 : 0) ? { scar: "a torn ear" } : {}) }, day));
+      }
+      continue;
+    }
     const p = c.packId ? realm.packs[c.packId] : undefined;
     if (p) {
-      p.count = Math.max(0, p.count - 1);
+      if (c.beast && beasts) {
+        killBeast(realm, beasts, c.beast, day, `killed by ${player.name}`, "player");
+        p.count = beasts.livingCount(p.id);
+      } else p.count = Math.max(0, p.count - 1);
       tally(realm, "culled");
       if (p.bounty > 0) {
-        const paid = Math.ceil(p.bounty / Math.max(1, p.count + 1));
+        const paid = payOut(realm, "player", Math.ceil(p.bounty / Math.max(1, p.count + 1)), `pack ${p.id}`, player, day);
         p.bounty -= paid;
-        player.money += paid;
         lines.push(`${s?.name ?? "The place"} pays you ${formatMoney(paid)} of the bounty on its ${plural(p.species)}.`);
       }
       if (p.count === 0) {
@@ -114,7 +170,7 @@ export function settleHaunts(realm: Realm, creatures: Record<string, Creature>, 
       }
     }
     const f = c.figure ? realm.figures[c.figure] : undefined;
-    if (f && killFigure(realm, f, day, `killed by ${player.name}`)) {
+    if (f && !c.beast && killFigure(realm, f, day, `killed by ${player.name}`)) {
       realmNews(realm, day, site, "death", `${titled(f)}${s ? ` of the wilds near ${s.name}` : ""} was killed by ${player.name}.`, f.renown >= 30 ? 6 : 4, [f.name, player.name]);
       player.renown = (player.renown ?? 0) + (f.renown >= 30 ? 5 : 2);
       lines.push(`Word will spread that ${f.name} is dead.`);

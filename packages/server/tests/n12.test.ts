@@ -92,11 +92,23 @@ describe("N12.2 revenge, decided by traits", () => {
     expect(initiativeFor(brena, b, world)?.trigger).toBe("confront");
     expect(initiativeFor(brena, b, world)?.event).toMatch(/Confront them/);
     expect(Object.values(h.rumours).some((r) => r.about === "player")).toBe(true);
-    expect((world.extraSpawnRules ?? []).some((r) => r.ambush && r.id.startsWith("revenge_rook"))).toBe(true);
-    // The hired men turn up and lie in wait.
+    // Nobody is made up (N26F step 0b): this fixture town has no people table, so Rook has nobody real to bring and means to have it
+    // out instead; no ambush of nameless men.
+    expect((world.extraSpawnRules ?? []).some((r) => r.ambush && r.id.startsWith("revenge_rook"))).toBe(false);
+  });
+
+  it("an ambush with real people: they turn up by name and lie in wait", () => {
+    const world = createTestWorld();
+    const state = createNpcState(rook);
+    state.goals.push({ kind: "revenge", target: "player", strength: 0.9, reason: "a beating", day: 1, plan: "ambush" });
+    const act = actOnRevenge(rook, state, world, [{ name: "Rook", person: "rook" }, { name: "Cole Varn", figure: "fig-9" }])!;
+    expect(act.spawn?.who?.map((w) => w.name)).toEqual(["Rook", "Cole Varn"]);
     world.hour = 9;
-    applySpawnRules(allSpawnRules([], siteState(world), world.day), templates, creaturesOf(world), siteState(world).spawns, world, always(0.5));
-    expect(ambushers(allSpawnRules([], siteState(world), world.day), siteState(world).spawns, creaturesOf(world)).length).toBe(2);
+    const creatures = {};
+    const ledger = {};
+    applySpawnRules([act.spawn!], templates, creatures, ledger, world, always(0.5));
+    const lying = ambushers([act.spawn!], ledger, creatures);
+    expect(lying.map((c) => c.name).sort()).toEqual(["Cole Varn", "Rook"]);
   });
 
   it("revenge fades at forgiveness, and amends clear it", () => {
@@ -177,10 +189,12 @@ describe("N12.4 director quests", () => {
 
   it("only checkable goals, a tier from what's asked, the reward from the giver's purse", () => {
     const states = statesFor();
-    const v = validateQuest(ctx(createTestWorld(), states), { giver: "Brena", title: "Get my blade back", description: "Bandits took my best blade in the raid.", goal: "defeat", creature: "bandits", qty: 2 }, raid);
-    expect(v.ok).toBe(true);
+    // People to fight must be real (N26F step 0b): with no gang about, a quest against bandits is turned down; beasts are fine.
+    expect(validateQuest(ctx(createTestWorld(), states), { giver: "Brena", title: "Get my blade back", description: "Bandits took my best blade in the raid.", goal: "defeat", creature: "bandits", qty: 2 }, raid).ok).toBe(false);
+    const v = validateQuest(ctx(createTestWorld(), states), { giver: "Brena", title: "Wolves by the forge", description: "The wolves came close in the raid.", goal: "defeat", creature: "wolf", qty: 2 }, raid);
+    expect(v.ok, v.ok ? "" : v.reason).toBe(true);
     if (!v.ok) return;
-    expect(v.value.quest.objective).toEqual({ type: "defeat", creature: "bandit", qty: 2 });
+    expect(v.value.quest.objective).toEqual({ type: "defeat", creature: "wolf", qty: 2 });
     expect(v.value.quest.director).toBe(true);
     expect(v.value.quest.reward.money).toBeLessThanOrEqual(states.brena!.money / 2);
     // Unknown items and creatures, uninvolved givers and invented names are turned down.
@@ -192,7 +206,7 @@ describe("N12.4 director quests", () => {
   it("a director quest goes on the board, its quarry turns up, and it's completable in code", async () => {
     const world = worldWith([{ kind: "raid", actor: "bandit-1", target: "brena", witnesses: ["brena"] }]);
     const states = statesFor();
-    const llm = new Director(() => [{ name: "propose_quest", arguments: { giver: "Brena Ashford", title: "Thin out the bandits", description: "After the raid you want the bandits on the road thinned out.", goal: "defeat", creature: "bandit", qty: 1 } }]);
+    const llm = new Director(() => [{ name: "propose_quest", arguments: { giver: "Brena Ashford", title: "Thin out the wolves", description: "After the raid you want the wolves on the road thinned out.", goal: "defeat", creature: "wolf", qty: 1 } }]);
     const r = await runChronicle({ llm, world, personas: allPersonas(), states, creatures: templates }, 1);
     expect(r.accepted).toHaveLength(1);
     const q = states.brena!.questBoard.find((x) => x.director)!;
@@ -200,7 +214,7 @@ describe("N12.4 director quests", () => {
     world.player.level = 5;
     states.brena!.pendingQuest = q.id;
     expect(acceptQuest(brena, states.brena!, world.player, world)?.id).toBe(q.id);
-    recordCreatureDefeat(world.player, "bandit");
+    recordCreatureDefeat(world.player, "wolf");
     expect(turnInQuests(brena, states.brena!, world).completed.map((x) => x.id)).toEqual([q.id]);
   });
 });

@@ -1,0 +1,26 @@
+{
+  "id": "beans",
+  "name": "beans and peas",
+  "sow": [
+    5,
+    11
+  ],
+  "grow": 20,
+  "ripe": 6,
+  "yield": 2.0,
+  "likes": [
+    "valley",
+    "plains"
+  ],
+  "dislikes": [
+    "hills"
+  ],
+  "eatenBy": [
+    "deer",
+    "crows",
+    "boar"
+  ],
+  "frost": true,
+  "flood": true,
+  "on": "field"
+}

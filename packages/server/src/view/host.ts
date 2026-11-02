@@ -24,8 +24,12 @@ export interface ViewHost {
   /** The land between places (N26), or null in a world without a realm. */
   land(): Land | null;
   roadData(): RoadData | null;
+  /** The fields in a rectangle of the road world (N26G): each plot tile's stage (0..7 growing, 10+ a mark), keyed "x,y". */
+  fieldStages?(x0: number, y0: number, w: number, h: number): Map<string, number>;
   /** The journeys within `radius` tiles of the player on the road now. */
   journeysNear(radius: number): Journey[];
+  /** People walking to work along the road near the player (N26F decision 12): miners, hunters, the ore cart, the watch. */
+  commuters?(radius: number): Array<{ id: string; x: number; y: number; name: string; role: string; kind: string; purpose: string; from: string; to: string; journey: string }>;
   /** A settlement's name by id. */
   placeName(id: string): string;
   realm(): RealmView | null;

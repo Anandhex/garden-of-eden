@@ -42,7 +42,8 @@ export function breedCreatures(templates: Record<string, CreatureTemplate>, crea
   for (const t of Object.values(templates)) {
     const b = t.breeding;
     if (!b) continue;
-    const alive = Object.values(creatures).filter((c) => c.template === t.id && !c.outcome);
+    // A realm pack's beasts breed in the realm, as rows (N26F decision 14), not on the map.
+    const alive = Object.values(creatures).filter((c) => c.template === t.id && !c.outcome && !c.beast);
     const grown = alive.filter((c) => c.life.stage === "adult" || c.life.stage === "elder");
     if (grown.length < 2 || alive.length >= b.cap || rng() >= b.chance) continue;
     const litter = Math.min(b.cap - alive.length, b.litter[0] + Math.floor(rng() * (b.litter[1] - b.litter[0] + 1)));
@@ -114,8 +115,8 @@ export function nameRisers(realm: Realm, templates: Record<string, CreatureTempl
     if (!t || c.outcome) continue;
     const rose = tierIndex(c.life.tier as Tier) > tierIndex(t.tier as Tier);
     const won = c.life.fightsWon >= NAMED_AFTER_WINS;
-    // Already a figure (a commoner of the place): syncCrowd keeps them, and notices when they rise.
-    if (c.figure) continue;
+    // Already a figure (a commoner of the place): syncCrowd keeps them, and notices when they rise. A pack's beast rises by its row.
+    if (c.figure || c.beast) continue;
     if (!rose && !won) continue;
     const human = speciesOf(t.species).talks;
     const gang = Object.values(realm.factions).find((f) => f.kind === "gang" && f.dissolved === undefined && (f.seat === site || f.branches.includes(site)));

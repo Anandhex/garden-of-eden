@@ -1,0 +1,60 @@
+{
+ "id": "washed_out_road",
+ "title": "The road washed out",
+ "where": [
+  "road",
+  "hills",
+  "marsh"
+ ],
+ "when": {
+  "rain": true
+ },
+ "chance": 0.4,
+ "actors": [],
+ "text": "Last night's rain has carried away a stretch of the road: a raw gully of mud and stones where the ruts were.",
+ "choices": [
+  {
+   "id": "wade",
+   "label": "Pick your way across",
+   "effects": [
+    {
+     "type": "time",
+     "minutes": 20
+    },
+    {
+     "type": "check",
+     "attr": "agility",
+     "target": 10,
+     "success": [
+      {
+       "type": "say",
+       "text": "Mud to the knees, but you're across."
+      }
+     ],
+     "fail": [
+      {
+       "type": "say",
+       "text": "You go down in the mud and come up filthy and bruised.",
+       "hp": -4,
+       "rest": -6
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "wait",
+   "label": "Wait for the water to drop (two hours)",
+   "effects": [
+    {
+     "type": "time",
+     "minutes": 120
+    },
+    {
+     "type": "say",
+     "text": "By the afternoon it's only mud."
+    }
+   ]
+  }
+ ]
+}

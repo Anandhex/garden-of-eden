@@ -27,6 +27,9 @@ export const MEALS: Record<string, [number, number]> = {
   turnips: [12, 4],
   ale: [4, 16],
   "wild herbs": [6, 2],
+  // Game, roasted over a fire on the road.
+  venison: [38, 4],
+  "hare meat": [20, 2],
 };
 
 export function needsOf(player: PlayerState, minute: number): RoadNeeds {

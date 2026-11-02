@@ -1,0 +1,23 @@
+{
+  "id": "hay",
+  "name": "hay",
+  "sow": [
+    1,
+    2
+  ],
+  "grow": 20,
+  "ripe": 8,
+  "yield": 0.9,
+  "likes": [
+    "valley",
+    "marsh",
+    "coast"
+  ],
+  "dislikes": [],
+  "eatenBy": [
+    "deer"
+  ],
+  "frost": false,
+  "flood": false,
+  "on": "meadow"
+}

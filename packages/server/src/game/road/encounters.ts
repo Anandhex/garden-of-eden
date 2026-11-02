@@ -1,3 +1,7 @@
+import { bookOf, mint } from "../realm/ledger.js";
+import { tookLife } from "../realm/beasts.js";
+import { watchStrength } from "./watch.js";
+import { killFigure } from "../realm/figures.js";
 import { type Journey, type RoadData } from "@millbrook/shared";
 import type { WorldStore } from "../db.js";
 import { streamFor } from "../dice.js";
@@ -59,39 +63,57 @@ export function encountersDay(realm: Realm, store: WorldStore, data: RoadData, d
       if (d === null) continue;
       const rng = streamFor(realm.seed, "encounter", j.id, t.id);
       if (rng() >= MEET_CHANCE) continue;
-      const id = t.id.slice(t.id.indexOf(":") + 1);
+      const id = t.territory.owner;
       const gang = t.kind === "gang" ? realm.factions[id] : undefined;
       const pack = t.kind === "pack" ? realm.packs[id] : undefined;
       if ((t.kind === "gang" && (!gang || gang.dissolved !== undefined || gang.members.length === 0)) || (t.kind === "pack" && (!pack || pack.count < pack.cap * 0.6))) continue;
-      const foe = gang ? gangFoe(realm, gang) : packFoe(realm, pack!);
+      const foe = gang ? gangFoe(realm, gang, rng) : packFoe(realm, pack!);
+      if (!foe) continue;
       // A patrol on the same road the same day fights beside them.
-      const escort = patrols.filter((p) => p !== j && p.kind === "patrol" && p.roads.some((r) => j.roads.some((x) => x.id === r.id))).reduce((a, p) => a + partyPower(p), 0);
+      const patrol = patrols.filter((p) => p !== j && p.kind === "patrol" && p.roads.some((r) => j.roads.some((x) => x.id === r.id))).reduce((a, p) => a + partyPower(p), 0);
+      // A town's mine watch guards the road to its mine like a patrol (N26F decision 13).
+      const watch = [j.path[0]!, j.path.at(-1)!].reduce((a, id) => {
+        const s = realm.settlements[id];
+        const mine = data.places.find((p) => p.id === `workings:${id}`);
+        return a + (s && mine && j.roads.some((r) => r.id === mine.road) ? watchStrength(s) * 9 : 0);
+      }, 0);
+      const escort = patrol + watch;
       const ours = partyPower(j) + escort;
       n++;
-      resolveEncounter(realm, store, j, t, foe.name, foe.power, ours, escort > 0, minuteAt(j, d), day, rng, ensure);
+      resolveEncounter(realm, store, j, t, foe.name, foe.power, ours, escort > 0, minuteAt(j, d), day, rng, ensure, foe.who);
     }
   }
   return n;
 }
 
-function resolveEncounter(realm: Realm, store: WorldStore, j: Journey, t: Threat, foeName: string, theirs: number, ours: number, escorted: boolean, minute: number, day: number, rng: () => number, ensure: (site: string) => void): void {
+function resolveEncounter(realm: Realm, store: WorldStore, j: Journey, t: Threat, foeName: string, theirs: number, ours: number, escorted: boolean, minute: number, day: number, rng: () => number, ensure: (site: string) => void, who: string[] = []): void {
   const from = realm.settlements[j.path[0]!];
   const lead = j.party[0]?.name ?? "someone";
   const kind = j.kind === "caravan" ? `${lead}'s caravan` : `${lead} and ${j.party.length - 1} other${j.party.length === 2 ? "" : "s"}`;
   const where = realm.settlements[t.near]?.name ?? "the road";
   if (rng() < ours / (ours + theirs)) {
     tally(realm, "road_ambush_beaten");
+    // Beaten off, the outlaws who were there pay for it: one of them may die (N26F step 0b: losses fall on real people).
+    const there = who.map((id) => realm.figures[id]).filter((f) => f?.alive);
+    if (there.length > 0 && rng() < 0.3) {
+      const f = there[Math.floor(rng() * there.length)]!;
+      if (killFigure(realm, f, day, `killed on the road near ${realm.settlements[t.near]?.name ?? "the road"} by ${j.party[0]?.name ?? "travellers"}`)) tally(realm, "road_outlaws_killed");
+    }
     if (escorted) realmNews(realm, day, j.path[0]!, "road", `A patrol and ${kind} of ${from?.name ?? "the road"} drove off ${foeName} near ${where}.`, 3, [foeName, where]);
     return;
   }
   tally(realm, "road_ambush_lost");
-  const gang = t.kind === "gang" ? realm.factions[t.id.slice(t.id.indexOf(":") + 1)] : undefined;
+  const gang = t.kind === "gang" ? realm.factions[t.territory.owner] : undefined;
   // The cargo never arrives, and the clerk's coin goes to the gang.
-  let loot = 0;
-  if (j.cargo) loot += Object.values(j.cargo).reduce((a, q) => a + q * 4, 0);
-  for (const c of realm.transit.filter((x) => x.journey === j.id)) loot += c.amount;
+  // The coin on the road is the gang's now (or lost in the grass); the goods are sold on, which is new coin for them.
+  const goods = j.cargo ? Object.values(j.cargo).reduce((a, q) => a + q * 4, 0) : 0;
+  const coin = realm.transit.filter((x) => x.journey === j.id).reduce((a, c) => a + c.amount, 0);
   realm.transit = realm.transit.filter((x) => x.journey !== j.id);
-  if (gang) gang.wealth += loot;
+  if (gang) {
+    gang.wealth += coin;
+    mint(realm, `f:${gang.id}`, goods, "stolen goods sold", undefined, day);
+  } else bookOf(realm).sunk += coin;
+  const loot = goods + coin;
   const robbed = gang !== undefined && (!!j.cargo || loot > 0);
   // Real people hurt: some die, on their own rows.
   const dead: string[] = [];
@@ -100,9 +122,14 @@ function resolveEncounter(realm: Realm, store: WorldStore, j: Journey, t: Threat
     const hour = Math.floor((minute % 1440) / 60);
     const home = store.people.get(m.person)?.site;
     if (home) ensure(home);
-    if (killPerson(realm, store, m.person, { cause: t.kind === "gang" ? "murder" : "beast", day, hour, killer: t.id.slice(t.id.indexOf(":") + 1), note: `killed by ${foeName} on the road near ${where}`, site: null })) dead.push(m.name);
+    if (killPerson(realm, store, m.person, { cause: t.kind === "gang" ? "murder" : "beast", day, hour, killer: t.territory.owner, note: `killed by ${foeName} on the road near ${where}`, site: null })) {
+      dead.push(m.name);
+      // A beast of the pack did it, and it is remembered for it (N26F decision 14).
+      const pack = t.kind === "pack" ? realm.packs[t.territory.owner] : undefined;
+      if (pack) tookLife(pack, day, { who: m.person, name: m.name });
+    }
   }
-  j.ended = { minute, why: robbed ? `robbed by ${foeName}` : `driven back by ${foeName}` };
+  j.ended = { minute, why: robbed ? `robbed by ${foeName}` : `driven back by ${foeName}`, ...(dead.length > 0 ? { dead } : {}) };
   const text = robbed
     ? `${kind} of ${from?.name ?? "the road"} was robbed by ${foeName} near ${where}${dead.length > 0 ? `; ${dead.join(" and ")} died` : ""}.`
     : `${kind} of ${from?.name ?? "the road"} met ${foeName} near ${where} and turned back${dead.length > 0 ? `; ${dead.join(" and ")} died` : ""}.`;

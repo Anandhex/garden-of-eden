@@ -1,0 +1,25 @@
+{
+  "id": "rye",
+  "name": "rye",
+  "sow": [
+    1,
+    7
+  ],
+  "grow": 27,
+  "ripe": 7,
+  "yield": 2.3,
+  "likes": [
+    "hills",
+    "forest"
+  ],
+  "dislikes": [
+    "marsh"
+  ],
+  "eatenBy": [
+    "deer",
+    "crows"
+  ],
+  "frost": false,
+  "flood": true,
+  "on": "field"
+}

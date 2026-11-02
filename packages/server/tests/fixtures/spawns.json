@@ -8,6 +8,23 @@
       "hours": [
         8,
         18
+      ],
+      "who": [
+        {
+          "name": "Ada Reed"
+        },
+        {
+          "name": "Bran Cole"
+        },
+        {
+          "name": "Cass Wick"
+        },
+        {
+          "name": "Dun Hale"
+        },
+        {
+          "name": "Edda Moss"
+        }
       ]
     },
     {
@@ -18,6 +35,17 @@
       "hours": [
         7,
         17
+      ],
+      "who": [
+        {
+          "name": "Fen Ash"
+        },
+        {
+          "name": "Gil Barrow"
+        },
+        {
+          "name": "Hild Crane"
+        }
       ]
     },
     {
@@ -34,20 +62,47 @@
       "id": "cart_raiders",
       "creature": "bandit",
       "count": 1,
-      "event": "news.cart_attack"
+      "event": "news.cart_attack",
+      "who": [
+        {
+          "name": "Jory Thatch"
+        }
+      ]
     },
     {
       "id": "mine_road_gang",
       "creature": "bandit",
       "count": 3,
-      "quest": "clear_mine_road"
+      "quest": "clear_mine_road",
+      "who": [
+        {
+          "name": "Kell Stone"
+        },
+        {
+          "name": "Lam Dyer"
+        },
+        {
+          "name": "Mott Fenn"
+        }
+      ]
     },
     {
       "id": "rook_guards",
       "creature": "bandit",
       "count": 3,
       "place": "camp",
-      "quest": "hammer_rook"
+      "quest": "hammer_rook",
+      "who": [
+        {
+          "name": "Ned Rafe"
+        },
+        {
+          "name": "Orrin Teague"
+        },
+        {
+          "name": "Pell Vane"
+        }
+      ]
     }
   ]
 }

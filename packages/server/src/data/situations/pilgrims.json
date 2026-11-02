@@ -1,0 +1,64 @@
+{
+ "id": "pilgrims",
+ "title": "Pilgrims",
+ "where": [
+  "road"
+ ],
+ "when": {
+  "night": false
+ },
+ "chance": 0.07,
+ "actors": [
+  {
+   "role": "pilgrim"
+  },
+  {
+   "role": "pilgrim"
+  }
+ ],
+ "text": "{a} and {b} are walking to a shrine along the road, singing under their breath. \"Walk with us a while?\" asks {a}. \"It's better company than your own.\"",
+ "choices": [
+  {
+   "id": "walk",
+   "label": "Walk with them a while",
+   "effects": [
+    {
+     "type": "time",
+     "minutes": 30
+    },
+    {
+     "type": "say",
+     "text": "The miles go quicker. {b} shares bread.",
+     "trust": 6,
+     "food": 8,
+     "rest": 4
+    }
+   ]
+  },
+  {
+   "id": "give",
+   "label": "Give them a few copper for the shrine",
+   "requires": {
+    "money": 5
+   },
+   "effects": [
+    {
+     "type": "money",
+     "amount": -5
+    },
+    {
+     "type": "say",
+     "text": "\"Blessings on your road,\" says {a}.",
+     "reputation": {
+      "respect": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "go",
+   "label": "Wish them well and go on",
+   "effects": []
+  }
+ ]
+}

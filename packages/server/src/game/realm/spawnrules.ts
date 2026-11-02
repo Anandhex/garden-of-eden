@@ -1,6 +1,8 @@
 import type { SpawnRule } from "../spawning.js";
+import type { BeastStore } from "../../store/beastStore.js";
 import { gangOf } from "./haunts.js";
 import type { Realm } from "./types.js";
+import { memberOnDuty } from "./who.js";
 
 /**
  * Spawn rules for a place, made from what the realm says is there (N25a decision 9), by den kind. Every map has
@@ -10,18 +12,22 @@ import type { Realm } from "./types.js";
  * spills out of a dungeon, the horse in the paddock. Rules made in play (the director's, a quest's quarry) go in
  * `SiteState.rules`.
  */
-export function rulesFor(realm: Realm | undefined, site: string): SpawnRule[] {
+export function rulesFor(realm: Realm | undefined, site: string, beasts?: BeastStore): SpawnRule[] {
   const s = realm?.settlements[site];
   if (!realm || !s) return [];
   const out: SpawnRule[] = [];
   if ((s.buildings.farms ?? 0) > 0) out.push({ id: `gen_horse_${site}`, creature: "horse", count: 1, place: "paddock" });
   for (const p of Object.values(realm.packs).filter((x) => x.near === site && x.count >= 2)) {
-    // A hungry pack comes to the edge of the woods by night.
-    if (p.count >= p.cap * 0.5) out.push({ id: `gen_night_${p.id}`, creature: p.species, count: Math.min(3, Math.max(1, Math.round(p.count / 4))), place: "woods_edge", hours: [21, 4] });
+    // A hungry pack comes to the edge of the woods by night: some of its own beasts, by row where the rows are kept.
+    const n = Math.min(3, Math.max(1, Math.round(p.count / 4)));
+    const rows = beasts?.living(p.id).filter((b) => b.figure !== p.alpha).slice(-n) ?? [];
+    if (p.count >= p.cap * 0.5) out.push({ id: `gen_night_${p.id}`, creature: p.species, count: n, place: "woods_edge", hours: [21, 4], ...(rows.length > 0 ? { who: rows.map((b) => ({ name: p.species, beast: b.id })) } : {}) });
   }
   const d = Object.values(realm.dungeons).find((x) => x.near === site);
   if (d && d.danger >= 75) out.push({ id: `gen_spill_${d.id}`, creature: "spider", count: 2, place: "mine_mouth" });
   const gang = gangOf(realm, site);
-  if (gang && gang.members.length >= 3) out.push({ id: `gen_lookout_${gang.id}`, creature: "bandit", count: 1, place: "road_ambush", hours: [18, 5] });
+  // The gang's night lookout is one of its members, turn and turn about (N26F step 0b: nobody made up).
+  const lookout = gang && gang.members.length >= 3 ? memberOnDuty(realm, gang.id, realm.day, "lookout") : null;
+  if (gang && lookout) out.push({ id: `gen_lookout_${gang.id}`, creature: "bandit", count: 1, who: [{ name: lookout.name, figure: lookout.id }], place: "road_ambush", hours: [18, 5] });
   return out;
 }

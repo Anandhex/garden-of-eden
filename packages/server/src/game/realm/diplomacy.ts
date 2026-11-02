@@ -1,3 +1,5 @@
+import { broken } from "../../balance/break.js";
+import { sink, transfer } from "./ledger.js";
 import type { Rng } from "../dice.js";
 import { dailyChance } from "../weather.js";
 import { addDeed, addRenown, titled } from "./figures.js";
@@ -149,22 +151,26 @@ export function raid(realm: Realm, attacker: Side, attackerParty: Party, target:
   casualty(realm, target, "raid", r.lost.defenders, raidRef, day);
   target.lastRaided = day;
   tally(realm, "raids");
-  sendArrival(realm, target.id, { day, kind: "raid", count: Math.max(2, Math.min(6, Math.round(attacker.men / 4))), by: attacker.name });
+  sendArrival(realm, target.id, {
+    day,
+    kind: "raid",
+    count: Math.max(2, Math.min(6, Math.round(attacker.men / 4))),
+    by: attacker.name,
+    who: attacker.fighters.filter((f) => f.alive).map((f) => f.id),
+    ...(attacker.home ? { from: attacker.home.id } : {}),
+  });
   if (attackerParty.startsWith("s:") && target.kingdom) {
     const ak = realm.settlements[attackerParty.slice(2)]?.kingdom;
     if (ak && ak !== target.kingdom) shiftOpinion(realm, target.kingdom, ak, -15);
   }
   if (r.attackerWon) {
-    const coin = Math.round(target.treasury * (0.15 + rng() * 0.15));
-    target.treasury -= coin;
+    const want = Math.round(target.treasury * (0.15 + rng() * 0.15));
     target.food = Math.max(0, target.food - 15);
-    if (attacker.home) {
-      attacker.home.treasury += coin;
-      attacker.home.food = Math.min(100, attacker.home.food + 10);
-    } else if (attackerParty.startsWith("f:")) {
-      const f = realm.factions[attackerParty.slice(2)];
-      if (f) f.wealth += coin;
-    }
+    const to = attacker.home ? `s:${attacker.home.id}` : attackerParty.startsWith("f:") ? attackerParty : null;
+    const coin = to ? transfer(realm, `s:${target.id}`, to, want, `the raid on ${target.name}`, undefined, day) : sink(realm, `s:${target.id}`, want, `carried off in the raid on ${target.name}`, undefined, day);
+    if (attacker.home) attacker.home.food = Math.min(100, attacker.home.food + 10);
+    // A gang that wins may break the place (N26I): the day's step sees whether it falls.
+    if (attackerParty.startsWith("f:") && realm.factions[attackerParty.slice(2)]?.kind === "gang") (realm.falls.length < 50 ? realm.falls : []).push({ site: target.id, to: "gang", id: attackerParty.slice(2), day, how: `overrun by ${attacker.name}` });
     // Something burns.
     if (rng() < 0.35) damageBuilding(target, rng);
     realmNews(realm, day, target.id, "raid", `${cap(attacker.name)} raided ${target.name} (${why}) and carried off ${Math.round(coin / 100)} gold${r.dead.length > 0 ? `; ${r.dead.map((f) => f.name).join(" and ")} died` : ""}.`, 7, [attacker.name, target.name, ...r.dead.map((f) => f.name)], { why });
@@ -218,35 +224,14 @@ export function payTreaties(realm: Realm, day: number): void {
     if (t.broken || t.until < day || !t.amount) continue;
     const from = t.kind === "tribute" ? t.a : t.b;
     const to = t.kind === "tribute" ? t.b : t.a;
-    const paid = take(realm, from, t.amount);
-    give(realm, to, paid);
+    const paid = transfer(realm, purseOf(realm, from), purseOf(realm, to), t.amount, t.kind, undefined, day);
     if (paid < t.amount && t.kind === "tribute") breakTreaty(realm, t, from, day, "it couldn't pay");
   }
 }
 
-/** Coin out of a party's purse (settlement, kingdom's capital, faction or person). Returns what was there. */
-function take(realm: Realm, p: Party, amount: number): number {
-  const id = p.slice(2);
-  const holder = p[0] === "s" ? realm.settlements[id] : p[0] === "k" ? realm.settlements[realm.kingdoms[id]?.capital ?? ""] : undefined;
-  if (holder) {
-    const paid = Math.min(holder.treasury, amount);
-    holder.treasury -= paid;
-    return paid;
-  }
-  const purse = p[0] === "f" ? realm.factions[id] : realm.figures[id];
-  if (!purse) return 0;
-  const has = "treasury" in purse ? 0 : purse.wealth;
-  const paid = Math.min(has, amount);
-  purse.wealth -= paid;
-  return paid;
-}
-
-function give(realm: Realm, p: Party, amount: number): void {
-  const id = p.slice(2);
-  const holder = p[0] === "s" ? realm.settlements[id] : p[0] === "k" ? realm.settlements[realm.kingdoms[id]?.capital ?? ""] : undefined;
-  if (holder) holder.treasury += amount;
-  else if (p[0] === "f" && realm.factions[id]) realm.factions[id]!.wealth += amount;
-  else if (p[0] === "p" && realm.figures[id]) realm.figures[id]!.wealth += amount;
+/** The ledger holder for a party: a kingdom pays from its capital's treasury. */
+function purseOf(realm: Realm, p: Party): string {
+  return p[0] === "k" ? `s:${realm.kingdoms[p.slice(2)]?.capital ?? ""}` : p;
 }
 
 // ---- Wars ----
@@ -345,15 +330,16 @@ export function warsDay(realm: Realm, day: number, rng: Rng): void {
     w.score = Math.max(-100, Math.min(100, w.score + (r.attackerWon ? 18 : -18)));
     w.battles.push({ day, at: at.id, winner: r.attackerWon ? "attackers" : "defenders", losses: r.lost.attackers + r.lost.defenders, text: `${r.attackerWon ? attack.name : at.name} won at ${at.name}` });
     tally(realm, "battles");
-    for (const p of [...w.attackers, ...w.defenders]) if (p.startsWith("k:")) realm.kingdoms[p.slice(2)]!.weariness = Math.min(100, realm.kingdoms[p.slice(2)]!.weariness + 6);
+    if (!broken("no-war-fatigue")) for (const p of [...w.attackers, ...w.defenders]) if (p.startsWith("k:")) realm.kingdoms[p.slice(2)]!.weariness = Math.min(100, realm.kingdoms[p.slice(2)]!.weariness + 6);
     sendArrival(realm, at.id, { day, kind: "war_levy", count: r.lost.defenders, by: attack.name });
     realmNews(realm, day, at.id, "battle", `The battle of ${at.name}: ${r.attackerWon ? `${attack.name} won` : `${at.name} held`}; ${r.lost.attackers + r.lost.defenders} fell${r.dead.length > 0 ? `, ${r.dead.map((f) => f.name).join(" and ")} among them` : ""}.`, 7, [at.name, attack.name, ...r.dead.map((f) => f.name)]);
     // Taken: it changes hands.
     if (r.attackerWon && w.score >= CAPTURE_SCORE && at.kind !== "capital" && w.attackers[0]!.startsWith("k:")) capture(realm, at, w.attackers[0]!.slice(2), day);
     const weary = w.attackers.concat(w.defenders).filter((p) => p.startsWith("k:")).every((p) => realm.kingdoms[p.slice(2)]!.weariness >= 60);
+    if (broken("no-peace")) continue;
     if (w.score >= WAR_WON) endWar(realm, w, day, "attackers", "they won the field");
     else if (w.score <= -WAR_WON) endWar(realm, w, day, "defenders", "they threw the attackers back");
-    else if (weary || day - w.start > 45) endWar(realm, w, day, Math.abs(w.score) < 20 ? "none" : w.score > 0 ? "attackers" : "defenders", "both sides were worn out");
+    else if (weary || (day - w.start > 45 && !broken("no-war-fatigue"))) endWar(realm, w, day, Math.abs(w.score) < 20 ? "none" : w.score > 0 ? "attackers" : "defenders", "both sides were worn out");
   }
   // Rebels whose leader is gone, or with nobody left, give up.
   for (const w of ongoing(realm)) {
