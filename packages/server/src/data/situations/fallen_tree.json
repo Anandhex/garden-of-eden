@@ -1,0 +1,77 @@
+{
+ "id": "fallen_tree",
+ "title": "A tree across the road",
+ "where": [
+  "road",
+  "forest",
+  "hills"
+ ],
+ "chance": 0.12,
+ "actors": [],
+ "text": "A big tree has come down across the road in the night, roots and all, and there's no way round for a cart.",
+ "choices": [
+  {
+   "id": "climb",
+   "label": "Clamber over it",
+   "effects": [
+    {
+     "type": "time",
+     "minutes": 5
+    },
+    {
+     "type": "check",
+     "attr": "agility",
+     "target": 9,
+     "success": [
+      {
+       "type": "say",
+       "text": "You're over, with only bark on your hands."
+      }
+     ],
+     "fail": [
+      {
+       "type": "say",
+       "text": "You slip on the wet trunk and bark your shin.",
+       "hp": -3
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "clear",
+   "label": "Hack a way through the branches for the next cart (an hour)",
+   "effects": [
+    {
+     "type": "time",
+     "minutes": 60
+    },
+    {
+     "type": "needs",
+     "rest": -12
+    },
+    {
+     "type": "say",
+     "text": "An hour's work, and the road is open. Someone will be glad of it.",
+     "reputation": {
+      "respect": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "round",
+   "label": "Go round through the brush",
+   "effects": [
+    {
+     "type": "time",
+     "minutes": 15
+    },
+    {
+     "type": "say",
+     "text": "Brambles and wet leaves, but you come out on the road beyond."
+    }
+   ]
+  }
+ ]
+}

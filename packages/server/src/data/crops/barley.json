@@ -1,0 +1,27 @@
+{
+  "id": "barley",
+  "name": "barley",
+  "sow": [
+    3,
+    9
+  ],
+  "grow": 22,
+  "ripe": 6,
+  "yield": 2.4,
+  "likes": [
+    "valley",
+    "coast",
+    "plains"
+  ],
+  "dislikes": [
+    "marsh"
+  ],
+  "eatenBy": [
+    "deer",
+    "crows",
+    "boar"
+  ],
+  "frost": true,
+  "flood": true,
+  "on": "field"
+}

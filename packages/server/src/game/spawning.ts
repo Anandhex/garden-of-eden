@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { WorldSnapshot } from "../npc/types.js";
+import { speciesOf } from "../world/species.js";
 import { type Creature, type CreatureTemplate, spawnCreature } from "./creatures.js";
 import type { Rng } from "./dice.js";
 
@@ -20,6 +21,13 @@ import type { Rng } from "./dice.js";
  * left moves on and is removed from the world. Which creatures came from which
  * rule is kept in the save (world.spawns).
  */
+/** A real person who turns up as a creature: a realm figure or a `people` row (or both, for a row that rose). */
+export const WhoSchema = z.object({ name: z.string().min(1), figure: z.string().optional(), person: z.string().optional(), beast: z.string().optional() }).strict();
+export type Who = z.infer<typeof WhoSchema>;
+
+/** A kind whose individuals are people (bandit, villager, guard...): they may never be made up (plans README section 21). */
+export const isPersonKind = (t: Pick<CreatureTemplate, "species">): boolean => speciesOf(t.species).talks;
+
 export const SpawnRuleSchema = z
   .object({
     id: z.string().min(1),
@@ -34,6 +42,11 @@ export const SpawnRuleSchema = z
     untilDay: z.number().int().positive().optional(),
     /** They're lying in wait for the player: they jump them on arrival (revenge ambushes, director/revenge.ts). */
     ambush: z.boolean().optional(),
+    /**
+     * Who they are (N26F step 0b, nobody made up): for a kind that is a person (bandits, villagers), the real people who
+     * come, a realm figure or a `people` row each. A person kind with no `who` spawns nobody. `count` is ignored when given.
+     */
+    who: z.array(WhoSchema).optional(),
   })
   .strict();
 export type SpawnRule = z.infer<typeof SpawnRuleSchema>;
@@ -113,11 +126,18 @@ export function applySpawnRules(
   world: Pick<WorldSnapshot, "day" | "hour" | "recentEvents" | "player">,
   rng: Rng,
   keep: ReadonlySet<string> = new Set(),
+  /** Is this person still alive and free to come? (The realm and the people table decide; default: yes.) */
+  canCome: (w: Who) => boolean = () => true,
+  /** Make the creature for someone named (a pack's beast from its row); null: the plain way. */
+  build: (t: CreatureTemplate, w: Who, uid: string) => Creature | null = () => null,
 ): string[] {
   const log: string[] = [];
   for (const rule of rules) {
     const t = templates[rule.creature];
     if (!t) continue;
+    // Nobody is made up: a person kind comes only as the real people named.
+    const who = rule.who?.filter(canCome);
+    if (isPersonKind(t) && !rule.who) continue;
     const key = windowKey(rule, world);
     const out = ledger[rule.id];
     if (out && out.key !== key) {
@@ -133,13 +153,29 @@ export function applySpawnRules(
     }
     if (key === null || ledger[rule.id]) continue;
     const uids: string[] = [];
-    for (let i = 0; i < rule.count; i++) {
-      const { uid, name } = freshId(t, creatures);
-      creatures[uid] = spawnCreature(t, uid, world.day, rng, name);
-      uids.push(uid);
+    if (who) {
+      // Each one once: someone already on the map isn't sent twice.
+      const here = new Set(Object.values(creatures).filter((c) => !c.outcome).flatMap((c) => [c.figure, c.person, c.beast].filter(Boolean)));
+      for (const w of who) {
+        if ((w.figure && here.has(w.figure)) || (w.person && here.has(w.person)) || (w.beast && here.has(w.beast))) continue;
+        const { uid } = freshId(t, creatures);
+        const c = build(t, w, uid) ?? spawnCreature(t, uid, world.day, rng, w.name);
+        if (w.figure) c.figure = w.figure;
+        if (w.person) c.person = w.person;
+        creatures[uid] = c;
+        uids.push(uid);
+      }
+      if (uids.length === 0) continue;
+    } else {
+      for (let i = 0; i < rule.count; i++) {
+        const { uid, name } = freshId(t, creatures);
+        creatures[uid] = spawnCreature(t, uid, world.day, rng, name);
+        uids.push(uid);
+      }
     }
     ledger[rule.id] = { key, uids };
-    log.push(`${plural(t.name, rule.count)} ${rule.count === 1 ? "turns" : "turn"} up${rule.place ? ` (${rule.place.replace(/_/g, " ")})` : ""}.`);
+    const names = who ? uids.map((u) => creatures[u]!.name) : [];
+    log.push(who ? `${names.join(", ")} ${uids.length === 1 ? "turns" : "turn"} up${rule.place ? ` (${rule.place.replace(/_/g, " ")})` : ""}.` : `${plural(t.name, rule.count)} ${rule.count === 1 ? "turns" : "turn"} up${rule.place ? ` (${rule.place.replace(/_/g, " ")})` : ""}.`);
   }
   return log;
 }

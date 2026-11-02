@@ -2,6 +2,8 @@
 
 # N27 plan: The wilds
 
+> **Partly built by [N26F](n26f-a-road-worth-walking.md) (2026-10-24):** roadside places near the road (step 1, `shared/road/poi.ts`), lairs and camps as road territories (step 2, `shared/road/territory.ts`), and the woods, camp and old mine entered from the road (decision 3 / step 8). Discovery, the player's map, getting lost and everything off-road are still this phase's.
+
 > **N26F (planned 2026-10-24) brings parts of this plan forward:** decision 3 and step 8 (the woods, camp and mine move onto the road, their maps kept as interiors), step 1 for places near a road (`roadsidePlaces`, using this plan's `Poi` type and ids), and step 2 for packs and gangs as road territories (a pack's den is a cave in its territory). If N26F is built first, build the rest of this plan on top of it: extend `poi.ts` off-road and reuse its territories for lairs and camps.
 
 **In one line:** the chunk world from N26 extends off the road; points of interest are placed by seed and by the realm's real state (a pack's lair where the pack is, a gang's camp where the gang is); the player finds them, can get lost, and nothing is on their map until they find it or hear of it.

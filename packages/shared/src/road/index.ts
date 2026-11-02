@@ -5,3 +5,6 @@ export * from "./journey.js";
 export * from "./noise.js";
 export * from "./scale.js";
 export * from "./types.js";
+export * from "./territory.js";
+export * from "./wildlife.js";
+export * from "./poi.js";

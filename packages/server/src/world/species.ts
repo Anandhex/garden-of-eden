@@ -37,6 +37,13 @@ export const SPECIES: Record<string, SpeciesDef> = {
   bear: { name: "a bear", talks: false, adultAge: 4, elderAge: 20, maxAge: 32, maxTier: "A", learnRate: 0.9 },
   boar: { name: "a boar", talks: false, adultAge: 2, elderAge: 10, maxAge: 18, maxTier: "C", learnRate: 1.1 },
   spider: { name: "a giant spider", talks: false, adultAge: 1, elderAge: 6, maxAge: 10, maxTier: "B", learnRate: 1.2 },
+  // Light wildlife (N26F decision 7): nobody's, drawn along the road and made a creature only when hunted.
+  deer: { name: "a deer", talks: false, adultAge: 2, elderAge: 10, maxAge: 18, maxTier: "F", learnRate: 0.8 },
+  hare: { name: "a hare", talks: false, adultAge: 1, elderAge: 4, maxAge: 7, maxTier: "G", learnRate: 0.8 },
+  fox: { name: "a fox", talks: false, adultAge: 1, elderAge: 6, maxAge: 10, maxTier: "F", learnRate: 0.9 },
+  adder: { name: "an adder", talks: false, adultAge: 2, elderAge: 10, maxAge: 18, maxTier: "F", learnRate: 0.7 },
+  heron: { name: "a heron", talks: false, adultAge: 2, elderAge: 12, maxAge: 20, maxTier: "G", learnRate: 0.7 },
+  crow: { name: "a crow", talks: false, adultAge: 1, elderAge: 8, maxAge: 14, maxTier: "G", learnRate: 0.8 },
 };
 
 export const SPECIES_IDS = Object.keys(SPECIES);

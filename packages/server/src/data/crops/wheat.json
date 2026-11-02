@@ -1,0 +1,27 @@
+{
+  "id": "wheat",
+  "name": "wheat",
+  "sow": [
+    1,
+    6
+  ],
+  "grow": 28,
+  "ripe": 6,
+  "yield": 2.6,
+  "likes": [
+    "plains",
+    "valley"
+  ],
+  "dislikes": [
+    "marsh",
+    "hills"
+  ],
+  "eatenBy": [
+    "deer",
+    "crows",
+    "boar"
+  ],
+  "frost": true,
+  "flood": true,
+  "on": "field"
+}

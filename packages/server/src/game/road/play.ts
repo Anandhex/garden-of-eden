@@ -15,7 +15,14 @@ import { journeyOf, journeysNear, lineOf } from "./journeys.js";
 import { buyMount, feedMount, mountStep, mountView, sellMount, tickMount, treatMount } from "./mounts.js";
 import { consume, drink, needsOf, needsWords, stepPenalty, tickNeeds, topUp } from "./needs.js";
 import { meet, resolve, viewOf } from "./situations.js";
-import { meetThreats } from "./threats.js";
+import { answerToll, hostilesStep } from "./hostiles.js";
+import { commutersNear } from "./commute.js";
+import { plotUnder } from "../farm/fields.js";
+import { playerReaps, plotTiles } from "../farm/day.js";
+import { passSigns, signsNear } from "./signs.js";
+import { hireOn, SELLSWORD_WAGE } from "./watch.js";
+import { campsNear, minersWords, searchWreck, useOldPlace, wrecksNear } from "./roadside.js";
+import type { AreaId } from "../schedule.js";
 import { stepOnRoad } from "./walk.js";
 import type { MountKind } from "./state.js";
 
@@ -64,9 +71,17 @@ export class RoadPlay {
     const p = this.world.player;
     if (!realm || !p.road) return { ok: false, reason: "You're not on the road.", log: [] };
     if (p.road.pending) return { ok: false, reason: "Something needs your decision first.", log: [] };
+    const was = { x: p.road.x, y: p.road.y };
     const r = stepOnRoad(realm, p, dx, dy, this.world.day, this.cost());
     if (!r.ok) return { ok: false, ...(r.reason ? { reason: r.reason } : {}), log: r.lines };
     const log = [...r.lines];
+    // Banished from it (N26J): the guards at the gate turn the player away until the day it ends.
+    const until = r.entered ? p.banished?.[r.entered] : undefined;
+    if (r.entered && until !== undefined && this.world.day < until && p.road) {
+      p.road.x = was.x;
+      p.road.y = was.y;
+      return { ok: false, reason: `The guards at the gate of ${realm.settlements[r.entered]?.name} turn you away: you're banished until day ${until}.`, log };
+    }
     if (r.entered) {
       log.push(...this.town.arriveAt(r.entered));
       topUp(p, this.minute(), 60);
@@ -83,15 +98,68 @@ export class RoadPlay {
     const land = landOf(realm);
     // What waits here: a pack's ground, an ambush, then something on this stretch of road today.
     if (!p.road) return { ok: true, log };
-    log.push(...meetThreats(this.town, this.town.actionRng()));
+    // Packs and gangs on their stretches of road come out, on the map (N26F step 2).
+    log.push(...hostilesStep(this.town, this.town.actionRng()));
+    log.push(...passSigns(this.town));
+    log.push(...this.trample());
     const near = nearestRoad(land, p.road, 10);
     if (near && !near.road.id.startsWith("spur:")) log.push(...meet(this.town, land.data, near.road, near.t));
     return { ok: true, log };
   }
 
+  /** Walking through a standing crop tramples it (N26G decision 6): a field event by the player, on that tile. */
+  private trample(): string[] {
+    const realm = this.world.realm;
+    const p = this.world.player.road;
+    const store = this.town.store;
+    if (!realm || !p || !store) return [];
+    const under = plotUnder(realm, store, p.x, p.y, this.world.day);
+    if (!under) return [];
+    const stage = plotTiles(realm, store, under.s, under.plot, this.world.day)[under.i] ?? 0;
+    if (stage === 0 || stage >= 6) return [];
+    store.farm.record(under.s.id, { plot: under.plot.id, day: this.world.day, kind: "trample", tiles: [under.i], by: "player", amount: 1 });
+    const key = `trample:${under.plot.id}`;
+    if (p.seen[key] === this.world.day) return [];
+    p.seen[key] = this.world.day;
+    const holder = under.row?.holder ?? "commons";
+    const whose = holder.startsWith("hh:") ? "someone's" : holder.startsWith("lord:") ? "the lord's" : holder.startsWith("temple:") ? "the temple's" : "the village's";
+    return [`You're trampling ${whose} crop.`];
+  }
+
+  /** A plot next to where the player stands (one tile either way). */
+  private besidePlot() {
+    const realm = this.world.realm;
+    const p = this.world.player.road;
+    if (!realm || !p || !this.town.store) return null;
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+      const hit = plotUnder(realm, this.town.store, p.x + dx, p.y + dy, this.world.day);
+      if (hit) return hit;
+    }
+    return null;
+  }
+
   /** The player chooses what to do about what's on the road. */
   choose(choiceId: string): { ok: boolean; lines: string[] } {
+    if (this.world.player.road?.pending?.kind === "toll") return answerToll(this.town, choiceId);
     return resolve(this.town, choiceId, this.minute());
+  }
+
+  /** A gang's toll waiting for an answer, as a situation to show. */
+  private tollView(): RoadView["pending"] {
+    const pend = this.world.player.road?.pending;
+    if (!pend || pend.kind !== "toll") return null;
+    const g = this.world.realm?.factions[pend.id];
+    const p = this.world.player;
+    return {
+      id: pend.key,
+      title: `${g?.name ?? "Outlaws"} on the road`,
+      text: `They want ${formatMoney(pend.amount)} to let you by.`,
+      choices: [
+        { id: "pay", label: `Pay ${formatMoney(pend.amount)}`, ...(p.money < pend.amount ? { hint: `You need ${formatMoney(pend.amount)}.` } : {}) },
+        { id: "refuse", label: "Refuse, and fight if it comes to it" },
+        { id: "back", label: "Turn back" },
+      ],
+    };
   }
 
   /**
@@ -123,6 +191,11 @@ export class RoadPlay {
   travellerPos(id: string): { x: number; y: number } | null {
     const realm = this.world.realm;
     const at = this.town.whereNow(id);
+    // Someone walking to work along the road (N26F decision 12): where their day has them.
+    if (realm && !at) {
+      const c = commutersNear(this.town, 200).find((x) => x.person === id);
+      return c ? { x: c.x, y: c.y } : null;
+    }
     if (!realm || !at) return null;
     const j = journeyOf(realm, at.journey);
     if (!j || !this.visibleOnRoad(j, at.site)) return null;
@@ -144,6 +217,7 @@ export class RoadPlay {
     if (!realm || !road) return [];
     const out: string[] = [];
     for (const { journey } of journeysNear(realm, landOf(realm).data, road, radius + 10, this.minute())) for (const t of journey.party) if (this.travellerPos(t.person)) out.push(t.person);
+    for (const c of commutersNear(this.town, radius)) out.push(c.person);
     return out;
   }
 
@@ -224,6 +298,24 @@ export class RoadPlay {
       case "signpost":
       case "waystation":
         return [{ op: "read", label: pl.kind === "milestone" ? "Read the stone" : "Read the sign" }];
+      case "woods":
+        return [{ op: "enter", label: "Take the path into the woods" }];
+      case "mine": {
+        if (pl.area) return [{ op: "enter", label: "Go up the track to the mine" }];
+        const watch = pl.site ? this.world.realm?.settlements[pl.site]?.watch : undefined;
+        return [{ op: "look", label: "Look at the mine" }, ...(watch && watch.level > 0 && this.world.player.duty?.day !== today ? [{ op: "hire", label: `Take a day on the mine watch (${formatMoney(SELLSWORD_WAGE)})` }] : [])];
+      }
+      case "camp":
+        return [{ op: "enter", label: "Go into the camp" }];
+      case "stones":
+        return [{ op: "look", label: "Look at the stones" }];
+      case "ruin":
+      case "cave":
+        return [{ op: "search", label: pl.kind === "cave" ? "Go in and look about" : "Search the ruin" }];
+      case "herbs":
+        return [{ op: "gather", label: "Gather herbs" }];
+      case "ore":
+        return [{ op: "dig", label: "Dig ore (needs a pick)" }];
       default:
         return [];
     }
@@ -235,6 +327,18 @@ export class RoadPlay {
     const p = this.world.player;
     const road = p.road;
     if (!realm || !road) return ["You're not on the road."];
+    if (id.startsWith("wreck:")) return searchWreck(this.town, id);
+    if (id.startsWith("plot:") && op === "reap" && this.town.store) {
+      const under = plotUnder(realm, this.town.store, road.x, road.y, this.world.day) ?? this.besidePlot();
+      if (!under || `plot:${under.plot.id}` !== id) return ["That is out of reach."];
+      return playerReaps(realm, this.town.store, under.s.id, under.plot.id, this.world.day, this.world.player);
+    }
+    // A gang's camp, once the player knows where it is (N26F decision 9): the camp map, entered from here.
+    if (id.startsWith("camp:")) {
+      const camp = campsNear(this.town, 10).find((c) => c.id === id);
+      if (!camp) return ["That is out of reach."];
+      return this.town.enterFromRoad(camp.seat, "road");
+    }
     const land = landOf(realm);
     const pl = placesNear(land, road, 8).find((x) => x.id === id);
     if (!pl) return ["That is out of reach."];
@@ -262,6 +366,10 @@ export class RoadPlay {
       n.water = Math.min(100, n.water + 18);
       return [`You buy bread and a mug of milk for ${formatMoney(FARM_FOOD)}.`];
     }
+    if (op === "enter" && pl.area) return this.town.enterFromRoad(pl.area.site, pl.area.id as AreaId);
+    if (pl.kind === "mine" && op === "hire" && pl.site) return hireOn(this.town, pl.site);
+    if (pl.kind === "mine" && op === "look") return [`${pl.name}: spoil heaps, a winch, the dark of the adit. ${minersWords(this.town, pl.site ?? "")}`];
+    if (["stones", "ruin", "cave", "herbs", "ore"].includes(pl.kind)) return useOldPlace(this.town, pl, op, m);
     return ["Nothing to be done here."];
   }
 
@@ -291,6 +399,15 @@ export class RoadPlay {
     const near = nearestRoad(land, p.road, 10);
     const today = this.world.day;
     const nearby: RoadNearby[] = placesNear(land, p.road, 6).map((pl) => ({ id: pl.id, kind: pl.kind, name: pl.name, x: pl.at.x, y: pl.at.y, offers: this.offersOf(pl, today) }));
+    // A gang's camp, only once the player knows of it (it's never in the road data the browser has: N27's rule for secret places).
+    for (const c of campsNear(this.town, 8)) nearby.push({ id: c.id, kind: "camp", name: c.name, x: c.x, y: c.y, offers: [{ op: "enter", label: "Go into the camp" }] });
+    // Signs of what's about: tracks, smoke, a fresh grave (N26F decision 11).
+    for (const sg of signsNear(this.town, 8)) nearby.push({ id: sg.id, kind: sg.kind, name: sg.name, x: sg.x, y: sg.y, offers: [] });
+    // A ripe plot under or beside the player: they can hire on for the day's reaping (N26G).
+    const field = this.town.store ? (plotUnder(realm, this.town.store, p.road.x, p.road.y, today) ?? this.besidePlot()) : null;
+    if (field && this.town.store && (plotTiles(realm, this.town.store, field.s, field.plot, today) as Uint8Array).includes(5)) nearby.push({ id: `plot:${field.plot.id}`, kind: "field", name: `a ripe field of ${field.s.name}'s`, x: field.plot.x, y: field.plot.y, offers: [{ op: "reap", label: "Help with the reaping (a day's wage)" }] });
+    // A cart left where a party was robbed (only where it really happened).
+    for (const w of wrecksNear(this.town)) nearby.push({ id: w.id, kind: "cart", name: w.name, x: w.x, y: w.y, offers: [{ op: "search", label: "Search the cart" }] });
     const m = this.minute();
     const needs = needsOf(p, m);
     const minuteOfDay = this.world.hour * 60 + (this.world.minute ?? 0);
@@ -305,7 +422,7 @@ export class RoadPlay {
       canFast: !!p.road.dest && this.fastOk(near ? `${near.road.id}:${Math.floor(near.t / 300)}` : "off"),
       needs: { food: Math.round(needs.food), water: Math.round(needs.water), rest: Math.round(needs.rest), words: needsWords(needs) },
       mount: mountView(p.mount),
-      pending: viewOf(realm, land.data, this.town),
+      pending: this.tollView() ?? viewOf(realm, land.data, this.town),
       nearby,
       stepsPerMinute: STEPS_PER_GAME_MINUTE,
       lightLeft: minuteOfDay >= DAY_STARTS * 60 && minuteOfDay < DAY_ENDS * 60 ? DAY_ENDS * 60 - minuteOfDay : null,

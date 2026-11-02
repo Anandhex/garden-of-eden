@@ -1,0 +1,24 @@
+{
+  "id": "turnips",
+  "name": "turnips",
+  "sow": [
+    8,
+    14
+  ],
+  "grow": 18,
+  "ripe": 10,
+  "yield": 2.2,
+  "likes": [
+    "coast",
+    "marsh",
+    "valley"
+  ],
+  "dislikes": [],
+  "eatenBy": [
+    "deer",
+    "boar"
+  ],
+  "frost": false,
+  "flood": false,
+  "on": "field"
+}

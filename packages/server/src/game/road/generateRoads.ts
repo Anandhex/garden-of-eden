@@ -1,3 +1,4 @@
+import { POI_NAMES, roadsidePlaces } from "@millbrook/shared";
 import {
   type Anchor,
   type Crossing,
@@ -292,8 +293,41 @@ export function buildRoadData(realm: Realm, opts: { roadsOnly?: boolean } = {}):
       if (r() < 0.65) add("farmstead", "a farmstead", from === 0 ? 260 + r() * 500 : road.length - 260 - r() * 500, 10, r() < 0.5 ? 1 : -1);
     }
     for (let t = 1800; t < road.length - 600; t += 2400) if (r() < 0.45) add("shrine", "a wayside shrine", t + r() * 600, 6, r() < 0.5 ? 1 : -1);
+    // Old things beside the road (N26F decision 8): stones, ruins, caves, herbs, ore, by the country it runs through.
+    for (const spot of roadsidePlaces(seed, road, [a.terrain, b.terrain])) add(spot.kind, POI_NAMES[spot.kind], spot.t, spot.off, spot.side);
     // A toll gate where the road crosses a kingdom's border.
     if (a.kingdom && b.kingdom && a.kingdom !== b.kingdom) add("tollgate", `the border post of ${realm.kingdoms[b.kingdom]?.name ?? "the next kingdom"}`, road.length / 2, 3, 1, { toll: TOLL.border, kingdom: b.kingdom });
+  }
+  // A place's surroundings on the road out of it (N26F decision 9): its woods, its old mine (the dungeon) and its working mine.
+  const WOODED: Record<string, number> = { forest: 4, hills: 3, marsh: 2, valley: 2, coast: 1, plains: 0 };
+  for (const s of ordinary) {
+    const out = roads.filter((r) => !r.id.startsWith("spur:") && (r.a === s.id || r.b === s.id));
+    if (out.length === 0) continue;
+    const r = seededRng(seedOf(`${seed}:surrounds:${s.id}`));
+    const along = (road: RoadPath, d: number) => (road.a === s.id ? d : road.length - d);
+    const putOn = (road: RoadPath, kind: RoadPlace["kind"], name: string, d: number, off: number, extra: Partial<RoadPlace>) => {
+      if (road.length < d + 200) return;
+      const cum = cums.get(road.id)!;
+      const t = along(road, d);
+      const on = pointAt(road.pts, cum, t);
+      places.push({ id: `${kind}:${s.id}`, kind, name, road: road.id, t: Math.round(t), at: sideOf(road, cum, t, off, r() < 0.5 ? 1 : -1), on: { x: Math.round(on.x), y: Math.round(on.y) }, ...extra });
+    };
+    // The woods: on the road out whose country is most wooded.
+    const other = (road: RoadPath) => realm.settlements[road.a === s.id ? road.b : road.a]!;
+    const woodsRoad = [...out].sort((x, y) => (WOODED[other(y).terrain] ?? 0) - (WOODED[other(x).terrain] ?? 0) || x.id.localeCompare(y.id))[0]!;
+    putOn(woodsRoad, "woods", `the path into the woods of ${s.name}`, 150 + Math.round(r() * 250), 9, { area: { site: s.id, id: "woods" } });
+    // The old mine (a dungeon): on the road out nearest it.
+    const d = Object.values(realm.dungeons).find((x) => x.near === s.id);
+    if (d) {
+      const at = { x: tileOf(d.pos.x), y: tileOf(d.pos.y) };
+      const toward = [...out].sort((x, y) => dist(x.pts[Math.floor(x.pts.length / 2)]!, at) - dist(y.pts[Math.floor(y.pts.length / 2)]!, at) || x.id.localeCompare(y.id))[0]!;
+      putOn(toward, "mine", `the track to ${d.name}`, 300 + Math.round(r() * 500), 12, { area: { site: s.id, id: "road" } });
+    }
+    // The working mine: the place's own, out in the hills nearest it (its miners walk out to it).
+    if ((s.buildings.mine ?? 0) > 0) {
+      const hillsRoad = [...out].sort((x, y) => (other(y).terrain === "hills" ? 1 : 0) - (other(x).terrain === "hills" ? 1 : 0) || x.id.localeCompare(y.id))[0]!;
+      putOn(hillsRoad, "mine", `${s.name}'s mine`, 300 + Math.round(r() * 500), 14, { site: s.id, id: `workings:${s.id}` });
+    }
   }
   places.sort((x, y) => x.id.localeCompare(y.id));
   return { seed, footprints: everyPrint.sort((x, y) => x.id.localeCompare(y.id)), roads, rivers, crossings, places, anchors };

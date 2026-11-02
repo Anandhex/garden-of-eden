@@ -1,0 +1,59 @@
+{
+  "crimes": [
+    {
+      "id": "trespass",
+      "weight": 1,
+      "words": "trespass"
+    },
+    {
+      "id": "petty_theft",
+      "weight": 1,
+      "words": "petty theft"
+    },
+    {
+      "id": "poaching",
+      "weight": 2,
+      "words": "poaching"
+    },
+    {
+      "id": "stealing_crops",
+      "weight": 2,
+      "words": "stealing from the fields"
+    },
+    {
+      "id": "theft",
+      "weight": 2,
+      "words": "theft"
+    },
+    {
+      "id": "bribery",
+      "weight": 2,
+      "words": "bribery"
+    },
+    {
+      "id": "assault",
+      "weight": 3,
+      "words": "assault"
+    },
+    {
+      "id": "breaking_in",
+      "weight": 3,
+      "words": "breaking into a guarded place"
+    },
+    {
+      "id": "banditry",
+      "weight": 4,
+      "words": "banditry"
+    },
+    {
+      "id": "kidnapping",
+      "weight": 5,
+      "words": "kidnapping"
+    },
+    {
+      "id": "killing",
+      "weight": 5,
+      "words": "killing"
+    }
+  ]
+}

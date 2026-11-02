@@ -1,3 +1,6 @@
+import { territoriesNow } from "../game/road/territories.js";
+import { strongEnough } from "../game/road/hostiles.js";
+import { describeBeast } from "../game/realm/beasts.js";
 import type { AdminJourney, AdminNewsChain, AdminRoads } from "@millbrook/shared";
 import { isOnTheRoad, partyAt, placeAt, unitsOf, type Journey } from "@millbrook/shared";
 import { newsChain } from "../game/road/exchange.js";
@@ -71,7 +74,29 @@ export function roadsOf(ctx: AdminContext): AdminRoads {
     if (isOnTheRoad(j, minute)) onTheRoad[j.kind] = (onTheRoad[j.kind] ?? 0) + 1;
     return journeyView(ctx, j, minute);
   });
-  return { day: world.day, journeys, onTheRoad };
+  const people = ctx.store?.people;
+  const beasts = ctx.store?.beasts;
+  const territories = territoriesNow(realm).map((t) => ({
+    id: t.id,
+    kind: t.kind,
+    owner: t.owner,
+    name: t.kind === "pack" ? `${realm.packs[t.owner]?.species ?? "beast"}s near ${realm.settlements[t.near]?.name ?? t.near}` : (realm.factions[t.owner]?.name ?? t.owner),
+    road: t.road,
+    t0: Math.round(t.t0),
+    t1: Math.round(t.t1),
+    strong: strongEnough(realm, t),
+    beasts: t.kind === "pack" && beasts ? beasts.living(t.owner).map((b) => describeBeast(realm, b, world.day)) : [],
+  }));
+  const watches = Object.values(realm.settlements)
+    .filter((x) => x.watch)
+    .map((x) => ({
+      site: x.id,
+      name: x.name,
+      level: x.watch!.level,
+      guards: x.watch!.guards.map((id) => people?.get(id)?.name ?? id),
+      hired: x.watch!.hired.map((h) => ({ name: people?.get(h.person)?.name ?? h.person, from: realm.settlements[h.from]?.name ?? h.from, wage: h.wage, until: h.until })),
+    }));
+  return { day: world.day, journeys, onTheRoad, territories, watches };
 }
 
 /** The journey of a person who is away, as a view (null if they are at home). */

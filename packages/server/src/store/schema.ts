@@ -11,7 +11,7 @@ import type { DatabaseSync } from "node:sqlite";
 
 /** Columns of each state table, in order: what export and the world hash read, and what import checks. */
 export const TABLES = {
-  people: ["id", "site", "n", "name", "gender", "species", "born_day", "cls", "job", "home", "work", "master", "master_id", "faction", "mother", "father", "spouse", "figure", "persona", "traits", "death", "expecting", "last_birth", "stepped_day", "outlook", "away", "skill", "shop", "rev"],
+  people: ["id", "site", "n", "name", "gender", "species", "born_day", "cls", "job", "home", "work", "master", "master_id", "faction", "mother", "father", "spouse", "figure", "persona", "traits", "death", "expecting", "last_birth", "stepped_day", "outlook", "away", "skill", "shop", "origin", "captive", "rev"],
   relationships: ["a", "b", "trust", "affection", "respect", "fear", "since"],
   knowledge: ["who", "ref", "learned_day", "source", "accuracy", "variant"],
   grievances: ["id", "who", "against", "cause_ref", "weight", "since", "settled"],
@@ -23,6 +23,11 @@ export const TABLES = {
   site_days: ["site", "day", "data"],
   site_seq: ["site", "next_id", "next_n", "stepped"],
   life_reviews: ["id", "who", "day", "by", "shock", "input_hash", "proposal", "applied", "clipped", "rejected"],
+  beasts: ["id", "pack", "species", "sex", "born", "mother", "life", "wounds", "wins", "kills", "figure", "died", "died_how", "died_by"],
+  plots: ["id", "site", "holder", "fence"],
+  sowings: ["plot", "crop", "day", "year"],
+  field_events: ["id", "site", "plot", "day", "kind", "tiles", "by", "amount"],
+  plot_years: ["plot", "year", "reaped", "lost"],
 } as const;
 export type TableName = keyof typeof TABLES;
 
@@ -40,6 +45,11 @@ export const ORDER_BY: Record<TableName, string> = {
   site_days: "site, day",
   site_seq: "site",
   life_reviews: "id",
+  beasts: "id",
+  plots: "id",
+  sowings: "plot, year",
+  field_events: "id",
+  plot_years: "plot, year",
 };
 
 const V1 = `
@@ -185,6 +195,39 @@ const MIGRATIONS: Array<(db: DatabaseSync) => void> = [
     if (!amb.has("frustration")) db.exec("ALTER TABLE ambitions ADD COLUMN frustration REAL NOT NULL DEFAULT 0");
     if (!amb.has("route")) db.exec("ALTER TABLE ambitions ADD COLUMN route TEXT");
     if (!amb.has("urgent")) db.exec("ALTER TABLE ambitions ADD COLUMN urgent TEXT");
+  },
+  // 10 (N26F decision 14): pack beasts as rows. Every wolf, bear, boar and spider of a realm pack is a `beasts` row (store/beastStore.ts):
+  // its life, wounds and scars, wins and kills, the figure it rose to, and how it died. A pack's `count` is the number of its living rows.
+  (db) => {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS beasts (
+        id TEXT PRIMARY KEY, pack TEXT NOT NULL, species TEXT NOT NULL, sex TEXT NOT NULL, born INTEGER NOT NULL, mother TEXT,
+        life TEXT NOT NULL, wounds TEXT NOT NULL, wins INTEGER NOT NULL DEFAULT 0, kills TEXT NOT NULL DEFAULT '[]', figure TEXT,
+        died INTEGER, died_how TEXT, died_by TEXT
+      );
+      CREATE INDEX IF NOT EXISTS beasts_pack ON beasts(pack, died);
+    `);
+  },
+  // 11 (N26G): fields outside the village. A plot's shape comes from the layout (shared farm/layout.ts); `plots` keeps who holds it and
+  // its fence, `sowings` what was sown when, `field_events` what happened to it (the tiles it touched), folded into `plot_years` after a year.
+  (db) => {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS plots (id TEXT PRIMARY KEY, site TEXT NOT NULL, holder TEXT NOT NULL, fence INTEGER NOT NULL DEFAULT 0);
+      CREATE INDEX IF NOT EXISTS plots_site ON plots(site);
+      CREATE TABLE IF NOT EXISTS sowings (plot TEXT NOT NULL, crop TEXT NOT NULL, day INTEGER NOT NULL, year INTEGER NOT NULL, PRIMARY KEY (plot, year));
+      CREATE TABLE IF NOT EXISTS field_events (id INTEGER PRIMARY KEY AUTOINCREMENT, site TEXT NOT NULL, plot TEXT NOT NULL, day INTEGER NOT NULL, kind TEXT NOT NULL, tiles TEXT NOT NULL, by TEXT NOT NULL, amount REAL NOT NULL);
+      CREATE INDEX IF NOT EXISTS field_events_site ON field_events(site, day);
+      CREATE INDEX IF NOT EXISTS field_events_plot ON field_events(plot, day);
+      CREATE TABLE IF NOT EXISTS plot_years (plot TEXT NOT NULL, year INTEGER NOT NULL, reaped REAL NOT NULL, lost TEXT NOT NULL, PRIMARY KEY (plot, year));
+    `);
+  },
+  // 12 (N26I): fallen places. `people.origin` (JSON { site, day, why }: the place someone fled or was freed from, which they may go back to)
+  // and `people.captive` (JSON { by, since, worth, use, ransom? } while a gang holds them).
+  (db) => {
+    const have = new Set((db.prepare("PRAGMA table_info(people)").all() as Array<{ name: string }>).map((c) => c.name));
+    if (!have.has("origin")) db.exec("ALTER TABLE people ADD COLUMN origin TEXT");
+    if (!have.has("captive")) db.exec("ALTER TABLE people ADD COLUMN captive TEXT");
+    db.exec("CREATE INDEX IF NOT EXISTS people_captive ON people(site) WHERE captive IS NOT NULL");
   },
 ];
 

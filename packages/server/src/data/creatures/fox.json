@@ -1,0 +1,62 @@
+{
+  "id": "fox",
+  "name": "fox",
+  "species": "fox",
+  "tier": "G",
+  "potential": [
+    "G",
+    "F"
+  ],
+  "ageRange": [
+    1,
+    6
+  ],
+  "stats": {
+    "maxHp": 10,
+    "maxMp": 0,
+    "attributes": {
+      "strength": 7,
+      "agility": 15,
+      "endurance": 8,
+      "intelligence": 3,
+      "willpower": 6,
+      "charisma": 3,
+      "perception": 14,
+      "luck": 10
+    }
+  },
+  "skills": {
+    "evasion": 3,
+    "unarmed": 1
+  },
+  "attack": {
+    "name": "bite",
+    "die": 4,
+    "skill": "unarmed"
+  },
+  "fleeAt": 0.7,
+  "loot": [
+    {
+      "item": "fox pelt",
+      "qty": 1,
+      "chance": 0.8
+    }
+  ],
+  "barks": {
+    "idle": [
+      "*a fox trots along the ditch*"
+    ],
+    "attack": [
+      "*snaps*"
+    ],
+    "hurt": [
+      "*yelps*"
+    ],
+    "flee": [
+      "*a flash of red, gone*"
+    ]
+  },
+  "aggressive": false,
+  "hunts": [],
+  "rivalry": 0
+}

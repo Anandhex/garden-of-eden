@@ -87,6 +87,8 @@ export const JOBS = [
   "miner",
   "hunter",
   "adventurer",
+  // A fighter for hire (N26F decision 13): towns with too few guards hire them from the cities, for coin.
+  "sellsword",
 ] as const;
 export type Job = (typeof JOBS)[number];
 
@@ -136,6 +138,7 @@ export const JOB_INFO: Record<Job, JobInfo> = {
   miner: { words: "miner", sells: false },
   hunter: { words: "hunter", sells: false },
   adventurer: { words: "adventurer", sells: false },
+  sellsword: { words: "sellsword", sells: false },
 };
 
 /** One of the townsfolk. Their id is `t_<site>_<n>`; it's their persona id if they come to talk. */
@@ -939,6 +942,7 @@ function workDoing(job: Job): string {
       return "serving at the inn";
     case "guard":
     case "knight":
+    case "sellsword":
       return "on watch";
     case "priest":
     case "acolyte":

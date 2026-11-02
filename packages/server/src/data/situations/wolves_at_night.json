@@ -8,7 +8,7 @@
  "when": {
   "night": true
  },
- "chance": 0.5,
+ "chance": 0.0,
  "actors": [],
  "text": "You have been hearing it for a while: a patter beside the road, the sound of something keeping pace. Now two green eyes catch the light, and then four more.",
  "choices": [

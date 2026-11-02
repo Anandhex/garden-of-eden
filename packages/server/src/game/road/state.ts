@@ -21,7 +21,11 @@ export interface RoadState {
   /** The road they are on and the stretch of it walked without a break, for recording walked segments. */
   track?: { road: string; lo: number; hi: number };
   /** Something waiting for a choice: a situation, a traveller who stopped them. */
-  pending?: { kind: "situation"; id: string; key: string };
+  pending?: { kind: "situation"; id: string; key: string } | { kind: "toll"; id: string; key: string; amount: number };
+  /** Wildlife hunted or killed (N26F): its id → the day, so it isn't drawn again that day. */
+  taken?: Record<string, number>;
+  /** Places beside the road used (a shrine prayed at, herbs picked, ore dug, a ruin searched): id → the day. */
+  used?: Record<string, number>;
   /** Where they last slept in the open (a camp), to sleep better there. */
   camp?: { x: number; y: number; day: number };
 }

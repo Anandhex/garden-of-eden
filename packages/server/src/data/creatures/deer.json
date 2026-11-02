@@ -1,0 +1,66 @@
+{
+  "id": "deer",
+  "name": "deer",
+  "species": "deer",
+  "tier": "G",
+  "potential": [
+    "G",
+    "F"
+  ],
+  "ageRange": [
+    1,
+    9
+  ],
+  "stats": {
+    "maxHp": 18,
+    "maxMp": 0,
+    "attributes": {
+      "strength": 9,
+      "agility": 15,
+      "endurance": 10,
+      "intelligence": 3,
+      "willpower": 6,
+      "charisma": 3,
+      "perception": 14,
+      "luck": 10
+    }
+  },
+  "skills": {
+    "evasion": 3
+  },
+  "attack": {
+    "name": "antlers",
+    "die": 4,
+    "skill": "unarmed"
+  },
+  "fleeAt": 0.9,
+  "loot": [
+    {
+      "item": "venison",
+      "qty": 2,
+      "chance": 1
+    },
+    {
+      "item": "deer hide",
+      "qty": 1,
+      "chance": 0.8
+    }
+  ],
+  "barks": {
+    "idle": [
+      "*a deer lifts its head from the grass*"
+    ],
+    "attack": [
+      "*lowers its antlers*"
+    ],
+    "hurt": [
+      "*a deer's bleat*"
+    ],
+    "flee": [
+      "*bounds away into the trees*"
+    ]
+  },
+  "aggressive": false,
+  "hunts": [],
+  "rivalry": 0
+}

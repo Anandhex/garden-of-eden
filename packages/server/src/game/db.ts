@@ -10,6 +10,8 @@ import { cosine, hashedEmbedder } from "./embeddings.js";
 import { timed } from "../metrics/timing.js";
 import { KnowledgeStore } from "../store/knowledgeStore.js";
 import { SocialStore } from "../store/socialStore.js";
+import { BeastStore } from "../store/beastStore.js";
+import { FarmStore } from "../store/farmStore.js";
 import { CareerStore } from "../store/careerStore.js";
 import { PeopleStore } from "../store/peopleStore.js";
 import { applySchema, ORDER_BY, type TableName } from "../store/schema.js";
@@ -72,6 +74,10 @@ export class WorldStore {
   readonly social: SocialStore;
   /** What people want from their lives, and the jobs, ranks and seats they have held (N40). */
   readonly careers: CareerStore;
+  /** Every beast of every realm pack (N26F decision 14). */
+  readonly beasts: BeastStore;
+  /** Fields outside the villages: plots, sowings and what happened to them (N26G). */
+  readonly farm: FarmStore;
 
   constructor(file = ":memory:", embedder: Embedder = hashedEmbedder) {
     if (file !== ":memory:") mkdirSync(dirname(file), { recursive: true });
@@ -83,6 +89,8 @@ export class WorldStore {
     this.knowledge = new KnowledgeStore(this.db, this.people);
     this.social = new SocialStore(this.db, this.people);
     this.careers = new CareerStore(this.db, this.people);
+    this.beasts = new BeastStore(this.db);
+    this.farm = new FarmStore(this.db);
   }
 
   close(): void {
@@ -95,7 +103,9 @@ export class WorldStore {
     this.knowledge.dropCache();
     this.social.dropCache();
     this.careers.dropCache();
-    this.db.exec("DELETE FROM events; DELETE FROM memories; DELETE FROM director_log; DELETE FROM relationships; DELETE FROM knowledge; DELETE FROM grievances; DELETE FROM ambitions; DELETE FROM jobs_held; DELETE FROM site_days; DELETE FROM site_seq; DELETE FROM model_calls; DELETE FROM meta;");
+    this.beasts.dropCache();
+    this.farm.dropCache();
+    this.db.exec("DELETE FROM plots; DELETE FROM sowings; DELETE FROM field_events; DELETE FROM plot_years; DELETE FROM beasts; DELETE FROM events; DELETE FROM memories; DELETE FROM director_log; DELETE FROM relationships; DELETE FROM knowledge; DELETE FROM grievances; DELETE FROM ambitions; DELETE FROM jobs_held; DELETE FROM site_days; DELETE FROM site_seq; DELETE FROM model_calls; DELETE FROM meta;");
   }
 
   // ---- The save's commit point (N18) ----
@@ -143,6 +153,8 @@ export class WorldStore {
     if (table === "people") this.people.dropCache();
     if (table === "knowledge") this.knowledge.dropCache();
     if (table === "relationships" || table === "grievances") this.social.dropCache();
+    if (table === "beasts") this.beasts.dropCache();
+    if (table === "plots" || table === "sowings" || table === "field_events" || table === "plot_years") this.farm.dropCache();
     if (table === "ambitions" || table === "jobs_held") this.careers.dropCache();
   }
 
@@ -194,6 +206,12 @@ export class WorldStore {
   /** The kind, actor, details and place of every event of these kinds after a day (balance reports: the numbers of births, deaths and weddings). */
   eventsOfKinds(kinds: readonly string[], afterDay: number): Array<{ kind: string; actor: string; details: string; site: string | null; day: number }> {
     return this.db.prepare(`SELECT kind, actor, details, site, day FROM events WHERE day > ? AND kind IN (${kinds.map(() => "?").join(", ")})`).all(afterDay, ...kinds) as Array<{ kind: string; actor: string; details: string; site: string | null; day: number }>;
+  }
+
+  /** A place's events of some kinds on a day, whole (N26J: the crimes seen there that day). */
+  eventsAt(site: string, day: number, kinds: readonly string[]): GameEvent[] {
+    const rows = this.db.prepare(`SELECT * FROM events WHERE site = ? AND day = ? AND kind IN (${kinds.map(() => "?").join(", ")}) ORDER BY hour, seq, rowid`).all(site, day, ...kinds) as Array<Record<string, unknown>>;
+    return rows.map(rowToEvent);
   }
 
   /** The deeds townsfolk chose to do on a day in a place (N38): who did what to whom, in the order they were made. */

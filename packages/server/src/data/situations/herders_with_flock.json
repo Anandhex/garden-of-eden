@@ -1,0 +1,58 @@
+{
+ "id": "herders_with_flock",
+ "title": "A flock on the road",
+ "where": [
+  "road",
+  "hills"
+ ],
+ "when": {
+  "night": false
+ },
+ "chance": 0.1,
+ "actors": [
+  {
+   "role": "herder"
+  },
+  {
+   "role": "herder"
+  }
+ ],
+ "text": "Sheep fill the road from verge to verge, and {a} and {b} are whistling them along toward the next pasture. \"Mind the lambs,\" calls {a}.",
+ "choices": [
+  {
+   "id": "help",
+   "label": "Help drive them through the gap",
+   "effects": [
+    {
+     "type": "time",
+     "minutes": 20
+    },
+    {
+     "type": "say",
+     "text": "Between you, the flock is through. {a} gives you a heel of cheese for it.",
+     "trust": 8,
+     "food": 10
+    }
+   ]
+  },
+  {
+   "id": "ask",
+   "label": "Ask what's about on the road ahead",
+   "effects": [
+    {
+     "type": "territories"
+    }
+   ]
+  },
+  {
+   "id": "wait",
+   "label": "Stand aside and let them pass",
+   "effects": [
+    {
+     "type": "time",
+     "minutes": 10
+    }
+   ]
+  }
+ ]
+}

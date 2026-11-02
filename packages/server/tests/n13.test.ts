@@ -489,7 +489,9 @@ describe("N13.8 an active director", () => {
     const town = makeTown();
     const realm = town.world.realm!;
     const site = town.site();
-    sendArrival(realm, site, { day: town.world.day, kind: "raid", count: 3, by: "Ashby" });
+    // The raiders are a gang's members by name (N26F step 0b): nobody is made up for a raid.
+    const gang = Object.values(realm.factions).find((f) => f.kind === "gang" && f.members.some((m) => realm.figures[m]?.alive))!;
+    sendArrival(realm, site, { day: town.world.day, kind: "raid", count: 3, by: "Ashby", who: gang.members });
     sendArrival(realm, site, { day: town.world.day, kind: "beasts", count: 2, by: "wolf" });
     const lines = applyArrivals(realm, town.world, site, town.members(), Object.keys(town.templates));
     expect(lines.join(" ")).toMatch(/Raiders from Ashby/);

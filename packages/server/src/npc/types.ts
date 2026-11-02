@@ -644,6 +644,20 @@ export interface PlayerState {
   area?: AreaId;
   /** On the open road between places (N26): where, and what they've asked and paid. `site` stays the place they set out from. */
   road?: RoadState;
+  /** A chapter of the player's life that limits what they can do (N26J step 3): held captive by a gang. */
+  chapter?: import("../game/law/taken.js").Chapter;
+  /** The player's rank in society (N26H; N66 lets it change): commoner unless something has raised them. */
+  cls?: string;
+  /** Documents the player carries (N26H): a summons, a quest's writ, a pass got by a bribe, sneaking or force, each for a district and a day. */
+  papers?: Array<{ kind: "summons" | "writ" | "pass"; to: string; day: number; from: string }>;
+  /** Places the player is banished from (N26J), until a day: the guards turn them away at the gate. */
+  banished?: Record<string, number>;
+  /** Sentences the player has served (N26J), for a second offence being dealt with harder. */
+  sentences?: Array<{ place: string; day: number; kind: string; crime: string }>;
+  /** A day's work the player was hired on for (N26F decision 13: the mine watch), paid by the place when the day is over. */
+  duty?: { site: string; day: number; wage: number; what: string };
+  /** In a place's woods, camp or mine entered from the road (N26F decision 9): where on the road they went in, to come back out there. */
+  roadBack?: RoadState;
   /** Road stretches the player has walked end to end, as segment ids (game/road/walk.ts): fast travel runs only along these. */
   walked?: string[];
   /** Food, water and rest on the road (N26 D1). */

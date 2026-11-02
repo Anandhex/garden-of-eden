@@ -47,6 +47,15 @@ export const EVENT_KINDS = [
   "raid",
   "raid-repelled",
   "black-market",
+  // Rough justice (N26J): a sentence carried out, and a bribe given and taken.
+  "sentence",
+  "bribe",
+  // A household moved to the district its class puts it in (N26H).
+  "moved",
+  // Fallen places (N26I): carried off, set free, sold.
+  "kidnapped",
+  "freed",
+  "sold",
   "npc-fight",
   "creature-fight",
   "trade",

@@ -1,3 +1,10 @@
+import { syncBeasts } from "../realm/beasts.js";
+import { fieldsDay } from "../farm/day.js";
+import { justiceDay } from "../law/justice.js";
+import { rehouse } from "../town/rehouse.js";
+import { fallenDay } from "../realm/fall.js";
+import { watchDay } from "../road/watch.js";
+import { roadDataOf } from "../road/generateRoads.js";
 import { config } from "../../config.js";
 import { timed } from "../../metrics/timing.js";
 import { realmDay } from "../realm/day.js";
@@ -67,6 +74,10 @@ export function catchUp(ctx: LifeCtx, site: string, toDay: number): SiteStep[] {
         chatterDay(ctx, step, d);
         gossipDay(ctx, step, d);
         choiceDay(ctx, step, d);
+        // The same as a day lived as it comes (lifeDay): fields, justice, homes (N26G, N26J, N26H).
+        if (config.fields) fieldsDay(ctx.realm, ctx.store, site, d);
+        justiceDay(ctx.realm, ctx.store, site, d);
+        rehouse(ctx.realm, ctx.store, site, d);
         ambitionDay(ctx, step, d);
         out.push(step);
       }
@@ -99,6 +110,10 @@ export function lifeDay(ctx: LifeCtx, day: number, opts: LifeOptions = {}): DayL
   const lazy = opts.lazy ?? lazySites();
   const watched = opts.watched ?? new Set<string>();
   const result: DayLife = { day, steps: [], moved: 0 };
+  // Pack beasts are rows (N26F decision 14): the realm's day logged what happened to them; the rows follow.
+  timed("beasts.day", () => syncBeasts(realm, store.beasts, day));
+  // Places broken by attacks fall; lairs and strongholds live their days (N26I).
+  timed("fallen.day", () => fallenDay(ctx, day));
   if (live.size === 0) return result;
   timed("people.day", () => {
     writeConditions(ctx, day, live);
@@ -109,6 +124,8 @@ export function lifeDay(ctx: LifeCtx, day: number, opts: LifeOptions = {}): DayL
     timed("road.arrivals", () => roadArrivals(ctx, day, ensureCurrent));
     result.moved = timed("people.moves", () => migrationDay(ctx, day, live, ensureCurrent));
     roadTrips(ctx, day, live, ensureCurrent);
+    // The mine watch: guards posted, swords hired and paid (N26F decision 13).
+    timed("road.watch", () => watchDay(realm, store.people, roadDataOf(realm), day, live));
     const sites = [...live].filter((id) => realm.settlements[id]).sort((a, b) => Number(watched.has(b)) - Number(watched.has(a)) || a.localeCompare(b));
     for (const id of sites) {
       if (lazy.has(id) && !watched.has(id)) continue;
@@ -122,6 +139,12 @@ export function lifeDay(ctx: LifeCtx, day: number, opts: LifeOptions = {}): DayL
       chatterDay(ctx, step, day, { hourly: watched.has(id) });
       gossipDay(ctx, step, day, { hourly: watched.has(id) });
       choiceDay(ctx, step, day);
+      // The fields outside the place (N26G): sown, worked, damaged and reaped by its people; the harvest is its food.
+      if (config.fields) timed("fields.day", () => fieldsDay(realm, store, id, day));
+      // The crimes seen today are judged by the place's head (N26J).
+      justiceDay(realm, store, id, day);
+      // Those whose class no longer fits their quarter move when a house is free (N26H).
+      rehouse(realm, store, id, day);
       ambitionDay(ctx, step, day);
       // A place whose people were never rolled keeps its number (ensureLivePeople makes them first).
       if (store.people.count(id) > 0) realm.settlements[id]!.population = store.people.livingCount(id);

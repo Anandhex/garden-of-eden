@@ -1,3 +1,10 @@
+import { promoteWild, wildNear } from "../game/road/wild.js";
+import { forceGate, offerBribe, onDuty, playerMayEnter, refusal, sneakPast, type Post } from "../game/town/access.js";
+import { districtAt } from "./districtLayout.js";
+import { surrenderToJustice } from "../game/crime.js";
+import { captiveAct, isCaptive } from "../game/law/taken.js";
+import { commutersNear } from "../game/road/commute.js";
+import { fieldStagesIn } from "../game/farm/day.js";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { readFileSync, existsSync, statSync } from "node:fs";
 import { extname, join, normalize } from "node:path";
@@ -199,6 +206,8 @@ function startGame(fresh: boolean): void {
   const opened = openWorld({ file: config.saveFile, deathsFile: config.deathsFile, templates: creatureTemplates, store, fresh });
   world = opened.world;
   if (opened.notice) console.log(opened.notice);
+  // A new world starts on its map's own start tile (the road in: maps are sized to their place since N26H), set once the town is up.
+  const freshStart = !world.position;
   world.position ??= { ...PLAYER_START };
   crowd = null;
   lastTalk = null;
@@ -227,7 +236,7 @@ function startGame(fresh: boolean): void {
   placeCreatures();
   // Maps grow with their places (N16): a position from an older, smaller map may be in a wall now.
   const pos = world.position!;
-  if (pos.x < 0 || pos.y < 0 || pos.x >= here().w || pos.y >= here().h || here().isSolid(pos.x, pos.y)) world.position = { ...here().start };
+  if (freshStart || pos.x < 0 || pos.y < 0 || pos.x >= here().w || pos.y >= here().h || here().isSolid(pos.x, pos.y)) world.position = { ...here().start };
   persist();
 }
 
@@ -247,7 +256,7 @@ function denOf(c: Creature) {
 }
 
 /** A creature by uid: where the player is. */
-const creatureById = (uid: string): Creature | undefined => town.creaturesHere()[uid];
+const creatureById = (uid: string): Creature | undefined => town.creaturesNow()[uid];
 
 /**
  * Creatures that are on the map now: alive, not run off, and with their den on this
@@ -255,7 +264,8 @@ const creatureById = (uid: string): Creature | undefined => town.creaturesHere()
  * realm has them (N15, game/realm/haunts.ts).
  */
 function presentCreatures(): Creature[] {
-  if (town.road.onRoad()) return [];
+  // On the road (N26F): the pack's beasts and the gang's people who came out of their territory, where they stand.
+  if (town.road.onRoad()) return Object.values(town.roadCreatures).filter((c) => !c.outcome && c.pos && creatureTemplates[c.template]);
   return Object.values(town.creaturesHere()).filter((c) => !c.outcome && (following(c) || denOf(c)) && creatureTemplates[c.template]);
 }
 
@@ -369,7 +379,7 @@ function npcPlace(id: string): PlaceId | null {
  */
 function npcPos(id: string): { x: number; y: number } | null {
   // On the road (N26): a traveller is where their journey has them, and the dead lie where they fell.
-  if (parseTownsfolkId(id) && town.road.onRoad()) return town.whereNow(id) ? town.road.travellerPos(id) : null;
+  if (parseTownsfolkId(id) && town.road.onRoad()) return town.road.travellerPos(id);
   if (agents[id]!.state.dormant || !local().includes(id)) return null;
   // The townsfolk (N16) are where the crowd's day has them; the fallen lie where they fell.
   if (parseTownsfolkId(id)) {
@@ -422,6 +432,8 @@ function absence(id: string): string | null {
     // Someone on a journey is on the road, or at an inn or a town they are visiting (N26 Part E).
     const trip = town.whereNow(id);
     if (trip && town.road.onRoad()) return town.road.travellerPos(id) ? null : `${name} has gone on their way.`;
+    // Walking to work along the road (N26F).
+    if (town.road.onRoad() && town.road.travellerPos(id)) return null;
     if (trip && trip.site !== town.site()) return `${name} is ${trip.site ? `in ${world.realm?.settlements[trip.site]?.name ?? "another place"}` : "on the road"}, away from home.`;
     const home = trip ? town.site() : (town.homeSiteOf(id) ?? folk.site);
     const place = world.realm?.settlements[home]?.name ?? "another place";
@@ -714,7 +726,13 @@ function snapshot(): Snapshot {
           aggressive: t.aggressive,
           engaged: c.uid === engaged,
         };
-      }),
+      })
+      // The road's wild animals (N26F): drawn where the shared formula puts them; hunting one makes it a creature.
+      .concat(
+        town.road.onRoad()
+          ? wildNear(town).map((w) => ({ uid: w.id, name: w.n > 1 ? `${w.n} ${w.kind === "deer" ? "deer" : `${w.kind}s`}` : w.kind, kind: w.kind, x: w.x, y: w.y, color: CREATURE_COLORS[w.kind] ?? "#8a7a5f", hp: 1, maxHp: 1, rank: "G", age: 0, growth: "wild", titles: [], aggressive: w.kind === "adder", engaged: false }))
+          : [],
+      ),
     engaged,
     fight: (() => {
       const left = secondsToAct();
@@ -918,8 +936,44 @@ async function act(body: Record<string, unknown>, emit: Emit): Promise<void> {
     }
     return;
   }
+  if (action === "captive") {
+    // A way out of captivity (N26J step 3): escape, a bribe to the watch, ransom, a day's labour, or joining.
+    if (!world.realm) return;
+    const op = String(body.op ?? "") as Parameters<typeof captiveAct>[2];
+    const friends = Object.values(agents)
+      .filter((a) => !a.isDead && a.state.relationship >= 40 && a.state.money > 0)
+      .map((a) => ({ name: personas[a.persona.id]?.name ?? a.persona.name, money: a.state.money, pay: (n: number) => void (a.state.money -= n) }));
+    const r = captiveAct(world.realm, world.player, op, world.day, world.hour, town.actionRng(), friends);
+    for (const text of r.lines) emit({ t: "note", kind: r.ok ? "action" : "fail", text });
+    if (op === "labour" && r.ok) for (const line of passHours(10)) emit({ t: "system", text: line });
+    return;
+  }
+  if (action === "gate") {
+    // At a closed quarter's gate (N26H): a bribe, sneaking past, or forcing it.
+    const op = String(body.op ?? "");
+    const at = world.position!;
+    const post = postsHere().sort((a, b) => distance(a, at) - distance(b, at))[0];
+    const d = post ? here().districts.find((r) => r.district.id === post.district)?.district : undefined;
+    if (!post || !d || distance(post, at) > 3 || !town.store || !world.realm) return void emit({ t: "system", text: "There's no gate here." });
+    const rng = town.actionRng();
+    const r = op === "bribe" ? offerBribe(world.realm, town.store, world.player, post, postsHere(), d, world.day, world.hour, rng) : op === "sneak" ? sneakPast(world.realm, town.store, world.player, post, postsHere(), d, world.day, world.hour, rng) : op === "force" ? forceGate(world.realm, town.store, world.player, post, postsHere(), d, world.day, world.hour, rng) : null;
+    if (!r) return void emit({ t: "system", text: "Bribe, sneak or force." });
+    for (const text of r.lines) emit({ t: "note", kind: r.ok ? "action" : "fail", text });
+    if (r.hours > 0) for (const line of passHours(r.hours)) emit({ t: "system", text: line });
+    return;
+  }
   if (action === "roadplace") {
     for (const text of town.road.usePlace(String(body.place ?? ""), String(body.op ?? ""))) emit({ t: "note", kind: "action", text });
+    // Into a place's woods, camp or mine from the road (N26F): on its map, at the edge the track comes in by.
+    if (!town.road.onRoad() && world.player.roadBack) {
+      const back = exitTo(here(), "realm");
+      world.position = back ? { ...back.inward } : { ...here().start };
+      world.player.place = here().placeAtTile(world.position) as PlaceId;
+      trail.length = 0;
+      crowd = null;
+      town.stockHaunts();
+      placeCreatures();
+    }
     return;
   }
   if (action === "eat") return void emit({ t: "note", kind: "action", text: town.road.eat(String(body.item ?? ""))[0]! });
@@ -1149,7 +1203,8 @@ async function act(body: Record<string, unknown>, emit: Emit): Promise<void> {
       }
       if (action === "payfine") emit({ t: "note", kind: "action", text: payFine(p).message });
       else {
-        const r = surrender(p);
+        // A head to judge them (N26J): the sentence is theirs; else the old hours in the cells.
+        const r = world.realm?.settlements[town.site()] ? surrenderToJustice(world.realm, p, town.site(), world.day, town.actionRng()) : surrender(p);
         emit({ t: "note", kind: r.ok ? "action" : "fail", text: r.message });
         if (r.ok) for (const line of passHours(r.hours)) emit({ t: "system", text: line });
       }
@@ -1326,6 +1381,17 @@ function move(dx: number, dy: number): { ok: boolean; log: string[]; reason?: st
   engaged = null;
   if (town.road.onRoad()) return roadMove(dx, dy);
   if (here().isSolid(nx, ny)) return { ok: false, log: [] };
+  // Into a closed quarter (N26H): the gate's guard lets the player through, or says why not.
+  const into = districtAt(here().districts, nx, ny);
+  if (into && into.id !== districtAt(here().districts, pos.x, pos.y)?.id && !!town.store) {
+    const v = playerMayEnter(world.player, into, world.day, world.hour);
+    if (!v.ok) {
+      const post = postsHere().find((x) => x.x === nx && x.y === ny) ?? postsHere().find((x) => x.district === into.id);
+      const guard = post && town.store ? onDuty(town.store, post, postsHere(), world.day, world.hour) : null;
+      const line = refusal(guard, into, v);
+      return { ok: false, log: [line], reason: line };
+    }
+  }
   // Companions step aside (they're walking behind you); anyone else is in the way.
   if (local().some((id) => { const at = npcPos(id); return !agents[id]!.state.companion && at !== null && at.x === nx && at.y === ny; })) return { ok: false, log: [] };
   if (presentCreatures().some((c) => c.pos?.x === nx && c.pos?.y === ny)) return { ok: false, log: [] };
@@ -1336,6 +1402,11 @@ function move(dx: number, dy: number): { ok: boolean; log: string[]; reason?: st
   pos.y = ny;
   // Off the edge of the map: on to the next area (N15).
   const exit = exitUnder(here(), pos);
+  if (exit && isCaptive(world.player)) {
+    pos.x = from.x;
+    pos.y = from.y;
+    return { ok: false, log: ["They're watching. You can't just walk out."], reason: "You're held captive." };
+  }
   if (exit?.to === "realm") return { ok: true, log: leaveByRoad() };
   if (exit) return { ok: true, log: enterArea(exit.to as AreaId) };
   world.player.place = here().placeAtTile(pos) as PlaceId;
@@ -1360,15 +1431,33 @@ function move(dx: number, dy: number): { ok: boolean; log: string[]; reason?: st
   return { ok: true, log };
 }
 
+/** The posts of the place the player is in (N26H): the gates in the walls round its closed quarters. */
+function postsHere(): Post[] {
+  return here().gates.map((g) => ({ id: `post:${town.site()}:${g.x},${g.y}`, site: town.site(), district: g.district, x: g.x, y: g.y }));
+}
+
 /** One step on the open road (N26): the world lives the game minutes it takes, and a gate ahead is a place reached. */
 function roadMove(dx: number, dy: number): { ok: boolean; log: string[]; reason?: string } {
+  town.roadEngaged = engaged;
   const r = town.road.step(dx, dy, walkMinutes);
   if (r.entered) {
     trail.length = 0;
     world.position = { ...here().start };
     placeCreatures();
+    return { ok: r.ok, log: r.log, ...(r.reason ? { reason: r.reason } : {}) };
   }
-  return { ok: r.ok, log: r.log, ...(r.reason ? { reason: r.reason } : {}) };
+  const log = [...r.log];
+  // Whatever came out of the trees and reached the player jumps them (N26F), unless it's waiting on a toll.
+  const at = world.player.road;
+  const lurker = at
+    ? presentCreatures().find((c) => creatureTemplates[c.template]!.aggressive && !town.roadHeld.has(c.uid) && distance(at, c.pos!) <= TALK_RANGE && (calmUntil[c.uid] ?? -1) <= absoluteMinute(world))
+    : undefined;
+  if (lurker) {
+    engaged = lurker.uid;
+    town.roadEngaged = engaged;
+    log.push(...afterCreatureRound(lurker, creatureAmbush(creatureTemplates[lurker.template]!, lurker, world, town.actionRng())));
+  }
+  return { ok: r.ok, log, ...(r.reason ? { reason: r.reason } : {}) };
 }
 
 /** The player walks out of the west gate (N26): the open road, toward where they were bound if they said. */
@@ -1408,10 +1497,24 @@ function afterCreatureRound(c: Creature, round: CreatureRound): string[] {
   if (round.over === "creature dead" || round.over === "creature fled") log.push(...recordCreatureDefeat(world.player, c.template));
   if (round.over === "player fled") calmUntil[c.uid] = absoluteMinute(world) + CALM_MINUTES;
   if (round.over && round.over !== "player down") engaged = null;
-  // The dead and the fled go back to the realm (N15).
-  if (round.over) log.push(...town.settleHaunts());
+  // The dead and the fled go back to the realm (N15); on the road, to their pack or gang (N26F).
+  if (round.over) log.push(...(town.road.onRoad() ? town.settleRoad() : town.settleHaunts()));
   if (round.over === "player down") {
     engaged = null;
+    log.push(...town.beastWon(c));
+    // Beaten by a gang's people: robbed and left, or taken (N26J step 3).
+    const gang = c.figure ? world.realm?.figures[c.figure]?.faction : undefined;
+    if (gang && world.realm?.factions[gang]?.kind === "gang") {
+      const t = town.maybeTaken(gang);
+      if (t.taken) {
+        log.push(...t.lines);
+        trail.length = 0;
+        crowd = null;
+        world.position = { ...here().start };
+        placeCreatures();
+        return log;
+      }
+    }
     const defeat = creatureBeatsPlayer(creatureTemplates[c.template]!, c, world);
     log.push(defeat.message);
     if (defeat.hoursOut > 0) log.push(...passHours(defeat.hoursOut));
@@ -1421,10 +1524,12 @@ function afterCreatureRound(c: Creature, round: CreatureRound): string[] {
 
 /** The player attacks a creature next to them, or tries to get away from one. No model involved. */
 function creatureAction(action: "hunt" | "escape", uid: string, emit: Emit): void {
+  // A wild animal by the road (N26F) becomes a creature when the player goes after it.
+  if (action === "hunt" && uid.startsWith("a:") && !creatureById(uid) && town.road.onRoad()) emit({ t: "note", kind: "combat", text: promoteWild(town, uid).line });
   const c = creatureById(uid);
   const t = c && creatureTemplates[c.template];
   if (!c || !t || c.outcome || !c.pos) return void emit({ t: "system", text: "There's nothing there to fight." });
-  if (distance(world.position!, c.pos) > TALK_RANGE) return void emit({ t: "system", text: `You are too far from ${c.name}.` });
+  if (distance(world.player.road ?? world.position!, c.pos) > TALK_RANGE) return void emit({ t: "system", text: `You are too far from ${c.name}.` });
   if (action === "escape" && engaged !== uid) return void emit({ t: "system", text: `You're not fighting ${c.name}.` });
   engaged = uid;
   const round = action === "hunt" ? fightCreature(t, c, world, town.actionRng()) : fleeCreature(t, c, world, town.actionRng());
@@ -1600,6 +1705,9 @@ const viewHost: ViewHost = {
   crowd: crowdHere,
   land: () => (world.realm ? landOf(world.realm) : null),
   roadData: () => (world.realm ? roadDataOf(world.realm) : null),
+  fieldStages: (x0, y0, w, h) => (world.realm && town.store ? fieldStagesIn(world.realm, town.store, x0, y0, w, h, world.day) : new Map()),
+  commuters: (radius) =>
+    commutersNear(town, radius).map((c) => ({ id: c.person, x: c.x, y: c.y, name: c.name, role: c.job, kind: "work", purpose: c.where === "working" ? `at work at ${c.to.startsWith("woods") ? "the woods" : "the mine"}` : `${c.where} ${c.to.startsWith("woods") ? "to the woods" : "to the mine"}${c.cargo ? ", with the day's ore" : ""}`, from: world.realm?.settlements[c.from]?.name ?? c.from, to: c.to, journey: "" })),
   journeysNear: (radius) => {
     const realm = world.realm;
     const road = world.player.road;

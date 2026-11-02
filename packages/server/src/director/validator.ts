@@ -1,3 +1,6 @@
+import { isPersonKind, type Who } from "../game/spawning.js";
+import { gangMembers } from "../game/realm/who.js";
+import type { Realm } from "../game/realm/types.js";
 import { z } from "zod";
 import { knownNameWords, unknownNames, worldLore } from "../npc/knowledge.js";
 import { TRAITS } from "../npc/traits.js";
@@ -128,7 +131,7 @@ export function tierOfAsk(goal: "deliver" | "defeat", value: number, creatureRan
  * from what's asked (capped by what the giver ever offers), and the reward from the
  * giver's own purse.
  */
-export function validateQuest(ctx: ValidatorContext, raw: unknown, event: GameEvent): Verdict<{ giver: string; quest: QuestDef }> {
+export function validateQuest(ctx: ValidatorContext, raw: unknown, event: GameEvent): Verdict<{ giver: string; quest: QuestDef; who?: Who[] }> {
   const parsed = ProposeQuestArgs.safeParse(raw);
   if (!parsed.success) return reject(`bad arguments: ${z.prettifyError(parsed.error)}`);
   const a = parsed.data;
@@ -145,6 +148,7 @@ export function validateQuest(ctx: ValidatorContext, raw: unknown, event: GameEv
   let objective: QuestDef["objective"];
   let tier: QuestTier;
   let value: number;
+  let who: Who[] | undefined;
   if (a.goal === "deliver") {
     if (!a.item || !ITEMS[a.item.toLowerCase()]) return reject(`no such item "${a.item}"`);
     const item = a.item.toLowerCase();
@@ -155,6 +159,15 @@ export function validateQuest(ctx: ValidatorContext, raw: unknown, event: GameEv
     const kind = a.creature?.toLowerCase().replace(/s$/, "");
     const t = kind ? ctx.creatures[kind] : undefined;
     if (!t) return reject(`no such creature "${a.creature}"`);
+    if (isPersonKind(t)) {
+      // People to fight are real people (N26F step 0b): the outlaws of a gang about this place, by name.
+      const realm = (ctx.world as { realm?: Realm }).realm;
+      const site = ctx.world.player.site;
+      const gang = realm && site ? Object.values(realm.factions).find((f) => f.kind === "gang" && f.dissolved === undefined && (f.seat === site || f.branches.includes(site))) : undefined;
+      const members = realm && gang ? gangMembers(realm, gang.id).slice(0, a.qty) : [];
+      if (members.length < a.qty) return reject(`there aren't ${a.qty} ${t.name}s about to fight`);
+      who = members.map((f) => ({ name: f.name, figure: f.id }));
+    }
     objective = { type: "defeat", creature: t.id, qty: a.qty };
     tier = tierOfAsk("defeat", 0, t.tier, a.qty);
     value = 60 * (tierIndex(t.tier) + 1) * a.qty;
@@ -167,7 +180,7 @@ export function validateQuest(ctx: ValidatorContext, raw: unknown, event: GameEv
   return {
     ok: true,
     reason: "accepted",
-    value: { giver: giverId, quest: { id, title: a.title, description: a.description, tier, minTrust: 0, objective, reward: { money }, director: true } },
+    value: { giver: giverId, quest: { id, title: a.title, description: a.description, tier, minTrust: 0, objective, reward: { money }, director: true }, ...(who ? { who } : {}) },
   };
 }
 

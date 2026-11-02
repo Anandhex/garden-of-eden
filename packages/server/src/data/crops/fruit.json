@@ -1,0 +1,25 @@
+{
+  "id": "fruit",
+  "name": "orchard fruit",
+  "sow": [
+    1,
+    2
+  ],
+  "grow": 30,
+  "ripe": 6,
+  "yield": 1.6,
+  "likes": [
+    "valley",
+    "plains"
+  ],
+  "dislikes": [
+    "marsh"
+  ],
+  "eatenBy": [
+    "deer",
+    "crows"
+  ],
+  "frost": true,
+  "flood": false,
+  "on": "orchard"
+}

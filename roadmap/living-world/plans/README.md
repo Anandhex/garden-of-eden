@@ -313,7 +313,7 @@ Every name the model invents goes through the invented-name check (`inventedWord
 
 **Reworked 2026-10-24.** The vertical slice (N17 → N18 → N25 → N25a → N25b → N26 → N33 → N37 → N38 → N40) is built, and the first play of it found the world too thin outside the town: a dead road, fields inside the village, no districts, buildings out of scale, and attacks that never change anything. Those come first now, before the rest of Stage 2 and before N69.
 
-**Playtest pack 1 (N26F–N26J), in this order:**
+**Playtest pack 1 (N26F–N26J), in this order:** ✅ steps 1 to 7 built 2026-10-24 (uncommitted); what differs is in the [stage file](../stage-2-everyone-lives.md#n26f-a-road-worth-walking). Next is step 8, playtest 2.
 
 | # | What | Why here |
 |---|---|---|
@@ -326,7 +326,7 @@ Every name the model invents goes through the invented-name check (`inventedWord
 | 7 | [N26I](n26i-fallen-places-lairs-and-strongholds.md): fallen places, lairs and strongholds, with N26J step 3 (the player taken) | Needs all of the above. |
 | 8 | **Play again** (playtest 2) | Run `sim:years` on several seeds, play a few in-game months, write down what feels alive and what is noise, and revise this list. |
 
-**Save:** the five share **one save version**, bumped once at step 1 or 3 and added to by the rest while they're built in a row (§16 allows this). Old saves are disposable (user decision 2026-10-13), so it can be a clean break; confirm with the user when the bump is made.
+**Save (as built):** no save version bump was needed: every new realm and player field is optional, and the database gained schemas 10–12 by migration, so a v15 save loads (its packs get beast rows on the first day). Planned: the five share **one save version**, bumped once at step 1 or 3 and added to by the rest while they're built in a row (§16 allows this). Old saves are disposable (user decision 2026-10-13), so it can be a clean break; confirm with the user when the bump is made.
 
 **After playtest 2**, in this order unless the playtest says otherwise:
 

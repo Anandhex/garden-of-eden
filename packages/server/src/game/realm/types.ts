@@ -162,8 +162,37 @@ export const SettlementSchema = z.object({
   abandoned: z.boolean().optional(),
   /** Roads to other settlements (ids). A waystation has none: it stands beside the road it is on. */
   roads: z.array(z.string()),
+  /** Its map's scale (N26H): fixed the first time its map is made, with room for half as many houses again, so homes never move. */
+  mapScale: z.number().optional(),
+  /** What stood when its map was first made (N26H): the map is laid out from this, so later building never moves anyone's home. */
+  mapFrozen: z.object({ buildings: z.partialRecord(z.enum(BUILDINGS), z.number().int().min(0).max(5)), seat: z.boolean(), kind: z.enum(SETTLEMENT_KINDS).optional() }).optional(),
   /** A waystation inn (N26): a hamlet beside a road, `t` tiles along it. */
   way: z.object({ road: z.string(), t: z.number() }).optional(),
+  /**
+   * The mine watch (N26F decision 13): guards posted on the road to the place's working mine, and sellswords hired when its own
+   * guards are too few. `level` 0 (one at the post), 1 (the full watch), 2 (more than it has: hired swords).
+   */
+  watch: z
+    .object({
+      guards: z.array(z.string()),
+      hired: z.array(z.object({ person: z.string(), from: z.string(), wage: z.number().int(), since: z.number().int(), until: z.number().int() })),
+      level: z.number().int().min(0).max(2),
+      checked: z.number().int(),
+    })
+    .optional(),
+  /**
+   * Its fields (N26G): how many plots its land is cut into (cleared land is never lost; more is cleared as the place grows and
+   * its farms rise), and whether its food is its fields' harvest (set by the day's field work; otherwise the old formula).
+   */
+  fields: z.object({ plots: z.number().int().min(0), kept: z.boolean(), since: z.number().int() }).optional(),
+  /** Overrun and held (N26I): by a pack (a lair) or a gang (a stronghold), since `day`. Not abandoned: held. */
+  fallen: z.object({ to: z.enum(["pack", "gang"]), id: z.string(), day: z.number().int(), how: z.string() }).optional(),
+  /** Who it pays tribute to (N26I): a stronghold's gang id, how much a tribute day, the last day paid, and when it refused. */
+  tribute: z.record(z.string(), z.object({ amount: z.number().int(), last: z.number().int(), refused: z.number().int().optional() })).optional(),
+  /** Retaken and left empty (N26I): the day; resettled by those who fled it, or a ruin after a year. */
+  ruinSince: z.number().int().optional(),
+  /** A stronghold's own stores (N26I): what the gang holding it has laid by. */
+  stores: z.object({ food: z.number(), coin: z.number().int().min(0), goods: z.record(z.string(), z.number()), livestock: z.record(z.string(), z.number()) }).optional(),
 });
 export type Settlement = z.infer<typeof SettlementSchema>;
 
@@ -275,6 +304,11 @@ export const PackSchema = z.object({
   /** Copper put up for culling it. */
   bounty: z.number().int().min(0),
   lastAttack: z.number().int().optional(),
+  /**
+   * What happened to it since its beasts were last brought in line (N26F decision 14, game/realm/beasts.ts): births and losses,
+   * with how, so the day's sync knows which rows to add and which to kill. Cleared by the sync.
+   */
+  log: z.array(z.object({ day: z.number().int(), born: z.number().int().optional(), lost: z.number().int().optional(), how: z.string(), by: z.string().optional(), victim: z.object({ who: z.string(), name: z.string() }).optional() })).optional(),
 });
 export type Pack = z.infer<typeof PackSchema>;
 
@@ -304,6 +338,10 @@ export const ArrivalSchema = z.object({
   count: z.number().int().min(0),
   /** Who: a settlement, faction or pack name. */
   by: z.string(),
+  /** The raiders by name (N26F step 0b): realm figure ids, the fighters who went. */
+  who: z.array(z.string()).optional(),
+  /** The settlement the raiders came from, when they are its people (rows picked when the place applies it). */
+  from: z.string().optional(),
   /** The place applied it (game/realm/arrivals.ts). */
   done: z.boolean().optional(),
 });
@@ -363,6 +401,19 @@ export const RealmSchema = z.object({
   heard: z.record(z.string(), z.record(z.string(), z.tuple([z.number().int(), z.string(), z.string()]))).default({}),
   /** Tax coin on its way up the chain (N26 Part E): taken from the payer on tax day, handed over when the lord's clerk arrives (game/road/trips/officials.ts) or, with nobody to carry it, a day later. */
   transit: z.array(z.object({ from: z.string(), to: z.string(), amount: z.number().int(), day: z.number().int(), journey: z.string().optional() })).default([]),
+  /**
+   * The coin book (plans README section 24, game/realm/ledger.ts): what was minted into the realm and sunk out of it since it
+   * began, and the newest ledger lines. Coin is otherwise only moved.
+   */
+  /** Places broken by an attack today, waiting for the day's people step to see them fall (N26I). */
+  falls: z.array(z.object({ site: z.string(), to: z.enum(["pack", "gang"]), id: z.string(), day: z.number().int(), how: z.string() })).default([]),
+  coin: z
+    .object({
+      minted: z.number(),
+      sunk: z.number(),
+      lines: z.array(z.object({ day: z.number().int(), from: z.string(), to: z.string(), amount: z.number(), why: z.string() })),
+    })
+    .default({ minted: 0, sunk: 0, lines: [] }),
 });
 export type Realm = z.infer<typeof RealmSchema>;
 

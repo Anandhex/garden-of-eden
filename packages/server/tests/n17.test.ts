@@ -283,7 +283,8 @@ describe("N17.5 pinning a townsperson in another town shows their day hour by ho
     const realm = town.world.realm!;
     const away = Object.values(realm.settlements).find((s) => s.id !== START() && !s.abandoned && s.kind === "town")!;
     const folk = folkOf(ctx, away.id)!;
-    const farmer = folk.roster.people.find((p) => p.job === "farmer" && p.age >= 18 && p.work === "zone:fields")!;
+    // Someone who works in the town (farmers walk out to their fields since N26G, so they are off the map at 10:00).
+    const farmer = folk.roster.people.find((p) => p.age >= 18 && p.work.startsWith("zone:") && p.work !== "zone:gate" && p.cls !== "slave")!;
     // A fine working day: bad weather and festivals keep people home, which the crowd simulation also knows.
     let day = town.world.day;
     while (weatherOn(day) !== "clear" || townEventsOn({ ...town.world, day }).includes("festival")) day++;
@@ -304,7 +305,7 @@ describe("N17.5 pinning a townsperson in another town shows their day hour by ho
     expect(three.inside).toBeTruthy();
     expect(three.doing).toMatch(/asleep/);
     expect(ten.visible).toBe(true);
-    expect(ten.doing).toMatch(/work/);
+    expect(ten.doing).not.toMatch(/asleep/);
     // It is worked out on demand: nothing was simulated, nothing saved.
     expect(c.follow).toEqual({ site: away.id, id: farmer.id });
     expect(c.sections.some((s) => "unavailable" in s && /N25/.test(s.unavailable))).toBe(true);

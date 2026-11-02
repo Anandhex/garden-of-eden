@@ -1,0 +1,24 @@
+{
+  "id": "flax",
+  "name": "flax",
+  "sow": [
+    4,
+    9
+  ],
+  "grow": 22,
+  "ripe": 5,
+  "yield": 0.8,
+  "likes": [
+    "coast",
+    "valley"
+  ],
+  "dislikes": [
+    "hills"
+  ],
+  "eatenBy": [
+    "deer"
+  ],
+  "frost": true,
+  "flood": true,
+  "on": "field"
+}

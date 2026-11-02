@@ -212,6 +212,10 @@ export interface AdminRoads {
   journeys: AdminJourney[];
   /** Counts by kind of those on the road at this minute. */
   onTheRoad: Record<string, number>;
+  /** Packs' and gangs' stretches of road (N26F), with a pack's beasts (each a row: age, scars, wins, kills). */
+  territories?: Array<{ id: string; kind: "pack" | "gang"; owner: string; name: string; road: string; t0: number; t1: number; strong: boolean; beasts: string[] }>;
+  /** Mine watches (N26F): guards posted and swords hired, by place. */
+  watches?: Array<{ site: string; name: string; level: number; guards: string[]; hired: Array<{ name: string; from: string; wage: number; until: number }> }>;
 }
 
 /** Who carried a piece of news where, back to where it happened. */

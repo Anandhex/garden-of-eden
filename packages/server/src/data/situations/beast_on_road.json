@@ -1,6 +1,6 @@
 {
  "id": "beast_on_road",
- "title": "A beast on the road",
+ "title": "A boar on the road",
  "where": [
   "forest",
   "hills",
@@ -8,7 +8,7 @@
  ],
  "chance": 0.1,
  "actors": [],
- "text": "Something big stands in the road ahead, between you and the next bend. It has seen you. It does not move.",
+ "text": "A big old boar stands in the road ahead, between you and the next bend, tusks yellow. It has seen you. It does not move.",
  "choices": [
   {
    "id": "fight",
@@ -16,7 +16,7 @@
    "effects": [
     {
      "type": "fight",
-     "species": "wolf"
+     "species": "boar"
     }
    ]
   },
@@ -37,7 +37,7 @@
      "fail": [
       {
        "type": "fight",
-       "species": "wolf"
+       "species": "boar"
       }
      ]
     }

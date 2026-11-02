@@ -445,7 +445,8 @@ describe("N33 step 5: talkers and townsfolk are one gossip", () => {
     town.passHours(24);
     const { ref } = killAt({ realm, store, ctx: { realm, store }, start: site, live: new Set([site]), liege: site } as ReturnType<typeof world>, site, town.world.day);
     expect(store.knowledge.holders(ref).length).toBeGreaterThan(2);
-    town.passHours(10);
+    // People meet where they meet: the maps are bigger since N26H and farmers walk out to their fields (N26G), so give it the day.
+    for (let h = 0; h < 30 && town.toldHere.length === 0; h += 2) town.passHours(2);
     expect(town.toldHere.length).toBeGreaterThan(0);
     const t = town.toldHere.at(-1)!;
     expect(t.site).toBe(site);

@@ -58,6 +58,24 @@ export class RoadsView implements View {
     table.append(head);
     for (const j of rows) table.append(this.row(j));
     this.el.append(table);
+    // Who holds which stretch of road, and each pack's beasts (N26F).
+    if (d.territories?.length) {
+      this.el.append(el("h3", { textContent: "Territories" }));
+      const t = el("table", { className: "grid" });
+      const h = el("tr");
+      for (const x of ["Held by", "Road", "Stretch (tiles)", "Comes out", "Beasts"]) h.append(el("th", { textContent: x }));
+      t.append(h);
+      for (const x of d.territories) {
+        const tr = el("tr");
+        tr.append(el("td", { textContent: x.name }), el("td", { textContent: x.road }), el("td", { textContent: `${x.t0}–${x.t1}` }), el("td", { textContent: x.strong ? "yes" : "too few" }), el("td", { textContent: x.beasts.join("; ") }));
+        t.append(tr);
+      }
+      this.el.append(t);
+    }
+    if (d.watches?.length) {
+      this.el.append(el("h3", { textContent: "Mine watches" }));
+      for (const w of d.watches) this.el.append(emptyP(`${w.name}: level ${w.level}; guards ${w.guards.join(", ") || "none"}; hired ${w.hired.map((h) => `${h.name} of ${h.from} (${h.wage}/day to day ${h.until})`).join(", ") || "none"}.`));
+    }
   }
 
   private row(j: AdminJourney): HTMLElement {

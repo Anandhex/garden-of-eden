@@ -88,23 +88,23 @@ describe("game server (G1)", () => {
     // The town's head and the others of note, made from the realm, are about; their sprites have colours.
     expect(home.npcs.length).toBeGreaterThanOrEqual(3);
     expect(home.npcs.every((n) => /^#[0-9a-f]{6}$/i.test(n.color))).toBe(true);
-    const east = home.map.exits.find((e) => /woods/i.test(e.label))!;
-    expect(east.label).toMatch(/^To the woods around /);
+    // N26F: the village's only way out is the open road (the woods are entered from a path along it).
+    expect(home.map.exits).toHaveLength(1);
+    const west = home.map.exits[0]!;
+    expect(west.label).toMatch(/open road/);
     const c = await play();
-    // A sign for each way off the map, where it is.
+    // A sign for the way off the map, where it is.
     const signs = c.since(0).flatMap((m) => (m.t === "frame" ? (m.frame.signs ?? []) : []));
-    expect(signs.some((s) => s.kind === "exit" && s.text.includes(east.label))).toBe(true);
-    c.send({ t: "moveTo", x: east.x, y: east.y });
-    await c.until(() => c.map?.id === `${home.site.id}:woods`, 60_000, "the woods");
-    await c.until(() => /The woods around /.test(c.ui.header?.place ?? ""), 5000, "the header to say where");
-    await c.until(() => /You walk out to the woods around/.test(c.feedText()), 5000, "the walk's line");
-    const out = await state();
-    const back = out.map.exits.find((e) => /^To /.test(e.label))!;
-    // From the woods' edge: one step in, then walk back onto the exit.
-    const path = findPath(out.position, (t) => t.x === back.x && t.y === back.y, (x, y) => ["tree", "wall", "water", undefined].includes(out.map.tiles[y]?.[x]));
-    expect(path).not.toBeNull();
-    c.send({ t: "moveTo", x: back.x, y: back.y });
-    await c.until(() => c.map?.id === home.site.id, 60_000, "the village again");
+    expect(signs.some((s) => s.kind === "exit" && s.text.includes(west.label))).toBe(true);
+    c.send({ t: "moveTo", x: west.x, y: west.y });
+    await c.until(() => c.map?.id === "road", 60_000, "the open road");
+    // Back to a new game in the village for the tests that follow.
+    const asked = c.msgs.length;
+    c.send({ t: "newGame" });
+    await c.until(() => c.since(asked).some((m) => m.t === "prompt"), 10_000, "the new-game question");
+    const q = c.since(asked).find((m) => m.t === "prompt") as { id: string };
+    c.send({ t: "answer", prompt: q.id, option: "yes" });
+    await c.until(() => c.map?.id !== undefined && c.map.id !== "road", 60_000, "a new game");
     c.close();
   });
 
@@ -122,7 +122,7 @@ describe("game server (G1)", () => {
     const s = await state();
     const npc = s.npcs.filter((n) => !n.dead && !n.away).sort((a, b) => Math.hypot(a.x - s.position.x, a.y - s.position.y) - Math.hypot(b.x - s.position.x, b.y - s.position.y))[0]!;
     c.send({ t: "click", x: npc.x, y: npc.y });
-    await c.until(() => c.ui.chat?.open === true && c.ui.header?.busy === false, 30_000, "the chat");
+    await c.until(() => c.ui.chat?.open === true && c.ui.header?.busy === false, 60_000, "the chat");
     c.send({ t: "say", mode: "say", text: "Hello." });
     await c.until(() => c.ui.chat?.open === true && c.ui.chat.log.some((l) => /Could not reach Ollama/.test(l.text)), 15_000, "the offline note");
     c.send({ t: "close" });

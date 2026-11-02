@@ -1,3 +1,5 @@
+import { broken } from "../../balance/break.js";
+import { putUp, transfer } from "./ledger.js";
 import { plural } from "./names.js";
 import { z } from "zod";
 import { structured } from "../../director/structured.js";
@@ -130,12 +132,10 @@ export function candidates(realm: Realm, day: number, rng: Rng): Candidate[] {
       if (ally) out.push({ kind: "treaty", target: s.id, reason: `${s.name} was raided and wants friends`, score: 6, run: () => (sign(realm, "mutual_defense", `s:${s.id}`, `s:${ally.id}`, day, 40, `after the raid on ${s.name}`), true) });
     }
     // Hungry: a caravan from a neighbour with grain to spare.
-    if (s.food < 20) {
+    if (s.food < 20 && !broken("no-famine-relief")) {
       const giver = neighbours(realm, s.id).filter((n) => n.food > 60 && !atPeaceBroken(realm, n, s, day)).sort((a, b) => b.food - a.food)[0];
       if (giver) out.push({ kind: "caravan", target: s.id, reason: `${s.name} is starving and ${giver.name} has grain`, score: 7, run: () => {
-        const price = Math.min(s.treasury, Math.round(s.population * 1.5));
-        s.treasury -= price;
-        giver.treasury += price;
+        transfer(realm, `s:${s.id}`, `s:${giver.id}`, Math.round(s.population * 1.5), "grain caravan", undefined, day);
         s.food = Math.min(100, s.food + 20);
         giver.food -= 10;
         tally(realm, "caravans");
@@ -147,9 +147,8 @@ export function candidates(realm: Realm, day: number, rng: Rng): Candidate[] {
     // Beasts or a dungeon too full: whoever can pay puts up a bounty.
     for (const p of Object.values(realm.packs).filter((x) => x.near === s.id && x.count >= x.cap * 0.7 && x.bounty === 0)) {
       out.push({ kind: "bounty", target: p.id, reason: `the ${plural(p.species)} near ${s.name} are too many`, score: 4 + p.count / p.cap, run: () => {
-        const amount = Math.min(Math.round(s.treasury * 0.2), 400);
-        if (amount < 40) return false;
-        s.treasury -= amount;
+        if (Math.min(Math.round(s.treasury * 0.2), 400) < 40) return false;
+        const amount = putUp(realm, `s:${s.id}`, Math.min(Math.round(s.treasury * 0.2), 400), `pack ${p.id}`, day);
         p.bounty += amount;
         realmNews(realm, day, s.id, "bounty", `${s.name} has put a bounty of ${Math.round(amount / 100)} gold on the ${plural(p.species)} in its woods.`, 4, [s.name]);
         return true;
@@ -157,9 +156,8 @@ export function candidates(realm: Realm, day: number, rng: Rng): Candidate[] {
     }
     for (const d of Object.values(realm.dungeons).filter((x) => x.near === s.id && x.danger >= 70 && x.bounty === 0)) {
       out.push({ kind: "bounty", target: d.id, reason: `${d.name} near ${s.name} is filling up`, score: 4 + d.danger / 30, run: () => {
-        const amount = Math.min(Math.round(s.treasury * 0.25), 600);
-        if (amount < 40) return false;
-        s.treasury -= amount;
+        if (Math.min(Math.round(s.treasury * 0.25), 600) < 40) return false;
+        const amount = putUp(realm, `s:${s.id}`, Math.min(Math.round(s.treasury * 0.25), 600), `dungeon ${d.id}`, day);
         d.bounty += amount;
         realmNews(realm, day, s.id, "bounty", `${s.name} will pay ${Math.round(amount / 100)} gold to whoever clears ${d.name}.`, 4, [s.name, d.name]);
         return true;
@@ -234,7 +232,7 @@ export function directorDay(realm: Realm, day: number, rng: Rng): DirectorPush[]
 
 // ---- A place's needs, for the quest boards of its talkers (game/realm/needs.ts) ----
 
-export type Need = "beasts" | "walls" | "food" | "dungeon" | "raiders";
+export type Need = "beasts" | "walls" | "food" | "dungeon" | "raiders" | "stronghold";
 
 /**
  * What a place needs now, most pressing first. `opening`: a new game's first day, when the head wants something
@@ -251,6 +249,9 @@ export function needsOf(realm: Realm, site: string, day: number, opts: { opening
   if (s.food < 35) out.push({ need: "food", why: `${s.name}'s stores are running low` });
   const d = Object.values(realm.dungeons).find((x) => x.near === site);
   if (d && (d.danger >= 70 || opts.opening)) out.push({ need: "dungeon", why: `${d.name} is ${d.danger >= 70 ? "filling up with things" : "close by, and nobody has cleared it"}` });
+  // A stronghold a road away (N26I): the place wants it broken, and its people brought home.
+  const hold = s.roads.map((id) => realm.settlements[id]).find((x) => x?.fallen?.to === "gang");
+  if (hold) out.push({ need: "stronghold", why: `${realm.factions[hold.fallen!.id]?.name ?? "bandits"} hold ${hold.name}` });
   return out;
 }
 

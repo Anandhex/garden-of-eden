@@ -51,6 +51,12 @@ export const budgets = {
     dayCoarseMs: num("BUDGET_TICK_DAY_MS", 250),
     /** One year (config.daysPerYear days) of lazy catch-up for one place (N25). Measured at 48 days a year: ~1.1 s for a capital of 4,149, ~0.5 s for a city of 2,037 (0.4 s and 0.2 s at the old 12-day year). */
     yearCatchupMs: num("BUDGET_TICK_YEAR_MS", 1500),
+    /**
+     * One game day of the whole realm with everyone living as rows and every playtest-pack system running (plans README §23):
+     * the realm, people, roads, beasts, fields, captives. Measured 2026-10-24 before the pack: ~850 ms a day (seed 1, 100 places,
+     * 24,000 people, M2). `npm run bench:busy -- --realm` checks it.
+     */
+    realmDayMs: num("BUDGET_TICK_REALM_DAY_MS", 2000),
     /** The batch write at the end of a tick (N18): the browser stutters past this. Measured: 5 ms for 300 changed people. */
     flushMs: num("BUDGET_TICK_FLUSH_MS", 50),
   },

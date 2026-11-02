@@ -12,6 +12,7 @@ import type { Snapshot } from "@millbrook/shared";
 import { schemaFiles } from "../../shared/src/view/jsonSchema.js";
 import { fakeModel, ProtocolClient, sleep, startGame, type GameProcess } from "../scripts/game-process.js";
 import { heldBy } from "../src/view/session.js";
+import { Mirror } from "../../client/src/core/mirror.js";
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
 let game: GameProcess;
@@ -129,7 +130,9 @@ describe("G5 playing through the protocol", () => {
     expect(c.me().x - x0).toBe(1);
 
     const me = c.me();
-    const npc = [...c.actors.values()].filter((a) => a.kind === "npc" && !a.flags.includes("dead")).sort((a, b) => Math.hypot(a.x - me.x, a.y - me.y) - Math.hypot(b.x - me.x, b.y - me.y))[0]!;
+    // The nearest talker, wherever on the map (maps are bigger since N26H: they may be out of the first frame's view).
+    const snap = (await fetch(`http://localhost:${game.port}/api/state`).then((r) => r.json())) as Snapshot;
+    const npc = snap.npcs.filter((n) => !n.dead && !n.away).sort((a, b) => Math.hypot(a.x - me.x, a.y - me.y) - Math.hypot(b.x - me.x, b.y - me.y))[0]!;
     expect(npc).toBeTruthy();
     const from = c.msgs.length;
     c.send({ t: "click", x: npc.x, y: npc.y });
@@ -238,7 +241,17 @@ describe("G5 playing through the protocol", () => {
     await c.until(() => c.since(from).some((m) => m.t === "feed" && m.lines.some((l) => /Time passes/.test(l.text))), 15_000, "the wait");
     const still = c.since(from).filter((m) => m.t === "frame");
     for (const f of still) if (f.t === "frame") expect(f.frame.patches ?? []).toEqual([]);
+    // Buildings and lights come as changes (by id): put together, they are what a whole frame gives.
+    const m = new Mirror();
+    for (const x of c.msgs) if (x.msg.t === "frame") m.applyFrame(x.msg.frame, x.msg.whole);
+    const again = await connect();
+    const w = new Mirror();
+    for (const x of again.msgs) if (x.msg.t === "frame") w.applyFrame(x.msg.frame, x.msg.whole);
+    const ids = (list: Array<{ id: number | string }>) => list.map((x) => String(x.id)).sort();
+    expect(ids(m.buildings)).toEqual(ids(w.buildings));
+    expect(ids(m.lights)).toEqual(ids(w.lights));
     c.close();
+    again.close();
   });
 
   it("the road: travel sets out, the server walks it, frames carry road patches", async () => {

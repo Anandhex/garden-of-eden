@@ -60,6 +60,10 @@ export interface PersonRow {
   skill: number | null;
   /** A shop of their own (N40): the building on the place's map, by index, that bears their sign. */
   shop: number | null;
+  /** JSON `{ site, day, why }` (N26I): the place they fled, were freed from or moved from, remembered (so they may go back). */
+  origin?: string | null;
+  /** JSON `{ by, since, worth, use, ransom? }` while held captive by a gang (N26I); null otherwise. */
+  captive?: string | null;
   /** Bumped by every flush that writes the row. */
   rev: number;
 }
@@ -91,7 +95,7 @@ const INSERT = `INSERT OR REPLACE INTO people (${COLUMNS.join(", ")}) VALUES (${
 
 /** Columns whose change leaves a place's roster as it was. */
 const QUIET = new Set(["persona", "traits", "expecting", "last_birth", "stepped_day", "spouse", "mother", "father", "figure", "outlook", "skill"]);
-const values = (r: PersonRow) => COLUMNS.map((c) => r[c]) as Array<string | number | null>;
+const values = (r: PersonRow) => COLUMNS.map((c) => r[c] ?? null) as Array<string | number | null>;
 const escapeLike = (q: string) => q.replace(/[\\%_]/g, (c) => `\\${c}`);
 
 export class PeopleStore {

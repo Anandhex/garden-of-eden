@@ -1,4 +1,5 @@
-import { graphOf, pointAt, seedOf, type RoadData, type RoadPoint } from "@millbrook/shared";
+import { besideRoad, type RoadData, type RoadPoint, type Territory } from "@millbrook/shared";
+import { territoriesNow } from "./territories.js";
 import type { Rng } from "../dice.js";
 import { fightOnRoad, gangFoe, packFoe } from "../realm/travel.js";
 import type { Realm } from "../realm/types.js";
@@ -18,43 +19,21 @@ export interface Threat {
   range: number;
   /** The settlement they are near. */
   near: string;
+  /** The territory it stands for (N26F). */
+  territory: Territory;
 }
 
-const cache = new WeakMap<Realm, { key: string; threats: Threat[] }>();
-
-/** Where each live pack's ground and each gang's ambush is. */
+/**
+ * Each territory as a threat with a centre and a reach (N26F step 1: threats are a wrapper over territories, kept for the
+ * off-screen meetings' geometry until every caller reads territories). The reach covers the whole stretch.
+ */
 export function threatsOf(realm: Realm, data: RoadData): Threat[] {
-  const key = `${Object.keys(realm.packs).length}:${Object.keys(realm.factions).length}`;
-  const hit = cache.get(realm);
-  if (hit && hit.key === key) return hit.threats;
-  const g = graphOf(data);
-  /** A point on a road leaving `site`, `d` tiles from it, `side` tiles to one side. */
-  const outFrom = (site: string, d: number, side: number): RoadPoint | null => {
-    const edge = [...(g.get(site) ?? [])].sort((a, b) => a.road.localeCompare(b.road))[0];
-    const road = edge && data.roads.find((r) => r.id === edge.road);
-    if (!edge || !road) return null;
-    const along = Math.min(road.length * 0.6, d);
-    const cum = [0];
-    for (let i = 1; i < road.pts.length; i++) cum.push(cum[i - 1]! + Math.hypot(road.pts[i]!.x - road.pts[i - 1]!.x, road.pts[i]!.y - road.pts[i - 1]!.y));
-    const t = edge.rev ? road.length - along : along;
-    const a = pointAt(road.pts, cum, t - 3);
-    const b = pointAt(road.pts, cum, t + 3);
-    const len = Math.hypot(b.x - a.x, b.y - a.y) || 1;
-    const on = pointAt(road.pts, cum, t);
-    return { x: Math.round(on.x + (-(b.y - a.y) / len) * side), y: Math.round(on.y + ((b.x - a.x) / len) * side) };
-  };
-  const threats: Threat[] = [];
-  for (const p of Object.values(realm.packs)) {
-    const at = outFrom(p.near, 500 + (seedOf(p.id) % 1200), 26);
-    if (at) threats.push({ id: `pack:${p.id}`, kind: "pack", at, range: 20, near: p.near });
-  }
-  for (const f of Object.values(realm.factions)) {
-    if (f.kind !== "gang" || !f.seat) continue;
-    const at = outFrom(f.seat, 350 + (seedOf(f.id) % 900), 0);
-    if (at) threats.push({ id: `gang:${f.id}`, kind: "gang", at, range: 11, near: f.seat });
-  }
-  cache.set(realm, { key, threats });
-  return threats;
+  return territoriesNow(realm, data).flatMap((t) => {
+    const road = data.roads.find((r) => r.id === t.road);
+    if (!road) return [];
+    const at = besideRoad(road, (t.t0 + t.t1) / 2, 0);
+    return [{ id: t.id, kind: t.kind, at, range: Math.round((t.t1 - t.t0) / 2 + t.width), near: t.near, territory: t }];
+  });
 }
 
 /** The player has come near something that waits: it's faced, and what happened is returned. */
@@ -68,13 +47,14 @@ export function meetThreats(town: Town, rng: Rng): string[] {
     if (Math.abs(t.at.x - road.x) > t.range || Math.abs(t.at.y - road.y) > t.range || Math.hypot(t.at.x - road.x, t.at.y - road.y) > t.range) continue;
     if (road.met[t.id] === day) continue;
     // Alive and strong enough to be out.
-    const id = t.id.slice(t.id.indexOf(":") + 1);
+    const id = t.territory.owner;
     const pack = t.kind === "pack" ? realm.packs[id] : undefined;
     const gang = t.kind === "gang" ? realm.factions[id] : undefined;
     if (t.kind === "pack" && (!pack || pack.count < pack.cap * 0.6)) continue;
     if (t.kind === "gang" && (!gang || gang.dissolved !== undefined || gang.members.length === 0)) continue;
     road.met[t.id] = day;
-    const foe = pack ? packFoe(realm, pack) : gangFoe(realm, gang!);
+    const foe = pack ? packFoe(realm, pack) : gangFoe(realm, gang!, rng);
+    if (!foe) continue;
     lines.push(...fightOnRoad(realm, p, foe, realm.settlements[t.near]?.name ?? "the road", day, rng, town.companionPower()));
   }
   for (const k of Object.keys(road.met)) if (road.met[k]! < day - 2) delete road.met[k];

@@ -240,6 +240,34 @@ function decorate(p: RoadPlace, ix: Index, set: (x: number, y: number, g: number
     }
     case "waystation":
       return set(x, y, Ground.signpost);
+    case "stones":
+      for (const [dx, dy] of [[0, 0], [2, 0], [-2, 1], [1, 2], [-1, -2]] as const) set(x + dx, y + dy, Ground.stones);
+      return;
+    case "ruin":
+      for (let dy = -2; dy <= 2; dy++) for (let dx = -3; dx <= 3; dx++) {
+        const edge = Math.abs(dx) === 3 || Math.abs(dy) === 2;
+        if (edge && (dx + dy) % 3 !== 0) set(x + dx, y + dy, Ground.ruin);
+        else if (!edge) set(x + dx, y + dy, Ground.yard);
+      }
+      return;
+    case "cave":
+      for (let dy = -2; dy <= 0; dy++) for (let dx = -2; dx <= 2; dx++) set(x + dx, y + dy, Ground.rock);
+      set(x, y, Ground.cave);
+      set(x, y + 1, Ground.grass);
+      return;
+    case "herbs":
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -2; dx <= 2; dx++) if (get(x + dx, y + dy) !== Ground.road) set(x + dx, y + dy, Ground.herbs);
+      return;
+    case "ore":
+      for (const [dx, dy] of [[0, 0], [1, 0], [0, -1], [-1, 0]] as const) set(x + dx, y + dy, Ground.ore);
+      return;
+    case "woods":
+    case "mine":
+    case "watchpost":
+      // A path off the road to it, and a sign where it leaves.
+      for (let k = 0; k <= 6; k++) set(Math.round(p.on.x + ((x - p.on.x) * k) / 6), Math.round(p.on.y + ((y - p.on.y) * k) / 6), Ground.path);
+      set(x, y, p.kind === "mine" ? Ground.cave : p.kind === "watchpost" ? Ground.farmhouse : Ground.path);
+      return;
   }
 }
 

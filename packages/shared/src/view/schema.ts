@@ -97,6 +97,11 @@ export const FrameSchema = z.object({
   patches: z.array(PatchSchema).optional(),
   buildings: z.array(BuildingSchema).optional(),
   lights: z.array(LightSchema).optional(),
+  /**
+   * Present: `buildings` and `lights` are only the ones new or changed (by id), and these are the ids gone from view (a busy town
+   * has dozens of buildings in view, and a step moves the view). Absent: `buildings` and `lights` are the whole lists.
+   */
+  drop: z.object({ buildings: z.array(z.number()), lights: z.array(z.string()) }).optional(),
   signs: z.array(SignSchema).optional(),
   /**
    * `upsert`: actors new or changed in more than their place (whole). `move`: actors that only moved, as compact

@@ -1,0 +1,61 @@
+{
+  "id": "adder",
+  "name": "adder",
+  "species": "adder",
+  "tier": "G",
+  "potential": [
+    "G",
+    "F"
+  ],
+  "ageRange": [
+    2,
+    12
+  ],
+  "stats": {
+    "maxHp": 5,
+    "maxMp": 0,
+    "attributes": {
+      "strength": 3,
+      "agility": 12,
+      "endurance": 5,
+      "intelligence": 3,
+      "willpower": 6,
+      "charisma": 3,
+      "perception": 12,
+      "luck": 10
+    }
+  },
+  "skills": {
+    "unarmed": 2
+  },
+  "attack": {
+    "name": "venomous bite",
+    "die": 6,
+    "skill": "unarmed"
+  },
+  "fleeAt": 0.5,
+  "loot": [
+    {
+      "item": "adder skin",
+      "qty": 1,
+      "chance": 0.7
+    }
+  ],
+  "barks": {
+    "idle": [
+      "*something rustles in the warm grass*"
+    ],
+    "attack": [
+      "*strikes*"
+    ],
+    "hurt": [
+      "*hisses*"
+    ],
+    "flee": [
+      "*slides away under a stone*"
+    ]
+  },
+  "aggressive": true,
+  "hunts": [],
+  "rivalry": 0
+}

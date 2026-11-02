@@ -147,7 +147,7 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 
 ## N26F: A road worth walking
 
-**Status:** ⬜ Planned (asked for 2026-10-24)
+**Status:** ✅ Built 2026-10-24 (uncommitted; tests/n26f.test.ts, tests/nobody-made-up.test.ts, packages/shared/tests/territory.test.ts)
 
 **Implementation plan:** [plans/n26f-a-road-worth-walking.md](plans/n26f-a-road-worth-walking.md)
 
@@ -155,86 +155,133 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 
 **The rules:** realistic creatures only (fantasy waits for N54). Nobody and nothing with state is made up: wolves belong to real packs, bandits to real gangs, signs point at real things.
 
-- [ ] **Nobody made up:** every NPC is a tracked person or figure; the five places that spawn nameless bandits, villagers or deserters today are fixed, and a test guards it
-- [ ] **Pack beasts are tracked:** every wolf, bear, boar and spider in a pack is a row with an age, scars and deeds, the same beast wherever it's met, and any of them can rise to a named figure and lead the pack
-- [ ] **Territories:** packs and gangs hold stretches of road instead of single points; off-screen journeys meet them in the same places
-- [ ] **Hostiles on the map:** pack and gang members are creatures you see coming and fight on the road, written back to the realm
-- [ ] **Wildlife:** deer, hares, foxes, crows, herons, adders and lone boars drawn by the road, light until hunted
-- [ ] **Roadside places:** shrines, standing stones, ruins, caves, herb patches, ore outcrops (N27 POIs, near the road only)
-- [ ] **The village's surroundings on the road:** the woods, the gang's camp and the mine are entered from the road; their maps become interiors
-- [ ] **People at work on the road:** miners walk to the working mine and back, hunters to the woods, an ore cart to town; the mine has a watch of the town's guards, and sellswords hired from the treasury when the guards are too few
-- [ ] **More happens:** a situation roll every stretch with a no-actor fallback, new situations, and signs of what's ahead
-- [ ] Tests, README, this roadmap
+- [x] **Nobody made up:** every NPC is a tracked person or figure; the five places that spawn nameless bandits, villagers or deserters today are fixed, and a test guards it
+- [x] **Pack beasts are tracked:** every wolf, bear, boar and spider in a pack is a row with an age, scars and deeds, the same beast wherever it's met, and any of them can rise to a named figure and lead the pack
+- [x] **Territories:** packs and gangs hold stretches of road instead of single points; off-screen journeys meet them in the same places
+- [x] **Hostiles on the map:** pack and gang members are creatures you see coming and fight on the road, written back to the realm
+- [x] **Wildlife:** deer, hares, foxes, crows, herons, adders and lone boars drawn by the road, light until hunted
+- [x] **Roadside places:** shrines, standing stones, ruins, caves, herb patches, ore outcrops (N27 POIs, near the road only)
+- [x] **The village's surroundings on the road:** the woods, the gang's camp and the mine are entered from the road; their maps become interiors
+- [x] **People at work on the road:** miners walk to the working mine and back, hunters to the woods, an ore cart to town; the mine has a watch of the town's guards, and sellswords hired from the treasury when the guards are too few
+- [x] **More happens:** a situation roll every stretch with a no-actor fallback, new situations, and signs of what's ahead
+- [x] Tests, README, this roadmap
 
 - **Done when:** a day's walk between the start town and its liege town has 5 to 10 things to see or do; the player sees a pack's wolves coming at dusk on its stretch and fights them on the map; a gang demands a toll by name on its own stretch; the start town's woods, camp and mine are reached by walking along the road.
 
+**What differs from the plan:**
+
+1. *Nobody made up (step 0b):* spawn rules carry `who` (a figure, a person row or a beast row); a person kind with no `who` spawns nobody, so the old nameless raids, refugees, lookouts and ambushes can't come back. Raiders are the raiding side's named fighters or rows of the place they came from; refugees are only the migrating rows; the lookout is a gang member on duty; a revenge ambush is the avenger with kin, friends or a gang near them; deserters are guards and captains of the enemy kingdom (or nobody); a gang met on the road is its members, and losses fall on them. Director and need quests name their quarry the same way. Guard: `madeUpPeople` / `nobody-made-up` (`road/bounds.ts`).
+2. *Pack beasts (step 0c)* are rows of a `beasts` table (schema 10). The realm's pack rules still count, but write each birth and loss to the pack's log with its cause (`bear`, `lose`, `tookLife`); `syncBeasts` turns the log into rows every day (mothers in the pack, the hungry die young or old, hunters take the grown), so `count` is always the living rows. Rising, succession and splitting are in `game/realm/beasts.ts`. No save migration was needed: old saves seed rows on the first sync.
+3. *Territories* are shared code (`shared/road/territory.ts`); `threats.ts` is now a thin wrapper used by off-screen meetings. Territories stay 400 tiles clear of gates, cover at most 40% of a road between them (a pack whose roads are full shares a stretch).
+4. *Hostiles* live in `town.roadCreatures` (not saved; who is out is rebuilt as you walk) and are fought with the map's own combat. A gang's toll is a road choice (`pending.kind = "toll"`), not the `toll_demanded` situation file. Beasts and outlaws walk through woods the player can't.
+5. *Wildlife* is shared (`wildlifeAt`); the server sends the animals in the frame (G5: the client only draws), so the flee animation isn't on the client. Hunting one promotes it on the server. New creature templates and items (venison, hides, feathers).
+6. *Roadside places:* ruins and caves are searched in place (no interior maps yet); a cave in a pack's stretch is its den. Shrine, herbs and ore are road-place actions, not N38 menu actions. A robbed cart lies only where a journey really ended robbed.
+7. *The surroundings:* the woods are entered from a path on the road; the old "road out of" map is the track from the open road to the camp and the old mine; the camp is shown only once found (walking within 14 tiles) and is never in the road data the browser has.
+8. *Commuters and the watch* are pure functions of the day (not saved). The ore cart is driven by a porter (there's no carter job). `hire_on` is a road-place op at the working mine (a day's wage at day's end, `payDuty`). Hired sellswords walk in on a round-trip journey and are paid from the treasury daily (a `sink`, until N69's offices).
+9. *Situations* roll on fixed 1,200-tile stretches with a no-actor fallback; five new files; `wolves_at_night` is retired (packs come out as hostiles now) and `beast_on_road` is a lone boar. Signs (tracks, carcasses, smoke, fresh graves) come from territories, camps and real deaths.
+10. *Bounds:* `road-beats` (6 to 9 measured on seeds 1-3), `territories-sane`, `watch-paid` in `checkN26fBounds`; road-danger isn't a separate bound yet (meetings are at most one per territory per day).
+11. *Not done:* art for the new animals and places (they draw with stand-in sprites and tiles); admin realm-map drawing of territories (they are listed in the Roads tab with each pack's beasts); fast travel and the coach don't yet roll the new hostiles (they keep the off-screen meetings).
+
 ## N26G: Fields outside the village
 
-**Status:** ⬜ Planned (asked for 2026-10-24)
+**Status:** ✅ Built 2026-10-24 (uncommitted; tests/n26g.test.ts)
 
 **Implementation plan:** [plans/n26g-fields-outside-the-village.md](plans/n26g-fields-outside-the-village.md)
 
 **Goal:** farmland lies outside the village, cut into plots held and worked by real households, with every plot's crop, growth and damage tracked down to the tile.
 
-- [ ] **The land laid out:** infields, outfields, pasture, meadow and woodlot around each place, in plots held by households, the lord, the temple or the commons
-- [ ] **Crops and growth:** crops as data with a 48-day-year calendar; growth per tile as a pure function of sowing, weather, care and what happened
-- [ ] **People work it:** farmers, serfs and slaves walk out to their plots; too few hands shows
-- [ ] **Damage:** deer grazing, boars rooting, crows, straying stock, trampling, storms, frost, blight, fire from raids, theft, each on real tiles from a real cause
-- [ ] **Protection:** fences, scarecrows, a hayward, night watch, hunters sent after a beast that keeps coming back
-- [ ] **Food is the harvest:** a place's food is what its plots yielded, less what was lost and owed
-- [ ] Tests, README, this roadmap
+- [x] **The land laid out:** infields, outfields, pasture, meadow and woodlot around each place, in plots held by households, the lord, the temple or the commons
+- [x] **Crops and growth:** crops as data with a 48-day-year calendar; growth per tile as a pure function of sowing, weather, care and what happened
+- [x] **People work it:** farmers, serfs and slaves walk out to their plots; too few hands shows
+- [x] **Damage:** deer grazing, boars rooting, crows, straying stock, trampling, storms, frost, blight, fire from raids, theft, each on real tiles from a real cause
+- [x] **Protection:** fences, scarecrows, a hayward, night watch, hunters sent after a beast that keeps coming back
+- [x] **Food is the harvest:** a place's food is what its plots yielded, less what was lost and owed
+- [x] Tests, README, this roadmap
 
 - **Done when:** the start town's fields lie outside it along its roads, held and worked by its own people; a boar roots a path through a named household's barley, drawn tile by tile; the town's food for the year is what its plots yielded.
 
+**What differs from the plan:**
+
+1. *Plots* are laid out by shared code (`shared/farm/layout.ts`) from the road data: strips by the walls, closes and paddocks further out, meadow by rivers, an orchard. Only what can change is stored (`plots`: holder and fence; `sowings`; `field_events` with their tiles; `plot_years`, the folded past), schema 11. Cleared land is never lost: a place's plot count only grows.
+2. *Work:* each plot's holder household (or the lord's serfs on their duty days, the temple's clergy, the commons' farmers) sows, weeds and reaps it as field events by named people; too few hands means late sowing and crops left to rot. Farmers walk out to their plots (commutes).
+3. *Damage* from real causes: deer (outer plots most), the boars of a real pack by row, crows on seed, a neighbour household's stock (a grievance), storms, frost, flood, blight, fire after a raid, theft by the hungry (a crime). There's no herds table and no hayward job yet: stock damage is by a neighbouring household, and the watch are the witnesses. Hunters sent after a boar that roots three nights running kill that boar's row (no journey).
+4. *Food:* where a place's fields are kept (`FIELDS=off` turns it off), its food falls by what's eaten from stores (70 points a year) and rises at harvest by what was reaped (`YIELD_SCALE` 0.68, measured to give ~84 points a year on plains). Places whose people aren't rows keep the old formula.
+5. *Browser and admin:* road frames draw plots by stage and marks; the admin place card has a Fields section. The player tramples crops by walking through them, and can hire on for a day's reaping at a ripe field.
+6. *Bounds:* `fields-feed` and `losses-band` (3% to 30%, measured 3 to 13%) apply to places of 40 people or more; `no-orphan-plots`.
+
 ## N26H: Districts, access and buildings to scale
 
-**Status:** ⬜ Planned (asked for 2026-10-24)
+**Status:** ✅ Built 2026-10-24 (uncommitted; tests/n26h.test.ts)
 
 **Implementation plan:** [plans/n26h-districts-access-and-buildings-to-scale.md](plans/n26h-districts-access-and-buildings-to-scale.md)
 
 **Goal:** places are made of districts, buildings are their real size, and who can go where depends on rank, relationships and real ways in.
 
-- [ ] **Districts:** from a hamlet's green to a capital's palace ward, noble quarter and slums; towns and up are several district maps
-- [ ] **Buildings to scale:** cottages, merchants' houses, town halls, cathedrals, castles and palaces each at their real size, big ones as walled compounds
-- [ ] **Homes by class:** people live in the district their class and trade put them in, and move when they rise or fall
-- [ ] **Access:** one rule for the player and every NPC: open, by day, ranked, members, private, guarded
-- [ ] **Ways in:** rank, relationship, invitation, summons, work, a quest's writ, a bribe, sneaking or force; guards on posts by name
-- [ ] Tests, README, this roadmap
+- [x] **Districts:** from a hamlet's green to a capital's palace ward, noble quarter and slums; towns and up are several district maps (built as walled district zones on one map: see What differs)
+- [x] **Buildings to scale:** cottages, merchants' houses, town halls, cathedrals, castles and palaces each at their real size, big ones as walled compounds
+- [x] **Homes by class:** people live in the district their class and trade put them in, and move when they rise or fall
+- [x] **Access:** one rule for the player and every NPC: open, by day, ranked, members, private, guarded
+- [x] **Ways in:** rank, relationship, invitation, summons, work, a quest's writ, a bribe, sneaking or force; guards on posts by name
+- [x] Tests, README, this roadmap
 
 - **Done when:** a commoner can't walk into the noble quarter or the palace, but summoned, on a writ, escorted or with a bribe they can; nobody enters a home without a relationship, an invitation, a job there or a crime; a castle and a cottage are each their real size.
 
+**What differs from the plan:**
+
+1. *One map per place:* districts are zones on the place's map (with walls and gates round the noble quarter, castle, palace and barracks), not separate district maps. N32's interiors aren't built: doors still lead nowhere.
+2. *Buildings to scale* from the shared `FOOTPRINT` table, clamped so the biggest fit between streets; the castle and palace are walled compounds with a gatehouse. Maps are bigger and grow to fit their houses; a place's map is laid out once (`mapScale`, `mapFrozen`) so homes and workplaces never move: buildings a place builds later don't appear on its map (only new houses do).
+3. *Homes by class* at generation, on arrival and when a household's highest-born member no longer fits its quarter (`town/rehouse.ts`, every 6 days, in the daily and the catch-up step alike).
+4. *Access:* `canEnter` (shared) for the player at district gates; NPCs keep out by construction (their homes and work are where their class may be), not by a crowd-level check. Posts are the gates, manned by the place's guards on a three-watch rota; bribes (by the guard's greed and loyalty, dearer at the palace and at night), sneaking, force, and summons and writs as papers for a day. Escort and the household-relationship rule are in `canEnter` but nothing calls them yet (no interiors).
+5. *Bounds:* `homes-by-class`, `nobody-misplaced`, `posts-filled` (`town/bounds.ts`).
+6. *Not done:* quests to get inside (step 6), NPC thieves and suitors using the same doors (step 7), district names in the header, art for compounds.
+
 ## N26I: Fallen places, lairs and strongholds
 
-**Status:** ⬜ Planned (asked for 2026-10-24)
+**Status:** ✅ Built 2026-10-24 (uncommitted; tests/n26i.test.ts)
 
 **Implementation plan:** [plans/n26i-fallen-places-lairs-and-strongholds.md](plans/n26i-fallen-places-lairs-and-strongholds.md)
 
 **Goal:** a place overrun by beasts or bandits falls to them and becomes their lair or stronghold, a living base that grows, raids and takes captives, until the world answers and takes it back.
 
-- [ ] **Falling:** a place whose defenders are broken falls to the pack or gang; its survivors flee by name and remember it
-- [ ] **Lairs:** the pack moves in, grows and breeds, its fields go wild, its buildings decay, and it hunts the next places along
-- [ ] **Strongholds:** the gang lives in the houses, builds a palisade, farms with captives, keeps stolen herds, tolls the road, sells through a fence and demands tribute
-- [ ] **Captives:** named people carried off in raids, put to work, ransomed, sold where slavery is legal, turned, or escaping with news
-- [ ] **The world answers:** quests (scout, rescue, kill the chief, clear the lair), lords sending soldiers, tribute or walls or sellswords
-- [ ] **Taking it back:** captives freed, bandits scattered, the place resettled by the families who fled it, or left a ruin
-- [ ] Tests, README, this roadmap
+- [x] **Falling:** a place whose defenders are broken falls to the pack or gang; its survivors flee by name and remember it
+- [x] **Lairs:** the pack moves in, grows and breeds, its fields go wild, its buildings decay, and it hunts the next places along
+- [x] **Strongholds:** the gang lives in the houses, builds a palisade, farms with captives, keeps stolen herds, tolls the road, sells through a fence and demands tribute
+- [x] **Captives:** named people carried off in raids, put to work, ransomed, sold where slavery is legal, turned, or escaping with news
+- [x] **The world answers:** quests (scout, rescue, kill the chief, clear the lair), lords sending soldiers, tribute or walls or sellswords
+- [x] **Taking it back:** captives freed, bandits scattered, the place resettled by the families who fled it, or left a ruin
+- [x] Tests, README, this roadmap
 
 - **Done when:** a village overrun by wolves becomes their lair; a village overrun by bandits becomes their stronghold, farmed by captives, raiding its neighbours; a named captive can be ransomed or rescued; a broken stronghold is resettled by the people who fled it.
 
+**What differs from the plan:**
+
+1. *Falling* is decided in the day's people step (`realm.falls`, queued by winning attacks): broken when fewer than 4 can fight or the attacker is 4 times the defence; beasts take only hamlets (a village when nobody is left); capitals never fall. A fallen place is also marked `abandoned`, so trips, migration and the economy leave it alone.
+2. *Lairs* raise the pack's cap by half and eat the next places' herds; the places round about put up a bounty and send hunters weekly (the answer that keeps `fallen-band` under 10%).
+3. *Strongholds:* the gang's seat moves in, a palisade, stores; weekly: farming with captives, goods sold through a fence (minted), tribute from weaker neighbours (paid or refused), raids (refusers first, or when hungry) carrying off named people, recruits from hungry places, captives' fates, and the kingdom's soldiers when the gang is strong.
+4. *Captives* are people rows (`people.captive`, schema 12): ransomed by their home place, sold where the kingdom allows slavery, turned into members (figures), or they escape with the news. Ransoms are paid by places, not yet by kin as N38 actions.
+5. *Taking it back* frees captives and makes a ruin; people who fled remember it (`people.origin`) and come back when where they live is poor. Need quests: a place by a stronghold posts work against its named members.
+6. *Bounds:* `fallen-band`, `fallen-turn-over`, `captives-accounted`. Measured 2026-10-24 (slice, 5 years, seeds 1-3): 3 to 6 places fell, all but one won back and resettled, at most a few at once.
+
 ## N26J: Rough justice and being taken
 
-**Status:** ⬜ Planned (2026-10-24, a stand-in for parts of N48 and N49)
+**Status:** ✅ Built 2026-10-24 (uncommitted; tests/n26j.test.ts, tests/n26i.test.ts)
 
 **Implementation plan:** [plans/n26j-rough-justice-and-being-taken.md](plans/n26j-rough-justice-and-being-taken.md)
 
 **Goal:** crimes the playtest phases make possible (trespass, bribes, theft from fields, banditry, kidnapping) have consequences now, and bandits who beat the player can take them captive.
 
-- [ ] **Crimes and sentences:** a crime table; the place's head or lord picks a fine, the lock-up, the stocks, a flogging, banishment or a bounty by their traits, the same for NPCs and the player
-- [ ] **Bribes found out:** both sides punished; the guard loses their post
-- [ ] **The player taken:** held at a camp or stronghold as a real captive; escape, ransom, rescue, labour or joining
-- [ ] Tests, README, this roadmap
+- [x] **Crimes and sentences:** a crime table; the place's head or lord picks a fine, the lock-up, the stocks, a flogging, banishment or a bounty by their traits, the same for NPCs and the player
+- [x] **Bribes found out:** both sides punished; the guard loses their post
+- [x] **The player taken:** held at a camp or stronghold as a real captive; escape, ransom, rescue, labour or joining
+- [x] Tests, README, this roadmap
 
 - **Done when:** a crime that's seen is punished by local custom for the player and NPCs alike; beaten by bandits, the player can be taken and get out by escape, ransom or rescue.
+
+**What differs from the plan:**
+
+1. *Sentences:* `data/law/crimes.json` and `game/law/sentence.ts`; the head's temper comes from their figure's traits (bravery and ambition make them harsh, greed makes them fine). The kingdom's custom decides hanging (some do, some don't). `/surrender` now goes before the head; crimes seen in a place (caught thefts, field thefts, assaults, killings, bribes with witnesses) are judged daily.
+2. *Bribes:* `recordBribe`; a seen bribe turns the guard out of the watch and sentences the briber.
+3. *The player taken* (`game/law/taken.ts`): beaten by a gang's member with a camp or stronghold, the player may be taken; while held they can't leave the map; ways out: escape (by night, past a watchman they may have bribed), ransom (their coin, a friend's, or home's if they're renowned), labour (6 days), joining, or a hero of home coming for them.
 
 ## N27: The wilds
 

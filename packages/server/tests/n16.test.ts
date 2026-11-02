@@ -39,9 +39,11 @@ describe("N16.1 maps sized to the place", () => {
   it("a hamlet is small and a capital a walled city, with more houses the bigger the place", () => {
     const kinds: SettlementKind[] = ["hamlet", "village", "town", "city", "capital"];
     const maps = kinds.map((k) => siteMap(ofKind(k), "village", realm));
+    // At least its kind's size; bigger where its houses need the room (N26H: houses at their real size).
     maps.forEach((m, i) => {
-      expect(m.w).toBe(VILLAGE_SIZE[kinds[i]!]!.w);
-      expect(m.h).toBe(VILLAGE_SIZE[kinds[i]!]!.h);
+      expect(m.w).toBeGreaterThanOrEqual(VILLAGE_SIZE[kinds[i]!]!.w);
+      expect(m.h).toBeGreaterThanOrEqual(VILLAGE_SIZE[kinds[i]!]!.h);
+      expect(m.buildings.filter((b) => b.kind === "house").length).toBe(ofKind(kinds[i]!).houses);
     });
     const houses = maps.map((m) => m.buildings.filter((b) => b.kind === "house").length);
     expect(houses[4]!).toBeGreaterThan(houses[2]!);

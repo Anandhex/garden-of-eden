@@ -1,0 +1,61 @@
+{
+  "id": "crow",
+  "name": "crow",
+  "species": "crow",
+  "tier": "G",
+  "potential": [
+    "G",
+    "G"
+  ],
+  "ageRange": [
+    1,
+    8
+  ],
+  "stats": {
+    "maxHp": 4,
+    "maxMp": 0,
+    "attributes": {
+      "strength": 3,
+      "agility": 14,
+      "endurance": 4,
+      "intelligence": 3,
+      "willpower": 6,
+      "charisma": 3,
+      "perception": 14,
+      "luck": 10
+    }
+  },
+  "skills": {
+    "evasion": 3
+  },
+  "attack": {
+    "name": "beak",
+    "die": 2,
+    "skill": "unarmed"
+  },
+  "fleeAt": 0.95,
+  "loot": [
+    {
+      "item": "feathers",
+      "qty": 2,
+      "chance": 1
+    }
+  ],
+  "barks": {
+    "idle": [
+      "*crows squabble over the furrows*"
+    ],
+    "attack": [
+      "*pecks*"
+    ],
+    "hurt": [
+      "*caws*"
+    ],
+    "flee": [
+      "*the crows lift off, cawing*"
+    ]
+  },
+  "aggressive": false,
+  "hunts": [],
+  "rivalry": 0
+}
