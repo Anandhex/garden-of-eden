@@ -1,5 +1,6 @@
 import { CLASS_RANK, type SocialClass } from "@millbrook/shared";
 import { config } from "../../config.js";
+import { joinedByRecruit } from "../office/recruit.js";
 import { timed } from "../../metrics/timing.js";
 import type { PersonRow } from "../../store/peopleStore.js";
 import { addGrievance, easeGrievances, settleAll, weightOn } from "../chatter/grievance.js";
@@ -155,6 +156,7 @@ function rowCtx(ctx: LifeCtx, me: PersonRow, day: number, siteDay: SiteDay, othe
     absent: [],
     gatherings: [],
     recruiter: !!me.faction,
+    ...(me.faction && (siteDay.factions?.[me.faction]?.need ?? 0) > 0 ? { recruitNeed: siteDay.factions![me.faction]!.need } : {}),
     wantsToLeave: outlook.goal?.kind === "move",
     violence: config.choice.violence,
     last: outlook.choice?.cd ?? {},
@@ -216,7 +218,7 @@ function hostFor(ctx: LifeCtx, me: PersonRow, day: number, onDeed: () => void): 
             store.people.update(a.id, { outlook: JSON.stringify(o) });
           }
         }
-        if (d.recruit && a.faction && !b.faction) store.people.update(b.id, { faction: a.faction });
+        if (d.recruit && a.faction && !b.faction) joinedByRecruit(ctx.realm, store, b.id, a.faction, store.people.siteDay<SiteDay>(b.site, day)?.factions?.[a.faction]?.prestige ?? 0);
       }
       if (d.rumour && b) {
         for (const who of d.rumour.hearers.slice(0, 3)) {

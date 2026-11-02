@@ -8,6 +8,9 @@ import { realmNews, tally } from "./log.js";
 import { casualty, fight, gangSide, settlementSide, type Side } from "./military.js";
 import type { Party, Realm, Settlement, Treaty, TreatyKind, War } from "./types.js";
 import { sendArrival } from "./arrivals.js";
+import { brokeOath } from "../office/epithets.js";
+import { memberCount } from "../office/members.js";
+import { callerOf, captainOf, conquered, factionOfParty, sackedSurrendered, ventureOutcome } from "../office/ventures.js";
 
 /**
  * Treaties, raids and wars (N13.5), in code.
@@ -97,6 +100,7 @@ export function breakTreaty(realm: Realm, t: Treaty, by: Party, day: number, why
   if (leader) {
     addRenown(leader, -10);
     addDeed(leader, `broke faith with ${partyName(realm, other)}`);
+    brokeOath(leader);
   }
   tally(realm, "broken");
   realmNews(realm, day, null, "treaty", `${cap(partyName(realm, by))} has broken its ${t.kind.replace("_", "-")} treaty with ${partyName(realm, other)}: ${why}.`, 6, [partyName(realm, by), partyName(realm, other)], { why });
@@ -177,6 +181,15 @@ export function raid(realm: Realm, attacker: Side, attackerParty: Party, target:
   } else {
     realmNews(realm, day, target.id, "raid", `${cap(target.name)} drove off a raid by ${attacker.name}${help.names.length > 0 ? `, with help from ${help.names.join(" and ")}` : ""}${r.dead.length > 0 ? `; ${r.dead.map((f) => f.name).join(" and ")} died` : ""}.`, 6, [attacker.name, target.name, ...help.names, ...r.dead.map((f) => f.name)], { why });
   }
+  // Every venture can fail (N69): the raid's caller and captain, those who went, the gang; and the defenders' head.
+  const caller = callerOf(realm, attackerParty);
+  const gang = attackerParty.startsWith("f:") ? realm.factions[attackerParty.slice(2)] : undefined;
+  const greedy = gang?.kind === "gang" || /wanted their coin|for plunder/.test(why);
+  // A place that had given in (paying its tribute) and is sacked anyway (N26I strongholds).
+  if (r.attackerWon && gang && target.tribute?.[gang.id] && target.tribute[gang.id]!.refused === undefined) sackedSurrendered(realm, caller, target.name, day);
+  ventureOutcome(realm, { kind: "raid", ...(caller ? { leader: caller.id } : {}), ...(captainOf(realm, attackerParty) ? { captain: captainOf(realm, attackerParty)!.id } : {}), ...(gang ? { faction: gang.id } : {}), went: attacker.fighters.map((f) => f.id), won: r.attackerWon, just: why === "unpaid taxes", greedWeak: greedy, routed: r.lost.attackers * 2 > Math.max(1, attacker.men), against: target.name, ...(attacker.home ? { dead: { site: attacker.home.id, causes: [`${raidRef}:raiders`] } } : {}) }, day);
+  const holder = target.leader ? realm.figures[target.leader] : undefined;
+  if (holder?.alive) ventureOutcome(realm, { kind: "defence", leader: holder.id, ...(captainOf(realm, `s:${target.id}`) ? { captain: captainOf(realm, `s:${target.id}`)!.id } : {}), went: defence.fighters.map((f) => f.id), won: !r.attackerWon, just: true, against: attacker.name, dead: { site: target.id, causes: [raidRef] } }, day);
   return r.attackerWon;
 }
 
@@ -212,7 +225,8 @@ export function raidsDay(realm: Realm, day: number, rng: Rng): void {
   for (const g of Object.values(realm.factions)) {
     if (g.dissolved || g.kind !== "gang" || !g.seat || rng() >= dailyChance(GANG_RAID_YEARLY)) continue;
     const side = gangSide(realm, g.id);
-    if (side.fighters.length === 0) continue;
+    // A band needs its minimum to raid (N69): three.
+    if (side.fighters.length === 0 || memberCount(realm, g) < 3) continue;
     const target = raidTarget(realm, [`f:${g.id}`], g.seat, side.strength, day);
     if (target) raid(realm, side, `f:${g.id}`, target, day, rng, "for plunder");
   }
@@ -405,6 +419,8 @@ function capture(realm: Realm, s: Settlement, kingdom: string, day: number): voi
   s.freeSince = undefined;
   const lead = s.leader ? realm.figures[s.leader] : undefined;
   if (lead) lead.superior = liege?.leader ?? null;
+  // The ruler who took it is a conqueror (N69).
+  conquered(realm, callerOf(realm, `k:${kingdom}`), s.name, day);
   tally(realm, "captured");
   realmNews(realm, day, s.id, "war", `${s.name} has fallen to ${realm.kingdoms[kingdom]!.name}${from ? `, taken from ${realm.kingdoms[from]?.name ?? from}` : ""}.`, 8, [s.name, realm.kingdoms[kingdom]!.name], { why: "its defenders lost the war" });
 }
@@ -442,10 +458,26 @@ export function endWar(realm: Realm, w: War, day: number, winner: "attackers" | 
         lead.home = seat.id;
         lead.role = "lord";
         lead.superior = null;
-        addRenown(lead, 15);
       }
     } else if (!won) {
       f.dissolved = day;
+    }
+  }
+  // Every venture can fail (N69): a war of conquest lost costs the ruler who called it the most, and their marshal half that.
+  {
+    for (const [p, side] of [[a, "attackers"], [d, "defenders"]] as const) {
+      // A peace with no winner: the attackers failed to win what they came for, the defenders held.
+      const won = winner === side || (winner === "none" && side === "defenders");
+      const caller = callerOf(realm, p);
+      if (!caller) continue;
+      const attacking = side === "attackers";
+      const fac = factionOfParty(realm, p);
+      const kind = attacking && (d.startsWith("k:") || (p.startsWith("f:") && !d.startsWith("f:"))) ? "conquest" : "war";
+      const home = p[0] === "k" ? realm.kingdoms[p.slice(2)]?.capital : p[0] === "s" ? p.slice(2) : (realm.factions[p.slice(2)]?.seat ?? null);
+      const lost = w.battles.reduce((n, b) => n + ((b.winner === side) ? 0 : 1), 0);
+      ventureOutcome(realm, { kind, leader: caller.id, ...(captainOf(realm, p) ? { captain: captainOf(realm, p)!.id } : {}), ...(fac && fac.kind !== "crown" ? { faction: fac.id } : {}), won, just: !attacking || p.startsWith("k:") && d.startsWith("f:"), routed: !won && lost * 2 > Math.max(1, w.battles.length) && w.battles.length >= 2, against: partyName(realm, attacking ? d : a), ...(home ? { dead: { site: home, causes: [attacking ? "battle:*:attackers" : "battle:*"] } } : {}) }, day);
+      // Rebels who won took their seat: their leader is a conqueror.
+      if (won && attacking && p.startsWith("f:")) conquered(realm, caller, partyName(realm, d), day);
     }
   }
   const where = a.startsWith("k:") ? realm.kingdoms[a.slice(2)]?.capital ?? null : null;

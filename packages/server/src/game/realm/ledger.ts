@@ -1,4 +1,5 @@
 import type { PlayerState } from "../../npc/types.js";
+import { bookMove } from "../office/books.js";
 import type { Realm } from "./types.js";
 
 /**
@@ -37,6 +38,8 @@ export function bookOf(realm: Realm): CoinBook {
 }
 
 function write(realm: Realm, line: LedgerLine): void {
+  // Each place's and faction's own books (N69): the same movement, summed by line and tax period.
+  bookMove(realm, line.from, line.to, line.amount, line.why, line.day);
   const book = bookOf(realm);
   book.lines.push(line);
   if (book.lines.length > LEDGER_LINES) book.lines.splice(0, book.lines.length - LEDGER_LINES);
@@ -130,6 +133,35 @@ export function payOut(realm: Realm, to: Holder, amount: number, why: string, pl
   if (n <= 0 || !add(realm, to, n, player)) return 0;
   if (!inRealm(to)) bookOf(realm).sunk += n;
   write(realm, { day, from: `bounty:${why}`, to, amount: n, why });
+  return n;
+}
+
+/**
+ * Tax coin taken from a place and put on the road to its liege (N26 Part E): out of the payer's treasury now, into the liege's when the
+ * clerk arrives (`fromTransit`). Still the realm's coin while it travels. Returns what was taken.
+ */
+export function toTransit(realm: Realm, from: string, to: string, amount: number, day = realm.day, journey?: string): number {
+  const n = Math.min(Math.floor(amount), balanceOf(realm, `s:${from}`));
+  if (n <= 0 || !add(realm, `s:${from}`, -n)) return 0;
+  realm.transit.push({ from, to, amount: n, day, ...(journey ? { journey } : {}) });
+  write(realm, { day, from: `s:${from}`, to: `transit:${to}`, amount: n, why: "taxes" });
+  return n;
+}
+
+/**
+ * Coin on the road handed over to a holder: the liege, the payer when the road failed, or the gang that took it (a ref, `s:`/`f:`/`p:`).
+ * Out of the realm if the holder is gone. Returns what was handed over.
+ */
+export function fromTransit(realm: Realm, to: Holder, amount: number, day = realm.day, why = "taxes"): number {
+  const n = Math.floor(amount);
+  if (n <= 0) return 0;
+  if (to === "player" || !exists(realm, to)) {
+    bookOf(realm).sunk += n;
+    write(realm, { day, from: "transit", to: "sink", amount: n, why });
+    return 0;
+  }
+  add(realm, to, n);
+  write(realm, { day, from: "transit", to, amount: n, why });
   return n;
 }
 

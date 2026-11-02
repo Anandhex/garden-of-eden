@@ -35,7 +35,9 @@ export function checkFieldBounds(realm: Realm, store: WorldStore, day: number): 
       if (sown > 0 && s.population >= NORMAL_PLACE) losses.push(lost / sown);
     }
     const hh = householdsAt(store, s.id, day).all;
-    for (const r of store.farm.plotsOf(s.id).values()) if (!holderExists(realm, s, r.holder, hh)) orphans++;
+    // A lord who died today, after the place's field work, is handed back on its next field day: not an orphan yet.
+    const diedToday = (h: string) => h.startsWith("lord:") && realm.figures[h.slice(5)]?.deathDay === day;
+    for (const r of store.farm.plotsOf(s.id).values()) if (!holderExists(realm, s, r.holder, hh) && !diedToday(r.holder)) orphans++;
   }
   const lo = losses.length ? Math.min(...losses) : null;
   const hi = losses.length ? Math.max(...losses) : null;

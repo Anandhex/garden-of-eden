@@ -9,7 +9,7 @@ import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, onTestFinished, vi } from "vitest";
 import { config } from "../src/config.js";
 import { WorldStore } from "../src/game/db.js";
 import { gossipOverview, knowersOf } from "../src/admin/gossip.js";
@@ -47,6 +47,20 @@ import { siteMap } from "../src/web/sites.js";
 import { always, FakeProvider, pickTestPerson, pickTestPlaces } from "./helpers.js";
 
 vi.setConfig({ testTimeout: 240_000 });
+
+/**
+ * For a test of how a thing travels: `deathsOnly`, only deaths are worth telling, not the realm's news or a place's quarrels (not which
+ * story wins a traveller's breath); `road`, nothing on the road turns a party back (not whether a spider pack sits on the one road that year).
+ */
+const quiet = vi.hoisted(() => ({ deathsOnly: false, road: false }));
+vi.mock("../src/game/road/encounters.js", async (importOriginal) => {
+  const real = await importOriginal<typeof import("../src/game/road/encounters.js")>();
+  return { ...real, encountersDay: (...a: Parameters<typeof real.encountersDay>) => (quiet.road ? 0 : real.encountersDay(...a)) };
+});
+vi.mock("../src/game/gossip/refs.js", async (importOriginal) => {
+  const real = await importOriginal<typeof import("../src/game/gossip/refs.js")>();
+  return { ...real, importanceOf: (ctx: Parameters<typeof real.importanceOf>[0], ref: string) => (quiet.deathsOnly && !ref.startsWith("d:") ? 0 : real.importanceOf(ctx, ref)) };
+});
 const slack = () => Number(process.env.PERF_SLACK ?? 1);
 const trips = { ...Object.fromEntries(Object.entries(TRIPS).map(([k, v]) => [k, v.cap])) } as Record<string, number>;
 
@@ -268,6 +282,15 @@ describe("N33 step 4: news enters with people", () => {
       const best = rows.reduce((b, r, i) => ((CLASS_RANK[r.cls as SocialClass] ?? 2) > (CLASS_RANK[rows[b]!.cls as SocialClass] ?? 2) ? i : b), 0);
       return best;
     };
+    // A traveller tells only the couple of things most worth telling, and what else is fresh that day (a split, a crypt cleared, a quarrel
+    // at home) depends on the whole realm's year, as does whether a pack of beasts holds the road up: both are kept out, so this is about
+    // people carrying it, not about which story wins or which road is safe.
+    quiet.deathsOnly = true;
+    quiet.road = true;
+    onTestFinished(() => {
+      quiet.deathsOnly = false;
+      quiet.road = false;
+    });
     // With no one on the road it never arrives.
     noRoads();
     let w = world(2);

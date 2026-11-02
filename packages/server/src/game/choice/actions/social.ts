@@ -139,7 +139,7 @@ export const recruit: ActionDef = {
   available: (ctx) => (ctx.recruiter ? ctx.present.filter((p) => p.restless && !p.sameFaction && !p.protected).slice(0, 3).map((p) => ({ action: "recruit", target: p.id, place: p.place })) : []),
   score: (ctx, o) => {
     const them = other(ctx, o)!;
-    return scored(["believes in the cause", W.recruit * (0.4 + 0.4 * ctx.traits.ambition)], ctx.ambition?.kind === "guild_seat" && ["a following in the guild", 0.15], [`${them.name} is restless`, 0.3], ["sociable", 0.2 * ctx.traits.sociability], [`${them.name} likes them`, (them.affection / 100) * 0.3], ["honest folk balk", -0.1 * ctx.traits.honesty]);
+    return scored(["believes in the cause", W.recruit * (0.4 + 0.4 * ctx.traits.ambition)], ctx.ambition?.kind === "guild_seat" && ["a following in the guild", 0.15], [`${them.name} is restless`, 0.3], (ctx.recruitNeed ?? 0) > 0 && ["the guild needs members", ctx.recruitNeed!], ["sociable", 0.2 * ctx.traits.sociability], [`${them.name} likes them`, (them.affection / 100) * 0.3], ["honest folk balk", -0.1 * ctx.traits.honesty]);
   },
   apply: (ctx, o, why, host) => {
     const them = other(ctx, o)!;

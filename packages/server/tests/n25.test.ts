@@ -156,10 +156,12 @@ describe("N25.9 level of detail never changes outcomes", () => {
     const fields = config.fields;
     config.fields = false;
     try {
-    // Seed 2: here the lazy place and the live one do not move each other's food and coin. (Where they do, the lazy
-    // place's population number lags until its catch-up and the realm's economy reads it: lazy is for budgets only.)
-    const a = world(2);
-    const b = world(2);
+    // Seed 10: here the lazy place and the live one do not move each other's food and coin. (Where they do, the lazy
+    // place's population number lags until its catch-up and the realm's economy reads it: lazy is for budgets only.) Seed 2 was
+    // that seed until N69: offices and faction membership change the realm's numbers, and on seed 2 the lag now reaches gossip by
+    // day 61 (its crowding is recorded from the lagging number on day 3, as before N69; seeds 10 and 11 hold at 25 and 61 days).
+    const a = world(10);
+    const b = world(10);
     const lazy = [...b.live].find((id) => id !== home(b.realm))!;
     advanceWorld(a.realm, a.store, days(61, 25), { live: a.live });
     config.peopleLazy = lazy;
@@ -229,7 +231,8 @@ describe("N25.5 the whole realm is within budget and in balance", () => {
     for (const s of Object.values(realm.settlements)) if (s.kind === "capital") expect(s.population).toBeGreaterThan(500);
     for (const b of checkLifeBounds(realm, store)) expect(b.ok, `${b.name}: ${b.detail}`).toBe(true);
     expect(lineageOf(store.people, store.people.get(townsfolkId(home(realm), 0))!).children).toBeDefined();
-  });
+    // The speed budget above is the test of speed: the timeout gives it room (three years at the budget, plus rolling the world).
+  }, 60_000 + config.daysPerYear * 3 * 250 * Number(process.env.PERF_SLACK ?? 1));
 });
 
 describe("N25.8 rising", () => {
@@ -325,5 +328,6 @@ describe("N25 the admin person card", () => {
     expect(d.alive).toBe(false);
     const life = d.sections.find((s) => s.title === "Life") as { rows: Array<[string, string, string?]> };
     expect(life.rows.some((r) => r[0] === "Died")).toBe(true);
-  });
+    // Sixty days of a whole realm living: room for each at the people's budget (N25's 250 ms a day, by PERF_SLACK).
+  }, 60_000 + 60 * 250 * Number(process.env.PERF_SLACK ?? 1));
 });

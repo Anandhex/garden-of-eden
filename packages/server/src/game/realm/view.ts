@@ -1,5 +1,6 @@
 import type { RealmView } from "@millbrook/shared";
 import { formatMoney } from "../money.js";
+import { fame } from "../office/repute.js";
 import { ongoing, partyName } from "./diplomacy.js";
 import { atWar, income } from "./economy.js";
 import { chainOf, titled } from "./figures.js";
@@ -121,8 +122,8 @@ export function realmView(realm: Realm, opts: { here?: string; heard?: (newsId: 
     dungeons: Object.values(realm.dungeons).map((d) => ({ id: d.id, name: d.name, near: realm.settlements[d.near]?.name ?? d.near, x: d.pos.x, y: d.pos.y, tier: d.tier, depth: d.depth, danger: Math.round(d.danger), bounty: d.bounty, cleared: d.clearedUntil !== undefined && realm.day < d.clearedUntil })),
     packs: Object.values(realm.packs).filter((p) => p.count > 0).map((p) => ({ species: p.species, near: realm.settlements[p.near]?.name ?? p.near, count: p.count, cap: p.cap, alpha: fig(p.alpha), bounty: p.bounty })),
     notables: Object.values(realm.figures)
-      .filter((f) => f.alive && (f.renown >= 30 || f.talks || f.rose))
-      .sort((a, b) => b.renown - a.renown)
+      .filter((f) => f.alive && (fame(f) >= 30 || f.talks || f.rose))
+      .sort((a, b) => fame(b) - fame(a))
       .slice(0, 30)
       .map((f) => ({ name: titled(f), role: f.role, rank: f.life.tier, renown: f.renown, home: f.home ? (realm.settlements[f.home]?.name ?? null) : null, faction: f.faction ? (realm.factions[f.faction]?.name ?? null) : null, superior: fig(f.superior), deeds: f.deeds.slice(-3), talks: !!f.talks, rose: !!f.rose })),
     news: realm.news.slice(-40).reverse().map((n) => ({ day: n.day, text: n.text, importance: n.importance, heard: opts.heard ? opts.heard(n.id) : false })),

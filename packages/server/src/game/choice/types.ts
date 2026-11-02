@@ -130,6 +130,8 @@ export interface ChoiceCtx {
   goal?: AvengeGoal;
   /** Where the faction they belong to is looking for people. */
   recruiter: boolean;
+  /** How badly their faction needs members (N69: chartering, or under its minimum: 0.3), 0 otherwise. */
+  recruitNeed?: number;
   /** Wants to leave (a `move` goal on their outlook). */
   wantsToLeave: boolean;
   /** Violent actions allowed at all (config.choice.violence). */

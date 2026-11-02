@@ -6,7 +6,7 @@
  */
 import { days } from "./long.js";
 import { DatabaseSync } from "node:sqlite";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, onTestFinished, vi } from "vitest";
 import { CHAT_MINUTES, CLASS_RANK, CrowdSim, kindLines, markKey, type SocialClass } from "@millbrook/shared";
 import { config } from "../src/config.js";
 import { card } from "../src/admin/person.js";
@@ -577,6 +577,10 @@ describe("N37 step 7: the whole thing, over days", () => {
 
   it("a place worked out later gives the same chatter as one worked out on the day", () => {
     noRoads();
+    // Fields off (N26G): a lazy place's field quarrels aren't the daily one's (a known gap, stage-2 What differs; as in n25 and n40).
+    const fields = config.fields;
+    config.fields = false;
+    onTestFinished(() => void (config.fields = fields));
     const run = (lazy: boolean) => {
       const w = world(1);
       advanceWorld(w.realm, w.store, 2, { live: w.live });

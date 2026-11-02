@@ -1,6 +1,13 @@
 import { mint, sink, transfer } from "./ledger.js";
+import type { WorldStore } from "../db.js";
 import type { Rng } from "../dice.js";
-import { tierIndex, type Tier } from "../life.js";
+import { charterDay, minimumDay, startCharter } from "../office/charter.js";
+import { memberCount } from "../office/members.js";
+import { cofferMod } from "../office/posts.js";
+import { fadeGlory, figureJoined, prestigeOf } from "../office/prestige.js";
+import { recruitDrive, rowDues } from "../office/recruit.js";
+import { standingIn } from "../office/repute.js";
+import { seasonDays } from "../weather.js";
 import { addDeed, addRenown, titled } from "./figures.js";
 import { addFaction, neighbours } from "./generate.js";
 import { realmNews, tally } from "./log.js";
@@ -18,19 +25,20 @@ import type { Figure, FactionKind, GuildTrade, Realm, RealmFaction, Role } from 
 
 /** Chance a day an ambitious, disloyal, strong lieutenant breaks away. */
 export const SPLIT_CHANCE = 0.05;
-/** Chance a day a faction takes in someone who suits it. */
-export const RECRUIT_CHANCE = 0.2;
 /** Most branches a guild keeps. */
 export const MAX_BRANCHES = 7;
 
 const active = (realm: Realm) => Object.values(realm.factions).filter((f) => !f.dissolved);
 
-/** How much a figure counts in a faction: renown and rank. */
-export const standing = (f: Figure) => f.renown + tierIndex(f.life.tier as Tier) * 8;
+/**
+ * How much a figure counts, in a faction of `kind` (or a place's succession, with none): their name and rank (N69: approval for most,
+ * fame among gangs and rebels: game/office/repute.ts).
+ */
+export const standing = (f: Figure, kind?: FactionKind) => standingIn(f, kind);
 
 /** Members alive, best first. */
 export function membersOf(realm: Realm, fac: RealmFaction): Figure[] {
-  return fac.members.map((m) => realm.figures[m]!).filter((f) => f && f.alive).sort((a, b) => standing(b) - standing(a));
+  return fac.members.map((m) => realm.figures[m]!).filter((f) => f && f.alive).sort((a, b) => standing(b, fac.kind) - standing(a, fac.kind));
 }
 
 /** "guildmaster", "lieutenant", "member": a figure's place in the hierarchy of their faction. */
@@ -92,6 +100,8 @@ export function foundFaction(realm: Realm, rng: Rng, o: Founding, day: number): 
     ...(o.parent ? { parent: o.parent } : {}),
     stances: {},
   });
+  // A guild of one is not a guild (N69): it gathers its members under a charter first.
+  startCharter(realm, fac, day);
   // The founder puts in what they can (up to 400), and the first members' dues make up a stake of 100.
   transfer(realm, `p:${o.founder.id}`, `f:${id}`, 400, "founding stake", undefined, day);
   mint(realm, `f:${id}`, 100, "first dues", undefined, day);
@@ -107,7 +117,7 @@ export function foundFaction(realm: Realm, rng: Rng, o: Founding, day: number): 
     other.stances[id] = s;
   }
   tally(realm, "founded");
-  realmNews(realm, day, o.seat, "faction", `${titled(o.founder)} has founded ${name} in ${seat?.name ?? "the wilds"}: ${o.why}.`, 6, [o.founder.name, name, ...(seat ? [seat.name] : [])], { why: o.why });
+  realmNews(realm, day, o.seat, "faction", `${titled(o.founder)} has founded ${name} in ${seat?.name ?? "the wilds"}${fac.charter ? ", and seeks members for its charter" : ""}: ${o.why}.`, 6, [o.founder.name, name, ...(seat ? [seat.name] : [])], { why: o.why });
   return fac;
 }
 
@@ -129,61 +139,39 @@ export function join(realm: Realm, f: Figure, fac: RealmFaction): void {
   fac.members.push(f.id);
   f.role = roleFor(fac.kind, false, f.role);
   if (fac.leader && fac.leader !== f.id) f.superior = fac.leader;
+  // Belonging raises your name, once (N69).
+  figureJoined(f, fac);
 }
 
-/** Who suits a faction. */
-function suits(realm: Realm, fac: RealmFaction, f: Figure): boolean {
-  if (f.faction || !f.alive || f.talks || f.role === "beast") return false;
-  if (["ruler", "lord", "mayor", "village head", "elder"].includes(f.role)) return false;
-  const home = f.home ? realm.settlements[f.home] : undefined;
-  const local = f.home !== null && (fac.branches.includes(f.home) || fac.seat === f.home);
-  switch (fac.kind) {
-    case "guild":
-    case "association": {
-      const roles: Record<GuildTrade, Role[]> = { adventurers: ["adventurer", "hunter"], merchants: ["merchant"], smiths: ["smith"], thieves: ["bandit"], farmers: ["farmer"], healers: ["priest"], hunters: ["hunter"] };
-      return local && roles[fac.trade ?? "merchants"].includes(f.role);
-    }
-    case "gang":
-      return f.role === "bandit" || (local && f.greed > 0.7 && (home?.prosperity ?? 50) < 35 && ["farmer", "hunter"].includes(f.role));
-    case "rebels":
-      return local && f.loyalty < 0.4;
-    case "cult":
-      return local && (f.role === "priest" || f.loyalty < 0.3);
-    case "order":
-      return local && (f.role === "captain" || f.role === "noble");
-    case "crown":
-      return false;
-  }
-}
-
-/** One day for every faction: income, recruiting, branches, new leaders, splits, dissolving. */
-export function factionsDay(realm: Realm, day: number, rng: Rng): void {
+/**
+ * One day for every faction: members counted (figures and townsfolk), charters and the minimum (N69), dues, recruiting drives, halls,
+ * new leaders, splits, dissolving. `store`: the people table, read for what figures think of a leader (townsfolk are asked in their place's day).
+ */
+export function factionsDay(realm: Realm, day: number, rng: Rng, store?: WorldStore): void {
   for (const fac of active(realm)) {
     const ms = membersOf(realm, fac);
     fac.members = ms.map((m) => m.id);
-    if (fac.members.length === 0) {
+    if (memberCount(realm, fac) === 0) {
       fac.dissolved = day;
       tally(realm, "dissolved");
       realmNews(realm, day, fac.seat, "faction", `${cap(fac.name)} is no more: nobody is left.`, 4, [fac.name]);
       continue;
     }
-    // Income: guilds and associations from their members' work, more with halls.
-    if (fac.kind === "guild" || fac.kind === "association" || fac.kind === "order" || fac.kind === "cult") mint(realm, `f:${fac.id}`, ms.length * 4 + fac.branches.length * 8, "members' dues", undefined, day);
-    if (fac.kind === "rebels") mint(realm, `f:${fac.id}`, ms.length * 2, "members' dues", undefined, day);
+    // A charter gathers its members or fails; a chartered guild under its minimum for a season folds (N69).
+    if (fac.charter) {
+      if (charterDay(realm, fac, day) === "failed") continue;
+    } else if (minimumDay(realm, fac, day) !== null) continue;
+    // Income: townsfolk members' dues come in with their work, more with halls (figures pay theirs on tax day: game/office/treasury.ts).
+    if (fac.kind === "guild" || fac.kind === "association" || fac.kind === "order" || fac.kind === "cult") mint(realm, `f:${fac.id}`, rowDues(fac, cofferMod(realm, `f:${fac.id}`)) * (fac.shaken !== undefined && day < fac.shaken ? 0.7 : 1), "members' dues", undefined, day);
+    if (fac.kind === "rebels") mint(realm, `f:${fac.id}`, (ms.length + (fac.rows ?? 0)) * 2, "members' dues", undefined, day);
     // A new leader when theirs is gone; two close rivals and the loser may split.
     if (!fac.leader || !realm.figures[fac.leader]?.alive) succeed(realm, fac, ms, day, rng);
-    // Recruit.
-    if (rng() < RECRUIT_CHANCE) {
-      const pool = Object.values(realm.figures).filter((f) => suits(realm, fac, f));
-      const who = pool.length > 0 ? pool[Math.floor(rng() * pool.length)]! : null;
-      if (who) {
-        join(realm, who, fac);
-        tally(realm, "recruited");
-        if (rng() < 0.3) realmNews(realm, day, who.home, "faction", `${who.name} has joined ${fac.name}.`, 2, [who.name, fac.name]);
-      }
-    }
+    // Recruit: a drive, not a lottery (N69).
+    recruitDrive(realm, fac, day, store);
+    fac.prestige = prestigeOf(realm, fac);
+    if (day % seasonDays() === 0) fadeGlory(fac);
     // A rich guild opens a hall in a neighbouring place.
-    if ((fac.kind === "guild" || fac.kind === "association") && fac.wealth > 1500 && fac.branches.length < MAX_BRANCHES && rng() < 0.1) {
+    if ((fac.kind === "guild" || fac.kind === "association") && !fac.charter && fac.wealth > 1500 && fac.branches.length < MAX_BRANCHES && rng() < 0.1) {
       const options = fac.branches.flatMap((b) => neighbours(realm, b)).filter((s) => !fac.branches.includes(s.id) && s.kind !== "hamlet");
       const at = options[Math.floor(rng() * options.length)];
       if (at) {
@@ -210,20 +198,24 @@ function succeed(realm: Realm, fac: RealmFaction, ms: Figure[], day: number, rng
   first.superior = null;
   addRenown(first, 5);
   realmNews(realm, day, fac.seat, "leader", `${first.name} now leads ${fac.name}.`, fac.kind === "crown" ? 7 : 4, [first.name, fac.name]);
-  if (second && fac.kind !== "crown" && standing(first) - standing(second) < 8 && second.ambition > 0.6 && rng() < 0.6) {
+  if (second && fac.kind !== "crown" && standing(first, fac.kind) - standing(second, fac.kind) < 8 && second.ambition > 0.6 && rng() < 0.6) {
     split(realm, fac, second, day, rng, `${second.name} would not follow ${first.name}`);
   }
 }
 
-/** An ambitious, disloyal lieutenant strong enough may break away. */
-function maybeSplit(realm: Realm, fac: RealmFaction, day: number, rng: Rng): void {
-  if (fac.members.length < 3 || !fac.leader) return;
+/**
+ * An ambitious, disloyal lieutenant strong enough may break away. After a defeat (N69: `shaken`) the loyalty bar is 0.1 higher, so
+ * one is likelier to; `chance` overrides the day's chance (a defeat runs the check at once).
+ */
+export function maybeSplit(realm: Realm, fac: RealmFaction, day: number, rng: Rng, chance = SPLIT_CHANCE): RealmFaction | null {
+  if (fac.members.length < 3 || !fac.leader) return null;
   const leader = realm.figures[fac.leader];
-  if (!leader?.alive) return;
+  if (!leader?.alive) return null;
+  const bar = fac.shaken !== undefined && day < fac.shaken ? 0.55 : 0.45;
   const lt = membersOf(realm, fac).find((f) => f.id !== fac.leader && !f.talks);
-  if (!lt || lt.ambition <= 0.65 || lt.loyalty >= 0.45 || standing(lt) < standing(leader) * 0.6) return;
-  if (rng() >= SPLIT_CHANCE) return;
-  split(realm, fac, lt, day, rng, `${lt.name} had grown tired of answering to ${leader.name}`);
+  if (!lt || lt.ambition <= 0.65 || lt.loyalty >= bar || standing(lt, fac.kind) < standing(leader, fac.kind) * 0.6) return null;
+  if (rng() >= chance) return null;
+  return split(realm, fac, lt, day, rng, `${lt.name} had grown tired of answering to ${leader.name}`);
 }
 
 /**

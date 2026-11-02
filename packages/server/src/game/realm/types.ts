@@ -81,6 +81,45 @@ export const LifeSchema = z.object({
   fightsWon: z.number().int(),
 });
 
+/** A venture a figure led or went on (N69): a raid, a war, a takeover, a delve. */
+export const VentureSchema = z.object({
+  day: z.number().int(),
+  kind: z.string(),
+  won: z.boolean(),
+  /** They called it (not only went). */
+  led: z.boolean().optional(),
+  /** Their own side lost more than half. */
+  routed: z.boolean().optional(),
+});
+export type Venture = z.infer<typeof VentureSchema>;
+
+/**
+ * The facts a figure's repute rests on (N69): days a condition began to hold (`good`, `bad`, `greedy`, `low`: support ≤ −10),
+ * days it stopped (`goodLapse`...), and the deeds counted over the last two years (days, newest last).
+ */
+export const ReputeSchema = z.object({
+  good: z.number().int().optional(),
+  bad: z.number().int().optional(),
+  greedy: z.number().int().optional(),
+  low: z.number().int().optional(),
+  lapse: z.record(z.string(), z.number().int()).optional(),
+  broke: z.number().int().optional(),
+  sacked: z.number().int().optional(),
+  weakRaids: z.array(z.number().int()).optional(),
+  built: z.array(z.number().int()).optional(),
+  punished: z.number().int().optional(),
+  generous: z.number().int().optional(),
+  caught: z.number().int().optional(),
+  took: z.number().int().optional(),
+  /** Factions they have had their joining renown from (once each). */
+  joined: z.array(z.string()).optional(),
+  /** Tax periods of dues unpaid in a row. */
+  owes: z.number().int().optional(),
+  /** The last season's prosperity of the place they head (for the Greedy). */
+  was: z.number().optional(),
+});
+export type Repute = z.infer<typeof ReputeSchema>;
+
 export const FigureSchema = z.object({
   id: z.string().regex(/^[a-z0-9_-]+$/),
   name: z.string().min(1),
@@ -97,8 +136,11 @@ export const FigureSchema = z.object({
   loyalty: unit,
   greed: unit,
   bravery: unit,
-  /** How well known they are, 0..100: deeds raise it. Heirs and splits go by it. */
-  renown: z.number().min(0).max(100),
+  /**
+   * Their name, -100..100 (N69): famed above zero, infamous below, unknown near it. Deeds and their followers move it; how
+   * widely they are known is its size (`fame` in game/office/repute.ts). Heirs and splits go by it.
+   */
+  renown: z.number().min(-100).max(100),
   /** Their own coin (copper): loot, wages, shares. */
   wealth: z.number().int().min(0),
   faction: z.string().nullable(),
@@ -123,6 +165,12 @@ export const FigureSchema = z.object({
   since: z.number().int(),
   /** The journey they are on (N26 Part E): an adventurer bound for a dungeon is not at home to be picked again. */
   away: z.string().optional(),
+  /** What their followers make of them (N69, game/office/support.ts), -20..20: recomputed each season. */
+  support: z.number().min(-20).max(20).optional(),
+  /** The ventures they led (N69, game/office/ventures.ts), the last six. */
+  ventures: z.array(VentureSchema).optional(),
+  /** What their name rests on (N69): the facts epithets are awarded from (game/office/epithets.ts). */
+  repute: ReputeSchema.optional(),
 });
 export type Figure = z.infer<typeof FigureSchema>;
 
@@ -238,6 +286,22 @@ export const RealmFactionSchema = z.object({
   /** The model wrote its name and creed (director), over code's fallback. */
   named: z.boolean().optional(),
   dissolved: z.number().int().optional(),
+  /** 0..100 (N69, game/office/prestige.ts): what belonging to it does for a member's name. */
+  prestige: z.number().min(0).max(100).optional(),
+  /** While it gathers members (N69, game/office/charter.ts): chartered once `need` have pledged, or it fails at `until`. */
+  charter: z.object({ until: z.number().int(), need: z.number().int() }).optional(),
+  /** The share of a member's earnings it takes (N69): dues. */
+  dues: z.number().min(0).max(0.2).optional(),
+  /** The day it fell under its minimum of members (N69); folded after a season. */
+  belowMin: z.number().int().optional(),
+  /** Townsfolk sworn to it (N69): counted from the people table each day (risers are counted as figures). */
+  rows: z.number().int().min(0).optional(),
+  /** Its deeds' weight on its prestige (N69), -30..30, fading a season at a time. */
+  glory: z.number().optional(),
+  /** Shaken by a defeat (N69): until this day a lieutenant is likelier to break away, and its members pay less. */
+  shaken: z.number().int().optional(),
+  /** Folded into another (N69): its townsfolk follow. */
+  mergedInto: z.string().optional(),
 });
 export type RealmFaction = z.infer<typeof RealmFactionSchema>;
 
@@ -362,6 +426,37 @@ export const CasualtyOrderSchema = z.object({
 });
 export type CasualtyOrder = z.infer<typeof CasualtyOrderSchema>;
 
+/**
+ * A post in a place or a faction (N69, game/office/posts.ts), keyed `<inst>|<post>`: who holds it (a figure id, or a `people` id when `row`),
+ * since when, what they are worth at it, wages owed, and what they skim (hidden: the true books show it, the public ones don't).
+ */
+export const OfficeSchema = z.object({
+  inst: z.string(),
+  post: z.string(),
+  holder: z.string().nullable(),
+  row: z.boolean().optional(),
+  name: z.string().optional(),
+  since: z.number().int(),
+  /** 0..1: how good they are at it. */
+  skill: z.number().min(0).max(1),
+  /** Share of income they skim, 0..0.05 (0: honest). */
+  skim: z.number().min(0).max(0.05),
+  took: z.number().int().min(0),
+  unpaid: z.number().int().min(0),
+  /** When it fell empty. */
+  vacant: z.number().int().optional(),
+  /**
+   * Held by one of a living place's townsfolk (N69): the realm's numbers read such a post at an ordinary hand's skill (0.5), whoever it
+   * is, so a place worked out later moves them the same. Its holder is `townsfolk` until the place's own day names who.
+   */
+  town: z.boolean().optional(),
+});
+export type Office = z.infer<typeof OfficeSchema>;
+
+/** One tax period of an institution's books (N69): the period's lines summed, signed copper, closed on `day`. */
+export const PeriodSchema = z.object({ day: z.number().int(), lines: z.record(z.string(), z.number()) });
+export type Period = z.infer<typeof PeriodSchema>;
+
 export const DirectorPushSchema = z.object({ day: z.number().int(), kind: z.string(), target: z.string(), reason: z.string(), ok: z.boolean() });
 export type DirectorPush = z.infer<typeof DirectorPushSchema>;
 
@@ -414,6 +509,22 @@ export const RealmSchema = z.object({
       lines: z.array(z.object({ day: z.number().int(), from: z.string(), to: z.string(), amount: z.number(), why: z.string() })),
     })
     .default({ minted: 0, sunk: 0, lines: [] }),
+  /** Every post and who holds it (N69, game/office/): `<inst>|<post>` → the office. Heads of places and factions are their `leader`. */
+  offices: z.record(z.string(), OfficeSchema).default({}),
+  /** Each institution's books by tax period (N69, game/office/treasury.ts), the newest last. */
+  books: z.record(z.string(), z.array(PeriodSchema)).default({}),
+  /**
+   * What the realm's rules did to townsfolk that only the people table can hold (N69): renown to add, grievances to bear. Applied by each
+   * place's own day (game/office/day.ts `officesSiteDay`), so a place worked out later gets them on the same day of its life.
+   */
+  owed: z
+    .object({
+      /** Renown owed to a townsperson of `site`, from the realm's yearly rules. */
+      renown: z.array(z.object({ who: z.string(), site: z.string(), day: z.number().int(), n: z.number() })).default([]),
+      /** A grudge: borne by `who`, or by the families of `site`'s dead whose death's event matches one of `causes`. */
+      grievances: z.array(z.object({ site: z.string(), day: z.number().int(), who: z.string().optional(), causes: z.array(z.string()).default([]), against: z.string(), cause: z.string(), weight: z.number() })).default([]),
+    })
+    .optional(),
 });
 export type Realm = z.infer<typeof RealmSchema>;
 

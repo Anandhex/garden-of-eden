@@ -1,4 +1,4 @@
-import { bookOf } from "./ledger.js";
+import { fromTransit, toTransit } from "./ledger.js";
 import { config } from "../../config.js";
 import type { Rng } from "../dice.js";
 import { tierIndex, type Tier } from "../life.js";
@@ -32,11 +32,7 @@ export function settleTransit(realm: Realm, day: number): void {
   const keep: Realm["transit"] = [];
   for (const t of realm.transit) {
     if (t.journey || t.day >= day) keep.push(t);
-    else {
-      const to = realm.settlements[t.to];
-      if (to) to.treasury += t.amount;
-      else bookOf(realm).sunk += t.amount;
-    }
+    else fromTransit(realm, `s:${t.to}`, t.amount, day);
   }
   realm.transit = keep;
 }
@@ -66,10 +62,8 @@ export function taxDay(realm: Realm, day: number, rng: Rng): void {
       if (s.arrears >= 2) collect(realm, s, liege, day, rng);
       continue;
     }
-    const due = Math.round(s.treasury * (s.taxRate + war));
-    s.treasury -= due;
     // The coin goes up the road with the lord's clerk (N26 Part E): it is in the liege's coffers when he arrives.
-    realm.transit.push({ from: s.id, to: liege.id, amount: due, day });
+    const due = toTransit(realm, s.id, liege.id, Math.round(s.treasury * (s.taxRate + war)), day);
     s.arrears = 0;
     tally(realm, "taxes", due);
     realmNews(realm, day, s.id, "tax", `${s.name} paid ${Math.max(1, Math.round(due / 100))} gold in taxes to ${liege.name}${war ? ", more than usual for the war" : ""}.`, 2, [s.name, liege.name]);

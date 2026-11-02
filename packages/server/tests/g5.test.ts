@@ -208,7 +208,8 @@ describe("G5 playing through the protocol", () => {
     await c.until(() => c.ui.header!.simulate.speed === "fast", 5000, "simulate on");
     await sleep(2500);
     c.send({ t: "simulate", speed: "off" });
-    await c.until(() => c.ui.header!.simulate.speed === "off", 10_000, "simulate off");
+    // Stopping waits for the hour being simulated, which may be a midnight (the realm's day and everyone's): room for it on a busy machine.
+    await c.until(() => c.ui.header!.simulate.speed === "off", 10_000 * Math.max(1, Number(process.env.PERF_SLACK ?? 1) / 2), "simulate off");
     const h1 = (await state()).time;
     expect((h1.day - h0.day) * 24 + h1.hour - h0.hour).toBeGreaterThanOrEqual(4);
     expect(c.feedText()).toMatch(/Simulate mode/);

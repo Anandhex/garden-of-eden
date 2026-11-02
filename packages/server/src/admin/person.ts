@@ -21,11 +21,16 @@ import { traitsOfRow } from "../game/people/traits.js";
 import { parseAway, type PersonRow } from "../store/peopleStore.js";
 import { awayAndVisiting, journeyOfPerson } from "./roads.js";
 import { parseTownsfolkId } from "../game/realm/townsfolk.js";
-import type { Figure, Settlement } from "../game/realm/types.js";
+import type { Figure, RealmFaction, Settlement } from "../game/realm/types.js";
 import { realmView } from "../game/realm/view.js";
 import { currentPlan, describePlan } from "../game/schedule.js";
 import { describeRelation } from "../npc/social.js";
 import type { NpcPersona, NpcState } from "../npc/types.js";
+import { memberCount, minMembers } from "../game/office/members.js";
+import { officeOf, postWords } from "../game/office/posts.js";
+import { fame, nameWords } from "../game/office/repute.js";
+import { TITLES } from "../game/titles.js";
+import { bookRows, figureRepute, officeRows, supportRows } from "../game/office/words.js";
 import type { AdminContext } from "./context.js";
 import { events } from "./events.js";
 import { classCounts, crowdDay, folkOf, townsperson } from "./folk.js";
@@ -211,10 +216,11 @@ function figureCard(ctx: AdminContext, id: string): AdminCard | null {
         ["Role", f.role],
         ["Home", home?.name ?? "the wilds", home ? `place:${home.id}` : undefined],
         ["Rank", `${f.life.tier} (potential ${f.life.potential}), ${f.life.stage}, age ${ageOn(f.life, world.day)}`],
-        ["Renown", String(f.renown)],
         ["Coin", formatMoney(f.wealth)],
       ],
     },
+    // Signed renown, support, what they are called and why, their ventures and post (N69).
+    { title: "Name and following", rows: [...figureRepute(realm, f), ...supportRows(realm, f, world.day, ctx.store ?? undefined)] },
     {
       title: "Standing",
       rows: [
@@ -282,6 +288,11 @@ function lifeSections(ctx: AdminContext, row: PersonRow): AdminSection[] {
     ["Potential", `${traits.potential} (ambition ${traits.ambition}, bravery ${traits.bravery}, greed ${traits.greed}, loyalty ${traits.loyalty})`],
   ];
   if (row.expecting) life.push(["Expecting", `a child, due day ${(JSON.parse(row.expecting) as { due: number }).due}`]);
+  // Their name and post (N69): signed renown, an epithet earned in office, the post they hold.
+  life.push(["Renown", `${row.renown ?? 0} (${nameWords(row.renown ?? 0)})`]);
+  if (row.epithet) life.push(["Called", `${row.name.split(" ")[0]} ${(TITLES as Record<string, { name: string }>)[row.epithet]?.name ?? row.epithet}`]);
+  const held = realm ? officeOf(realm, row.id) : undefined;
+  if (held && realm) life.push(["Office", postWords(realm, held), held.inst.startsWith("s:") ? `place:${held.inst.slice(2)}` : undefined]);
   if (rec) life.push(["Died", `${deathWords(rec)} on day ${rec.day}${rec.hour !== undefined ? ` at ${rec.hour}:00` : ""}${rec.site && realm?.settlements[rec.site] ? ` in ${realm.settlements[rec.site]!.name}` : ""}${rec.killer ? `, by ${rec.killer}` : ""}`, rec.site ? `place:${rec.site}` : undefined], ["Cause", rec.cause + (rec.event ? ` (${rec.event})` : "")]);
   const out: AdminSection[] = [{ title: "Life", rows: life }];
   out.push(rows.length > 0 ? { title: "Family", rows } : { title: "Family", unavailable: "no kin recorded: one of the first people of their place, unmarried and childless" });
@@ -513,7 +524,7 @@ function placeCard(ctx: AdminContext, id: string): AdminCard | null {
   const classes = classCounts(ctx, id);
   const residents = Object.values(realm.figures)
     .filter((f) => f.alive && f.home === id && f.role !== "beast")
-    .sort((a, b) => b.renown - a.renown)
+    .sort((a, b) => fame(b) - fame(a))
     .slice(0, 12);
   const factions = Object.values(realm.factions).filter((f) => !f.dissolved && (f.seat === id || f.branches.includes(id)));
   const trips = awayAndVisiting(ctx, id);
@@ -533,9 +544,35 @@ function placeCard(ctx: AdminContext, id: string): AdminCard | null {
       { title: "Away from here", rows: trips.away.slice(0, 25).map((x): [string, string, string] => [x.row.name, `${x.journey.where}: ${x.journey.text}`, `town:${x.row.id}`]) },
       { title: "Visiting", rows: trips.visiting.slice(0, 25).map((x): [string, string, string] => [`${x.row.name} (of ${realm.settlements[x.row.site]?.name ?? x.row.site})`, x.journey.text, `town:${x.row.id}`]) },
       { title: "Factions here", rows: factions.map((f): [string, string] => [f.name, `${f.kind}${f.seat === id ? ", seated here" : ", a branch"}`]) },
+      // Who runs it and where its coin went (N69): its posts, and its books by tax period (the truth: what was stolen is marked).
+      { title: "Offices", rows: s.kind === "hamlet" ? [["Elder", "a hamlet has only its head"]] : officeRows(realm, `s:${id}`, ctx.store ?? undefined) },
+      { title: "Books", rows: bookRows(realm, `s:${id}`) },
+      ...factions.filter((f) => f.seat === id).map((f) => factionSection(ctx, f)),
       fieldsSection(ctx, s),
       watchSection(ctx, s),
       { title: "Lately", rows: events(ctx, { site: id, limit: 15 }).events.map((e): [string, string] => [`Day ${e.day}`, `${e.text}${e.why ? ` (why: ${e.why})` : ""}`]) },
+    ],
+  };
+}
+
+/** A faction seated in a place (N69): its members (figures and townsfolk), charter, prestige and dues, posts and books. */
+function factionSection(ctx: AdminContext, f: RealmFaction): AdminSection {
+  const realm = ctx.world().realm!;
+  const n = memberCount(realm, f);
+  const lead = f.leader ? realm.figures[f.leader] : undefined;
+  return {
+    title: `Faction: ${f.name}`,
+    rows: [
+      ["Kind", `${f.kind}${f.trade ? ` (${f.trade})` : ""}, founded day ${f.founded}`],
+      ["Leader", lead ? titled(lead) : "none", lead ? `figure:${lead.id}` : undefined],
+      ["Members", `${n}: ${f.members.length} named, ${f.rows ?? 0} townsfolk (needs ${minMembers(realm, f)})`],
+      ...(f.charter ? ([["Charter", `gathering members: ${n} of ${f.charter.need} by day ${f.charter.until}`]] as Array<[string, string]>) : []),
+      ...(f.belowMin !== undefined ? ([["Under its minimum", `since day ${f.belowMin}`]] as Array<[string, string]>) : []),
+      ["Prestige", `${f.prestige ?? 0}/100${f.glory ? ` (deeds ${f.glory >= 0 ? "+" : ""}${f.glory})` : ""}`],
+      ["Dues", `${Math.round((f.dues ?? 0.05) * 100)}%${f.shaken !== undefined && f.shaken > ctx.world().day ? `, shaken by a defeat until day ${f.shaken}` : ""}`],
+      ["Coffer", formatMoney(f.wealth)],
+      ...officeRows(realm, `f:${f.id}`, ctx.store ?? undefined),
+      ...bookRows(realm, `f:${f.id}`),
     ],
   };
 }

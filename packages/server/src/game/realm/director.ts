@@ -15,6 +15,7 @@ import { logPush, realmNews, tally } from "./log.js";
 import { gangSide, settlementSide } from "./military.js";
 import type { DirectorPush, Figure, Realm, Settlement } from "./types.js";
 import { sendArrival } from "./arrivals.js";
+import { charterFailedLately } from "../office/charter.js";
 
 /**
  * An active director (N13.8). The nightly chronicle (N12) only reacts; this one
@@ -98,7 +99,7 @@ export function candidates(realm: Realm, day: number, rng: Rng): Candidate[] {
     // Danger nearby and no adventurers to meet it.
     const danger = Object.values(realm.dungeons).some((d) => d.near === s.id && d.danger >= 60) || Object.values(realm.packs).some((p) => p.near === s.id && p.count >= p.cap * 0.7);
     const advNear = within(realm, s.id, 2, (f) => f.trade === "adventurers");
-    if (danger && !advNear && (s.kind === "town" || s.kind === "city")) {
+    if (danger && !advNear && (s.kind === "town" || s.kind === "city") && !charterFailedLately(realm, s.id, "adventurers", day)) {
       out.push({ kind: "found_guild", target: s.id, reason: `monsters near ${s.name} and no adventurers within reach`, score: 5, run: () => {
         const f = founderFor(realm, s, rng, day, (x) => (x.role === "adventurer" || x.role === "hunter" ? 1 : 0) * (0.5 + x.bravery), "adventurer");
         f.role = "adventurer";
@@ -111,7 +112,7 @@ export function candidates(realm: Realm, day: number, rng: Rng): Candidate[] {
       } });
     }
     // Rich traders band together.
-    if (s.prosperity > 62 && (s.buildings.market ?? 0) >= 2 && !within(realm, s.id, 2, (f) => f.trade === "merchants")) {
+    if (s.prosperity > 62 && (s.buildings.market ?? 0) >= 2 && !within(realm, s.id, 2, (f) => f.trade === "merchants") && !charterFailedLately(realm, s.id, "merchants", day)) {
       out.push({ kind: "found_guild", target: s.id, reason: `${s.name}'s market is thriving`, score: 3, run: () => {
         const f = founderFor(realm, s, rng, day, (x) => (x.role === "merchant" ? 1 : 0) + x.greed * 0.3, "merchant");
         foundFaction(realm, rng, { kind: "guild", trade: "merchants", founder: f, seat: s.id, creed: "fair scales and open roads", why: `${s.name}'s traders want a say` }, day);
@@ -119,7 +120,7 @@ export function candidates(realm: Realm, day: number, rng: Rng): Candidate[] {
       } });
     }
     // Hungry villages band together to share seed and grain.
-    if ((s.kind === "village" || s.kind === "hamlet") && s.food < 30 && !within(realm, s.id, 2, (f) => f.trade === "farmers")) {
+    if ((s.kind === "village" || s.kind === "hamlet") && s.food < 30 && !within(realm, s.id, 2, (f) => f.trade === "farmers") && !charterFailedLately(realm, s.id, "farmers", day)) {
       out.push({ kind: "found_association", target: s.id, reason: `${s.name}'s granary is nearly empty`, score: 3 + (30 - s.food) / 10, run: () => {
         const f = founderFor(realm, s, rng, day, (x) => (x.role === "farmer" ? 1 : 0) + (1 - x.greed) * 0.3, "farmer");
         foundFaction(realm, rng, { kind: "association", trade: "farmers", founder: f, seat: s.id, creed: "no one goes hungry while a neighbour has grain", why: `the fields of ${s.name} failed` }, day);

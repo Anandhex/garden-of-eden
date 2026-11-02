@@ -11,7 +11,7 @@ import type { DatabaseSync } from "node:sqlite";
 
 /** Columns of each state table, in order: what export and the world hash read, and what import checks. */
 export const TABLES = {
-  people: ["id", "site", "n", "name", "gender", "species", "born_day", "cls", "job", "home", "work", "master", "master_id", "faction", "mother", "father", "spouse", "figure", "persona", "traits", "death", "expecting", "last_birth", "stepped_day", "outlook", "away", "skill", "shop", "origin", "captive", "rev"],
+  people: ["id", "site", "n", "name", "gender", "species", "born_day", "cls", "job", "home", "work", "master", "master_id", "faction", "mother", "father", "spouse", "figure", "persona", "traits", "death", "expecting", "last_birth", "stepped_day", "outlook", "away", "skill", "shop", "origin", "captive", "renown", "epithet", "rev"],
   relationships: ["a", "b", "trust", "affection", "respect", "fear", "since"],
   knowledge: ["who", "ref", "learned_day", "source", "accuracy", "variant"],
   grievances: ["id", "who", "against", "cause_ref", "weight", "since", "settled"],
@@ -228,6 +228,15 @@ const MIGRATIONS: Array<(db: DatabaseSync) => void> = [
     if (!have.has("origin")) db.exec("ALTER TABLE people ADD COLUMN origin TEXT");
     if (!have.has("captive")) db.exec("ALTER TABLE people ADD COLUMN captive TEXT");
     db.exec("CREATE INDEX IF NOT EXISTS people_captive ON people(site) WHERE captive IS NOT NULL");
+  },
+  // 13 (N69): offices and renown. `people.renown` (-100..100, signed: famed above zero, infamous below; null is 0), `people.epithet` (a
+  // repute title a townsperson earned in office: the Just, the Generous, the Thief) and an index of the living by faction, so a faction's
+  // townsfolk members are counted each day without reading every row.
+  (db) => {
+    const have = new Set((db.prepare("PRAGMA table_info(people)").all() as Array<{ name: string }>).map((c) => c.name));
+    if (!have.has("renown")) db.exec("ALTER TABLE people ADD COLUMN renown INTEGER");
+    if (!have.has("epithet")) db.exec("ALTER TABLE people ADD COLUMN epithet TEXT");
+    db.exec("CREATE INDEX IF NOT EXISTS people_faction ON people(faction) WHERE death IS NULL AND faction IS NOT NULL");
   },
 ];
 

@@ -1,4 +1,4 @@
-import { bookOf, mint } from "../realm/ledger.js";
+import { fromTransit, mint } from "../realm/ledger.js";
 import { tookLife } from "../realm/beasts.js";
 import { watchStrength } from "./watch.js";
 import { killFigure } from "../realm/figures.js";
@@ -110,9 +110,9 @@ function resolveEncounter(realm: Realm, store: WorldStore, j: Journey, t: Threat
   const coin = realm.transit.filter((x) => x.journey === j.id).reduce((a, c) => a + c.amount, 0);
   realm.transit = realm.transit.filter((x) => x.journey !== j.id);
   if (gang) {
-    gang.wealth += coin;
+    fromTransit(realm, `f:${gang.id}`, coin, day, "taxes robbed on the road");
     mint(realm, `f:${gang.id}`, goods, "stolen goods sold", undefined, day);
-  } else bookOf(realm).sunk += coin;
+  } else fromTransit(realm, "lost", coin, day, "taxes lost on the road");
   const loot = goods + coin;
   const robbed = gang !== undefined && (!!j.cargo || loot > 0);
   // Real people hurt: some die, on their own rows.

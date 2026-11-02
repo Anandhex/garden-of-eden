@@ -1,5 +1,6 @@
 import { parsePersona } from "../../npc/personaSchema.js";
 import { assemblePersona, fallbackIdentity, rollTemplate, type NpcTemplate } from "../../npc/templates.js";
+import { fame } from "../office/repute.js";
 import type { NpcPersona, QuestDef } from "../../npc/types.js";
 import { speciesOf } from "../../world/species.js";
 import { seedFrom, seededRng } from "../dice.js";
@@ -84,7 +85,7 @@ export function notablesOf(realm: Realm, site: string): Figure[] {
   const s = realm.settlements[site];
   if (!s) return [];
   const folk = Object.values(realm.figures).filter((f) => f.alive && !f.talks && f.home === site && f.role !== "beast" && speciesOf(f.species).talks);
-  folk.sort((a, b) => (b.id === s.leader ? 1 : 0) - (a.id === s.leader ? 1 : 0) || b.renown - a.renown);
+  folk.sort((a, b) => (b.id === s.leader ? 1 : 0) - (a.id === s.leader ? 1 : 0) || fame(b) - fame(a));
   return folk.slice(0, MAX_NOTABLES);
 }
 

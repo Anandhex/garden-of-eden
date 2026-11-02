@@ -18,6 +18,7 @@ import { chatterDay } from "../chatter/day.js";
 import { gossipDay } from "../gossip/day.js";
 import { choiceDay } from "../choice/day.js";
 import { ambitionDay } from "../ambition/day.js";
+import { officesSiteDay } from "../office/day.js";
 import { roadArrivals, roadTrips } from "../road/day.js";
 import { stepSite, type LifeCtx, type SiteStep } from "./step.js";
 
@@ -79,6 +80,7 @@ export function catchUp(ctx: LifeCtx, site: string, toDay: number): SiteStep[] {
         justiceDay(ctx.realm, ctx.store, site, d);
         rehouse(ctx.realm, ctx.store, site, d);
         ambitionDay(ctx, step, d);
+        officesSiteDay(ctx.realm, ctx.store, site, d);
         out.push(step);
       }
     });
@@ -146,6 +148,8 @@ export function lifeDay(ctx: LifeCtx, day: number, opts: LifeOptions = {}): DayL
       // Those whose class no longer fits their quarter move when a house is free (N26H).
       rehouse(realm, store, id, day);
       ambitionDay(ctx, step, day);
+      // Its posts, its townsfolk asked to join, audits of its townsfolk keepers, what the realm owes them, risers (N69).
+      timed("offices.site", () => officesSiteDay(realm, store, id, day));
       // A place whose people were never rolled keeps its number (ensureLivePeople makes them first).
       if (store.people.count(id) > 0) realm.settlements[id]!.population = store.people.livingCount(id);
     }
@@ -174,7 +178,7 @@ export function advanceWorld(realm: Realm, store: LifeCtx["store"], toDay: numbe
   const live = opts.live ?? liveSites(realm);
   const out: DayLife[] = [];
   for (let d = realm.day + 1; d <= toDay; d++) {
-    realmDay(realm, d, undefined, { live });
+    realmDay(realm, d, undefined, { live, store });
     out.push(lifeDay(ctx, d, { ...opts, live }));
   }
   if (opts.settleLazy) for (const id of [...live].sort()) if (realm.settlements[id]) settle(ctx, id, toDay);

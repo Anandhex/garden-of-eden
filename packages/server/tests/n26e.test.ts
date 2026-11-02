@@ -369,7 +369,8 @@ describe("N26 Part E: off-screen meetings and situations", () => {
       const rec = JSON.parse(String(r.death)) as { cause: string; killer?: string; site: string | null };
       if (rec.killer && rec.site === null) expect(["murder", "beast"]).toContain(rec.cause);
     }
-  });
+    // Two and a half years with every place living: room for a day of everyone's lives at the people's budget (N25's 250 ms, by PERF_SLACK).
+  }, 60_000 + Math.round(2.5 * config.daysPerYear) * 250 * Number(process.env.PERF_SLACK ?? 1));
 
   it("everyone in a situation on the road is a real person who is near", () => {
     const { realm, store, live } = world(1);

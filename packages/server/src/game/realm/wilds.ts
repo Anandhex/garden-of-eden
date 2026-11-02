@@ -16,6 +16,7 @@ import { formatMoney } from "../money.js";
 import { recordClear } from "../quests.js";
 import { config } from "../../config.js";
 import { dailyChance, seasonOf } from "../weather.js";
+import { ventureOutcome } from "../office/ventures.js";
 import { addDeed, addRenown, figureOvercomes, figurePower, killFigure, makeFigure, takenNames } from "./figures.js";
 import { travelDays } from "./generate.js";
 import { realmNews, tally } from "./log.js";
@@ -248,6 +249,9 @@ export function delve(realm: Realm, d: Dungeon, party: Figure[], day: number, rn
       addDeed(f, cleared === d.depth ? `cleared ${d.name}` : `went ${cleared} levels into ${d.name}`);
     }
   }
+  // A delve is a venture (N69): its leader's name, and the guild's whose it was, rise or fall with it.
+  const died = party.length - living.length;
+  if (party[0]) ventureOutcome(realm, { kind: "delve", leader: party[0].id, went: party.map((f) => f.id), ...(guild ? { faction: guild.id } : {}), won: cleared === d.depth || (cleared > 0 && died === 0), just: true, routed: died * 2 > party.length, against: d.name }, day);
   if (cleared === d.depth) {
     d.clearedUntil = day + 25 + Math.floor(rng() * 20);
     d.danger = 0;
