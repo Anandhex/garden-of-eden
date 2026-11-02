@@ -181,6 +181,118 @@ export const BOUNDS: LongBound[] = [
       return { ok: worst <= 0.1, detail: `at worst ${pct(worst)} of places had fallen` };
     },
   },
+  // ---- N69: offices, treasuries and renown (measured 2026-11-02, seed 1, slice; see each band). ----
+  {
+    id: "offices-filled",
+    phase: "N69",
+    describe: "after year 1, under a tenth of posts stand empty for more than a season",
+    check: (series, ctx) => {
+      const late = afterYear(series, ctx).filter((s) => s.office);
+      const worst = late.reduce((w, s) => Math.max(w, s.office!.emptyLong / Math.max(1, s.office!.posts)), 0);
+      return { ok: worst < 0.1, detail: `at worst ${pct(worst)} of posts empty past a season` };
+    },
+  },
+  {
+    id: "treasury-bounded",
+    phase: "N69",
+    describe: "after year 1, fewer than a tenth of places (villages and up) have bare coffers for a whole year, and the richest treasury grows less than fourfold a year",
+    check: (series, ctx) => {
+      const late = afterYear(series, ctx).filter((s) => s.office);
+      if (late.length === 0) return { ok: true, detail: "no samples" };
+      // A place bare on a day of tax and wages is ordinary; bare a whole year running is a place nobody can run.
+      const run = new Map<string, number>();
+      let bare = 0;
+      for (const s of late) {
+        const today = new Set(s.office!.bare ?? []);
+        for (const id of [...run.keys()]) if (!today.has(id)) run.delete(id);
+        for (const id of today) run.set(id, (run.get(id) ?? 0) + 1);
+        bare = Math.max(bare, [...run.values()].filter((n) => n >= ctx.daysPerYear).length / Math.max(1, s.office!.treasuries));
+      }
+      const years = Math.max(1, (late.at(-1)!.day - late[0]!.day) / ctx.daysPerYear);
+      const growth = Math.pow(late.at(-1)!.office!.maxTreasury / Math.max(1, late[0]!.office!.maxTreasury), 1 / years);
+      return { ok: bare < 0.1 && growth < 4, detail: `at worst ${pct(bare)} bare; the richest grew ${growth.toFixed(2)}× a year` };
+    },
+  },
+  {
+    id: "embezzlement-rare",
+    phase: "N69",
+    describe: "skimming in under a fifth of the coffers at once",
+    check: (series) => {
+      const worst = series.filter((s) => s.office).reduce((w, s) => Math.max(w, s.office!.skimming / Math.max(1, s.office!.coffers)), 0);
+      return { ok: worst < 0.2, detail: `at worst ${pct(worst)} of keepers skimming` };
+    },
+  },
+  {
+    id: "guild-sizes",
+    phase: "N69",
+    describe: "no chartered guild under its minimum past a season; the median guild has 4 or more members (figures and townsfolk), and none holds a quarter of the people where it has halls",
+    check: (series) => {
+      const withOffice = series.filter((s) => s.office);
+      const under = Math.max(0, ...withOffice.map((s) => s.office!.underMinLong));
+      const last = withOffice.at(-1)?.office;
+      const sizes = last?.guildSizes ?? [];
+      const mid = sizes.length / 2;
+      const median = sizes.length === 0 ? 0 : sizes.length % 2 === 1 ? sizes[Math.floor(mid)]! : (sizes[mid - 1]! + sizes[mid]!) / 2;
+      const share = last?.guildShare ?? 0;
+      // The plan's 4..15 was for figures alone; townsfolk members (every merchant of a city) make the big guilds big, and how big depends on
+      // where they have halls: a league with seven halls in capitals has hundreds (measured 2026-11-02, seed 3, slice, 2 years: 83 and 299,
+      // barely grown from year 1). So the ceiling is a share of the people where a guild stands, not a number: a quarter, since a village's
+      // farmers' association rightly holds many of its farmers (seed 2, 2 years: 26 of Frostcross's 189, 14%), and a runaway would pass it.
+      return { ok: under === 0 && (sizes.length === 0 || median >= 4) && share < 0.25, detail: `${under} under their minimum past a season; median guild ${median} (of ${sizes.length}); the largest holds ${pct(share)} of the people where it has halls` };
+    },
+  },
+  {
+    id: "renown-spread",
+    phase: "N69",
+    describe: "renown is not bunched at −100, 0 or 100; leaders' support has a spread",
+    check: (series, ctx) => {
+      const late = afterYear(series, ctx).filter((s) => s.office);
+      const last = late.at(-1)?.office;
+      if (!last) return { ok: true, detail: "no samples" };
+      const edges = last.atEdges / Math.max(1, last.figures);
+      const zero = last.atZero / Math.max(1, last.figures);
+      return { ok: edges < 0.1 && zero < 0.3 && (last.leaders < 5 || last.supportSd > 0), detail: `${pct(edges)} at the ends, ${pct(zero)} at 0; support ${last.supportMean.toFixed(1)} ± ${last.supportSd.toFixed(1)}` };
+    },
+  },
+  {
+    id: "renown-centred",
+    phase: "N69",
+    describe: "mean renown within −10..+25 and under 15% of figures at −30 or below",
+    check: (series, ctx) => {
+      const late = afterYear(series, ctx).filter((s) => s.office);
+      const last = late.at(-1)?.office;
+      if (!last) return { ok: true, detail: "no samples" };
+      const low = last.below30 / Math.max(1, last.figures);
+      return { ok: last.renownMean >= -10 && last.renownMean <= 25 && low < 0.15, detail: `mean ${last.renownMean.toFixed(1)}, ${pct(low)} at −30 or below` };
+    },
+  },
+  {
+    id: "epithets-rare",
+    phase: "N69",
+    describe: "under a third of leaders hold a repute epithet at once; in a run of five years or more both good and bad ones occur",
+    check: (series, ctx) => {
+      const late = afterYear(series, ctx).filter((s) => s.office);
+      const worst = late.reduce((w, s) => Math.max(w, s.office!.withEpithet / Math.max(1, s.office!.leaders)), 0);
+      const long = (series.at(-1)?.day ?? 0) - (series[0]?.day ?? 0) >= 5 * ctx.daysPerYear;
+      const good = Math.max(0, ...late.map((s) => s.office!.good));
+      const bad = Math.max(0, ...late.map((s) => s.office!.bad));
+      return { ok: worst < 1 / 3 && (!long || (good > 0 && bad > 0)), detail: `at worst ${pct(worst)} of leaders; good ${good}, bad ${bad}` };
+    },
+  },
+  {
+    id: "splits-after-defeat",
+    phase: "N69",
+    describe: "under one split per faction per two years",
+    check: (series, ctx) => {
+      const first = series[0];
+      const last = series.at(-1);
+      if (!first || !last) return { ok: true, detail: "no samples" };
+      const years = Math.max(1, (last.day - first.day) / ctx.daysPerYear);
+      const facs = series.reduce((a, s) => a + s.factions, 0) / series.length;
+      const rate = ((last.splits ?? 0) - (first.splits ?? 0)) / Math.max(1, facs) / (years / 2);
+      return { ok: rate < 1, detail: `${rate.toFixed(2)} splits per faction per two years` };
+    },
+  },
 ];
 
 export function checkAll(series: Sample[], ctx: BoundCtx, only?: string): BoundResult[] {

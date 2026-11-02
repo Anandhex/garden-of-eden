@@ -12,6 +12,12 @@ import { QUEST_TIERS, rankForLevel } from "./levels.js";
  */
 export interface TitleDef {
   name: string;
+  /** "repute": a name earned by how someone leads (N69, game/office/epithets.ts), heard after their name; "deed"/"rank" otherwise. */
+  kind?: "repute";
+  /** For a repute epithet: kept for life once earned (a deed), else lost when the facts stop holding for a year. */
+  forLife?: boolean;
+  /** For a repute epithet: a good name or a bad one. */
+  good?: boolean;
   /** What it was earned for, in words. */
   description: string;
   /** Added to attributes for as long as they hold it. */
@@ -30,6 +36,20 @@ export const TITLES = {
   rank_S: { name: "the Hero", description: "reached rank S" },
   rank_SS: { name: "the Legend", description: "reached rank SS" },
   rank_SSS: { name: "the Myth", description: "reached rank SSS" },
+  // Repute (N69): how someone leads, awarded from facts by game/office/epithets.ts, never by the model.
+  the_good: { name: "the Good", description: "loved by their people for a year", kind: "repute", good: true },
+  the_just: { name: "the Just", description: "found and punished a thief in their service, and their people bear them little grudge", kind: "repute", good: true },
+  the_generous: { name: "the Generous", description: "paid every wage when the coffers were low", kind: "repute", good: true },
+  the_bold: { name: "the Bold", description: "won two ventures of their own calling", kind: "repute", good: true },
+  conqueror: { name: "the Conqueror", description: "took a place by force", kind: "repute", good: true, forLife: true },
+  the_builder: { name: "the Builder", description: "saw six buildings raised under them in two years", kind: "repute", good: true },
+  the_bad: { name: "the Bad", description: "hated by their people for a year", kind: "repute", good: false },
+  the_cruel: { name: "the Cruel", description: "sacked a place that had given in, or preyed on the weak", kind: "repute", good: false },
+  the_coward: { name: "the Coward", description: "lost two ventures of their own calling and left their people to die", kind: "repute", good: false },
+  the_greedy: { name: "the Greedy", description: "taxed their people hard for a year while they grew poorer", kind: "repute", good: false },
+  the_thief: { name: "the Thief", description: "caught stealing from the coffers they kept", kind: "repute", good: false, forLife: true },
+  oathbreaker: { name: "Oathbreaker", description: "broke two treaties", kind: "repute", good: false, forLife: true },
+  the_unready: { name: "the Unready", description: "lost three ventures in two years", kind: "repute", good: false },
 } as const satisfies Record<string, TitleDef>;
 export type TitleId = keyof typeof TITLES;
 

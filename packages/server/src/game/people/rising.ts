@@ -32,7 +32,9 @@ export function riseDay(ctx: LifeCtx, step: SiteStep, day: number): Figure[] {
     const notableHouse = CLASS_RANK[r.cls as SocialClass] >= 3 || parents.some((p) => p && (p.figure || p.persona));
     const promise = ITEM_TIERS.indexOf(traits.potential) >= 2;
     const roll = rng();
-    if (!((promise && notableHouse && roll < 0.35) || roll < LUCK)) continue;
+    // A name already made, for good or ill (N69: fame, |renown|), counts like promise.
+    const known = Math.abs(r.renown ?? 0) >= 10;
+    if (!((promise && notableHouse && roll < 0.35) || (known && roll < 0.2) || roll < LUCK)) continue;
     const fig = makeFigure(
       realm,
       rng,
@@ -45,7 +47,8 @@ export function riseDay(ctx: LifeCtx, step: SiteStep, day: number): Figure[] {
         gender: r.gender === "female" ? "female" : "male",
         name: r.name,
         faction: r.faction,
-        renown: 12,
+        // A riser keeps the name their row made (N69), or starts as one worth watching.
+        renown: r.renown ? Math.max(-100, Math.min(100, r.renown)) : 12,
         rose: `born:${id}`,
         parents: parents.flatMap((p) => (p?.figure ? [p.figure] : [])),
       },
@@ -75,7 +78,8 @@ export function syncRisen(ctx: LifeCtx, day: number): void {
     if (!row) continue;
     if (f.alive && row.death !== null) killFigure(realm, f, day, "died", {});
     else if (!f.alive && row.death === null) killPerson(realm, store, row.id, { cause: f.death?.cause ?? "accident", day, ...(f.death?.note ? { note: f.death.note } : {}) });
-    else if (f.alive && day > row.born_day && (day - row.born_day) % config.daysPerYear === 0) {
+    // Making a name in their town is for the little known: past 30 it is deeds and followers that move it (N69).
+    else if (f.alive && f.renown < 30 && day > row.born_day && (day - row.born_day) % config.daysPerYear === 0) {
       const rng = streamFor(realm.seed, "renown", f.id, day);
       addRenown(f, 4 + Math.floor(rng() * 9));
       addDeed(f, "made a name in their town");

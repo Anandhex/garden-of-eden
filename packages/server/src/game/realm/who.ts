@@ -1,5 +1,6 @@
 import { config } from "../../config.js";
 import type { PeopleStore, PersonRow } from "../../store/peopleStore.js";
+import { fame } from "../office/repute.js";
 import type { SocialStore } from "../../store/socialStore.js";
 import type { BeastStore } from "../../store/beastStore.js";
 import { seedFrom } from "../dice.js";
@@ -60,7 +61,7 @@ export function gangMembers(realm: Realm, gangId: string): Figure[] {
   return g.members
     .map((id) => realm.figures[id])
     .filter((f): f is Figure => !!f && f.alive && !f.talks && !f.away)
-    .sort((a, b) => (b.id === g.leader ? 1 : 0) - (a.id === g.leader ? 1 : 0) || b.renown - a.renown || (a.id < b.id ? -1 : 1));
+    .sort((a, b) => (b.id === g.leader ? 1 : 0) - (a.id === g.leader ? 1 : 0) || fame(b) - fame(a) || (a.id < b.id ? -1 : 1));
 }
 
 /** One gang member for a duty today (a lookout), turn and turn about, stable for the day. */

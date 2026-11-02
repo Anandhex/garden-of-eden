@@ -6,7 +6,8 @@ import { type Creature, type CreatureTemplate, spawnGroup } from "../creatures.j
 import type { Rng } from "../dice.js";
 import { tierIndex, type Life, type Tier } from "../life.js";
 import { seasonOf } from "../weather.js";
-import { addDeed, addRenown, killFigure, makeFigure, takenNames } from "./figures.js";
+import { addDeed, addRenown, epithetOf, killFigure, makeFigure, takenNames } from "./figures.js";
+import { fame } from "../office/repute.js";
 import { realmNews, tally } from "./log.js";
 import { figureTalkerId } from "./notables.js";
 import { beastName, epithet, personName } from "./names.js";
@@ -97,7 +98,7 @@ export function syncCrowd(realm: Realm, creatures: Record<string, Creature>, day
     }
     if (c.outcome === "dead") {
       killFigure(realm, f, day, c.deathCause ?? "unknown");
-      if (f.renown >= 10 || f.role === "beast") realmNews(realm, day, site, "death", `${f.name} of ${place} is dead (${c.deathCause === "old age" ? "of old age" : `killed by ${c.deathCause ?? "someone"}`}).`, 5, [f.name]);
+      if (fame(f) >= 10 || f.role === "beast") realmNews(realm, day, site, "death", `${f.name} of ${place} is dead (${c.deathCause === "old age" ? "of old age" : `killed by ${c.deathCause ?? "someone"}`}).`, 5, [f.name]);
     }
   }
   return log;
@@ -151,7 +152,9 @@ export function readyToTalk(realm: Realm, creatures: Record<string, Creature>, s
     const onMap = Object.values(creatures).some((c) => c.figure === f.id && !c.outcome);
     // Someone who lives in the place, or a gang member on its map; a person who grew up as a townsperson (N25) can talk wherever they live.
     const local = f.home === site || !!f.person || (!!f.faction && realm.factions[f.faction]?.kind === "gang" && onMap);
-    return local && f.renown >= TALKER_RENOWN && (onMap || COMMONER_ROLES.has(f.role)) && tierIndex(f.life.tier as Tier) >= 1;
+    // Fame, not approval (N69): the infamous talk too; one who holds an epithet and lives here is worth talking to whatever their name.
+    const known = fame(f) >= TALKER_RENOWN || (f.home === site && epithetOf(f) !== null);
+    return local && known && (onMap || COMMONER_ROLES.has(f.role) || epithetOf(f) !== null) && tierIndex(f.life.tier as Tier) >= 1;
   });
 }
 

@@ -1,5 +1,6 @@
 import type { Rng } from "../dice.js";
 import { tierIndex, type Tier } from "../life.js";
+import { guardMod } from "../office/posts.js";
 import { addDeed, addRenown, FIGHTERS, figureOvercomes, figurePower, killFigure, makeFigure, takenNames } from "./figures.js";
 import { beastName, epithet } from "./names.js";
 import { realmNews, tally } from "./log.js";
@@ -44,7 +45,8 @@ export function settlementSide(realm: Realm, s: Settlement, { defending = true }
   const men = Math.round(s.population * MILITIA_SHARE * (1 + 0.25 * (s.buildings.barracks ?? 0)));
   const fighters = fightersOf(realm, s);
   const walls = defending ? 1 + 0.3 * (s.buildings.walls ?? 0) : 1;
-  const strength = (men * 1.5 + fighters.reduce((a, f) => a + figurePower(f), 0)) * walls;
+  // Its captain of the watch (in defence) or its marshal (going out) makes the most of them (N69).
+  const strength = (men * 1.5 + fighters.reduce((a, f) => a + figurePower(f), 0)) * walls * guardMod(realm, s, defending);
   return { name: s.name, strength, fighters, men, home: s, species: "human", rank: "G" };
 }
 

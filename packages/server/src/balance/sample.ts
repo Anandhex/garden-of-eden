@@ -1,6 +1,7 @@
 import type { WorldStore } from "../game/db.js";
 import { totalCoin, unaccounted } from "../game/realm/ledger.js";
 import type { Realm } from "../game/realm/types.js";
+import { officeSample, type OfficeSample } from "../game/office/bounds.js";
 
 /**
  * One day of the world, in numbers (N22 decision 2): the runner takes one a day, and the bounds read the series. Later
@@ -27,6 +28,10 @@ export interface Sample {
   coin: { total: number; unaccounted: number };
   packs: { count: number; beasts: number; worstOverCap: number };
   journeys: number;
+  /** Offices, treasuries, guilds, renown and epithets (N69). */
+  office?: OfficeSample;
+  /** Splits so far (the realm's tally), for the after-defeat bound. */
+  splits?: number;
 }
 
 export interface SampleCtx {
@@ -68,5 +73,7 @@ export function sampleWorld(realm: Realm, store: WorldStore | null, day: number,
     coin: { total: totalCoin(realm), unaccounted: unaccounted(realm, ctx.coinStart, ctx.bookStart) },
     packs: { count: packs.filter((p) => p.count > 0).length, beasts: packs.reduce((a, p) => a + p.count, 0), worstOverCap: Math.max(0, ...packs.map((p) => p.count / Math.max(1, p.cap))) },
     journeys: realm.journeys.length,
+    office: officeSample(realm, day),
+    splits: realm.stats.splits ?? 0,
   };
 }

@@ -64,6 +64,10 @@ export interface PersonRow {
   origin?: string | null;
   /** JSON `{ by, since, worth, use, ransom? }` while held captive by a gang (N26I); null otherwise. */
   captive?: string | null;
+  /** Their name, -100..100 (N69): famed above zero, infamous below; null is 0. */
+  renown?: number | null;
+  /** A repute title earned in office (N69: a `TITLES` id of kind "repute"), or null. */
+  epithet?: string | null;
   /** Bumped by every flush that writes the row. */
   rev: number;
 }
@@ -94,8 +98,15 @@ const COLUMNS = TABLES.people;
 const INSERT = `INSERT OR REPLACE INTO people (${COLUMNS.join(", ")}) VALUES (${COLUMNS.map(() => "?").join(", ")})`;
 
 /** Columns whose change leaves a place's roster as it was. */
-const QUIET = new Set(["persona", "traits", "expecting", "last_birth", "stepped_day", "spouse", "mother", "father", "figure", "outlook", "skill"]);
+const QUIET = new Set(["persona", "traits", "expecting", "last_birth", "stepped_day", "spouse", "mother", "father", "figure", "outlook", "skill", "renown", "epithet"]);
 const values = (r: PersonRow) => COLUMNS.map((c) => r[c] ?? null) as Array<string | number | null>;
+const dayOfDeath = (cell: string): number => {
+  try {
+    return Number((JSON.parse(cell) as { day?: number }).day ?? -1);
+  } catch {
+    return -1;
+  }
+};
 const escapeLike = (q: string) => q.replace(/[\\%_]/g, (c) => `\\${c}`);
 
 export class PeopleStore {
@@ -290,6 +301,25 @@ export class PeopleStore {
     const out = new Map<string, number>();
     for (const fac of of.values()) out.set(fac, (out.get(fac) ?? 0) + 1);
     return out;
+  }
+
+  /** The living townsfolk sworn to a faction (N69), changes not yet written included; risers are left out (they count as figures). */
+  ofFaction(faction: string): PersonRow[] {
+    const ids = new Set((this.sql("SELECT id FROM people WHERE faction = ? AND death IS NULL").all(faction) as Array<{ id: string }>).map((r) => r.id));
+    for (const r of this.dirty.values()) {
+      if (r.faction === faction && r.death === null) ids.add(r.id);
+      else ids.delete(r.id);
+    }
+    return [...ids].sort().map((id) => this.get(id)!).filter((r) => r && r.figure === null);
+  }
+
+  /** The dead of a place who died on or after `fromDay` (N69: the families of a venture's dead), changes not yet written included. */
+  diedAt(site: string, fromDay: number): PersonRow[] {
+    const ids = new Set((this.sql("SELECT id, death FROM people WHERE site = ? AND death IS NOT NULL").all(site) as Array<{ id: string; death: string }>).filter((r) => dayOfDeath(r.death) >= fromDay).map((r) => r.id));
+    for (const r of this.dirty.values()) {
+      if (r.site === site && r.death !== null && dayOfDeath(r.death) >= fromDay) ids.add(r.id);
+    }
+    return [...ids].sort().map((id) => this.get(id)!).filter(Boolean);
   }
 
   /** The changed rows not yet written (the world hash and export see the world as it is, not as last saved). */

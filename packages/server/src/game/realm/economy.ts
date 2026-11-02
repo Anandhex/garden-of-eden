@@ -8,6 +8,8 @@ import { crowding, housesOf } from "./houses.js";
 import { realmNews, tally } from "./log.js";
 import { type BuildingId, KIND_POPULATION, type Realm, type Settlement, type SettlementKind } from "./types.js";
 import { sendArrival } from "./arrivals.js";
+import { cofferMod, placeInst, unrun, worksMod } from "../office/posts.js";
+import { noteDay } from "../office/repute.js";
 
 /**
  * Prosperity, building and moving (N13.2), a day at a time, in code.
@@ -93,7 +95,9 @@ export function prosperityTarget(realm: Realm, s: Settlement, day: number): numb
   const perHead = s.population > 0 ? income(realm, s, day) / s.population : 0;
   const unsafe = s.lastRaided !== undefined && day - s.lastRaided <= UNSAFE_DAYS ? 15 : 0;
   const war = atWar(realm, s) ? 10 : 0;
-  return Math.max(0, Math.min(100, 28 + s.food * 0.25 + Math.min(20, perHead * 15) - unsafe - war - s.taxRate * 40 + Math.min(15, sumLevels(s) * 1.5)));
+  // A place nobody runs (most of its posts empty, N69) drifts lower.
+  const neglected = unrun(realm, s) ? 5 : 0;
+  return Math.max(0, Math.min(100, 28 + s.food * 0.25 + Math.min(20, perHead * 15) - unsafe - war - neglected - s.taxRate * 40 + Math.min(15, sumLevels(s) * 1.5)));
 }
 
 /** What a settlement would build next, and why (null: nothing needed). */
@@ -137,11 +141,11 @@ export function economyDay(realm: Realm, day: number, rng: Rng, live: ReadonlySe
     s.food = clamp(s.food + delta);
     // Short of food, a place with coin buys it from its neighbours.
     if (s.food < 30 && s.treasury > s.population && !broken("no-famine-relief")) {
-      sink(realm, `s:${s.id}`, Math.round(s.population * 0.8), "grain bought in", undefined, day);
+      sink(realm, `s:${s.id}`, Math.round(s.population * 0.8 * worksMod(realm, s)), "grain bought in", undefined, day);
       s.food = clamp(s.food + 8);
     }
-    // Coin: what its people earn comes in; the upkeep of its buildings and watch goes out.
-    mint(realm, `s:${s.id}`, income(realm, s, day), "the day's earnings", undefined, day);
+    // Coin: what its people earn comes in (as well as its keeper of the coffers gathers it, N69); the upkeep of its buildings and watch goes out.
+    mint(realm, `s:${s.id}`, income(realm, s, day) * cofferMod(realm, placeInst(s.id)), "the day's earnings", undefined, day);
     sink(realm, `s:${s.id}`, upkeep(s), "upkeep", undefined, day);
     // Prosperity drifts toward its target, 2 points a day at most.
     const target = prosperityTarget(realm, s, day);
@@ -192,6 +196,7 @@ function build(realm: Realm, s: Settlement, day: number): void {
     if (lead) {
       addRenown(lead, 2);
       addDeed(lead, `raised the ${b} of ${s.name}`);
+      noteDay(lead, "built", day);
     }
     realmNews(realm, day, s.id, "building", `${s.name} finished ${b === "farms" ? "clearing new fields" : `building ${BUILDING_WORDS[b]}`} (level ${s.buildings[b]}).`, b === "walls" || b === "guildhall" ? 4 : 3, [s.name]);
     return;
@@ -199,7 +204,8 @@ function build(realm: Realm, s: Settlement, day: number): void {
   if (s.project) return;
   const need = neededBuilding(realm, s, day);
   if (!need) return;
-  const cost = buildCost(s, need.building);
+  // A good steward or clerk builds for less (N69).
+  const cost = Math.round(buildCost(s, need.building) * worksMod(realm, s));
   if (s.treasury < cost * 1.2) return;
   sink(realm, `s:${s.id}`, cost, `building ${need.building}`, undefined, day);
   s.project = { building: need.building, done: day + 4 + level(s, need.building) * 3, cost };

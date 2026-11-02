@@ -1,7 +1,7 @@
 import type { PlayerState } from "../../npc/types.js";
 import { skillLevel } from "../../npc/skills.js";
 import { check, type Rng } from "../dice.js";
-import { transfer } from "../realm/ledger.js";
+import { mint, transfer } from "../realm/ledger.js";
 import { realmNews, tally } from "../realm/log.js";
 import { figurePower } from "../realm/figures.js";
 import { gangSide } from "../realm/military.js";
@@ -121,7 +121,7 @@ export function captiveAct(realm: Realm, p: PlayerState, op: Exit | "bribe", day
       const friend = friends.find((f) => f.money >= asked);
       if (friend) {
         friend.pay(asked);
-        if (realm.factions[c.holder]) realm.factions[c.holder]!.wealth += asked;
+        mint(realm, `f:${c.holder}`, asked, "a ransom paid by a friend", undefined, day);
         return free("ransomed", [`Word reaches ${friend.name}, who pays ${asked} copper for you.`]);
       }
       const home = realm.settlements[c.home];
@@ -147,7 +147,7 @@ export function captiveAct(realm: Realm, p: PlayerState, op: Exit | "bribe", day
 export function captiveDay(realm: Realm, p: PlayerState, day: number, rng: Rng): string[] {
   const c = p.chapter;
   if (!c || c.kind !== "captive" || day - c.since < RESCUE_AFTER) return [];
-  const hero = Object.values(realm.figures).filter((f) => f.alive && !f.talks && f.home === c.home && (f.role === "adventurer" || f.role === "captain" || f.role === "hunter")).sort((a, b) => b.renown - a.renown)[0];
+  const hero = Object.values(realm.figures).filter((f) => f.alive && !f.talks && f.home === c.home && (f.role === "adventurer" || f.role === "captain" || f.role === "hunter")).sort((a, b) => b.renown - a.renown || (a.id < b.id ? -1 : 1))[0];
   if (!hero || rng() >= 0.25) return [];
   const g = realm.factions[c.holder];
   const theirs = g ? gangSide(realm, g.id).strength * 0.3 : 1;

@@ -1,5 +1,6 @@
 import { CLASS_RANK, type SocialClass } from "@millbrook/shared";
 import { config } from "../../config.js";
+import { joinedByRecruit, recruitNeed } from "../office/recruit.js";
 import { npcPrice } from "../../npc/actions.js";
 import { adjustRelation, relationTo } from "../../npc/social.js";
 import { traitsOf } from "../../npc/traits.js";
@@ -237,6 +238,7 @@ export function talkerCtx(env: TalkerEnv, me: VillageMember, plans: Map<string, 
     gatherings,
     ...(goalOf(env, me, row) ? { goal: goalOf(env, me, row)! } : {}),
     recruiter: !!row?.faction,
+    ...(row?.faction && env.realm && recruitNeed(env.realm, row.faction) > 0 ? { recruitNeed: recruitNeed(env.realm, row.faction) } : {}),
     wantsToLeave: false,
     violence: env.violence,
     last: mem?.last ?? {},
@@ -339,7 +341,10 @@ function hostFor(env: TalkerEnv, me: VillageMember, rowOf: RowOf, at: () => Plac
           if (d.target) adjustRelation(h.state, d.target, "trust", -5);
         }
       }
-      if (d.recruit && env.store && ra?.faction && rt && !rt.faction) env.store.people.update(rt.id, { faction: ra.faction });
+      if (d.recruit && env.store && ra?.faction && rt && !rt.faction) {
+        if (env.realm) joinedByRecruit(env.realm, env.store, rt.id, ra.faction);
+        else env.store.people.update(rt.id, { faction: ra.faction });
+      }
       return e.id;
     },
   };

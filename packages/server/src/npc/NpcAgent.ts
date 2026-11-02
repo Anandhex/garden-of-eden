@@ -138,6 +138,11 @@ export class NpcAgent {
    */
   ambition?: () => { line: string; say: string } | null;
   /**
+   * Their standing (N69, game/office/words.ts): the post they hold, their guild's standing, what people call them and whether their name is
+   * good or ill. A line for their situation; set by the game where the realm is.
+   */
+  standing?: () => string | null;
+  /**
    * The model's own count of the last request (Ollama's prompt_eval_count), and how many
    * history messages it covered. Used with the estimate to keep requests under budget.
    */
@@ -221,7 +226,8 @@ export class NpcAgent {
     }
     const recalled = this.recall && !this.state.inCombat ? await this.recall(playerLine).catch(() => []) : [];
     const want = this.state.inCombat ? null : (this.ambition?.() ?? null);
-    const extra = [...triggered.lines, ...social.lines, ...(want ? [want.line] : []), ...(recalled.length > 0 ? [`From earlier talks with them you recall: ${recalled.join(" ")}`] : [])];
+    const standing = this.state.inCombat ? null : (this.standing?.() ?? null);
+    const extra = [...triggered.lines, ...social.lines, ...(want ? [want.line] : []), ...(standing ? [standing] : []), ...(recalled.length > 0 ? [`From earlier talks with them you recall: ${recalled.join(" ")}`] : [])];
     const fighting = this.state.inCombat;
     const dilemma = fighting || this.state.pendingDilemma ? undefined : dilemmasFor(this.persona, this.state, playerLine)[0];
     const turn = await this.withTopic(topic, () =>

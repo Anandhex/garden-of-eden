@@ -69,9 +69,11 @@ export function ensurePlots(realm: Realm, store: WorldStore, s: Settlement, plot
     if (!rows.has(p.id)) fresh.push({ id: p.id, site: s.id, holder: firstHolder(s, p, i, hh.farming), fence: p.kind === "orchard" ? 1 : 0 });
   });
   if (fresh.length > 0) store.farm.addPlots(fresh);
-  // Holders who are no more: the lord takes the plot back, or it goes to the commons.
+  // Holders who are no more: the lord takes the plot back, or it goes to the commons. The demesne goes with the seat: a head put out
+  // (N69's challenges) or gone leaves it to whoever heads the place now.
+  const lord = s.leader && realm.figures[s.leader]?.alive ? `lord:${s.leader}` : null;
   for (const r of rows.values()) {
-    if (holderExists(realm, s, r.holder, hh.all)) continue;
+    if (holderExists(realm, s, r.holder, hh.all) && !(lord && r.holder.startsWith("lord:") && r.holder !== lord)) continue;
     store.farm.setPlot(s.id, r.id, { holder: s.leader && realm.figures[s.leader]?.alive ? `lord:${s.leader}` : "commons" });
   }
   return rows;

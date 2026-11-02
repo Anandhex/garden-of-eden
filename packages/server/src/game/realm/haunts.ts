@@ -1,5 +1,6 @@
 import { payOut } from "./ledger.js";
 import { type Creature, type CreatureTemplate, creatureStats, spawnCreature } from "../creatures.js";
+import { fame } from "../office/repute.js";
 import { type BeastRow, type BeastStore, woundsOf } from "../../store/beastStore.js";
 import { afterFight, ageOfRow, killBeast, lifeOfRow } from "./beasts.js";
 import type { Rng } from "../dice.js";
@@ -48,7 +49,7 @@ export function stockHaunts(realm: Realm, creatures: Record<string, Creature>, s
     ? [...gang.members]
         .map((id) => realm.figures[id])
         .filter((f): f is Figure => !!f && f.alive && speciesOf(f.species).talks && !talking(f))
-        .sort((a, b) => (b.id === gang.leader ? 1 : 0) - (a.id === gang.leader ? 1 : 0) || b.renown - a.renown)
+        .sort((a, b) => (b.id === gang.leader ? 1 : 0) - (a.id === gang.leader ? 1 : 0) || fame(b) - fame(a))
         .slice(0, MAX_ON_MAP)
     : [];
   const wanted = new Set(members.map((f) => f.id));
@@ -171,8 +172,8 @@ export function settleHaunts(realm: Realm, creatures: Record<string, Creature>, 
     }
     const f = c.figure ? realm.figures[c.figure] : undefined;
     if (f && !c.beast && killFigure(realm, f, day, `killed by ${player.name}`)) {
-      realmNews(realm, day, site, "death", `${titled(f)}${s ? ` of the wilds near ${s.name}` : ""} was killed by ${player.name}.`, f.renown >= 30 ? 6 : 4, [f.name, player.name]);
-      player.renown = (player.renown ?? 0) + (f.renown >= 30 ? 5 : 2);
+      realmNews(realm, day, site, "death", `${titled(f)}${s ? ` of the wilds near ${s.name}` : ""} was killed by ${player.name}.`, fame(f) >= 30 ? 6 : 4, [f.name, player.name]);
+      player.renown = (player.renown ?? 0) + (fame(f) >= 30 ? 5 : 2);
       lines.push(`Word will spread that ${f.name} is dead.`);
     }
   }

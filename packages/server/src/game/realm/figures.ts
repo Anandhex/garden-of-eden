@@ -3,6 +3,7 @@ import { speciesOf } from "../../world/species.js";
 import type { Rng } from "../dice.js";
 import { createLife, type Life, type LifeContext, newDay, overcome, type Challenge, gainXp, tierIndex, TIERS, type Tier } from "../life.js";
 import { causeFromWords, type DeathRecord } from "../people/death.js";
+import { TITLES } from "../titles.js";
 import { personName } from "./names.js";
 import type { Figure, Realm, Role } from "./types.js";
 
@@ -106,8 +107,14 @@ export function figureOvercomes(f: Figure, xp: number, challenge: Challenge, day
   return out.log;
 }
 
-export function addRenown(f: Figure, n: number): void {
-  f.renown = Math.max(0, Math.min(100, Math.round(f.renown + n)));
+/**
+ * The one way a figure's renown changes: signed, -100..100 (N69 decision 7). A bad deed takes it down, past zero if it keeps happening.
+ * Returns the change made.
+ */
+export function addRenown(f: Figure, n: number): number {
+  const was = f.renown;
+  f.renown = Math.max(-100, Math.min(100, Math.round(f.renown + n)));
+  return f.renown - was;
 }
 
 /** A deed for their record (the last eight are kept). */
@@ -147,8 +154,22 @@ export function ageFigures(realm: Realm, day: number, rng: Rng): Figure[] {
   return died;
 }
 
-/** "Queen Maud Reed", "Lord Edric Pike", "Elder Ada Lowe", "Greyfang". */
+/** "Queen Maud Reed", "Lord Edric Pike the Cruel", "Elder Ada Lowe", "Greyfang": the newest name earned by how they lead goes after (N69). */
 export function titled(f: Figure): string {
+  const by = epithetOf(f);
+  return by ? `${office(f)} ${by}` : office(f);
+}
+
+/** The newest repute epithet a figure holds ("the Good", "Oathbreaker"), or null (N69, game/office/epithets.ts). */
+export function epithetOf(f: Pick<Figure, "life">): string | null {
+  for (let i = f.life.titles.length - 1; i >= 0; i--) {
+    const def = (TITLES as Record<string, { name: string; kind?: string }>)[f.life.titles[i]!.id];
+    if (def?.kind === "repute") return def.name;
+  }
+  return null;
+}
+
+function office(f: Figure): string {
   switch (f.role) {
     case "ruler":
       return `${f.gender === "female" ? "Queen" : "King"} ${f.name}`;

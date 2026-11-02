@@ -43,7 +43,7 @@ Read this page first. It holds the rules every phase shares; the phase plans ass
 | N38 | [NPCs as living players](n38-npcs-as-living-players.md) | N18, N19, N37 | ✅ built 2026-10-22 (all steps; no save or schema bump) |
 | N39 | [The first hour](n39-the-first-hour.md) | N33, N37, N38 | |
 | N40 | [Ambitions and careers](n40-ambitions-and-careers.md) | N38 | ✅ slice |
-| N69 | [Offices, treasuries and renown](n69-offices-treasuries-and-renown.md) | N37, N38 (with N40) | planned 2026-10-22; build right after N40 |
+| N69 | [Offices, treasuries and renown](n69-offices-treasuries-and-renown.md) | N37, N38 (with N40) | ✅ built 2026-11-02 (after playtest pack 1) |
 | N41 | [Leisure and contests](n41-leisure-and-contests.md) | N37, N38, N40 | |
 | N42 | [A shared quest market and adventurer grades](n42-shared-quest-market.md) | N38, N40 | |
 | N43 | [Items with a history](n43-items-with-a-history.md) | N20, N33 | |
@@ -330,7 +330,7 @@ Every name the model invents goes through the invented-name check (`inventedWord
 
 **After playtest 2**, in this order unless the playtest says otherwise:
 
-1. [N69](n69-offices-treasuries-and-renown.md) offices, treasuries and renown (builds full ledgers on §24's helper; was "right after N40", moved behind the pack).
+1. [N69](n69-offices-treasuries-and-renown.md) offices, treasuries and renown (builds full ledgers on §24's helper; was "right after N40", moved behind the pack). ✅ Built 2026-11-02: each place's and faction's books are summed from the helper's lines (`game/office/books.ts`), and tax on the road moves through it too (`toTransit`/`fromTransit`).
 2. [N39](n39-the-first-hour.md) the first hour (with N26H's note: show one way into a closed district early).
 3. The rest of Stage 2: [N30](n30-seasons-and-the-farming-year.md) (regional weather; its food curve now comes from N26G), [N27](n27-the-wilds.md) (off-road, on top of N26F's POIs), [N28](n28-fauna-and-flora.md) (species files on top of N26F's wildlife), N31, N32 steps 3+, N34, N35, N36, N29, with N20, N21, N23 and N24 where the plans need them.
 4. Then Stages 3–7 in order, minus what the pack already built (parts of N48 and N49 as N26J's stand-ins). Stop and play after each stage, write down what feels alive and what is noise, and change the next stage's plans from that before building it.

@@ -105,6 +105,10 @@ export const EVENT_KINDS = [
   "ambition-changed",
   "flattery",
   "petition",
+  // Offices and renown (N69), in a place's own day: a townsperson given a post, a keeper caught stealing, a name made (risen to a figure)
+  "appointed",
+  "caught-stealing",
+  "made-a-name",
 ] as const;
 export type EventKind = (typeof EVENT_KINDS)[number];
 

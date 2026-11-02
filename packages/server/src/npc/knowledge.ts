@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { NpcPersona } from "./types.js";
+import { TITLES } from "../game/titles.js";
 
 /**
  * World lore: one source of truth for places, people, history and news. None of it is written by hand
@@ -323,7 +324,8 @@ const COMMON = new Set(
 
 /** Every proper name the world knows of: lore names and aliases, NPC names, and any extra (the player's name, creature names). */
 export function knownNameWords(personas: Array<Pick<NpcPersona, "name">>, extra: string[] = [], lore: Lore = worldLore()): Set<string> {
-  const names = [...lore.entries.flatMap((e) => [e.name, ...e.aliases]), ...personas.map((p) => p.name), ...extra];
+  // Titles are earned names, and a leader's epithet goes after their name ("Mott Mason the Generous", N69): their words are known too.
+  const names = [...lore.entries.flatMap((e) => [e.name, ...e.aliases]), ...personas.map((p) => p.name), ...extra, ...Object.values(TITLES).map((t) => t.name)];
   const words = new Set<string>();
   for (const n of names) for (const w of n.split(/[\s'-]+/)) if (/^[A-Z]/.test(w)) words.add(w);
   return words;

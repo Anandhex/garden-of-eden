@@ -42,10 +42,11 @@ import { addLore, learnLore, worldLore, type Certainty } from "../npc/knowledge.
 import { bindActiveSite, creaturesOf, siteIdOf, siteState, type SiteState } from "./site.js";
 import { registerTalker, talkerIdsAt, talkerSite } from "./talkers.js";
 import { careerRole, talkerAmbition } from "./ambition/words.js";
+import { talkerStanding } from "./office/words.js";
 import { rankOf } from "./ambition/careers.js";
 
 /** What of a place's lives the player sees happen where they are: births, deaths, weddings, and the turns of careers (N40). */
-const LIFE_NEWS = new Set(["birth", "death", "marriage", "opened-shop", "seat-won", "promoted", "knighted", "freed", "bought-land", "apprenticed"]);
+const LIFE_NEWS = new Set(["birth", "death", "marriage", "opened-shop", "seat-won", "promoted", "knighted", "freed", "bought-land", "apprenticed", "appointed", "caught-stealing", "made-a-name"]);
 import { applyStory, deepen, factsFor, fallbackDepth } from "../npc/depth/index.js";
 import { LifeReviews, shockFromEvent, shocksFromStep } from "./reviews.js";
 import { writeStory } from "../npc/depth/story.js";
@@ -281,6 +282,8 @@ export class Town {
   private hookRecall(id: string): void {
     const store = this.store;
     if (store) this.agents[id]!.recall = async (line) => (await store.recall(id, line, 2)).map((r) => `on day ${r.day}, ${r.text}.`);
+    // Their post, their guild's standing and their name (N69).
+    this.agents[id]!.standing = () => talkerStanding(this.world.realm ?? null, store ?? undefined, id);
     // What they want from their life (N40): their row's ambition, or one kept under their persona id.
     if (store && config.ambitions) {
       this.agents[id]!.ambition = () => {
@@ -1099,7 +1102,7 @@ export class Town {
       const before = Object.keys(realm.factions);
       // Where the people are rows (N25) they live their own days after the realm's; elsewhere the realm counts heads.
       const live = this.store ? liveSites(realm, this.world.startSite) : new Set<string>();
-      advanceRealm(realm, d, this.fixedRng, { live });
+      advanceRealm(realm, d, this.fixedRng, { live, ...(this.store ? { store: this.store } : {}) });
       if (this.store && live.size > 0) this.livesDay(d, live);
       // The road (N26): journeys, trips and news are part of everyone's day (people/world.ts); the ones that are done are dropped.
       pruneJourneys(realm, d * 1440);
