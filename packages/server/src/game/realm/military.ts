@@ -1,3 +1,4 @@
+import { mageBonus } from "../magic/model.js";
 import type { Rng } from "../dice.js";
 import { tierIndex, type Tier } from "../life.js";
 import { guardMod } from "../office/posts.js";
@@ -76,7 +77,10 @@ export interface FightResult {
  * a challenge at the losers' best rank. `what`: "the raid on Ashby".
  */
 export function fight(realm: Realm, a: Side, d: Side, day: number, rng: Rng, what: string): FightResult {
-  const pA = a.strength / Math.max(1, a.strength + d.strength);
+  // Battle mages tip a fight, a little (N51: never more than +15%).
+  const sa = a.strength * mageBonus(realm, a.fighters);
+  const sd = d.strength * mageBonus(realm, d.fighters);
+  const pA = sa / Math.max(1, sa + sd);
   const attackerWon = rng() < pA;
   const [win, lose] = attackerWon ? [a, d] : [d, a];
   const loseShare = 0.15 + rng() * 0.15;
@@ -160,8 +164,8 @@ export function withLivePlaces<T>(live: ReadonlySet<string>, fn: () => T): T {
  * day's life step to pick who dies and write real deaths with this event on them; elsewhere it is a
  * number, as before. `event`: a ref for the fight ("raid:34:ashby>ferndale"), unique per place and day.
  */
-export function casualty(realm: Realm, s: Settlement | null, cause: "battle" | "siege" | "raid" | "beast", n: number, event: string, day: number, killer?: string): void {
+export function casualty(realm: Realm, s: Settlement | null, cause: "battle" | "siege" | "raid" | "beast", n: number, event: string, day: number, killer?: string, war?: { war: string; side: "attackers" | "defenders" }): void {
   if (!s || n <= 0) return;
-  if (livePlaces.has(s.id)) realm.casualties.push({ site: s.id, cause, count: n, event, day, ...(killer ? { killer } : {}) });
+  if (livePlaces.has(s.id)) realm.casualties.push({ site: s.id, cause, count: n, event, day, ...(killer ? { killer } : {}), ...(war ? { war: war.war, side: war.side } : {}) });
   else bury(s, n);
 }

@@ -1,0 +1,23 @@
+{
+  "peoples": [
+    { "id": "goblin", "name": "a goblin", "body": { "adultAge": 8, "elderAge": 30, "maxAge": 45, "maxTier": "B", "learnRate": 1.2 }, "mind": "cunning", "cleverShare": 0.05, "living": "settled", "habitat": ["hills"], "temperament": { "aggression": 0.6, "greed": 0.8 }, "culture": "highland", "stances": { "dwarf": -80, "human": -30, "ogre": 30, "orc": 10 } },
+    { "id": "hobgoblin", "name": "a hobgoblin", "body": { "adultAge": 12, "elderAge": 45, "maxAge": 65, "maxTier": "A", "learnRate": 1 }, "mind": "reasoning", "cleverShare": 1, "living": "settled", "habitat": ["hills", "plains"], "temperament": { "aggression": 0.6, "greed": 0.5 }, "culture": "imperial", "stances": { "goblin": 40, "human": -20 } },
+    { "id": "ogre", "name": "an ogre", "body": { "adultAge": 15, "elderAge": 60, "maxAge": 90, "maxTier": "A", "learnRate": 0.6 }, "mind": "beast", "cleverShare": 0.03, "living": "solitary", "habitat": ["hills", "forest"], "temperament": { "aggression": 0.7, "greed": 0.6 }, "culture": "highland", "stances": { "goblin": 20, "human": -40 } },
+    { "id": "troll", "name": "a troll", "body": { "adultAge": 20, "elderAge": 120, "maxAge": 200, "maxTier": "S", "learnRate": 0.5 }, "mind": "beast", "cleverShare": 0.02, "living": "solitary", "habitat": ["forest", "marsh", "hills"], "temperament": { "aggression": 0.8, "greed": 0.5 }, "culture": "forest", "stances": { "human": -50 } },
+    { "id": "giant", "name": "a giant", "body": { "adultAge": 30, "elderAge": 200, "maxAge": 350, "maxTier": "S", "learnRate": 0.5 }, "mind": "reasoning", "cleverShare": 1, "living": "settled", "habitat": ["hills"], "temperament": { "aggression": 0.5, "greed": 0.4 }, "culture": "highland", "stances": { "dwarf": -40, "human": -10 } },
+    { "id": "dragon", "name": "a dragon", "body": { "adultAge": 100, "elderAge": 800, "maxAge": 1500, "maxTier": "SSS", "learnRate": 0.4 }, "mind": "reasoning", "cleverShare": 0.95, "living": "hoard", "habitat": ["hills"], "temperament": { "aggression": 0.6, "greed": 1 }, "culture": "imperial", "stances": { "human": -30, "dwarf": -60 } },
+    { "id": "kobold", "name": "a kobold", "body": { "adultAge": 6, "elderAge": 25, "maxAge": 40, "maxTier": "C", "learnRate": 1.1 }, "mind": "cunning", "cleverShare": 0.08, "living": "hive", "habitat": ["hills"], "temperament": { "aggression": 0.4, "greed": 0.7 }, "culture": "highland", "stances": { "dragon": 80, "human": -20 } },
+    { "id": "gnoll", "name": "a gnoll", "body": { "adultAge": 8, "elderAge": 30, "maxAge": 45, "maxTier": "B", "learnRate": 1 }, "mind": "cunning", "cleverShare": 0.03, "living": "nomadic", "habitat": ["plains"], "temperament": { "aggression": 0.9, "greed": 0.6 }, "culture": "steppe", "stances": { "human": -60 } },
+    { "id": "lizardfolk", "name": "one of the lizardfolk", "body": { "adultAge": 10, "elderAge": 50, "maxAge": 80, "maxTier": "A", "learnRate": 0.9 }, "mind": "reasoning", "cleverShare": 1, "living": "settled", "habitat": ["marsh"], "temperament": { "aggression": 0.4, "greed": 0.3 }, "culture": "coastal", "stances": { "human": 0 } },
+    { "id": "harpy", "name": "a harpy", "body": { "adultAge": 6, "elderAge": 30, "maxAge": 50, "maxTier": "B", "learnRate": 1 }, "mind": "cunning", "cleverShare": 0.05, "living": "hive", "habitat": ["coast", "hills"], "temperament": { "aggression": 0.7, "greed": 0.6 }, "culture": "coastal", "stances": { "human": -50 } },
+    { "id": "centaur", "name": "a centaur", "body": { "adultAge": 14, "elderAge": 60, "maxAge": 90, "maxTier": "S", "learnRate": 0.9 }, "mind": "reasoning", "cleverShare": 1, "living": "nomadic", "habitat": ["plains"], "temperament": { "aggression": 0.3, "greed": 0.3 }, "culture": "steppe", "stances": { "elf": 40, "human": 0, "orc": -40 } },
+    { "id": "minotaur", "name": "a minotaur", "body": { "adultAge": 15, "elderAge": 60, "maxAge": 90, "maxTier": "A", "learnRate": 0.7 }, "mind": "cunning", "cleverShare": 0.1, "living": "solitary", "habitat": ["hills"], "temperament": { "aggression": 0.8, "greed": 0.4 }, "culture": "imperial", "stances": { "human": -40 } }
+  ],
+  "stances": {
+    "dwarf": { "goblin": -80, "orc": -60, "elf": -10, "human": 20, "giant": -40, "dragon": -70 },
+    "elf": { "orc": -70, "goblin": -50, "human": 10, "centaur": 40 },
+    "orc": { "dwarf": -60, "elf": -70, "human": -30, "goblin": 10, "giant": 20 },
+    "human": { "goblin": -30, "orc": -30, "dwarf": 20, "elf": 10, "dragon": -60 },
+    "halfling": { "human": 30, "goblin": -40 }
+  }
+}

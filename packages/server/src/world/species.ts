@@ -61,3 +61,32 @@ export function speciesOf(id: string | undefined): SpeciesDef {
 export function minTier(a: ItemTier, b: ItemTier): ItemTier {
   return ITEM_TIERS.indexOf(a) <= ITEM_TIERS.indexOf(b) ? a : b;
 }
+
+/**
+ * Peoples and monsters (N54): the rest of the realm's species are data (`data/peoples/peoples.json`: body and life, mind, how they live,
+ * where, their temperament and their stances toward other peoples), added to SPECIES so every rule that reads a species' ages reads theirs.
+ */
+import { readFileSync as readPeoples } from "node:fs";
+export interface PeopleDef {
+  id: string;
+  name: string;
+  body: { adultAge: number; elderAge: number; maxAge: number; maxTier: string; learnRate: number };
+  mind: "beast" | "cunning" | "reasoning";
+  cleverShare: number;
+  living: "settled" | "nomadic" | "solitary" | "hoard" | "hive";
+  habitat: string[];
+  temperament: { aggression: number; greed: number };
+  culture: string;
+  stances: Record<string, number>;
+}
+export const PEOPLES: { peoples: PeopleDef[]; stances: Record<string, Record<string, number>> } = JSON.parse(readPeoples(new URL("../data/peoples/peoples.json", import.meta.url), "utf8"));
+for (const p of PEOPLES.peoples) {
+  if (SPECIES[p.id]) continue;
+  SPECIES[p.id] = { name: p.name, talks: p.mind !== "beast", adultAge: p.body.adultAge, elderAge: p.body.elderAge, maxAge: p.body.maxAge, maxTier: p.body.maxTier as ItemTier, learnRate: p.body.learnRate };
+}
+/** How one people sees another, -100..100 (both directions are kept: a dwarf's view of goblins, a goblin's of dwarves). */
+export function stanceOf(a: string, b: string): number {
+  if (a === b) return 50;
+  return PEOPLES.stances[a]?.[b] ?? PEOPLES.peoples.find((p) => p.id === a)?.stances[b] ?? 0;
+}
+export const peopleOf = (id: string): PeopleDef | undefined => PEOPLES.peoples.find((p) => p.id === id);

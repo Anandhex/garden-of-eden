@@ -15,6 +15,7 @@ import { FarmStore } from "../store/farmStore.js";
 import { MarkStore } from "../store/markStore.js";
 import { JobStore } from "../store/jobStore.js";
 import { NotableStore } from "../store/notableStore.js";
+import { RecordStore } from "../store/recordStore.js";
 import { GoodsStore } from "../store/goodsStore.js";
 import { CareerStore } from "../store/careerStore.js";
 import { PeopleStore } from "../store/peopleStore.js";
@@ -90,6 +91,8 @@ export class WorldStore {
   readonly notables: NotableStore;
   /** What households keep, by the furniture it's kept in (N32): made when a building is first touched. */
   readonly goods: GoodsStore;
+  /** Disputes, feuds, secrets, cases, dens, outbreaks, expeditions (N45–N64). */
+  readonly records: RecordStore;
 
   constructor(file = ":memory:", embedder: Embedder = hashedEmbedder) {
     if (file !== ":memory:") mkdirSync(dirname(file), { recursive: true });
@@ -107,6 +110,7 @@ export class WorldStore {
     this.jobs = new JobStore(this.db);
     this.notables = new NotableStore(this.db);
     this.goods = new GoodsStore(this.db);
+    this.records = new RecordStore(this.db);
   }
 
   close(): void {
@@ -125,7 +129,8 @@ export class WorldStore {
     this.jobs.dropCache();
     this.notables.dropCache();
     this.goods.dropCache();
-    this.db.exec("DELETE FROM notable_items; DELETE FROM jobs; DELETE FROM parties; DELETE FROM household_goods; DELETE FROM marks; DELETE FROM plots; DELETE FROM sowings; DELETE FROM field_events; DELETE FROM plot_years; DELETE FROM beasts; DELETE FROM events; DELETE FROM memories; DELETE FROM director_log; DELETE FROM relationships; DELETE FROM knowledge; DELETE FROM grievances; DELETE FROM ambitions; DELETE FROM jobs_held; DELETE FROM site_days; DELETE FROM site_seq; DELETE FROM model_calls; DELETE FROM meta;");
+    this.records.dropCache();
+    this.db.exec("DELETE FROM records; DELETE FROM notable_items; DELETE FROM jobs; DELETE FROM parties; DELETE FROM household_goods; DELETE FROM marks; DELETE FROM plots; DELETE FROM sowings; DELETE FROM field_events; DELETE FROM plot_years; DELETE FROM beasts; DELETE FROM events; DELETE FROM memories; DELETE FROM director_log; DELETE FROM relationships; DELETE FROM knowledge; DELETE FROM grievances; DELETE FROM ambitions; DELETE FROM jobs_held; DELETE FROM site_days; DELETE FROM site_seq; DELETE FROM model_calls; DELETE FROM meta;");
   }
 
   // ---- The save's commit point (N18) ----
@@ -180,6 +185,7 @@ export class WorldStore {
     if (table === "jobs" || table === "parties") this.jobs.dropCache();
     if (table === "notable_items") this.notables.dropCache();
     if (table === "household_goods") this.goods.dropCache();
+    if (table === "records") this.records.dropCache();
   }
 
   /** Set a `meta` value. */

@@ -7,7 +7,7 @@ import { parseDeath } from "../people/death.js";
  * record, so every death can be gossip without an event per death), `e:<eventId>` an event in the archive. More kinds come with later
  * phases (`s:` a secret: N46); `describeKnown` (describe.ts) says what a person would say of one.
  */
-export type RefKind = "n" | "d" | "e" | "i";
+export type RefKind = "n" | "d" | "e" | "i" | "s" | "r";
 
 export const newsRef = (newsId: string): string => `n:${newsId}`;
 export const deathRef = (personId: string): string => `d:${personId}`;
@@ -17,7 +17,7 @@ export const itemRef = (itemId: string): string => `i:${itemId}`;
 
 export function parseRef(ref: string): { kind: RefKind; id: string } | null {
   const k = ref[0];
-  if ((k === "n" || k === "d" || k === "e" || k === "i") && ref[1] === ":" && ref.length > 2) return { kind: k, id: ref.slice(2) };
+  if ((k === "n" || k === "d" || k === "e" || k === "i" || k === "s" || k === "r") && ref[1] === ":" && ref.length > 2) return { kind: k, id: ref.slice(2) };
   return null;
 }
 
@@ -26,6 +26,10 @@ export function importanceOf(ctx: LifeCtx, ref: string): number {
   const r = parseRef(ref);
   if (!r) return 1;
   if (r.kind === "n") return ctx.realm.news.find((n) => n.id === r.id)?.importance ?? 0;
+  // A secret (N46) is never passed on by gossip by itself: whoever knows it keeps it, or tells it on purpose (game/secrets/).
+  if (r.kind === "s") return 0;
+  // A rumour someone made up (N52): as juicy as its claim.
+  if (r.kind === "r") return (ctx.store.records?.get(r.id)?.data as { weight?: number } | undefined)?.weight ?? 0;
   if (r.kind === "d") {
     const row = ctx.store.people.get(r.id);
     if (!row) return 0;
@@ -53,6 +57,7 @@ export function placeOfRef(ctx: LifeCtx, ref: string): string | null {
     return row ? (parseDeath(row.death)?.site ?? row.site) : null;
   }
   if (r.kind === "i") return ctx.store.notables?.get(r.id)?.made_site ?? null;
+  if (r.kind === "s" || r.kind === "r") return ctx.store.records?.get(r.id)?.site ?? null;
   // An event happens where it happened for good: asked about for every row of every speaker, so kept.
   let sites = eventSites.get(ctx.store);
   if (!sites || sites.size > 20000) eventSites.set(ctx.store, (sites = new Map()));

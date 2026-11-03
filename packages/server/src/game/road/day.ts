@@ -14,7 +14,7 @@ import { kinTrips } from "./trips/kin.js";
 import { marketTrips } from "./trips/market.js";
 import { officialsTrips } from "./trips/officials.js";
 import { patrolTrips } from "./trips/patrol.js";
-import { pilgrimageTrips } from "./trips/pilgrimage.js";
+import { festivalPilgrims, pilgrimageTrips } from "./trips/pilgrimage.js";
 import { workTrips } from "./trips/work.js";
 
 /**
@@ -70,6 +70,7 @@ export function roadTrips(ctx: LifeCtx, day: number, live: ReadonlySet<string>, 
     kinTrips(tc);
     workTrips(tc);
     pilgrimageTrips(tc);
+    festivalPilgrims(tc);
     patrolTrips(tc);
     officialsTrips(tc);
     courierTrips(tc);

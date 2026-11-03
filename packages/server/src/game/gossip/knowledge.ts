@@ -1,4 +1,6 @@
 import type { KnowledgeRow } from "../../store/knowledgeStore.js";
+import { config } from "../../config.js";
+import { cultureAt, tongueDistance } from "../culture/model.js";
 import { streamFor, type Rng } from "../dice.js";
 import type { LifeCtx } from "../people/step.js";
 import { MIN_ACCURACY } from "../rumours.js";
@@ -104,8 +106,10 @@ export function learn(ctx: LifeCtx, who: string, ref: string, o: Learned): boole
  * The version a listener ends up with after a teller passes something on: a little less accurate (and less still if they doubt the
  * teller), and with a chance of `1 − accuracy` that one detail comes out changed. A change the teller made stays.
  */
-export function retell(ctx: LifeCtx, row: Pick<KnowledgeRow, "ref" | "accuracy" | "variant">, listener: string, day: number, credence: number, rng?: Rng): { accuracy: number; variant: number } | null {
-  const accuracy = row.accuracy * (1 - GOSSIP_LOSS) * credence;
+export function retell(ctx: LifeCtx, row: Pick<KnowledgeRow, "ref" | "accuracy" | "variant">, listener: string, day: number, credence: number, rng?: Rng, speaker?: string): { accuracy: number; variant: number } | null {
+  // Across tongues (N53), something is lost in every telling: the further apart, the more.
+  const across = speaker && config.society.cultures ? tongueGap(ctx, speaker, listener) : 0;
+  const accuracy = row.accuracy * (1 - GOSSIP_LOSS) * credence * (1 - 0.35 * across);
   if (accuracy < MIN_ACCURACY) return null;
   let variant = row.variant;
   if (variant === 0) {
@@ -116,4 +120,12 @@ export function retell(ctx: LifeCtx, row: Pick<KnowledgeRow, "ref" | "accuracy" 
     }
   }
   return { accuracy, variant };
+}
+
+/** How far apart two people's tongues are (N53): their places' cultures. A traveller speaks their home's. */
+export function tongueGap(ctx: LifeCtx, a: string, b: string): number {
+  const ra = ctx.store.people.get(a);
+  const rb = ctx.store.people.get(b);
+  if (!ra || !rb || ra.site === rb.site) return 0;
+  return tongueDistance(cultureAt(ctx.realm, ra.site), cultureAt(ctx.realm, rb.site));
 }

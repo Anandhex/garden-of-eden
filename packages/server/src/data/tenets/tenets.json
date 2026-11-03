@@ -1,0 +1,12 @@
+{
+  "tenets": [
+    { "id": "charity", "words": "give to the poor; take from no one", "parts": { "steal": -0.3, "blackmail": -0.2, "gossip": 0.05 }, "reading": "peace", "listens": "poor" },
+    { "id": "martial", "words": "the strong are blessed in battle", "parts": { "confront": 0.2, "insult": 0.1, "attack": 0.15, "compete": 0.1 }, "reading": "war", "listens": "angry" },
+    { "id": "ascetic", "words": "want nothing, need nothing", "parts": { "play": -0.2, "dance": -0.2, "buy": -0.1, "compete": -0.1 }, "reading": "repent", "listens": "grieving" },
+    { "id": "obedience", "words": "the order of things is holy", "parts": { "confront": -0.2, "insult": -0.1, "accuse": -0.1 }, "reading": "order", "listens": "afraid" },
+    { "id": "liberation", "words": "no one is born to a master", "parts": { "confront": 0.15, "recruit": 0.15 }, "reading": "uprising", "listens": "bound" },
+    { "id": "purity", "words": "the faithless poison us", "parts": { "accuse": 0.2, "expose": 0.15, "insult": 0.1 }, "reading": "purge", "listens": "afraid" },
+    { "id": "mercy", "words": "forgive, as you would be forgiven", "parts": { "revenge": -0.3, "confront": -0.15, "attack": -0.3 }, "reading": "peace", "listens": "grieving" },
+    { "id": "prosperity", "words": "the gods reward the industrious", "parts": { "work": 0.1, "sell": 0.1, "petition": 0.1 }, "reading": "harvest", "listens": "ambitious" }
+  ]
+}

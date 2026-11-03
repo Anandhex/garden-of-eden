@@ -1,3 +1,5 @@
+import { lawfulCandidates } from "../kin/estate.js";
+import { openDispute, rivalFor } from "../kin/disputes.js";
 import { config } from "../../config.js";
 import { timed } from "../../metrics/timing.js";
 import { AMBITION_DEFAULTS, type AmbitionRow } from "../../store/careerStore.js";
@@ -632,12 +634,21 @@ export function ambitionDay(ctx: LifeCtx, step: Pick<SiteStep, "site"> & Partial
       const kids = new Set(people.childrenOf(from.id).map((c) => c.id));
       if (job.startsWith("shop:")) {
         const tr = job.split(":")[2]!;
-        const heirs = candidates
-          .filter((x) => x.job === tr && x.shop === null && rankOf(x, careers.openJobs(x.id)) !== null)
-          .map((x) => ({ x, w: (kids.has(x.id) ? 4 : 0) + (lot !== null && x.work === `front:${lot}` ? 2 : 0) + (from.spouse === x.id ? 1 : 0) }))
-          .filter((h) => h.w > 0)
-          .sort((a, b) => b.w - a.w || (b.x.skill ?? 0) - (a.x.skill ?? 0) || byId(a.x, b.x));
+        const able = candidates.filter((x) => x.job === tr && x.shop === null && rankOf(x, careers.openJobs(x.id)) !== null);
+        const front = (x: PersonRow) => lot !== null && x.work === `front:${lot}`;
+        // The dead's shop goes by their kingdom's inheritance law (N45); one stepping back hands it on as before (kin first).
+        const heirs = config.society.feuds && from.death !== null
+          ? lawfulCandidates(store, realm, from, able, day, front).map((x) => ({ x }))
+          : able
+              .map((x) => ({ x, w: (kids.has(x.id) ? 4 : 0) + (front(x) ? 2 : 0) + (from.spouse === x.id ? 1 : 0) }))
+              .filter((h) => h.w > 0)
+              .sort((a, b) => b.w - a.w || (b.x.skill ?? 0) - (a.x.skill ?? 0) || byId(a.x, b.x));
         const heir = heirs[0]?.x;
+        // When the law and the family disagree, a child who wanted it disputes it (N45).
+        if (heir && lot !== null && config.society.feuds && from.death !== null) {
+          const r = rivalFor(ctx, from, heir, able, tr);
+          if (r) openDispute(ctx, { dead: from, heir, rival: r.rival, part: `shop:${tr}`, claim: r.claim, lot, day });
+        }
         if (!heir || lot === null) {
           for (const id of ids) {
             const a = careers.ambitionOf(id);

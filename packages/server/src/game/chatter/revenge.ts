@@ -103,6 +103,9 @@ export function vendettaDay(ctx: LifeCtx, site: string, day: number): VendettaRe
     const live: GrievanceRow[] = [];
     for (const g of byWho.get(who)!) {
       const other = store.people.get(g.against);
+      // Someone who isn't one of the townsfolk (a realm figure: a lord, an enemy ruler; the player): held against them while they live, but
+      // not a target for townsfolk revenge (N45, N52, N55 leave such grudges). Kept, not acted on here.
+      if (!other && (g.against === "player" || ctx.realm.figures[g.against]?.alive)) continue;
       // Dead by this day: a place caught up late sees deaths that came after the day it is working out, and they settle nothing yet.
       const gone = !other || (other.death !== null && (parseDeath(other.death)?.day ?? 0) <= day);
       if (gone) store.social.settle(g.id, day);

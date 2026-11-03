@@ -24,6 +24,7 @@ import { handOnDrops, inheritDay } from "../items/day.js";
 import { ambitionDay } from "../ambition/day.js";
 import { officesSiteDay } from "../office/day.js";
 import { roadArrivals, roadTrips } from "../road/day.js";
+import { societySiteDay } from "../society/day.js";
 import { stepSite, type LifeCtx, type SiteStep } from "./step.js";
 
 /**
@@ -88,6 +89,7 @@ export function catchUp(ctx: LifeCtx, site: string, toDay: number): SiteStep[] {
         marksSiteDay(ctx.realm, ctx.store, site, d);
         ambitionDay(ctx, step, d);
         officesSiteDay(ctx.realm, ctx.store, site, d);
+        societySiteDay(ctx, step, d);
         out.push(step);
       }
     });
@@ -169,6 +171,8 @@ export function lifeDay(ctx: LifeCtx, day: number, opts: LifeOptions = {}): DayL
       ambitionDay(ctx, step, day);
       // Its posts, its townsfolk asked to join, audits of its townsfolk keepers, what the realm owes them, risers (N69).
       timed("offices.site", () => officesSiteDay(realm, store, id, day));
+      // Families, secrets, crime and the law, faith and magic, culture (N45–N59): the place's own day of them.
+      societySiteDay(ctx, step, day);
       // A place whose people were never rolled keeps its number (ensureLivePeople makes them first).
       if (store.people.count(id) > 0) realm.settlements[id]!.population = store.people.livingCount(id);
     }

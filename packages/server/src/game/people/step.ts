@@ -4,11 +4,14 @@ import { parseAway, type PersonRow } from "../../store/peopleStore.js";
 import { awaySite } from "../road/journeys.js";
 import { speciesOf } from "../../world/species.js";
 import type { WorldStore } from "../db.js";
-import { streamFor } from "../dice.js";
+import { streamFor, unitFor } from "../dice.js";
+/** The share of a battle's fallen soldiers who are missing, not known dead (N55). */
+export const MISSING_SHARE = 0.12;
 import type { GameEvent } from "../events.js";
 import { kingdomLaws } from "../realm/townsfolk.js";
 import type { Realm } from "../realm/types.js";
 import { givenName } from "../realm/names.js";
+import { cultureAt, cultureGiven } from "../culture/model.js";
 import { pickCasualties } from "./casualties.js";
 import { NEUTRAL_DAY, type SiteDay } from "./conditions.js";
 import type { DeathRecord } from "./death.js";
@@ -105,7 +108,9 @@ export function stepSite(ctx: LifeCtx, site: string, day: number): SiteStep {
     const hour = Math.floor(streamFor(seed, "life-hour", r.id, day, "death")() * 24);
     // Someone who dies on a journey dies where the journey has them: an inn, a town they were visiting, or the open road (N26 Part E).
     const away = parseAway(r.away);
-    const record: DeathRecord = { ...rec, day, hour, site: away ? awaySite(realm, away.journey, day) : site };
+    // A soldier dies where the battle was (N55: the battle's ref names the place).
+    const front = rec.event?.startsWith("battle:") ? (rec.event.split(":")[2] ?? null) : null;
+    const record: DeathRecord = { ...rec, day, hour, site: away ? (awaySite(realm, away.journey, day) ?? (away.purpose === "war" ? front : null)) : site };
     patch(r.id, { death: JSON.stringify(record), expecting: null, away: null });
     alive.delete(r.id);
     const spouse = r.spouse ? cur.get(r.spouse) : undefined;
@@ -122,7 +127,9 @@ export function stepSite(ctx: LifeCtx, site: string, day: number): SiteStep {
     const living = [...alive].map((id) => cur.get(id)!).filter((r) => r.stepped_day < day);
     for (const id of pickCasualties(seed, living, order, day)) {
       const r = cur.get(id)!;
-      die(r, { cause: order.cause, event: order.event, ...(order.killer ? { killer: order.killer } : {}), note: `killed in ${order.event}` });
+      // A soldier who falls may be missing, not dead (N55): found later, or home after the peace.
+      const missing = order.war && parseAway(r.away)?.purpose === "war" && unitFor(seed, "missing", r.id, order.event) < MISSING_SHARE;
+      die(r, { cause: missing ? "missing" : order.cause, event: order.event, ...(order.killer ? { killer: order.killer } : {}), note: missing ? `missing after ${order.event}` : `killed in ${order.event}`, ...(order.war ? { war: order.war, ...(order.side ? { side: order.side } : {}) } : {}) });
     }
   }
 
@@ -251,7 +258,8 @@ export function stepSite(ctx: LifeCtx, site: string, day: number): SiteStep {
     const father = row(fatherId);
     const rng = streamFor(seed, "birth", mother.id, day);
     const gender: "female" | "male" = rng() < 0.5 ? "female" : "male";
-    const name = `${givenName(rng, gender)} ${surnameOf(father?.name ?? mother.name)}`;
+    const culture = config.society.cultures ? cultureAt(realm, site) : null;
+    const name = `${culture ? cultureGiven(culture, rng, gender) : givenName(rng, gender)} ${surnameOf(father?.name ?? mother.name)}`;
     const traits = inheritRowTraits(traitsOfRow(mother), traitsOfRow(father ?? mother), rng, mother.species);
     const cls = childClass(mother.cls as SocialClass, (father?.cls as SocialClass | undefined) ?? null, laws);
     const seq = people.seq(site);

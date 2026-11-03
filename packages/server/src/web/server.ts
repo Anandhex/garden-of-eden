@@ -17,7 +17,7 @@ import { promoteWild, wildNear } from "../game/road/wild.js";
 import { forceGate, offerBribe, onDuty, playerMayEnter, refusal, sneakPast, type Post } from "../game/town/access.js";
 import { districtAt } from "./districtLayout.js";
 import { surrenderToJustice } from "../game/crime.js";
-import { captiveAct, isCaptive } from "../game/law/taken.js";
+import { captiveAct, isCaptive, isHeld } from "../game/law/taken.js";
 import { reportFind, unreported } from "../game/road/wildPlaces.js";
 import { commutersNear } from "../game/road/commute.js";
 import { fieldStagesIn } from "../game/farm/day.js";
@@ -1545,6 +1545,8 @@ async function act(body: Record<string, unknown>, emit: Emit): Promise<void> {
         });
         // A room for the night: the village lives on while you sleep.
         if (sleep > 0) {
+          // Where they last slept is where they wake if they die (N49, plans README §5a).
+          (world.player.society ??= {}).slept = town.site();
           for (const line of passHours(sleep)) emit({ t: "system", text: line });
           // A bed (N26): the road's weariness is gone.
           topUp(world.player, absoluteMinute(world), 95);
@@ -1656,10 +1658,10 @@ function move(dx: number, dy: number): { ok: boolean; log: string[]; reason?: st
   pos.y = ny;
   // Off the edge of the map: on to the next area (N15).
   const exit = exitUnder(here(), pos);
-  if (exit && isCaptive(world.player)) {
+  if (exit && isHeld(world.player)) {
     pos.x = from.x;
     pos.y = from.y;
-    return { ok: false, log: ["They're watching. You can't just walk out."], reason: "You're held captive." };
+    return { ok: false, log: ["They're watching. You can't just walk out."], reason: world.player.chapter?.kind === "slave" ? "You're a slave here." : world.player.chapter?.kind === "prisoner" ? "You're in a cell." : "You're held captive." };
   }
   if (exit?.to === "realm") return { ok: true, log: leaveByRoad() };
   if (exit) return { ok: true, log: enterArea(exit.to as AreaId) };
@@ -1768,6 +1770,16 @@ function afterCreatureRound(c: Creature, round: CreatureRound): string[] {
         placeCreatures();
         return log;
       }
+    }
+    // Setbacks instead of game over (N49): who beat the player decides what happens.
+    const beaten = town.setback({ by: gang && world.realm?.factions[gang]?.kind === "gang" ? "gang" : c.figure ? "nemesis" : "beasts", ...(gang ? { holder: gang } : {}) }, local());
+    log.push(...beaten.lines);
+    if (!beaten.robbed) {
+      trail.length = 0;
+      crowd = null;
+      world.position = { ...here().start };
+      placeCreatures();
+      return log;
     }
     const defeat = creatureBeatsPlayer(creatureTemplates[c.template]!, c, world);
     log.push(defeat.message);

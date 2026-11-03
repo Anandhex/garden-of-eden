@@ -1,0 +1,18 @@
+{
+  "spells": [
+    { "id": "mend", "name": "Mend", "school": "healing", "rank": 1, "cost": { "mp": 4, "minutes": 10, "risk": 0.05 }, "effect": { "kind": "heal", "magnitude": 8 } },
+    { "id": "cure_fever", "name": "Cure fever", "school": "healing", "rank": 2, "cost": { "mp": 8, "minutes": 30, "risk": 0.1, "reagents": [{ "item": "wild herbs", "qty": 1 }] }, "effect": { "kind": "cure", "magnitude": 1 } },
+    { "id": "spark", "name": "Spark", "school": "fire", "rank": 1, "cost": { "mp": 3, "minutes": 1, "risk": 0.08 }, "effect": { "kind": "damage", "magnitude": 6 } },
+    { "id": "firebolt", "name": "Firebolt", "school": "fire", "rank": 2, "cost": { "mp": 8, "minutes": 1, "risk": 0.12 }, "effect": { "kind": "damage", "magnitude": 14 } },
+    { "id": "still_water", "name": "Still water", "school": "water", "rank": 1, "cost": { "mp": 4, "minutes": 10, "risk": 0.05 }, "effect": { "kind": "calm_beast", "magnitude": 1 } },
+    { "id": "stoneskin", "name": "Stoneskin", "school": "earth", "rank": 2, "cost": { "mp": 7, "minutes": 2, "risk": 0.1 }, "effect": { "kind": "shield", "magnitude": 3, "duration": 60 } },
+    { "id": "gust", "name": "Gust", "school": "air", "rank": 1, "cost": { "mp": 3, "minutes": 1, "risk": 0.08 }, "effect": { "kind": "damage", "magnitude": 4 } },
+    { "id": "glamour", "name": "Glamour", "school": "illusion", "rank": 1, "cost": { "mp": 5, "minutes": 5, "risk": 0.1 }, "effect": { "kind": "charm", "magnitude": 10 } },
+    { "id": "far_sight", "name": "Far sight", "school": "divination", "rank": 2, "cost": { "mp": 10, "minutes": 60, "risk": 0.1 }, "effect": { "kind": "scry", "magnitude": 0.7 } },
+    { "id": "ward_door", "name": "Ward a door", "school": "warding", "rank": 1, "cost": { "mp": 5, "minutes": 20, "risk": 0.05 }, "effect": { "kind": "ward_place", "magnitude": 1, "duration": 1440 } },
+    { "id": "calm_beast", "name": "Calm beast", "school": "beast_speech", "rank": 1, "cost": { "mp": 4, "minutes": 2, "risk": 0.1 }, "effect": { "kind": "calm_beast", "magnitude": 1 } },
+    { "id": "quicken", "name": "Quicken the field", "school": "growth", "rank": 2, "cost": { "mp": 10, "minutes": 120, "risk": 0.1 }, "effect": { "kind": "grow", "magnitude": 0.1 } },
+    { "id": "raise_dead", "name": "Raise the dead", "school": "necromancy", "rank": 3, "cost": { "mp": 20, "minutes": 60, "risk": 0.35 }, "effect": { "kind": "raise_dead", "magnitude": 1 } },
+    { "id": "blood_curse", "name": "Blood curse", "school": "blood", "rank": 2, "cost": { "mp": 12, "minutes": 30, "risk": 0.3 }, "effect": { "kind": "curse", "magnitude": 6 } }
+  ]
+}

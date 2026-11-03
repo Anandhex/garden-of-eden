@@ -146,6 +146,23 @@ export interface ChoiceCtx {
   only?: readonly string[];
   /** Their ambition (N40), if they have one. */
   ambition?: AmbitionCtx;
+  /** Their faith's tenets and how devout they are (N50): small parts on the actions the tenets speak to. */
+  faith?: { tenets: string[]; devotion: number };
+  /** Secrets they know about others (N46): what each is, about whom, how bad, and whether they already have a demand on it. */
+  secrets?: KnownSecret[];
+}
+
+/** A secret someone knows about another (N46), as choosing reads it. */
+export interface KnownSecret {
+  id: string;
+  about: string;
+  aboutName: string;
+  what: string;
+  text: string;
+  /** 1..10: what it would cost the one it's about to have it out. */
+  weight: number;
+  /** They already demand something on it. */
+  demanding: boolean;
 }
 
 /** What a chosen action did to the world, through the host. */

@@ -3,16 +3,19 @@ import { attack, steal, travel } from "./actions/risk.js";
 import { confront, court, insult, recruit, revenge, spreadRumour } from "./actions/social.js";
 import { flatter, petition, seekMaster } from "./actions/ambition.js";
 import { compete, dance, play } from "./actions/leisure.js";
+import { blackmail, expose } from "./actions/secrets.js";
+import { accuse } from "./actions/law.js";
 import { allowed, guarded } from "./guards.js";
 import { choose } from "./score.js";
-import type { ActionDef, Applied, ChoiceCtx, ChoiceHost, ChoiceLog, Option, Ranked } from "./types.js";
+import type { ActionDef, Applied, ChoiceCtx, ChoiceHost, ChoiceLog, Option, Ranked, Scored } from "./types.js";
+import { tenetById } from "../faith/model.js";
 import type { Rng } from "../dice.js";
 
 /**
  * The action menu (N38). A phase that adds something people do adds an `ActionDef` in `actions/` and a line here; it does not add a loop of
  * its own. Order is the tie-break of equal scores, so keep new ones at the end.
  */
-export const ACTIONS: readonly ActionDef[] = [work, eat, rest, gossip, buy, sell, court, confront, insult, revenge, spreadRumour, recruit, travel, steal, attack, flatter, petition, seekMaster, play, compete, dance];
+export const ACTIONS: readonly ActionDef[] = [work, eat, rest, gossip, buy, sell, court, confront, insult, revenge, spreadRumour, recruit, travel, steal, attack, flatter, petition, seekMaster, play, compete, dance, blackmail, expose, accuse];
 
 export const actionById = (id: string): ActionDef | undefined => ACTIONS.find((a) => a.id === id);
 
@@ -24,12 +27,21 @@ export function menuFor(ctx: ChoiceCtx, actions: readonly ActionDef[] = ACTIONS)
     if (def.who !== "both" && def.who !== (ctx.kind === "talker" ? "talker" : "townsfolk")) return;
     if (!allowed(def, ctx)) return;
     for (const o of def.available(ctx)) {
-      const s = guarded(def, ctx, o, def.score(ctx, o));
+      const s = withFaith(ctx, def.id, guarded(def, ctx, o, def.score(ctx, o)));
       out.push({ ...o, ...s, at });
     }
   });
   out.sort((a, b) => b.score - a.score || a.at - b.at || (a.target ?? "").localeCompare(b.target ?? ""));
   return out.map(({ at: _at, ...r }) => r);
+}
+
+/** A faith's tenets weigh on what its devout do (N50): each tenet's part for this action, times their devotion (never more than ±0.3). */
+function withFaith(ctx: ChoiceCtx, action: string, s: Scored): Scored {
+  if (!ctx.faith) return s;
+  const parts = ctx.faith.tenets.map((t) => [t, tenetById(t)?.parts[action] ?? 0] as const).filter(([, v]) => v !== 0);
+  if (parts.length === 0) return s;
+  const add = parts.map(([t, v]) => [`faith: ${t}`, v * ctx.faith!.devotion] as [string, number]);
+  return { score: s.score + add.reduce((a, [, v]) => a + v, 0), parts: [...s.parts, ...add] };
 }
 
 /** Is this option what their schedule already had them doing? */

@@ -605,6 +605,12 @@ export interface PlayerState {
   known?: Record<string, KnownEntry>;
   /** Things the player has learned that can break cover stories: "odo.tomas_cellar" (npc/secrets.ts). */
   facts?: string[];
+  /**
+   * The player's part in Stages 4–6 (N46–N64, game/society/player.ts): demands they make on secrets, their criminal record and cases, the
+   * guild they joined or informed on, the setback they are living through, their faith, gift and spells, tongues learned, the army they
+   * serve in and its rank, the band they lead, the runaways they hide. Optional: a v16 save has none.
+   */
+  society?: Record<string, any>;
   /** The player's own promises, like repaying a loan (game/commitments.ts). */
   commitments?: Commitment[];
   /** Where the player is (game/schedule.ts). CLI: /go. Browser: from the map. */

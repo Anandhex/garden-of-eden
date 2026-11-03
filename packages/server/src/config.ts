@@ -86,6 +86,29 @@ export const config = {
   market: (process.env.MARKET ?? "on") !== "off",
   /** Someone the player beat and let go may become their nemesis, learn their ways and come back (N44, game/nemesis/). NEMESIS=off turns it off. */
   nemesis: (process.env.NEMESIS ?? "on") !== "off",
+  /**
+   * Stages 4–6 (N45–N64): society, power and a changing world. Each system has its own switch (env `<NAME>=off`): FEUDS (estates, disputes,
+   * feuds, affairs: N45), SECRETS (N46), UNDERWORLD (N47), TRIALS (N48), BELIEF (N50), MAGIC (N51), CULTURES (N53), PEOPLES (N54), ARMIES
+   * (N55), UNREST (N56–N58), RUNAWAYS (N59), ECOLOGY (N60), EPIDEMICS (N61), DISASTERS (N62), EXPLORATION (N63), NEW_KINGDOMS (N64).
+   */
+  society: {
+    feuds: (process.env.FEUDS ?? "on") !== "off",
+    secrets: (process.env.SECRETS ?? "on") !== "off",
+    underworld: (process.env.UNDERWORLD ?? "on") !== "off",
+    trials: (process.env.TRIALS ?? "on") !== "off",
+    belief: (process.env.BELIEF ?? "on") !== "off",
+    magic: (process.env.MAGIC ?? "on") !== "off",
+    cultures: (process.env.CULTURES ?? "on") !== "off",
+    peoples: (process.env.PEOPLES ?? "on") !== "off",
+    armies: (process.env.ARMIES ?? "on") !== "off",
+    unrest: (process.env.UNREST ?? "on") !== "off",
+    runaways: (process.env.RUNAWAYS ?? "on") !== "off",
+    ecology: (process.env.ECOLOGY ?? "on") !== "off",
+    epidemics: (process.env.EPIDEMICS ?? "on") !== "off",
+    disasters: (process.env.DISASTERS ?? "on") !== "off",
+    exploration: (process.env.EXPLORATION ?? "on") !== "off",
+    newKingdoms: (process.env.NEW_KINGDOMS ?? "on") !== "off",
+  },
   /** A new game opens with an incident that is already brewing in the start town (N39, game/firsthour/). FIRST_HOUR=off starts quiet. */
   firstHour: (process.env.FIRST_HOUR ?? "on") !== "off",
   // NPCs as living players (N38, game/choice/): who scores an action menu and picks by a weighted roll. CHOICE: "off", "proto" (the talkers

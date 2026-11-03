@@ -235,6 +235,12 @@ export const SettlementSchema = z.object({
    * its farms rise), and whether its food is its fields' harvest (set by the day's field work; otherwise the old formula).
    */
   fields: z.object({ plots: z.number().int().min(0), kept: z.boolean(), since: z.number().int() }).optional(),
+  /** Who lives there, when not humans (N54): a goblin warren, a dwarf hold, an orc stronghold. */
+  species: z.string().optional(),
+  /** A people who move with the seasons (N54): the camps of its route, by season, and where it is now. */
+  nomadic: z.object({ route: z.array(pos), at: z.number().int() }).optional(),
+  /** Founded in play (N63): by whom, from where, when. */
+  founded: z.object({ day: z.number().int(), from: z.string(), by: z.string().optional(), how: z.string() }).optional(),
   /** Overrun and held (N26I): by a pack (a lair) or a gang (a stronghold), since `day`. Not abandoned: held. */
   fallen: z.object({ to: z.enum(["pack", "gang"]), id: z.string(), day: z.number().int(), how: z.string() }).optional(),
   /** Who it pays tribute to (N26I): a stronghold's gang id, how much a tribute day, the last day paid, and when it refused. */
@@ -288,6 +294,19 @@ export const KingdomSchema = z.object({
   /** What the crown allows (N16): serfs bound to the land, or slaves, or neither. Set when the realm is made. */
   laws: z.object({ slavery: z.boolean(), serfdom: z.boolean() }).default({ slavery: false, serfdom: false }),
   fallen: z.boolean().optional(),
+  /**
+   * Its laws (N45, plans README section 14, game/realm/policy.ts): key → the value, since when, until when (a temporary law) and why.
+   * Written down on the kingdom's first day; a key not here is what its first ruler chose.
+   */
+  policy: z.record(z.string(), z.object({ value: z.string(), since: z.number().int(), until: z.number().int().optional(), why: z.string() })).optional(),
+  /** The ruler the laws were last weighed under (a new reign may change some). */
+  policyRuler: z.string().optional(),
+  /** The people whose kingdom it is, when not humans (N54): an orc kingdom, a dwarf hold. */
+  species: z.string().optional(),
+  /** Its culture (N53, game/culture/): a culture id from data/cultures, or one born with a new kingdom (N64). */
+  culture: z.string().optional(),
+  /** The day it was founded, for a kingdom born in play (N64), and from what. */
+  founded: z.object({ day: z.number().int(), from: z.string(), how: z.string() }).optional(),
 });
 export type Kingdom = z.infer<typeof KingdomSchema>;
 
@@ -454,6 +473,9 @@ export const CasualtyOrderSchema = z.object({
   event: z.string(),
   killer: z.string().optional(),
   day: z.number().int(),
+  /** A battle's dead (N55): the war and the side, so the people's day picks its soldiers and records them as war dead. */
+  war: z.string().optional(),
+  side: z.enum(["attackers", "defenders"]).optional(),
 });
 export type CasualtyOrder = z.infer<typeof CasualtyOrderSchema>;
 
@@ -552,6 +574,12 @@ export const RealmSchema = z.object({
   nemeses: z.any().optional(),
   /** Finds in the wilds the player reported to a place's head (N27, game/road/wildPlaces.ts): N63 turns them into mines and expeditions. */
   finds: z.array(z.object({ poi: z.string(), kind: z.string(), name: z.string(), reportedTo: z.string(), day: z.number().int(), paid: z.number().int() })).optional(),
+  /**
+   * Stages 4–6 (N45–N64): the realm-wide state of society and a changing world, each owned by its phase's module: spies and plots (N46),
+   * faiths and omens (N50), armies and the war dead (N55), uprisings and bands (N56, N57), unrest and the crowns' answers (N58), ecology
+   * (N60), outbreaks (N61), disasters (N62), expeditions and new settlements (N63), new kingdoms (N64). Optional: a v16 save loads as it is.
+   */
+  society: z.record(z.string(), z.any()).optional(),
   /** Every post and who holds it (N69, game/office/): `<inst>|<post>` → the office. Heads of places and factions are their `leader`. */
   offices: z.record(z.string(), OfficeSchema).default({}),
   /** Each institution's books by tax period (N69, game/office/treasury.ts), the newest last. */

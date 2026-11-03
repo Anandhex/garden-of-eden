@@ -19,6 +19,7 @@ import { checkLeisureBounds } from "../game/leisure/bounds.js";
 import { checkMarketBounds } from "../game/market/bounds.js";
 import { checkItemBounds } from "../game/items/bounds.js";
 import { checkNemesisBounds } from "../game/nemesis/bounds.js";
+import { checkSocietyBounds } from "../game/society/bounds.js";
 import { checkLifeBounds } from "../game/people/bounds.js";
 import { checkGossipBounds } from "../game/gossip/bounds.js";
 import { checkDistrictBounds } from "../game/town/bounds.js";
@@ -110,7 +111,8 @@ function endBounds(realm: Realm, store: WorldStore, everyone: boolean): BoundRes
   // roster count say nothing there: N25 is judged when everyone lives (`LIVE=all`).
   const n25 = checkLifeBounds(realm, store).map((b) => ({ id: b.name, phase: "N25", ok: everyone ? b.ok : true, detail: everyone ? b.detail : `not judged in a slice run (${b.detail})` }));
   const n33 = checkGossipBounds(realm, store).map((b) => ({ id: b.name, phase: "N33", ok: b.ok, detail: b.detail }));
-  return [...n25, ...n33, ...n26f, ...n26g, ...n26h, ...n26i, ...n27, ...n28, ...n30, ...n31, ...n32, ...n36, ...n41, ...n42, ...n43, ...n44, ...checkRoadBounds(realm, store.people)].map((b) =>
+  const society = checkSocietyBounds(realm, store).map((b) => ({ id: b.name, phase: b.phase, ok: b.ok, detail: b.detail }));
+  return [...n25, ...n33, ...society, ...n26f, ...n26g, ...n26h, ...n26i, ...n27, ...n28, ...n30, ...n31, ...n32, ...n36, ...n41, ...n42, ...n43, ...n44, ...checkRoadBounds(realm, store.people)].map((b) =>
     // Traffic and news travel with people: where most places don't live as rows (a slice run), there's hardly anyone on the
     // roads to carry it, so don't judge them.
     "phase" in b ? b : (b.name === "news-reaches" || b.name === "roads-not-empty") && !everyone ? { id: b.name, phase: "N26", ok: true, detail: `not judged in a slice run (${b.detail})` } : { id: b.name, phase: "N26", ok: b.ok, detail: b.detail },

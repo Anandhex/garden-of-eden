@@ -1,3 +1,5 @@
+import { config } from "../../config.js";
+import { jail, pardonOf, trialsDay, tryCase } from "./trial.js";
 import { WALK_PACE } from "@millbrook/shared";
 import type { PlayerState } from "../../npc/types.js";
 import type { PersonRow } from "../../store/peopleStore.js";
@@ -82,9 +84,15 @@ export function sentencePlayer(realm: Realm, player: PlayerState, crime: string,
 /** A person of the table is sentenced and it's carried out. Returns the sentence. */
 export function sentencePerson(realm: Realm, store: WorldStore, row: PersonRow, crime: string, place: string, day: number, rng: Rng, witnesses: string[] = []): Sentence {
   const priors = store.eventsAbout(row.id, 200).filter((e) => e.kind === "sentence" && e.actor === row.id && e.site === place).length;
-  const who: Accused = { kind: "person", id: row.id, name: row.name, priors };
-  const s = sentence(realm, who, crime, place, day, rng);
+  const who: Accused = { kind: "person", id: row.id, name: row.name, priors, cls: row.cls };
+  let s = sentence(realm, who, crime, place, day, rng);
   const where = realm.settlements[place]?.name ?? "the place";
+  // The crown may pardon the worst sentences (N48 decision 5): a merciful ruler, a name worth sparing.
+  const pardoner = config.society.trials && (s.kind === "hanging" || s.kind === "banished") ? pardonOf(realm, row, place, day) : null;
+  if (pardoner) {
+    recordLifeEvent(realm, store, { kind: "pardon", actor: pardoner.id, target: row.id, site: place, day, key: `${row.id}:pardon`, details: `${pardoner.name} pardoned ${row.name}, who was to be ${SENTENCE_WORDS[s.kind]}`, importance: 5, why: "the crown's mercy" });
+    s = { ...s, kind: "lockup", until: day + 2, why: `${s.why}; pardoned by ${pardoner.name}` };
+  }
   switch (s.kind) {
     case "fine":
       // Out of their own savings (which the realm's books don't hold), into the treasury.
@@ -92,6 +100,10 @@ export function sentencePerson(realm: Realm, store: WorldStore, row: PersonRow, 
       break;
     case "banished":
       banishPerson(realm, store, row, place, day, rng);
+      break;
+    case "lockup":
+      // In the place's cell until the day (N48): not at work, not at home.
+      jail(store, row, s.until ?? day + 1, day, crimes()[crime]?.words ?? crime);
       break;
     case "hanging":
       killPerson(realm, store, row.id, { cause: "execution", day, note: `hanged in ${where} for ${crimes()[crime]?.words ?? crime}` });
@@ -117,6 +129,8 @@ function banishPerson(realm: Realm, store: WorldStore, row: PersonRow, place: st
 /** The day's justice at a place: every crime there that someone saw is judged. Returns how many were sentenced. */
 export function justiceDay(realm: Realm, store: WorldStore, site: string, day: number): number {
   let n = 0;
+  // Cases opened by exposure and accusations (N46, N48), tried and sentenced; jail terms ended.
+  n += trialsDay({ realm, store }, site, day, (row, crime, witnesses) => void sentencePerson(realm, store, row, crime, site, day, streamFor(realm.seed, "justice", "case", row.id, day), witnesses));
   for (const e of store.eventsAt(site, day, Object.keys(CRIME_EVENTS))) {
     if (!e.witnesses || e.witnesses.length === 0) continue;
     const crime = CRIME_EVENTS[e.kind]!;
@@ -124,6 +138,12 @@ export function justiceDay(realm: Realm, store: WorldStore, site: string, day: n
     for (const id of e.kind === "bribe" ? [e.actor, e.target] : [e.actor]) {
       const row = id ? store.people.get(id) : null;
       if (!row || row.death !== null || row.site !== site) continue;
+      // A trial first (N48): the witnesses' words by their class against the accused's, the judge, leverage. Not guilty: let go.
+      if (config.society.trials) {
+        const witnesses = e.witnesses.map((w) => store.people.get(w)).filter((r): r is PersonRow => !!r && r.death === null);
+        const v = tryCase({ realm, store }, { id: `case:${e.id}:${row.id}`, crime, accused: row, witnesses, place: site, day, accuser: e.target ? store.people.get(e.target) : null });
+        if (!v.guilty) continue;
+      }
       sentencePerson(realm, store, row, crime, site, day, rng, e.witnesses);
       n++;
       // A guard who took a bribe and was seen loses the post (N26J step 2).

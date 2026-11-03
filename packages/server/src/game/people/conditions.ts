@@ -27,7 +27,7 @@ export interface SiteDay {
   /** 0..1; illness spreading (N61 fills it). */
   plague: number;
   /** Deaths ordered by fights on this day, for the step to pick the dead among the place's people. */
-  casualties: Array<Pick<CasualtyOrder, "cause" | "count" | "event" | "killer">>;
+  casualties: Array<Pick<CasualtyOrder, "cause" | "count" | "event" | "killer" | "war" | "side">>;
   /** The factions that recruit here (seated or with a branch), as they stood on the day (N69): what asking townsfolk to join reads. */
   factions?: Record<string, FactionDay>;
   /** The posts of the place and its seated factions standing empty after the realm's day (N69): what its own day fills from its townsfolk. */
@@ -63,7 +63,7 @@ export function conditionsOf(realm: Realm, s: Settlement, day: number, casualtie
     besieged: war && recentlyRaided,
     beasts: Object.values(realm.packs).some((p) => p.near === s.id && p.count >= p.cap * 0.7),
     plague: 0,
-    casualties: casualties.map((c) => ({ cause: c.cause, count: c.count, event: c.event, ...(c.killer ? { killer: c.killer } : {}) })),
+    casualties: casualties.map((c) => ({ cause: c.cause, count: c.count, event: c.event, ...(c.killer ? { killer: c.killer } : {}), ...(c.war ? { war: c.war, side: c.side } : {}) })),
     factions: factionDays(realm, s.id),
     vacant: vacantAt(realm, s.id),
     season: seasonOf(day),
