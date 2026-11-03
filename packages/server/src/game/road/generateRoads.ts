@@ -1,4 +1,4 @@
-import { POI_NAMES, roadsidePlaces } from "@millbrook/shared";
+import { POI_NAMES, markHighRoads, roadsidePlaces } from "@millbrook/shared";
 import {
   type Anchor,
   type Crossing,
@@ -183,6 +183,7 @@ export function buildRoadData(realm: Realm, opts: { roadsOnly?: boolean } = {}):
     }
   }
   roads.sort((a, b) => a.id.localeCompare(b.id));
+  markHighRoads(roads, anchors);
   const cums = new Map(roads.map((r) => [r.id, cumulative(r.pts)]));
 
   if (opts.roadsOnly) return { seed, footprints: [...prints.values()], roads, rivers: [], crossings: [], places: [], anchors };

@@ -10,7 +10,7 @@
 |---|---|---|
 | **A. One clock, a 48-day year** (`config.daysPerYear` 12 → 48, four 12-day seasons, lives included) | yes: ~20 source files, 9 test files, `sim:lives` | ✅ **built 2026-10-23** (after G5 and G6, before N40): see [What was done](#what-was-done-2026-10-23) |
 | **B. The player doesn't age and comes back from death** | almost none: the player has no age today, and losing a fight is already a knockout | with N49 step 6 / N66; part B0 now |
-| **C. Quiet travel is quick** (fast travel on known roads, quick walking) | `road/fast.ts`, `road/walk.ts`, the walk | an N26 follow-up, **after G5** (G5 moves walking to the server, so C2 is server-only) |
+| **C. Quiet travel is quick** (fast travel on known roads, quick walking) | `road/fast.ts`, `road/walk.ts`, the walk | ✅ **built 2026-11-03** with N35 (`road/fast.ts` `knownRoad`, `learnRoadsNear`; `RoadPlay.quiet`, `config.quietFactor`) |
 
 **Order (decided 2026-10-23):** G5, then G6, then **A**, then N40. Do **A** on its own commit: it is the only one that can break many tests, and it must be judged by the numbers (`sim:lives`, N25/N37/N38 bounds), not by eye.
 

@@ -114,3 +114,7 @@ button.small {
 /* A server button with a text box beside it (give coin). */
 .with-input { display: inline-flex; gap: 4px; align-items: center; }
 #actions { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+
+/* The soundscape's volume (N29), beside its button. */
+#sound-volume { width: 70px; accent-color: currentColor; }
+#sound-volume:disabled { opacity: 0.4; }

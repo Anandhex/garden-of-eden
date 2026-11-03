@@ -1,0 +1,27 @@
+{
+  "id": "pigeon",
+  "kind": "animal",
+  "name": "pigeon",
+  "plural": "pigeons",
+  "class": "bird",
+  "biomes": {},
+  "seasons": {
+    "spring": 1,
+    "summer": 1,
+    "autumn": 1,
+    "winter": 1
+  },
+  "abundance": 0.6,
+  "group": {
+    "min": 3,
+    "max": 10
+  },
+  "active": "day",
+  "flees": 4,
+  "signs": [],
+  "products": [],
+  "rarity": "common",
+  "village": true,
+  "small": true,
+  "lore": {}
+}

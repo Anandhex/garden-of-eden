@@ -8,3 +8,5 @@ export * from "./types.js";
 export * from "./territory.js";
 export * from "./wildlife.js";
 export * from "./poi.js";
+export * from "./passes.js";
+export * from "./wilds.js";

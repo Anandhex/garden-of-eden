@@ -1,0 +1,60 @@
+{
+  "id": "wild_garlic",
+  "kind": "plant",
+  "name": "wild garlic",
+  "class": "herb",
+  "biomes": {
+    "forest": 1,
+    "valley": 0.6
+  },
+  "calendar": {
+    "bud": [
+      0,
+      0.12
+    ],
+    "flower": [
+      0.12,
+      0.3
+    ],
+    "fruit": [
+      0.3,
+      0.4
+    ],
+    "dormant": [
+      0.4,
+      1
+    ]
+  },
+  "cover": 0.3,
+  "products": [
+    {
+      "stage": "bud",
+      "item": "wild garlic",
+      "qty": [
+        2,
+        4
+      ]
+    },
+    {
+      "stage": "flower",
+      "item": "wild garlic",
+      "qty": [
+        1,
+        3
+      ]
+    }
+  ],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 7
+  },
+  "regrowDays": 8,
+  "rarity": "common",
+  "effects": [
+    {
+      "when": "eaten",
+      "food": 6
+    }
+  ],
+  "lore": {}
+}

@@ -76,6 +76,15 @@ export class RoadsView implements View {
       this.el.append(el("h3", { textContent: "Mine watches" }));
       for (const w of d.watches) this.el.append(emptyP(`${w.name}: level ${w.level}; guards ${w.guards.join(", ") || "none"}; hired ${w.hired.map((h) => `${h.name} of ${h.from} (${h.wage}/day to day ${h.until})`).join(", ") || "none"}.`));
     }
+    // The wilds (N27): every place from the realm's state, and whether the player knows it.
+    if (d.wilds?.length) {
+      this.el.append(el("h3", { textContent: `The wilds (${d.wilds.length} places from the realm, ${d.wilds.filter((w) => w.known).length} known to the player)` }));
+      for (const w of d.wilds) this.el.append(emptyP(`${w.name} [${w.kind}] at ${w.x},${w.y}${w.known ? " (known)" : ""}`));
+    }
+    if (d.finds?.length) {
+      this.el.append(el("h3", { textContent: "Finds reported" }));
+      for (const f of d.finds) this.el.append(emptyP(`${f.name}, reported to ${f.to} on day ${f.day} (paid ${f.paid})`));
+    }
   }
 
   private row(j: AdminJourney): HTMLElement {

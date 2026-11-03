@@ -1,0 +1,42 @@
+{
+  "id": "wildcat",
+  "kind": "animal",
+  "name": "wildcat",
+  "plural": "wildcats",
+  "class": "beast",
+  "biomes": {
+    "forest": 0.8,
+    "hills": 0.6
+  },
+  "seasons": {
+    "spring": 1,
+    "summer": 1,
+    "autumn": 1,
+    "winter": 1
+  },
+  "abundance": 0.06,
+  "group": {
+    "min": 1,
+    "max": 1
+  },
+  "active": "night",
+  "flees": 10,
+  "signs": [
+    "tracks"
+  ],
+  "products": [
+    {
+      "item": "wildcat pelt",
+      "qty": [
+        1,
+        1
+      ]
+    }
+  ],
+  "rarity": "rare",
+  "hunt": {
+    "skill": "hunting",
+    "difficulty": 15
+  },
+  "lore": {}
+}

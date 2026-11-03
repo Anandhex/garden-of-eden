@@ -44,6 +44,9 @@ export const SPECIES: Record<string, SpeciesDef> = {
   adder: { name: "an adder", talks: false, adultAge: 2, elderAge: 10, maxAge: 18, maxTier: "F", learnRate: 0.7 },
   heron: { name: "a heron", talks: false, adultAge: 2, elderAge: 12, maxAge: 20, maxTier: "G", learnRate: 0.7 },
   crow: { name: "a crow", talks: false, adultAge: 1, elderAge: 8, maxAge: 14, maxTier: "G", learnRate: 0.8 },
+  // Fauna (N28): hunted on the hills, and tamed in the villages.
+  goat: { name: "a wild goat", talks: false, adultAge: 1, elderAge: 9, maxAge: 15, maxTier: "F", learnRate: 0.8 },
+  dog: { name: "a dog", talks: false, adultAge: 1, elderAge: 9, maxAge: 15, maxTier: "F", learnRate: 1 },
 };
 
 export const SPECIES_IDS = Object.keys(SPECIES);

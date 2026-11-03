@@ -216,6 +216,9 @@ export interface AdminRoads {
   territories?: Array<{ id: string; kind: "pack" | "gang"; owner: string; name: string; road: string; t0: number; t1: number; strong: boolean; beasts: string[] }>;
   /** Mine watches (N26F): guards posted and swords hired, by place. */
   watches?: Array<{ site: string; name: string; level: number; guards: string[]; hired: Array<{ name: string; from: string; wage: number; until: number }> }>;
+  /** Places in the wilds from the realm's state (N27): all of them, known to the player or not; and the finds reported. */
+  wilds?: Array<{ id: string; kind: string; name: string; x: number; y: number; known: boolean }>;
+  finds?: Array<{ poi: string; name: string; to: string; day: number; paid: number }>;
 }
 
 /** Who carried a piece of news where, back to where it happened. */

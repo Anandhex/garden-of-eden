@@ -1,7 +1,7 @@
-import { WALK_PACE, buildTimeline, cumulative, describeWalk, journeyLine, pointAt, shortestWay, type JourneyLine, type JourneyRoad, type RoadData, type RoadPath, type RoadPoint } from "@millbrook/shared";
+import { WALK_PACE, buildTimeline, cumulative, describeWalk, journeyLine, pointAt, project, shortestWay, type JourneyLine, type JourneyRoad, type RoadData, type RoadPath, type RoadPoint } from "@millbrook/shared";
 import { formatMoney } from "../money.js";
 import type { Town } from "../town.js";
-import { weatherOn } from "../weather.js";
+import { weatherOn, whereOf } from "../weather.js";
 import { landOf, nearestRoad, placesNear } from "./ground.js";
 import { describeJourney, journeysNear } from "./journeys.js";
 import { tickMount } from "./mounts.js";
@@ -9,6 +9,7 @@ import { LOW, needsOf, tickNeeds } from "./needs.js";
 import { rollSegment } from "./situations.js";
 import { threatsOf } from "./threats.js";
 import { waypointsOf, segmentId } from "./walk.js";
+import { DRIFT, closedOn } from "./snow.js";
 import { streamFor } from "../dice.js";
 
 /**
@@ -54,7 +55,7 @@ export function routeFromHere(town: Town): Route | null {
   // Whichever end is on the shortest way.
   let best: { rev: boolean; toward: string; way: ReturnType<typeof shortestWay>; cost: number } | null = null;
   for (const [end, rev, along] of [[r.b, false, r.length - near.t], [r.a, true, near.t]] as const) {
-    const way = end === state.dest ? { path: [end], roads: [], tiles: 0 } : shortestWay(data, end, state.dest, (id) => id === (rev ? r.b : r.a));
+    const way = end === state.dest ? { path: [end], roads: [], tiles: 0 } : shortestWay(data, end, state.dest, (id) => id === (rev ? r.b : r.a), closedOn(realm, data, town.world.day));
     if (way && (!best || along + way.tiles < best.cost)) best = { rev, toward: end, way, cost: along + way.tiles };
   }
   if (!best || !best.way) return null;
@@ -101,11 +102,35 @@ export function routeFromHere(town: Town): Route | null {
   return { line: { pts, cum, nodes, length: cum.at(-1) ?? 0 }, segs, path, roads, dest: state.dest };
 }
 
-/** Can the player fast travel from here (the first stretch ahead has been walked)? */
+/**
+ * Is a road known to the player (N26 Part C1, decided 2026-10-23): any stretch of it walked, or heard of (an innkeeper
+ * told them the way, a bought map shows it).
+ */
+export function knownRoad(p: { walked?: string[]; knownRoads?: string[] }, roadId: string): boolean {
+  return (p.knownRoads ?? []).includes(roadId) || (p.walked ?? []).some((s) => s.startsWith(`${roadId}#`));
+}
+
+/** A stretch fast travel can take: walked, or on a road the player knows of. */
+const knownStretch = (p: { walked?: string[]; knownRoads?: string[] }, s: { id: string; road: { id: string } }) => (p.walked ?? []).includes(s.id) || (p.knownRoads ?? []).includes(s.road.id);
+
+/** Can the player fast travel from here (the first stretch ahead is walked or on a road they know of)? */
 export function canFast(town: Town): boolean {
   const r = routeFromHere(town);
-  const walked = town.world.player.walked ?? [];
-  return !!r && !!r.segs[0] && walked.includes(r.segs[0].id);
+  return !!r && !!r.segs[0] && knownStretch(town.world.player, r.segs[0]);
+}
+
+/** Teach the player the roads that pass within `reach` tiles of a point (told the way, or a map of the country). */
+export function learnRoadsNear(p: { knownRoads?: string[] }, data: RoadData, at: { x: number; y: number }, reach: number): number {
+  const known = (p.knownRoads ??= []);
+  let n = 0;
+  for (const r of data.roads) {
+    if (r.id.startsWith("spur:") || known.includes(r.id)) continue;
+    if (r.pts.some((q) => Math.abs(q.x - at.x) <= reach && Math.abs(q.y - at.y) <= reach)) {
+      known.push(r.id);
+      n++;
+    }
+  }
+  return n;
 }
 
 /** The minute the timeline has the party at distance d. */
@@ -131,19 +156,18 @@ export function fastTravel(town: Town, minute: number): FastResult {
   if (state.pending) return { ok: false, lines: ["Deal with what's in front of you first."] };
   const route = routeFromHere(town);
   if (!route) return { ok: false, lines: ["You can't see the way from here. Get back to the road."] };
-  const walked = new Set(p.walked ?? []);
   const data: RoadData = landOf(realm).data;
-  // How far the walked stretch runs from here.
+  // How far the known stretch runs from here (walked, or on a road heard of).
   let limit = 0;
   let unknown: Seg | undefined;
   for (const s of route.segs) {
-    if (!walked.has(s.id)) {
+    if (!knownStretch(p, s)) {
       unknown = s;
       break;
     }
     limit = s.d1;
   }
-  if (limit <= 1) return { ok: false, lines: ["You haven't walked this stretch of road before: fast travel only goes where you have already been. Walk it first."] };
+  if (limit <= 1) return { ok: false, lines: ["You don't know this stretch of road: fast travel only goes where you've been or been told the way. Walk it, or ask at an inn."] };
   const total = Math.min(limit, route.line.length);
   const pace = p.mount && !p.mount.lame ? WALK_PACE / (p.mount.kind === "horse" ? 0.5 : 0.77) : WALK_PACE;
   const sub = { nodes: route.line.nodes.filter((n) => n.d < total - 1), length: total };
@@ -188,6 +212,14 @@ export function fastTravel(town: Town, minute: number): FastResult {
     const t = s.d0 + (rolled.t - s.t0);
     if (t > 1 && t < total && state.seen[rolled.key] !== day(eta)) consider({ d: Math.max(1, t - 25), why: `You stop: there's something on the road ahead (${rolled.def.title.toLowerCase()}).` });
   }
+  // A high road snowed in on the day they'd reach its pass (N30): a stop before the drift.
+  for (const r of new Set(route.segs.map((s) => s.road))) {
+    if (!r.high || !r.pass) continue;
+    const on = project(route.line.pts, route.line.cum, r.pass);
+    if (on.d > 20 || on.t >= total) continue;
+    const at = Math.max(1, on.t - DRIFT - 4);
+    if (closedOn(realm, data, day(etaAt(timeline, at))).has(r.id)) consider({ d: at, why: `You stop: snow lies deep at the pass ahead.` });
+  }
   // Tolls: paid on the way if they can; a toll they can't pay is a stop before it.
   let money = p.money;
   for (const t of tolls.sort((a, b) => a.d - b.d)) {
@@ -222,7 +254,7 @@ export function fastTravel(town: Town, minute: number): FastResult {
     if (leg.d1 > leg.d0) walkingMin += b - a;
     else restingMin += b - a;
   }
-  const weather = weatherOn(world.day);
+  const weather = weatherOn(world.day, whereOf(world));
   lines.push(...tickNeeds(p, Math.round(walkingMin), minute, { weather }));
   lines.push(...tickNeeds(p, Math.round(restingMin), minute, { resting: true, weather }));
   lines.push(...tickMount(p, walkingMin / 60, { riding: true, rng: streamFor(world.seed, "mount", world.day, "fast") }));
@@ -233,6 +265,10 @@ export function fastTravel(town: Town, minute: number): FastResult {
     lines.push(`You pay ${formatMoney(t.toll)} at ${t.name}.`);
   }
   for (const k of noted) state.seen[k] = day(endMinute);
+  // The stretches crossed are walked now (N26 Part C1).
+  const crossed = new Set(p.walked ?? []);
+  for (const s of route.segs) if (s.d1 <= endD + 1 && knownStretch(p, s)) crossed.add(s.id);
+  p.walked = [...crossed];
   town.walkMinutes(Math.max(1, Math.round(endMinute - minute)));
   const arrived = !stopped && limit >= route.line.length - 1;
   if (arrived) {
@@ -246,6 +282,6 @@ export function fastTravel(town: Town, minute: number): FastResult {
   state.steps = 0;
   delete state.track;
   if (stopped) lines.push(stopped.why);
-  else if (unknown) lines.push("You stop where the road you know ends: the stretch ahead you have not walked.");
+  else if (unknown) lines.push("You stop where the road you know ends: you don't know the way on from here.");
   return { ok: true, lines: ["You take the road you know, and let the miles go by.", ...lines] };
 }

@@ -1,0 +1,31 @@
+{
+  "id": "squirrel",
+  "kind": "animal",
+  "name": "red squirrel",
+  "plural": "red squirrels",
+  "class": "beast",
+  "biomes": {
+    "forest": 1,
+    "valley": 0.4
+  },
+  "seasons": {
+    "spring": 1,
+    "summer": 1,
+    "autumn": 1,
+    "winter": 1
+  },
+  "abundance": 0.5,
+  "group": {
+    "min": 1,
+    "max": 2
+  },
+  "active": "day",
+  "flees": 6,
+  "signs": [
+    "gnawed cones"
+  ],
+  "products": [],
+  "rarity": "common",
+  "small": true,
+  "lore": {}
+}

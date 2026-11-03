@@ -1,0 +1,28 @@
+{
+  "id": "rook",
+  "kind": "animal",
+  "name": "rook",
+  "plural": "rooks",
+  "class": "bird",
+  "biomes": {
+    "plains": 1,
+    "valley": 0.8
+  },
+  "seasons": {
+    "spring": 1,
+    "summer": 1,
+    "autumn": 1,
+    "winter": 1
+  },
+  "abundance": 0.4,
+  "group": {
+    "min": 4,
+    "max": 12
+  },
+  "active": "day",
+  "flees": 12,
+  "signs": [],
+  "products": [],
+  "rarity": "common",
+  "lore": {}
+}

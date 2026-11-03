@@ -81,6 +81,8 @@ export const OUTLOOK = {
   raided: { e: -5, f: 3, t: -3 },
   war: { f: 4 },
   plague: { t: -4, e: -2 },
+  /** A poor harvest (N30): a worry for the winter, and the lord is blamed a little. */
+  poorHarvest: { t: -1.5 },
   /** Chance a free person in a hard season comes to want to leave, and a person whose kin was killed to want revenge. */
   moveChance: 0.35,
   avengeChance: 0.5,
@@ -108,6 +110,11 @@ export interface Season {
   raided: number;
   war: number;
   plague: number;
+  /** Share of days after a poor harvest (N30): a worry, if not yet hunger. */
+  poorHarvest?: number;
+  /** The place's mood over the stretch (N36), 0..1: its grief, fear and anger; its joy and hope. */
+  gloom?: number;
+  cheer?: number;
 }
 
 /** The place's conditions over `from..to`, averaged. Days no longer kept count as ordinary. */
@@ -122,6 +129,9 @@ export function seasonOf(ctx: LifeCtx, site: string, from: number, to: number): 
     raided: sum((d) => (d.raided ? 1 : 0)),
     war: sum((d) => (d.atWar ? 1 : 0)),
     plague: sum((d) => (d.plague > 0 ? 1 : 0)),
+    poorHarvest: sum((d) => (d.harvest === "poor" ? 1 : 0)),
+    gloom: sum((d) => (d.mood ? Math.max(d.mood.grief, d.mood.fear, d.mood.anger) / 100 : 0)),
+    cheer: sum((d) => (d.mood ? Math.max(d.mood.joy, d.mood.hope) / 100 : 0)),
   };
 }
 
@@ -155,6 +165,7 @@ export function review(row: PersonRow, old: Outlook, season: Season, kin: Outloo
   apply(season.raided, OUTLOOK.raided);
   apply(season.war, OUTLOOK.war);
   apply(season.plague, OUTLOOK.plague);
+  apply(season.poorHarvest ?? 0, OUTLOOK.poorHarvest);
   // A shock is felt at once, whatever the season's average says.
   for (const h of hits) {
     if (h.kind === "raid") apply(1, { e: -3, f: 3 });
@@ -176,7 +187,7 @@ export function review(row: PersonRow, old: Outlook, season: Season, kin: Outloo
   for (const axis of ["t", "e", "a", "f"] as const) next.lord[axis] = round1(next.lord[axis]);
 
   // Mood: the hardness of the times, and what happened at home.
-  const times = -3 * season.famine - 2 * season.raided - 1 * season.war - 2 * season.plague;
+  const times = -3 * season.famine - 2 * season.raided - 1 * season.war - 2 * season.plague - 0.75 * (season.poorHarvest ?? 0) - 1.5 * (season.gloom ?? 0) + 1 * (season.cheer ?? 0);
   const home = hits.reduce((s, h) => s + (h.kind === "family-death" ? -2.5 : h.kind === "wedding" ? 1.5 : 0), 0);
   next.mood = round1(clamp(old.mood * 0.5 + times + home, -3, 3));
 

@@ -2,7 +2,7 @@ import { Ground, wildlifeAt, type Wild } from "@millbrook/shared";
 import { spawnCreature, type Creature } from "../creatures.js";
 import { streamFor } from "../dice.js";
 import type { Town } from "../town.js";
-import { seasonOf, weatherOn } from "../weather.js";
+import { seasonOf, weatherOn, whereOf } from "../weather.js";
 import { groundAt, landOf, nearestRoad } from "./ground.js";
 
 /**
@@ -25,7 +25,7 @@ export function wildNear(town: Town, radius = 60): Wild[] {
   if (!near || near.road.id.startsWith("spur:")) return [];
   const day = town.world.day;
   const season = seasonOf(day);
-  const weather = weatherOn(day);
+  const weather = weatherOn(day, whereOf(town.world));
   const water = (x: number, y: number) => {
     for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) if (groundAt(land, x + dx, y + dy) === Ground.water) return true;
     return false;

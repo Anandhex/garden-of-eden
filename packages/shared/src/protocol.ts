@@ -8,7 +8,7 @@ import type { CrowdDay, CrowdZone } from "./crowd.js";
 import type { GameEvent } from "./events.js";
 import type { NpcVoice } from "./voice.js";
 
-export type TileKind = "grass" | "path" | "water" | "tree" | "wall" | "door";
+export type TileKind = "grass" | "path" | "water" | "tree" | "wall" | "door" | "floor";
 
 /** A way off the map's edge to the next area (N15): "To the mine road". */
 export interface MapExit {
@@ -170,6 +170,20 @@ export interface PlayerView {
   factions: Array<{ id: string; name: string; standing: number; rank: string; member: boolean }>;
   failed: number;
   party: string[];
+  /** Fauna and flora (N28): the bestiary and herbarium, pets, how each gathered thing can be used, and what the place offers (a stray, a herbalist). */
+  nature?: {
+    entries: Array<{ name: string; kind: string; level: number; text: string }>;
+    pets: string[];
+    uses: Record<string, Array<"eat" | "brew" | "apply">>;
+    stray: string | null;
+    taming: string | null;
+    herbalist: string | null;
+  };
+  /** Following people (N34): each, where the player last knew them to be (never the truth), the latest word, and letters. */
+  follows?: Array<{ id: string; name: string; why: string; last: string; news: string[] }>;
+  letters?: Array<{ from: string; day: number; text: string }>;
+  /** The wilds (N27): how many places off the road they know, and the finds they could report to a place's head. */
+  wilds?: { known: number; lost: boolean; finds: Array<{ id: string; name: string; kind: string }> };
 }
 
 /** The wider realm (N13): kingdoms, settlements, factions, treaties, wars, dungeons, beasts and news. */
@@ -262,6 +276,20 @@ export interface RoadNearby {
   offers: Array<{ op: string; label: string }>;
 }
 
+/** Inside a building (N32). `map` is its interior while this is set; never a hidden slot's contents before they're found. */
+export interface InsideView {
+  building: number;
+  /** The building's kind: house, inn, smithy, temple, hall... */
+  kind: string;
+  name: string;
+  owner: string | null;
+  trespass: boolean;
+  people: Array<{ id: string; name: string; doing: string; x: number; y: number }>;
+  furniture: Array<{ id: string; kind: string; x: number; y: number; keeps: boolean }>;
+  /** What's in the furniture beside the player that they can see. */
+  takeable: Array<{ slot: string; item: string; words: string }>;
+}
+
 /** The player on the open road (N26): where, how far, what is near. The land itself goes to clients as frame patches (G5). */
 export interface RoadView {
   where: string;
@@ -282,6 +310,12 @@ export interface RoadView {
   stepsPerMinute: number;
   /** Game minutes of daylight left to walk today (a walker rests at night), or null at night. */
   lightLeft: number | null;
+  /** High roads near the player that are snowed in today (N30), in words, for the road bar. */
+  closed?: string[];
+  /** Lost in the wilds (N27): the road bar says so and steps drift (the minimap still shows where they are). */
+  lost?: boolean;
+  /** Quick walking (N26 Part C2): how many times faster the walk runs in real time now (1 when anything is in view). */
+  quiet?: number;
 }
 
 /** Something a townsperson of the player's place just passed on (N33): a bubble over their head, once (`seq` never repeats). */
@@ -316,6 +350,10 @@ export interface Snapshot {
     kingdom: string | null;
     destinations: Array<{ id: string; name: string; kind: string; hours: number; dangers: string[] }>;
     area: { id: string; name: string; exits: string[] };
+    /** The mood of the place (N36), in a line, when there is one: "Northmere is grieving (after the raid on day 12)." */
+    mood?: string | null;
+    /** The mood's numbers that are heard (N29, N36). */
+    moodLevels?: { grief: number; fear: number; joy: number } | null;
   };
   time: {
     text: string;
@@ -328,10 +366,18 @@ export interface Snapshot {
     season: string;
     events: string[];
     daysPerYear: number;
+    /** Snow on the ground where the player is (it snowed there today or yesterday: N30). */
+    snow?: boolean;
+    /** Today's festival, if any (N30): planting, midsummer, harvest home, midwinter. */
+    festival?: string | null;
   };
   position: Pos;
   /** On the open road between places (N26), or null. While it is set, `position` is a global tile and `map` is a stand-in. */
   road: RoadView | null;
+  /** Inside a building (N32), or null: whose it is, who's in, the furniture, and what's within reach to take. */
+  inside?: InsideView | null;
+  /** A building's door next to the player (N32), and whether it's locked to them now. */
+  door?: { building: number; name: string; locked: boolean } | null;
   player: PlayerView;
   chronicle: { lore: string[]; log: Array<{ day: number; kind: string; ok: boolean; reason: string; proposal: string; event?: string }> };
   /** Marriages, courtships, children on the way and children born in play (N11.3), in words. */

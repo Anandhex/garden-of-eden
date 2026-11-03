@@ -1,0 +1,29 @@
+{
+  "id": "lark",
+  "kind": "animal",
+  "name": "skylark",
+  "plural": "skylarks",
+  "class": "bird",
+  "biomes": {
+    "plains": 1,
+    "hills": 0.5
+  },
+  "seasons": {
+    "spring": 1.4,
+    "summer": 1.2,
+    "autumn": 0.6,
+    "winter": 0.2
+  },
+  "abundance": 0.6,
+  "group": {
+    "min": 1,
+    "max": 3
+  },
+  "active": "dawn",
+  "flees": 6,
+  "signs": [],
+  "products": [],
+  "rarity": "common",
+  "small": true,
+  "lore": {}
+}

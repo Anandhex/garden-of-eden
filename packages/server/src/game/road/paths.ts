@@ -2,8 +2,8 @@ import { graphOf, tilesFrom, type RoadData } from "@millbrook/shared";
 import type { Rng } from "../dice.js";
 import type { Realm, Settlement } from "../realm/types.js";
 
-/** The shortest road path of settlement ids between two places, or null. */
-export function shortest(data: RoadData, from: string, to: string): string[] | null {
+/** The shortest road path of settlement ids between two places, or null. `closed`: roads not to take (snowed in, N30). */
+export function shortest(data: RoadData, from: string, to: string, closed?: ReadonlySet<string>): string[] | null {
   const g = graphOf(data);
   if (from === to || !g.has(from) || !g.has(to)) return null;
   const best = new Map<string, number>([[from, 0]]);
@@ -15,6 +15,7 @@ export function shortest(data: RoadData, from: string, to: string): string[] | n
     open.delete(cur);
     if (cur === to) break;
     for (const e of g.get(cur) ?? []) {
+      if (closed?.has(e.road)) continue;
       const d = best.get(cur)! + e.len;
       if (!best.has(e.to) || d < best.get(e.to)!) {
         best.set(e.to, d);

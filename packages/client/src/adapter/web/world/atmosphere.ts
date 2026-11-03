@@ -34,6 +34,8 @@ interface Mote {
 export class Atmosphere {
   private rain: Phaser.GameObjects.Particles.ParticleEmitter;
   private snow: Phaser.GameObjects.Particles.ParticleEmitter;
+  /** Snow lying on the land (N30): a white cover over the ground, under people and buildings' roofs. */
+  private cover: Phaser.GameObjects.Rectangle;
   private flies: Mote[] = [];
   private motes: Mote[] = [];
   private fogs: Mote[] = [];
@@ -59,6 +61,7 @@ export class Atmosphere {
     this.rain.setDepth(DEPTH.weather).setScrollFactor(0);
     this.snow = scene.add.particles(0, -10, flake?.sheet ?? "flake", { frame: flake?.frame, x: { min: 0, max: w }, speedY: { min: 30, max: 60 }, speedX: { min: -20, max: 20 }, lifespan: 12000, quantity: 1, frequency: 90, scale: { min: (flake?.scale ?? 1) * 0.6, max: (flake?.scale ?? 1) * 1.1 }, alpha: 0.85, emitting: false });
     this.snow.setDepth(DEPTH.weather).setScrollFactor(0);
+    this.cover = scene.add.rectangle(0, 0, w, h, 0xf4f8ff, 0.32).setOrigin(0, 0).setScrollFactor(0).setDepth(DEPTH.blend).setVisible(false);
     const mk = (id: string, fallback: string, depth: number, add: boolean) => {
       const img = setPick(scene.add.image(0, 0, fallback), pickFrame(id), fallback).setScrollFactor(0).setDepth(depth).setAlpha(0).setVisible(false);
       if (add) img.setBlendMode(Phaser.BlendModes.ADD);
@@ -87,6 +90,7 @@ export class Atmosphere {
     const snowy = a.weather === "snow";
     if (snowy !== this.snow.emitting) snowy ? this.snow.start() : this.snow.stop();
     this.rain.frequency = a.weather === "storm" ? 10 : 25;
+    this.cover.setVisible(!!a.snow);
     const clear = a.weather === "clear";
     const warm = a.season === "summer" || a.season === "spring";
     this.want.flies = clear && warm && a.light < 0.5;

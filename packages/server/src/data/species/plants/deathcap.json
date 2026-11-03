@@ -1,0 +1,54 @@
+{
+  "id": "deathcap",
+  "kind": "plant",
+  "name": "death cap",
+  "class": "fungus",
+  "biomes": {
+    "forest": 0.8,
+    "valley": 0.4
+  },
+  "calendar": {
+    "bud": [
+      0.4,
+      0.5
+    ],
+    "flower": [
+      0.5,
+      0.6
+    ],
+    "fruit": [
+      0.6,
+      0.75
+    ],
+    "dormant": [
+      0.75,
+      1.4
+    ]
+  },
+  "cover": 0.3,
+  "products": [
+    {
+      "stage": "fruit",
+      "item": "death cap",
+      "qty": [
+        1,
+        2
+      ]
+    }
+  ],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 13
+  },
+  "regrowDays": 8,
+  "rarity": "common",
+  "effects": [
+    {
+      "when": "eaten",
+      "causes": "poisoned"
+    }
+  ],
+  "lore": {
+    "warning": "one cap kills a grown man"
+  }
+}

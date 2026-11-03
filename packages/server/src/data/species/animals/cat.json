@@ -1,0 +1,27 @@
+{
+  "id": "cat",
+  "kind": "animal",
+  "name": "cat",
+  "plural": "cats",
+  "class": "beast",
+  "biomes": {},
+  "seasons": {
+    "spring": 1,
+    "summer": 1,
+    "autumn": 1,
+    "winter": 1
+  },
+  "abundance": 0.5,
+  "group": {
+    "min": 1,
+    "max": 1
+  },
+  "active": "always",
+  "flees": 3,
+  "signs": [],
+  "products": [],
+  "rarity": "common",
+  "village": true,
+  "small": true,
+  "lore": {}
+}

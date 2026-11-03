@@ -66,7 +66,15 @@ export function titleRespect(player: PlayerState): number {
  * A stranger meets the player: their starting feelings come from the town's view
  * (half of it), plus respect for any titles. Once per NPC.
  */
-export function firstImpression(state: NpcState, player: PlayerState, day: number): boolean {
+export function firstImpression(state: NpcState, player: PlayerState, day: number, mood?: Partial<Record<string, number>> | null): boolean {
+  // A frightened or angry town is cool to a stranger; a glad one warm (N36).
+  if (!state.metBefore && state.triggerDay["mood"] === undefined && mood) {
+    const shift = (Math.max(mood.fear ?? 0, mood.anger ?? 0) >= 40 ? -6 : 0) + ((mood.joy ?? 0) >= 40 ? 6 : 0);
+    if (shift !== 0) {
+      state.triggerDay["mood"] = day;
+      adjust(state, "trust", shift);
+    }
+  }
   if (state.metBefore || state.triggerDay["reputation"] !== undefined) return false;
   const rep = player.reputation ?? NO_REPUTATION;
   // Nothing said about them yet: nothing to colour the meeting (and nothing to mark).

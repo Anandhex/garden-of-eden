@@ -1,0 +1,39 @@
+{
+  "id": "seal",
+  "kind": "animal",
+  "name": "grey seal",
+  "plural": "seals",
+  "class": "beast",
+  "biomes": {
+    "coast": 0.8
+  },
+  "seasons": {
+    "spring": 1,
+    "summer": 1,
+    "autumn": 1,
+    "winter": 1
+  },
+  "abundance": 0.15,
+  "group": {
+    "min": 1,
+    "max": 5
+  },
+  "active": "day",
+  "flees": 10,
+  "signs": [],
+  "products": [
+    {
+      "item": "seal blubber",
+      "qty": [
+        1,
+        2
+      ]
+    }
+  ],
+  "rarity": "uncommon",
+  "hunt": {
+    "skill": "hunting",
+    "difficulty": 13
+  },
+  "lore": {}
+}

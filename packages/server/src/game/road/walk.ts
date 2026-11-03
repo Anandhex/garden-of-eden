@@ -3,6 +3,7 @@ import type { PlayerState } from "../../npc/types.js";
 import { formatMoney } from "../money.js";
 import type { Realm } from "../realm/types.js";
 import { gateAt, groundAt, landOf, nearestRoad, placesNear, walkableAt } from "./ground.js";
+import { driftAt, highRoadWords } from "./snow.js";
 import type { RoadState } from "./state.js";
 
 /**
@@ -61,6 +62,9 @@ export function stepOnRoad(realm: Realm, player: PlayerState, dx: number, dy: nu
   const nx = road.x + dx;
   const ny = road.y + dy;
   if (!walkableAt(land, nx, ny)) return { ok: false, minute: false, lines: [] };
+  // A high road snowed in (N30): the drift at the pass can't be got through until the thaw.
+  const drift = driftAt(realm, land.data, today, nx, ny);
+  if (drift && !driftAt(realm, land.data, today, road.x, road.y)) return { ok: false, reason: `Snow lies deep across ${highRoadWords(realm, drift)} at the pass. It won't open until the snow stops for a couple of days.`, minute: false, lines: [] };
   const lines: string[] = [];
   // A toll asked on stepping into a gate's reach (once a day).
   for (const p of placesNear(land, { x: nx, y: ny }, TOLL_REACH)) {

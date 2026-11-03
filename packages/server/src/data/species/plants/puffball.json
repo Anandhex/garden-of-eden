@@ -1,0 +1,52 @@
+{
+  "id": "puffball",
+  "kind": "plant",
+  "name": "giant puffball",
+  "class": "fungus",
+  "biomes": {
+    "plains": 1,
+    "valley": 0.6
+  },
+  "calendar": {
+    "bud": [
+      0.35,
+      0.45
+    ],
+    "flower": [
+      0.45,
+      0.5
+    ],
+    "fruit": [
+      0.5,
+      0.65
+    ],
+    "dormant": [
+      0.65,
+      1.35
+    ]
+  },
+  "cover": 0.3,
+  "products": [
+    {
+      "stage": "fruit",
+      "item": "puffball",
+      "qty": [
+        1,
+        1
+      ]
+    }
+  ],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 6
+  },
+  "regrowDays": 8,
+  "rarity": "common",
+  "effects": [
+    {
+      "when": "eaten",
+      "food": 9
+    }
+  ],
+  "lore": {}
+}

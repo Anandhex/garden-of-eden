@@ -1,6 +1,7 @@
 import { boundsOf, cumulative, pointAt } from "./geometry.js";
 import { fractal, rand1024, valueNoise } from "./noise.js";
 import { CHUNK } from "./scale.js";
+import { wildPoiIn, type WildPoi } from "./wilds.js";
 import { Ground, type Anchor, type Footprint, type RiverPath, type RoadData, type RoadPath, type RoadPlace } from "./types.js";
 
 /**
@@ -183,6 +184,10 @@ export function chunkAt(data: RoadData, cx: number, cy: number): Chunk {
   // 4. Places beside the road (under the settlements, which are drawn over them).
   for (const p of ix.places.filter((q) => hits(q, X0, Y0, X1, Y1))) decorate(p.item, ix, set, get);
 
+  // 4b. The wild place in this chunk, if any (N27): drawn whole inside its own chunk.
+  const wild = wildPoiIn(data, cx, cy);
+  if (wild) drawWild(wild, set, get);
+
   // 5. Settlements: a block of town inside a wall, a gate for each road.
   for (const f of ix.footprints.filter((q) => hits(q, X0, Y0, X1, Y1))) {
     const fp = f.item;
@@ -270,6 +275,30 @@ function decorate(p: RoadPlace, ix: Index, set: (x: number, y: number, g: number
       return;
   }
 }
+
+/** Draw a wild place (N27) into its chunk. */
+function drawWild(w: WildPoi, set: (x: number, y: number, g: number) => void, get: (x: number, y: number) => number): void {
+  const { x, y } = w;
+  switch (w.kind) {
+    case "grove":
+      // A ring of old trees round a clearing, with a way in from the south.
+      for (let dy = -4; dy <= 4; dy++) for (let dx = -4; dx <= 4; dx++) {
+        const r2 = dx * dx + dy * dy;
+        if (r2 <= 6) set(x + dx, y + dy, Ground.grass);
+        else if (r2 <= 16 && !(dx === 0 && dy > 0)) set(x + dx, y + dy, Ground.tree);
+      }
+      return;
+    case "hut":
+      for (let dy = -2; dy <= 2; dy++) for (let dx = -3; dx <= 3; dx++) if (get(x + dx, y + dy) !== 255) set(x + dx, y + dy, Ground.yard);
+      for (let dy = -1; dy <= 0; dy++) for (let dx = -1; dx <= 0; dx++) set(x + dx, y + dy, Ground.farmhouse);
+      return;
+    default:
+      // The same marks as their roadside kin.
+      return decorate({ id: w.id, kind: w.kind, name: w.name, road: "", t: 0, at: { x, y }, on: { x, y } } as RoadPlace, EMPTY_INDEX, set, get);
+  }
+}
+
+const EMPTY_INDEX: Index = { roads: [], rivers: [], footprints: [], places: [], roadById: new Map() };
 
 /** The tile kind at a global tile, from a chunk already made (`undefined` if the tile is outside it). */
 export function groundIn(chunk: Chunk, x: number, y: number): number | undefined {

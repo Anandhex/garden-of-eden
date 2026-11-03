@@ -15,6 +15,7 @@ export interface FrameChange {
   buildings: boolean;
   lights: boolean;
   signs: boolean;
+  marks?: boolean;
 }
 
 export const PATCH = 16;
@@ -27,6 +28,8 @@ export class Mirror {
   buildings: NonNullable<Frame["buildings"]> = [];
   lights: NonNullable<Frame["lights"]> = [];
   signs: NonNullable<Frame["signs"]> = [];
+  /** The place's marks (N31): burned houses, scaffolding, graves, banners, empty stalls. */
+  marks: NonNullable<Frame["marks"]> = [];
   player = { id: "player" as const, x: 0, y: 0 };
   ambience: Frame["ambience"] = { light: 1, timeOfDay: "day", weather: "clear", season: "spring" };
   prompt: Frame["prompt"] = null;
@@ -36,8 +39,9 @@ export class Mirror {
   ui: UiModel | null = null;
 
   applyFrame(f: Frame, whole: boolean): FrameChange {
-    const change: FrameChange = { whole, added: [], updated: [], moved: [], removed: [], patches: f.patches ?? [], buildings: !!f.buildings, lights: !!f.lights, signs: !!f.signs };
+    const change: FrameChange = { whole, added: [], updated: [], moved: [], removed: [], patches: f.patches ?? [], buildings: !!f.buildings, lights: !!f.lights, signs: !!f.signs, marks: !!f.marks };
     if (whole) {
+      this.marks = [];
       this.actors.clear();
       this.patches.clear();
       this.buildings = [];
@@ -74,6 +78,7 @@ export class Mirror {
       if (f.lights) this.lights = f.lights;
     }
     if (f.signs) this.signs = f.signs;
+    if (f.marks) this.marks = f.marks;
     this.player = f.player;
     this.ambience = f.ambience;
     this.prompt = f.prompt;
@@ -93,6 +98,11 @@ export class Mirror {
     const i = (y - p.y0) * p.w + (x - p.x0);
     if (x < p.x0 || y < p.y0 || x >= p.x0 + p.w || y >= p.y0 + p.h) return undefined;
     return { ground: TERRAIN_IDS[p.ground[i]!] ?? "terrain/grass", object: OBJECT_IDS[p.objects[i]!] ?? null };
+  }
+
+  /** A mark on a tile, if any (its words go in the hover). */
+  markAt(x: number, y: number): NonNullable<Frame["marks"]>[number] | undefined {
+    return this.marks.find((m) => x >= m.x && x < m.x + m.w && y >= m.y && y < m.y + m.h);
   }
 
   /** Someone to point at on a tile (the nearest actor within half a tile; travellers stand between tiles). */

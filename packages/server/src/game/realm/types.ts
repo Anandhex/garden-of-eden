@@ -241,6 +241,33 @@ export const SettlementSchema = z.object({
   ruinSince: z.number().int().optional(),
   /** A stronghold's own stores (N26I): what the gang holding it has laid by. */
   stores: z.object({ food: z.number(), coin: z.number().int().min(0), goods: z.record(z.string(), z.number()), livestock: z.record(z.string(), z.number()) }).optional(),
+  /**
+   * This year's harvest (N30, game/realm/harvest.ts): food brought in from the land (`got`) against what fair weather would
+   * have brought (`could`), judged on the first day of winter (`yield`, and `share` of what it could be). `last`: last year's.
+   */
+  /**
+   * The mood of the place (N36, game/mood/model.ts): grief, fear, anger, joy, hope and unease, 0..100, and today's strongest
+   * causes; `moodWar`: whether it was at war yesterday (a war begun is a shock).
+   */
+  mood: z.record(z.string(), z.any()).optional(),
+  moodWar: z.boolean().optional(),
+  /** A mood standing high since a day without a fresh shock of its kind (N36's bound). */
+  moodHigh: z.object({ kind: z.string(), since: z.number().int() }).optional(),
+  /** The first day of the hunger it is in now (stores under the famine line), for N30's `no-permanent-famine`. */
+  hungrySince: z.number().int().optional(),
+  harvest: z
+    .object({
+      year: z.number().int(),
+      got: z.number(),
+      could: z.number(),
+      yield: z.enum(["poor", "normal", "good"]).optional(),
+      share: z.number().optional(),
+      last: z.enum(["poor", "normal", "good"]).optional(),
+      /** Stores just after the harvest (the first day of winter) and at the end of winter: N30's `harvest-matters`. */
+      after: z.number().optional(),
+      end: z.number().optional(),
+    })
+    .optional(),
 });
 export type Settlement = z.infer<typeof SettlementSchema>;
 
@@ -332,6 +359,8 @@ export const WarSchema = z.object({
   battles: z.array(BattleSchema),
   end: z.number().int().optional(),
   outcome: z.string().optional(),
+  /** Which side won, once it's over (N36: a victory gladdens the winners' places). */
+  winner: z.enum(["attackers", "defenders", "none"]).optional(),
 });
 export type War = z.infer<typeof WarSchema>;
 
@@ -509,6 +538,10 @@ export const RealmSchema = z.object({
       lines: z.array(z.object({ day: z.number().int(), from: z.string(), to: z.string(), amount: z.number(), why: z.string() })),
     })
     .default({ minted: 0, sunk: 0, lines: [] }),
+  /** Letters on their way, carried by travellers (N34, game/follow/letters.ts). */
+  letters: z.array(z.any()).optional(),
+  /** Finds in the wilds the player reported to a place's head (N27, game/road/wildPlaces.ts): N63 turns them into mines and expeditions. */
+  finds: z.array(z.object({ poi: z.string(), kind: z.string(), name: z.string(), reportedTo: z.string(), day: z.number().int(), paid: z.number().int() })).optional(),
   /** Every post and who holds it (N69, game/office/): `<inst>|<post>` → the office. Heads of places and factions are their `leader`. */
   offices: z.record(z.string(), OfficeSchema).default({}),
   /** Each institution's books by tax period (N69, game/office/treasury.ts), the newest last. */

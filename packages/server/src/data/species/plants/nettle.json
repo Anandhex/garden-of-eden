@@ -1,0 +1,53 @@
+{
+  "id": "nettle",
+  "kind": "plant",
+  "name": "stinging nettle",
+  "class": "herb",
+  "biomes": {
+    "forest": 0.8,
+    "valley": 1,
+    "plains": 0.6
+  },
+  "calendar": {
+    "bud": [
+      0,
+      0.15
+    ],
+    "flower": [
+      0.15,
+      0.45
+    ],
+    "fruit": [
+      0.45,
+      0.7
+    ],
+    "dormant": [
+      0.7,
+      1
+    ]
+  },
+  "cover": 0.3,
+  "products": [
+    {
+      "stage": "bud",
+      "item": "nettles",
+      "qty": [
+        2,
+        4
+      ]
+    }
+  ],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 5
+  },
+  "regrowDays": 8,
+  "rarity": "common",
+  "effects": [
+    {
+      "when": "eaten",
+      "food": 5
+    }
+  ],
+  "lore": {}
+}

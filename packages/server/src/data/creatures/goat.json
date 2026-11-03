@@ -1,0 +1,66 @@
+{
+  "id": "goat",
+  "name": "wild goat",
+  "species": "goat",
+  "tier": "G",
+  "potential": [
+    "G",
+    "F"
+  ],
+  "ageRange": [
+    1,
+    9
+  ],
+  "stats": {
+    "maxHp": 16,
+    "maxMp": 0,
+    "attributes": {
+      "strength": 9,
+      "agility": 16,
+      "endurance": 10,
+      "intelligence": 3,
+      "willpower": 6,
+      "charisma": 3,
+      "perception": 14,
+      "luck": 10
+    }
+  },
+  "skills": {
+    "evasion": 3
+  },
+  "attack": {
+    "name": "horns",
+    "die": 4,
+    "skill": "unarmed"
+  },
+  "fleeAt": 0.9,
+  "loot": [
+    {
+      "item": "goat meat",
+      "qty": 2,
+      "chance": 1
+    },
+    {
+      "item": "goat hide",
+      "qty": 1,
+      "chance": 0.8
+    }
+  ],
+  "barks": {
+    "idle": [
+      "*a goat watches you from a ledge*"
+    ],
+    "attack": [
+      "*lowers its horns*"
+    ],
+    "hurt": [
+      "*a goat's bleat*"
+    ],
+    "flee": [
+      "*leaps away up the rocks*"
+    ]
+  },
+  "aggressive": false,
+  "hunts": [],
+  "rivalry": 0
+}

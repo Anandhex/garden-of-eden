@@ -80,7 +80,7 @@ const goodWords = {
 
 describe("N11.1 NPCs from templates", () => {
   it("every template file is valid, and the four the roadmap names are there", () => {
-    expect(Object.keys(templates).sort()).toEqual(["bandit", "child", "farmer", "guard", "innkeeper", "merchant", "smith"]);
+    expect(Object.keys(templates).sort()).toEqual(["bandit", "child", "farmer", "fisher", "guard", "herbalist", "hunter", "innkeeper", "merchant", "smith"]);
     expect(templates.child!.minor).toBe(true);
   });
 

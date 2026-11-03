@@ -1,0 +1,45 @@
+{
+  "id": "otter",
+  "kind": "animal",
+  "name": "otter",
+  "plural": "otters",
+  "class": "beast",
+  "biomes": {
+    "marsh": 0.8,
+    "valley": 0.6,
+    "coast": 0.5
+  },
+  "seasons": {
+    "spring": 1,
+    "summer": 1,
+    "autumn": 1,
+    "winter": 1
+  },
+  "abundance": 0.12,
+  "group": {
+    "min": 1,
+    "max": 2
+  },
+  "active": "dawn-dusk",
+  "flees": 8,
+  "signs": [
+    "spraints",
+    "slides on the bank"
+  ],
+  "products": [
+    {
+      "item": "otter pelt",
+      "qty": [
+        1,
+        1
+      ]
+    }
+  ],
+  "rarity": "uncommon",
+  "hunt": {
+    "skill": "hunting",
+    "difficulty": 14
+  },
+  "water": true,
+  "lore": {}
+}

@@ -19,7 +19,7 @@ import { crowdHour } from "../src/game/chatter/hours.js";
 import { pickInteraction, type Party, type PickIn } from "../src/game/chatter/pick.js";
 import { temperOf, type Temper } from "../src/game/chatter/person.js";
 import { adjustRel, credenceOf, feelings, MAX_RELS, pruneRels, viewOf } from "../src/game/chatter/rel.js";
-import { thresholdOf, vendettaDay } from "../src/game/chatter/revenge.js";
+import { REVENGE, thresholdOf, vendettaDay } from "../src/game/chatter/revenge.js";
 import { HOSTILE, type Interaction, type InteractionKind } from "../src/game/chatter/types.js";
 import { WorldStore } from "../src/game/db.js";
 import { streamFor } from "../src/game/dice.js";
@@ -452,11 +452,15 @@ describe("N37 step 5: revenge against anyone", () => {
     const believers = w.store.knowledge.holders(eventRef(tale.id)).filter((r) => r.who !== me.id);
     expect(believers.every((r) => r.accuracy < 1)).toBe(true);
     expect(w.store.social.rel(believers[0]!.who, them.id)!.trust).toBeLessThan(0);
-    // Refusing to deal.
+    // Refusing to deal: someone else's grudge against them. The same day it waits (they were just paid back); after the week's respite it is acted on.
     const g2 = f.low.find((r) => r.id !== me.id && r.id !== them.id)!;
-    addGrievance(w.store, { who: g2.id, against: them.id, cause: "e:zy", weight: 0.9, day });
+    addGrievance(w.store, { who: g2.id, against: them.id, cause: "e:zx", weight: 0.9, day });
     w.store.people.update(g2.id, { outlook: JSON.stringify({ ...outlookOf(w.store.people.get(g2.id)!), goal: { kind: "avenge", since: day - 1, target: them.id, plan: "refuse", strength: 0.9, reason: "a debt" } }) });
-    vendettaDay(w.ctx, f.site, day);
+    expect(vendettaDay(w.ctx, f.site, day).acted).toBe(0);
+    const later = day + REVENGE.respite;
+    addGrievance(w.store, { who: g2.id, against: them.id, cause: "e:zy", weight: 0.9, day: later });
+    w.store.people.update(g2.id, { outlook: JSON.stringify({ ...outlookOf(w.store.people.get(g2.id)!), goal: { kind: "avenge", since: later - 1, target: them.id, plan: "refuse", strength: 0.9, reason: "a debt" } }) });
+    vendettaDay(w.ctx, f.site, later);
     expect(w.store.social.rel(g2.id, them.id)!.trust).toBeLessThanOrEqual(-15);
     expect(w.store.social.openBetween(them.id, g2.id)).toHaveLength(0);
   });

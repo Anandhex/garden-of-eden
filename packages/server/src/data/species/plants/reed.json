@@ -1,0 +1,47 @@
+{
+  "id": "reed",
+  "kind": "plant",
+  "name": "common reed",
+  "class": "grass",
+  "biomes": {
+    "marsh": 1,
+    "coast": 0.5
+  },
+  "calendar": {
+    "bud": [
+      0.05,
+      0.25
+    ],
+    "flower": [
+      0.4,
+      0.6
+    ],
+    "fruit": [
+      0.6,
+      0.75
+    ],
+    "dormant": [
+      0.75,
+      1.05
+    ]
+  },
+  "cover": 0.3,
+  "products": [
+    {
+      "stage": "any",
+      "item": "reeds",
+      "qty": [
+        3,
+        6
+      ]
+    }
+  ],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 2
+  },
+  "regrowDays": 8,
+  "rarity": "common",
+  "effects": [],
+  "lore": {}
+}

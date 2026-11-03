@@ -1,0 +1,68 @@
+{
+  "id": "red_deer",
+  "kind": "animal",
+  "name": "red deer",
+  "plural": "red deer",
+  "class": "beast",
+  "biomes": {
+    "forest": 1,
+    "hills": 0.4,
+    "plains": 0.2,
+    "valley": 0.5
+  },
+  "seasons": {
+    "spring": 1,
+    "summer": 1,
+    "autumn": 1.2,
+    "winter": 0.6
+  },
+  "abundance": 0.3,
+  "group": {
+    "min": 2,
+    "max": 7
+  },
+  "active": "dawn-dusk",
+  "flees": 10,
+  "signs": [
+    "tracks",
+    "droppings",
+    "browsed twigs"
+  ],
+  "products": [
+    {
+      "item": "venison",
+      "qty": [
+        2,
+        4
+      ]
+    },
+    {
+      "item": "deer hide",
+      "qty": [
+        1,
+        1
+      ]
+    },
+    {
+      "item": "antler",
+      "qty": [
+        1,
+        1
+      ],
+      "chance": 0.5
+    }
+  ],
+  "rarity": "common",
+  "hunt": {
+    "skill": "hunting",
+    "difficulty": 12
+  },
+  "creature": "deer",
+  "closedSeason": [
+    "spring"
+  ],
+  "lordsGame": true,
+  "lore": {
+    "dish": "venison stew"
+  }
+}

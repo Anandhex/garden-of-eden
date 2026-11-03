@@ -1,0 +1,52 @@
+{
+  "id": "foxglove",
+  "kind": "plant",
+  "name": "foxglove",
+  "class": "herb",
+  "biomes": {
+    "forest": 1,
+    "hills": 0.6
+  },
+  "calendar": {
+    "bud": [
+      0.05,
+      0.25
+    ],
+    "flower": [
+      0.25,
+      0.45
+    ],
+    "fruit": [
+      0.45,
+      0.6
+    ],
+    "dormant": [
+      0.6,
+      1.05
+    ]
+  },
+  "cover": 0.3,
+  "products": [
+    {
+      "stage": "flower",
+      "item": "foxglove",
+      "qty": [
+        1,
+        2
+      ]
+    }
+  ],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 10
+  },
+  "regrowDays": 8,
+  "rarity": "common",
+  "effects": [
+    {
+      "when": "eaten",
+      "causes": "poisoned"
+    }
+  ],
+  "lore": {}
+}

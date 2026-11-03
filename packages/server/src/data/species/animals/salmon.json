@@ -1,0 +1,42 @@
+{
+  "id": "salmon",
+  "kind": "animal",
+  "name": "salmon",
+  "plural": "salmon",
+  "class": "fish",
+  "biomes": {
+    "valley": 0.8,
+    "coast": 0.6,
+    "hills": 0.4
+  },
+  "seasons": {
+    "spring": 0.4,
+    "summer": 0.8,
+    "autumn": 1.6,
+    "winter": 0.4
+  },
+  "abundance": 0.2,
+  "group": {
+    "min": 1,
+    "max": 1
+  },
+  "active": "always",
+  "flees": 0,
+  "signs": [],
+  "products": [
+    {
+      "item": "salmon",
+      "qty": [
+        1,
+        1
+      ]
+    }
+  ],
+  "rarity": "uncommon",
+  "hunt": {
+    "skill": "fishing",
+    "difficulty": 14
+  },
+  "water": true,
+  "lore": {}
+}

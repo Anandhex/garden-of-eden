@@ -1,3 +1,6 @@
+import { collectLetters, letterText, lettersOf, writeLetter } from "./follow/letters.js";
+import { overhear } from "./follow/follow.js";
+import { fisherHaul, herbalistHaul } from "./nature/wild.js";
 import { config } from "../config.js";
 import { record, timed } from "../metrics/timing.js";
 import { BudgetedProvider, ModelLedger } from "../llm/budgeted.js";
@@ -75,8 +78,9 @@ import { atWar } from "./realm/economy.js";
 import { breedCreatures, castCrowd, nameRisers, personaFor, readyToTalk } from "./realm/rise.js";
 import { arrive, setOut, type Trip } from "./realm/travel.js";
 import { RoadPlay } from "./road/play.js";
-import { parseAway } from "../store/peopleStore.js";
+import { parseAway, type PersonRow } from "../store/peopleStore.js";
 import { journeyOf, pruneJourneys } from "./road/journeys.js";
+import { roadDataOf } from "./road/generateRoads.js";
 import { visitorsAt, whereNow } from "./road/presence.js";
 import { dueLater } from "./road/situations.js";
 import { commitTrack, startRoad } from "./road/walk.js";
@@ -87,7 +91,7 @@ import { applyHour, planHour, type HourPlan } from "./chatter/hours.js";
 import { HOSTILE } from "./chatter/types.js";
 import { writeChatterLine } from "./chatter/words.js";
 import { weatherOn } from "./weather.js";
-import { townEventsOn } from "./events-calendar.js";
+import { crowdDayAt, townEventsOn } from "./events-calendar.js";
 import { beastCreature, settleHaunts, stockHaunts } from "./realm/haunts.js";
 import { afterFight } from "./realm/beasts.js";
 import { territoriesNow } from "./road/territories.js";
@@ -98,7 +102,7 @@ import type { Who } from "./spawning.js";
 import { killFigure, titled } from "./realm/figures.js";
 import { realmNews } from "./realm/log.js";
 import type { Figure, RealmNews } from "./realm/types.js";
-import { ITEM_TIERS } from "./items.js";
+import { ITEM_TIERS, ITEMS, itemKey } from "./items.js";
 
 const HEAD = new Set(["ruler", "lord", "mayor", "village head", "elder"]);
 
@@ -668,7 +672,7 @@ export class Town {
 
   /** Today's conditions, for where the townsfolk go. */
   crowdDay(): CrowdDay {
-    const day: CrowdDay = { weather: weatherOn(this.world.day), festival: townEventsOn(this.world).includes("festival") };
+    const day: CrowdDay = crowdDayAt(this.world, this.site());
     // Townsfolk who chose something other than their day's work (N38), once an hour.
     if (this.store && config.choice.mode === "all") {
       const key = `${this.site()}|${this.world.day}|${this.world.hour}`;
@@ -886,6 +890,30 @@ export class Town {
     return got;
   }
 
+  /**
+   * Told the way (N26 Part C): a traveller on a journey tells the player the roads they are walking, and a trader, porter
+   * or courier at home the roads out of their own place. Those roads are then known for fast travel. Returns a line, or null
+   * when they had nothing new to tell.
+   */
+  toldTheWay(id: string): string | null {
+    const realm = this.world.realm;
+    const row = this.store?.people.get(id);
+    if (!realm || !row || row.death !== null) return null;
+    const away = parseAway(row.away);
+    const j = away ? journeyOf(realm, away.journey) : undefined;
+    const roads = j
+      ? j.roads.map((r) => r.id)
+      : ["merchant", "courier", "porter", "sellsword"].includes(row.job)
+        ? roadDataOf(realm).roads.filter((r) => !r.id.startsWith("spur:") && (r.a === row.site || r.b === row.site)).map((r) => r.id)
+        : [];
+    const known = (this.world.player.knownRoads ??= []);
+    const fresh = roads.filter((r) => !known.includes(r));
+    if (fresh.length === 0) return null;
+    known.push(...fresh);
+    const names = (r: string) => r.split("~").map((x) => realm.settlements[x]?.name ?? x).join(" to ");
+    return `${row.name.split(" ")[0]} tells you the way: ${fresh.slice(0, 3).map(names).join("; ")}${fresh.length > 3 ? ", and more" : ""}. You could travel ${fresh.length === 1 ? "it" : "them"} quickly now.`;
+  }
+
   /** Where someone on a journey is now: a place (a town they visit, an inn), or the open road; null for someone at home. */
   whereNow(id: string): { site: string | null; journey: string; state: string } | null {
     const realm = this.world.realm;
@@ -1024,6 +1052,8 @@ export class Town {
     this.world.atWar = atWar(realm, realm.settlements[site]!);
     log.push(...applyArrivals(realm, this.world, site, folk, Object.keys(this.templates), (f, n, k, kind) => this.raidersFrom(f, n, k, kind)));
     log.push(...deliverNews(realm, this.world, site, folk));
+    // Arriving (N34): letters waiting here, and what people here know of those the player follows.
+    if (this.store) log.push(...collectLetters(realm, this.store, this.world.player, site, this.world.day), ...overhear(realm, this.store, this.world.player, site, this.world.day));
     this.stockHaunts();
     castCrowd(realm, this.creaturesHere(), this.world.day, site);
     // A new game's first day: the head of the place has work, even if nothing is pressing yet.
@@ -1109,6 +1139,10 @@ export class Town {
       for (const line of dueLater(this, d)) this.tell(line);
       // Held captive (N26J): someone from home may come for them.
       log.push(...captiveDay(realm, this.world.player, d, this.rngFor("rescue", d)));
+      // Herbalists and fishers who talk bring home the day's gathering or catch to sell (N28).
+      this.landHauls(site, d);
+      // Following people (N34): friends write when something big happens to them; letters and news of them reach the player.
+      log.push(...this.followDay(site, d));
       // A day's hire the player stood (N26F): the place pays.
       const pay = payDuty(realm, this.world.player, d);
       if (pay) log.push(pay);
@@ -1291,6 +1325,61 @@ export class Town {
   }
 
   /** Companions travelling with the player now. */
+  /**
+   * Following people (N34), once a day: followed friends who care for the player write when their life turns (a marriage,
+   * a child, a move); letters waiting here for the player are given to them; letters from the player reach their reader;
+   * and the player overhears what anyone here knows of the people they follow.
+   */
+  followDay(site: string, day: number): string[] {
+    const realm = this.world.realm;
+    const store = this.store;
+    const p = this.world.player;
+    if (!realm || !store) return [];
+    const lines: string[] = [];
+    const letters = lettersOf(realm);
+    for (const id of Object.keys(p.follows ?? {})) {
+      const row = store.people.get(id);
+      const talker = row?.persona ? this.agents[row.persona] : this.agents[id];
+      if (!row || row.death !== null || !talker || talker.state.relationship < 40) continue;
+      // A letter at most every few days from the same friend.
+      if (letters.some((l) => l.from === id && day - l.written < 6)) continue;
+      const big = store.eventsAbout(id, 12).filter((e) => e.day === day - 1 && ["marriage", "birth", "migration", "promoted", "opened-shop", "seat-won", "knighted", "freed"].includes(e.kind));
+      if (big.length === 0) continue;
+      const place = realm.settlements[row.site]?.name ?? "here";
+      writeLetter(realm, { from: id, fromName: row.name, to: "player", toName: p.name, about: big.map((e) => `e:${e.id}`), text: letterText(row.name, p.name, big, place), written: day, fromSite: row.site, toSite: p.site ?? site });
+    }
+    // Letters from the player, read where they arrived.
+    for (const l of letters) {
+      if (l.from !== "player" || l.arrived === undefined || l.read !== undefined) continue;
+      l.read = day;
+      const row = store.people.get(l.to);
+      const a = row?.persona ? this.agents[row.persona] : this.agents[l.to];
+      if (a) a.state.relationship = Math.min(100, a.state.relationship + 3);
+    }
+    if (!p.road && p.site === site) {
+      lines.push(...collectLetters(realm, store, p, site, day));
+      lines.push(...overhear(realm, store, p, site, day));
+    }
+    return lines;
+  }
+
+  /** What a place's talking herbalists and fishers bring home on a day (N28), put in their stock with a price. */
+  landHauls(site: string, day: number): void {
+    const realm = this.world.realm;
+    if (!realm || !this.store) return;
+    for (const id of this.talkersAt(site)) {
+      const row: PersonRow | null = this.store.people.get(id);
+      const agent = this.agents[id];
+      if (!row || !agent || (row.job !== "herbalist" && row.job !== "fisher")) continue;
+      const haul: Record<string, number> = row.job === "herbalist" ? herbalistHaul(realm, site, id, day) : fisherHaul(realm, site, id, day);
+      for (const [item, n] of Object.entries(haul)) {
+        const k = itemKey(item);
+        agent.state.inventory[k] = Math.min(10, (agent.state.inventory[k] ?? 0) + n);
+        agent.persona.prices[item] ??= Math.round((ITEMS[item]?.value ?? 5) * 1.3);
+      }
+    }
+  }
+
   companions(): NpcAgent[] {
     return this.ids.map((id) => this.agents[id]!).filter((a) => a.state.companion && !a.isDead);
   }

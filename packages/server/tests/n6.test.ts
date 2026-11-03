@@ -189,11 +189,12 @@ describe("N6.3 NPCs who start things", () => {
     const llm = new FakeProvider([say("Got that ore yet?"), say("Hm.")]);
     const npc = new NpcAgent(brena, llm, always(0.99));
     npc.state.metBefore = true;
-    const world = worldAt(14);
+    // Days 3 and 4: day 2 is the planting festival (N30), news of its own.
+    const world = worldAt(14, 3);
     npc.state.pendingQuest = "hot_meal";
     acceptQuest(brena, npc.state, world.player, world);
     expect(initiativeFor(brena, npc.state, world)).toBeNull(); // same day: nothing to ask yet
-    world.day = 2;
+    world.day = 4;
     const first = await npc.speakFirst(world);
     expect(first?.trigger).toBe("quest_followup");
     expect(llm.lastUser()).toContain('took your job "A hot meal"');

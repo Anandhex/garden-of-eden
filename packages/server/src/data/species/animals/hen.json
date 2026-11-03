@@ -1,0 +1,27 @@
+{
+  "id": "hen",
+  "kind": "animal",
+  "name": "hen",
+  "plural": "hens",
+  "class": "bird",
+  "biomes": {},
+  "seasons": {
+    "spring": 1,
+    "summer": 1,
+    "autumn": 1,
+    "winter": 1
+  },
+  "abundance": 0.5,
+  "group": {
+    "min": 2,
+    "max": 6
+  },
+  "active": "day",
+  "flees": 2,
+  "signs": [],
+  "products": [],
+  "rarity": "common",
+  "village": true,
+  "small": true,
+  "lore": {}
+}

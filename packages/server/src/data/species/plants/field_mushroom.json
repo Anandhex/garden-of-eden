@@ -1,0 +1,53 @@
+{
+  "id": "field_mushroom",
+  "kind": "plant",
+  "name": "field mushroom",
+  "class": "fungus",
+  "biomes": {
+    "plains": 1,
+    "valley": 0.8
+  },
+  "calendar": {
+    "bud": [
+      0.4,
+      0.5
+    ],
+    "flower": [
+      0.5,
+      0.6
+    ],
+    "fruit": [
+      0.6,
+      0.75
+    ],
+    "dormant": [
+      0.75,
+      1.4
+    ]
+  },
+  "cover": 0.3,
+  "products": [
+    {
+      "stage": "fruit",
+      "item": "field mushroom",
+      "qty": [
+        1,
+        4
+      ]
+    }
+  ],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 13
+  },
+  "regrowDays": 4,
+  "rarity": "common",
+  "effects": [
+    {
+      "when": "eaten",
+      "food": 6
+    }
+  ],
+  "lore": {},
+  "lookalike": "deathcap"
+}

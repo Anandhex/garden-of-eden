@@ -1,0 +1,53 @@
+{
+  "id": "blackthorn",
+  "kind": "plant",
+  "name": "blackthorn",
+  "class": "shrub",
+  "biomes": {
+    "plains": 0.8,
+    "valley": 0.8,
+    "forest": 0.5
+  },
+  "calendar": {
+    "bud": [
+      0.9,
+      1
+    ],
+    "flower": [
+      0,
+      0.12
+    ],
+    "fruit": [
+      0.6,
+      0.75
+    ],
+    "dormant": [
+      0.12,
+      0.6
+    ]
+  },
+  "cover": 0.3,
+  "products": [
+    {
+      "stage": "fruit",
+      "item": "sloes",
+      "qty": [
+        2,
+        5
+      ]
+    }
+  ],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 6
+  },
+  "regrowDays": 8,
+  "rarity": "common",
+  "effects": [
+    {
+      "when": "eaten",
+      "food": 2
+    }
+  ],
+  "lore": {}
+}

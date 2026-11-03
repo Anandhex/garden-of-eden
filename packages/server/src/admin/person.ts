@@ -1,3 +1,5 @@
+import { MOOD_KINDS, moodLine } from "../game/mood/model.js";
+import { seasonOf, weatherAtSite } from "../game/weather.js";
 import { plotsOf } from "../game/farm/fields.js";
 import { plotTiles } from "../game/farm/day.js";
 import { findCreature } from "../game/site.js";
@@ -21,7 +23,7 @@ import { traitsOfRow } from "../game/people/traits.js";
 import { parseAway, type PersonRow } from "../store/peopleStore.js";
 import { awayAndVisiting, journeyOfPerson } from "./roads.js";
 import { parseTownsfolkId } from "../game/realm/townsfolk.js";
-import type { Figure, RealmFaction, Settlement } from "../game/realm/types.js";
+import type { Figure, Realm, RealmFaction, Settlement } from "../game/realm/types.js";
 import { realmView } from "../game/realm/view.js";
 import { currentPlan, describePlan } from "../game/schedule.js";
 import { describeRelation } from "../npc/social.js";
@@ -508,12 +510,22 @@ function settlementRows(ctx: AdminContext, s: Settlement): Array<[string, string
     ["People", String(s.population)],
     ["Prosperity", String(Math.round(s.prosperity))],
     ["Food", String(Math.round(s.food))],
+    ["Season and stores", seasonLine(realm, s, ctx.world().day)],
+    ["Mood", s.mood ? `${MOOD_KINDS.map((k) => `${k} ${Math.round((s.mood as Record<string, number>)[k] ?? 0)}`).join(", ")}${moodLine(s, realm) ? ` · ${moodLine(s, realm)}` : ""}` : "calm"],
     ["Coffers", formatMoney(s.treasury)],
     ["Head", lead ? titled(lead) : "no one", lead ? `figure:${lead.id}` : undefined],
     ["Pays taxes to", liege ? `${liege.name} (${Math.round(s.taxRate * 100)}%${s.arrears > 0 ? `, ${s.arrears} days behind` : ""})` : "no one", liege ? `place:${liege.id}` : undefined],
     ["Buildings", Object.entries(s.buildings).filter(([, l]) => (l ?? 0) > 0).map(([b, l]) => `${b} ${l}`).join(", ") || "none"],
     ["Now", [view?.atWar ? "at war" : "", view?.raided ? "raided lately" : "", s.project ? `building ${s.project.building}` : ""].filter(Boolean).join(", ") || "quiet"],
   ];
+}
+
+/** The season there, its weather, how the last harvest went and whether the place is going hungry (N30). */
+function seasonLine(realm: Realm, s: Settlement, day: number): string {
+  const h = s.harvest;
+  const harvest = h?.yield ? `${h.yield} harvest${h.share !== undefined ? ` (${Math.round(h.share * 100)}%)` : ""}` : h?.last ? `last harvest ${h.last}` : "no harvest judged yet";
+  const hungry = s.hungrySince !== undefined ? `, hungry since day ${s.hungrySince}` : "";
+  return `${seasonOf(day)}, ${weatherAtSite(realm, s.id, day)}; ${harvest}${hungry}`;
 }
 
 function placeCard(ctx: AdminContext, id: string): AdminCard | null {
@@ -547,6 +559,8 @@ function placeCard(ctx: AdminContext, id: string): AdminCard | null {
       // Who runs it and where its coin went (N69): its posts, and its books by tax period (the truth: what was stolen is marked).
       { title: "Offices", rows: s.kind === "hamlet" ? [["Elder", "a hamlet has only its head"]] : officeRows(realm, `s:${id}`, ctx.store ?? undefined) },
       { title: "Books", rows: bookRows(realm, `s:${id}`) },
+      // Marks on its map (N31): what was burned, built and buried, and when it ended.
+      { title: "Marks", rows: [...(ctx.store?.marks.of(id).values() ?? [])].slice(-40).reverse().map((m): [string, string] => [`${m.kind}${m.label ? `: ${m.label}` : ""}`, `day ${m.since}${m.ends !== null ? `, until day ${m.ends}` : ""}${m.ref ? ` (${m.ref})` : ""}`]) },
       ...factions.filter((f) => f.seat === id).map((f) => factionSection(ctx, f)),
       fieldsSection(ctx, s),
       watchSection(ctx, s),

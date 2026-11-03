@@ -1,0 +1,52 @@
+{
+  "id": "hazel",
+  "kind": "plant",
+  "name": "hazel",
+  "class": "tree",
+  "biomes": {
+    "forest": 1,
+    "valley": 0.8
+  },
+  "calendar": {
+    "bud": [
+      0.05,
+      0.15
+    ],
+    "flower": [
+      0.85,
+      1
+    ],
+    "fruit": [
+      0.55,
+      0.7
+    ],
+    "dormant": [
+      0.15,
+      0.55
+    ]
+  },
+  "cover": 0.3,
+  "products": [
+    {
+      "stage": "fruit",
+      "item": "hazelnuts",
+      "qty": [
+        2,
+        6
+      ]
+    }
+  ],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 4
+  },
+  "regrowDays": 10,
+  "rarity": "common",
+  "effects": [
+    {
+      "when": "eaten",
+      "food": 10
+    }
+  ],
+  "lore": {}
+}

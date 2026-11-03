@@ -1,0 +1,48 @@
+{
+  "id": "fox",
+  "kind": "animal",
+  "name": "fox",
+  "plural": "foxes",
+  "class": "beast",
+  "biomes": {
+    "forest": 0.8,
+    "plains": 0.6,
+    "valley": 0.8,
+    "hills": 0.4
+  },
+  "seasons": {
+    "spring": 1,
+    "summer": 1,
+    "autumn": 1,
+    "winter": 1
+  },
+  "abundance": 0.25,
+  "group": {
+    "min": 1,
+    "max": 1
+  },
+  "active": "night",
+  "flees": 9,
+  "signs": [
+    "tracks",
+    "a musky smell"
+  ],
+  "products": [
+    {
+      "item": "fox pelt",
+      "qty": [
+        1,
+        1
+      ]
+    }
+  ],
+  "rarity": "common",
+  "hunt": {
+    "skill": "hunting",
+    "difficulty": 12
+  },
+  "creature": "fox",
+  "lore": {
+    "omen": "a fox crossing the path is cunning coming"
+  }
+}

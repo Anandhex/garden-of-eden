@@ -429,6 +429,7 @@ function capture(realm: Realm, s: Settlement, kingdom: string, day: number): voi
 export function endWar(realm: Realm, w: War, day: number, winner: "attackers" | "defenders" | "none", why: string): void {
   if (w.end !== undefined) return;
   w.end = day;
+  w.winner = winner;
   const a = w.attackers[0]!;
   const d = w.defenders[0]!;
   const winnerName = winner === "none" ? null : partyName(realm, winner === "attackers" ? a : d);

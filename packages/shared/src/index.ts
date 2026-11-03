@@ -10,3 +10,7 @@ export * from "./voice.js";
 export * from "./road/index.js";
 export * from "./farm/index.js";
 export * from "./town/districts.js";
+export * from "./calendar.js";
+export * from "./weather.js";
+export * from "./nature/place.js";
+export * from "./interior/generate.js";

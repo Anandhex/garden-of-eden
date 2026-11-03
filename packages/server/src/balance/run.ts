@@ -9,6 +9,14 @@ import { pickStartSite } from "../game/realm/start.js";
 import type { Realm } from "../game/realm/types.js";
 import { checkN26fBounds, checkRoadBounds } from "../game/road/bounds.js";
 import { checkFieldBounds } from "../game/farm/bounds.js";
+import { checkSeasonBounds } from "../game/realm/seasonBounds.js";
+import { checkWildBounds } from "../game/road/wildPlaces.js";
+import { checkNatureBounds } from "../game/nature/wild.js";
+import { checkMarkBounds } from "../game/marks/rules.js";
+import { checkGoodsBounds } from "../game/interior/inside.js";
+import { checkMoodBounds } from "../game/mood/model.js";
+import { checkLifeBounds } from "../game/people/bounds.js";
+import { checkGossipBounds } from "../game/gossip/bounds.js";
 import { checkDistrictBounds } from "../game/town/bounds.js";
 import { captivesAccounted } from "../game/realm/fall.js";
 import type { PersonRow } from "../store/peopleStore.js";
@@ -84,7 +92,17 @@ function endBounds(realm: Realm, store: WorldStore, everyone: boolean): BoundRes
     { id: "fallen-turn-over", phase: "N26I", ok: fell === 0 || back > 0, detail: `${fell} places fell, ${back} were won back, ${realm.stats.resettled ?? 0} resettled` },
     { id: "captives-accounted", phase: "N26I", ok: cap.lost === 0, detail: `${cap.held} held captive, ${cap.lost} by a gang that's gone` },
   ];
-  return [...n26f, ...n26g, ...n26h, ...n26i, ...checkRoadBounds(realm, store.people)].map((b) =>
+  const n27 = checkWildBounds(realm).map((b) => ({ id: b.name, phase: "N27", ok: b.ok, detail: b.detail }));
+  const n28 = checkNatureBounds(realm).map((b) => ({ id: b.name, phase: "N28", ok: b.ok, detail: b.detail }));
+  const n31 = checkMarkBounds(realm, store, realm.day).map((b) => ({ id: b.name, phase: "N31", ok: b.ok, detail: b.detail }));
+  const n36 = checkMoodBounds(realm, realm.day).map((b) => ({ id: b.name, phase: "N36", ok: b.ok, detail: b.detail }));
+  const n32 = checkGoodsBounds(store).map((b) => ({ id: b.name, phase: "N32", ok: b.ok, detail: b.detail }));
+  const n30 = checkSeasonBounds(realm, realm.day).map((b) => ({ id: b.name, phase: "N30", ok: b.ok, detail: b.detail }));
+  // N25's lives and N33's gossip. In a slice run every place has rows but only the slice lives, so births, deaths and the
+  // roster count say nothing there: N25 is judged when everyone lives (`LIVE=all`).
+  const n25 = checkLifeBounds(realm, store).map((b) => ({ id: b.name, phase: "N25", ok: everyone ? b.ok : true, detail: everyone ? b.detail : `not judged in a slice run (${b.detail})` }));
+  const n33 = checkGossipBounds(realm, store).map((b) => ({ id: b.name, phase: "N33", ok: b.ok, detail: b.detail }));
+  return [...n25, ...n33, ...n26f, ...n26g, ...n26h, ...n26i, ...n27, ...n28, ...n30, ...n31, ...n32, ...n36, ...checkRoadBounds(realm, store.people)].map((b) =>
     // Traffic and news travel with people: where most places don't live as rows (a slice run), there's hardly anyone on the
     // roads to carry it, so don't judge them.
     "phase" in b ? b : (b.name === "news-reaches" || b.name === "roads-not-empty") && !everyone ? { id: b.name, phase: "N26", ok: true, detail: `not judged in a slice run (${b.detail})` } : { id: b.name, phase: "N26", ok: b.ok, detail: b.detail },

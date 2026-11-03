@@ -22,7 +22,7 @@ import { traitsOfRow } from "../people/traits.js";
 import type { Realm } from "../realm/types.js";
 import { townEventsOn } from "../events-calendar.js";
 import { brokeBelow, planHour, scheduleOf, workplaceOf, type PlaceId, type Plan } from "../schedule.js";
-import { weatherOn } from "../weather.js";
+import { weatherOn, whereOf } from "../weather.js";
 import type { VillageMember } from "../village.js";
 import { decide } from "./registry.js";
 import { chosenPlan } from "./memory.js";
@@ -232,7 +232,7 @@ export function talkerCtx(env: TalkerEnv, me: VillageMember, plans: Map<string, 
     broke: state.money < brokeBelow(persona),
     stock,
     festival: townEventsOn({ ...env.world, day: env.at.day }).includes("festival"),
-    storm: weatherOn(env.at.day) === "storm",
+    storm: weatherOn(env.at.day, whereOf(env.world)) === "storm",
     present,
     absent,
     gatherings,

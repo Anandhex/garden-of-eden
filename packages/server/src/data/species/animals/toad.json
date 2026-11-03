@@ -1,0 +1,30 @@
+{
+  "id": "toad",
+  "kind": "animal",
+  "name": "common toad",
+  "plural": "toads",
+  "class": "beast",
+  "biomes": {
+    "marsh": 0.6,
+    "forest": 0.5,
+    "valley": 0.5
+  },
+  "seasons": {
+    "spring": 1.3,
+    "summer": 1,
+    "autumn": 0.6,
+    "winter": 0
+  },
+  "abundance": 0.3,
+  "group": {
+    "min": 1,
+    "max": 2
+  },
+  "active": "night",
+  "flees": 1,
+  "signs": [],
+  "products": [],
+  "rarity": "common",
+  "small": true,
+  "lore": {}
+}

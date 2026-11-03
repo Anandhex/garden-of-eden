@@ -1,7 +1,7 @@
 import type { NpcPersona, NpcState, WorldSnapshot } from "../npc/types.js";
 import { EXHAUSTED, STARVING } from "./needs.js";
 import { townEventsOn } from "./events-calendar.js";
-import { weatherOn } from "./weather.js";
+import { weatherOn, whereOf } from "./weather.js";
 import { absoluteHour } from "./clock.js";
 
 /**
@@ -144,7 +144,7 @@ export function planHour(
     const eatsOut = schedule.find((b) => b.activity === "eat" && b.place !== "home");
     return { activity: "eat", place: eatsOut?.place ?? "home", why: "starving" };
   }
-  if (block.activity === "work" && OUTDOOR.has(block.place) && weatherOn(world.day) === "storm") {
+  if (block.activity === "work" && OUTDOOR.has(block.place) && weatherOn(world.day, whereOf(world)) === "storm") {
     return { activity: "socialise", place: "home", why: "storm" };
   }
   if ((block.activity === "eat" || block.activity === "socialise") && state.money < brokeBelow(persona)) {

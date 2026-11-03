@@ -1,7 +1,7 @@
 import { absoluteMinute, formatMinute } from "../game/clock.js";
 import { LATE_DISCOUNT, openCommitments } from "../game/commitments.js";
 import { callInFavour, CALL_IN_AFTER_DAYS } from "../game/favours.js";
-import { townEventsOn } from "../game/events-calendar.js";
+import { festivalOn, townEventsOn } from "../game/events-calendar.js";
 import { formatMoney } from "../game/money.js";
 import { describeObjective, questProgress } from "../game/quests.js";
 import { PLACE_NAMES, placeOf } from "../game/schedule.js";
@@ -107,7 +107,7 @@ export function openingsFor(persona: NpcPersona, state: NpcState, world: WorldSn
   if (warned) {
     add({ trigger: "news", key: `news:raid:${world.lastRaidDay}`, once: true, event: `You promised to warn ${player.name} of danger: bandits raided the village. Warn them to keep off the mine road.` });
   } else if (state.metBefore && townEventsOn(world).length > 0) {
-    const what = townEventsOn(world)[0] === "market" ? "it's market day" : townEventsOn(world)[0] === "festival" ? "it's the midsummer festival tonight" : "there was a bandit raid";
+    const what = townEventsOn(world)[0] === "market" ? "it's market day" : townEventsOn(world)[0] === "festival" ? `it's the ${festivalOn(world.day) ?? "midsummer"} festival tonight` : "there was a bandit raid";
     add({ trigger: "news", key: `news:${world.day}`, once: true, event: `You have news for ${player.name}: ${what}. Mention it.` });
   }
   const need = state.questBoard.find((q) => !q.favour && !player.quests.active.some((a) => a.id === q.id) && state.relationship >= q.minTrust);

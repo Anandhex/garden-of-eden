@@ -1,0 +1,41 @@
+{
+  "id": "gorse",
+  "kind": "plant",
+  "name": "gorse",
+  "class": "shrub",
+  "biomes": {
+    "hills": 0.8,
+    "plains": 0.6,
+    "coast": 0.6
+  },
+  "calendar": {
+    "bud": [
+      0.8,
+      0.95
+    ],
+    "flower": [
+      0.95,
+      1.25
+    ],
+    "fruit": [
+      0.25,
+      0.4
+    ],
+    "dormant": [
+      0.4,
+      0.8
+    ]
+  },
+  "cover": 0.3,
+  "products": [],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 6
+  },
+  "regrowDays": 8,
+  "rarity": "common",
+  "effects": [],
+  "lore": {
+    "saying": "when gorse is out of bloom, kissing's out of fashion"
+  }
+}

@@ -708,7 +708,8 @@ export class ViewSession {
         const now = this.snap().position;
         stuck = ok && (now.x !== p.x || now.y !== p.y) ? 0 : stuck + 1;
         if (stuck > 4) break;
-        await sleep(Math.max(0, STEP_MS - (Date.now() - began)));
+        // Quick walking (N26 Part C2): nothing in view, the road goes by faster.
+        await sleep(Math.max(0, STEP_MS / (this.snap().road?.quiet ?? 1) - (Date.now() - began)));
       }
     } finally {
       if (token === this.walkToken) {

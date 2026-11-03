@@ -313,9 +313,15 @@ describe("N33 step 4: news enters with people", () => {
     }
     expect(first).not.toBeNull();
     for (const r of first!.rows) {
-      const teller = w.store.people.get(r.source)!;
       expect(r.learned_day).toBe(first!.day);
-      // Someone of another place: a traveller (a short trip may be over by the end of the day).
+      // Someone of another place: a traveller (a short trip may be over by the end of the day). Or someone of the liege town who had it
+      // from one that same day: a party meets people at its stop before the place's own talk of the day, so it can be passed on at once.
+      let teller = w.store.people.get(r.source)!;
+      if (teller.site === w.liege) {
+        const theirs = w.store.knowledge.get(teller.id, k.ref)!;
+        expect(theirs.learned_day).toBe(first!.day);
+        teller = w.store.people.get(theirs.source)!;
+      }
       expect(teller.site).not.toBe(w.liege);
       expect(w.store.knowledge.get(teller.id, k.ref)!.learned_day).toBeLessThanOrEqual(first!.day);
     }

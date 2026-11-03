@@ -3,6 +3,7 @@ import { crowding, housesOf } from "../realm/houses.js";
 import type { CasualtyOrder, Realm, Settlement } from "../realm/types.js";
 import { factionDays, type FactionDay } from "../office/recruit.js";
 import { vacantAt } from "../office/appoint.js";
+import { seasonOf } from "../weather.js";
 
 /**
  * A place's conditions on a day (N25): the part of the realm's state the lives of its people depend on.
@@ -31,6 +32,11 @@ export interface SiteDay {
   factions?: Record<string, FactionDay>;
   /** The posts of the place and its seated factions standing empty after the realm's day (N69): what its own day fills from its townsfolk. */
   vacant?: string[];
+  /** The season (N30), and how the last harvest went (this year's once judged on the first day of winter, else last year's). */
+  season?: string;
+  harvest?: "poor" | "normal" | "good";
+  /** The place's mood (N36): the six numbers, 0..100. */
+  mood?: { grief: number; fear: number; anger: number; joy: number; hope: number; unease: number };
 }
 
 /** Days of conditions kept behind the day (the admin chart, a margin for catching up, and a review's look back), more for lazy places that are behind. */
@@ -60,5 +66,8 @@ export function conditionsOf(realm: Realm, s: Settlement, day: number, casualtie
     casualties: casualties.map((c) => ({ cause: c.cause, count: c.count, event: c.event, ...(c.killer ? { killer: c.killer } : {}) })),
     factions: factionDays(realm, s.id),
     vacant: vacantAt(realm, s.id),
+    season: seasonOf(day),
+    harvest: s.harvest?.yield ?? s.harvest?.last ?? "normal",
+    ...(s.mood ? { mood: { grief: s.mood.grief ?? 0, fear: s.mood.fear ?? 0, anger: s.mood.anger ?? 0, joy: s.mood.joy ?? 0, hope: s.mood.hope ?? 0, unease: s.mood.unease ?? 0 } } : {}),
   };
 }

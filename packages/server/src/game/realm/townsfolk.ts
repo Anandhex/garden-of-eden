@@ -409,6 +409,13 @@ function rollPeople(realm: Realm, site: Site, facs: RealmFaction[], laws: { slav
           }
         }
       }
+      // Some labourers live off the land (N28): herbalists where there are woods, fishers on the coast and in the marsh.
+      // By a hash of who they are, not the roll, so nobody else's lot changes.
+      if (!post && job === "labourer") {
+        const k = hashStr(`${s.id}:${n}:land`) % 100;
+        if (k < 12 && zone("exit_woods")) job = "herbalist";
+        else if (k >= 88 && (s.terrain === "coast" || s.terrain === "marsh")) job = "fisher";
+      }
       // No more at one door than could work there: the rest find other work.
       const full = (j: Job, per: number, at: number[]) => (jobs[j] ?? 0) >= per * Math.max(at.length, 0);
       if ((job === "smith" || job === "apprentice") && full(job, 3, smithies)) job = "carpenter";
@@ -539,7 +546,10 @@ function workOf(job: Job, p: Places, rng: Rng): string {
     case "miner":
       return p.zone("exit_road") ? "out:exit_road" : "streets";
     case "hunter":
+    case "herbalist":
       return p.zone("exit_woods") ? "out:exit_woods" : "streets";
+    case "fisher":
+      return p.zone("exit_road") ? "out:exit_road" : "streets";
     case "adventurer":
       return one(p.guildhalls) ?? one(p.inns) ?? "streets";
     case "slave":
@@ -589,6 +599,8 @@ const JOB_GOALS: Partial<Record<Job, string[]>> = {
   beggar: ["Get through another day", "Find a warm corner tonight"],
   miner: ["Strike a good seam", "Come up alive every evening"],
   hunter: ["Bring home a stag", "Keep clear of the wolves"],
+  herbalist: ["Find kingsroot on the high hills before the frost", "Keep the village in simples"],
+  fisher: ["Fill the creel before the weather turns"],
   adventurer: ["Find work worth the risk", "Make a name"],
 };
 
@@ -614,6 +626,8 @@ const JOB_SPEECH: Partial<Record<Job, string>> = {
   beggar: "Wheedling and humble, quick to bless or curse.",
   miner: "Gruff, coughing now and then; talks about the dark and the seams.",
   hunter: "Few words, watchful; talks about tracks and weather.",
+  herbalist: "Quiet and exact; knows every plant by its old name and warns you off the ones that kill.",
+  fisher: "Weathered and patient; talks about the water, the wind and the one that got away.",
   adventurer: "Boastful and restless, always asking about work.",
   sellsword: "Blunt and wary, sizing up who pays; talks about wages, roads and who's hiring.",
 };
@@ -628,6 +642,10 @@ const TEMPLATE_FOR: Partial<Record<Job, string>> = {
   tailor: "merchant",
   potter: "merchant",
   smith: "smith",
+  herbalist: "herbalist",
+  fisher: "fisher",
+  // Hunters know the wild ways and teach them (N27: survival).
+  hunter: "hunter",
   guard: "guard",
   knight: "guard",
   sellsword: "guard",

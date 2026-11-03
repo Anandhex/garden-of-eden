@@ -1,0 +1,32 @@
+{
+  "id": "swan",
+  "kind": "animal",
+  "name": "mute swan",
+  "plural": "swans",
+  "class": "bird",
+  "biomes": {
+    "marsh": 0.8,
+    "valley": 0.5
+  },
+  "seasons": {
+    "spring": 1,
+    "summer": 1,
+    "autumn": 1,
+    "winter": 1
+  },
+  "abundance": 0.12,
+  "group": {
+    "min": 1,
+    "max": 2
+  },
+  "active": "day",
+  "flees": 10,
+  "signs": [],
+  "products": [],
+  "rarity": "common",
+  "water": true,
+  "lordsGame": true,
+  "lore": {
+    "sacredTo": "the crown: swans are the king's"
+  }
+}

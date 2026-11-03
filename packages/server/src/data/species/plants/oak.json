@@ -1,0 +1,50 @@
+{
+  "id": "oak",
+  "kind": "plant",
+  "name": "oak",
+  "class": "tree",
+  "biomes": {
+    "forest": 1,
+    "valley": 0.6,
+    "plains": 0.3
+  },
+  "calendar": {
+    "bud": [
+      0.05,
+      0.2
+    ],
+    "flower": [
+      0.2,
+      0.3
+    ],
+    "fruit": [
+      0.55,
+      0.7
+    ],
+    "dormant": [
+      0.75,
+      1.05
+    ]
+  },
+  "cover": 0.3,
+  "products": [
+    {
+      "stage": "fruit",
+      "item": "acorns",
+      "qty": [
+        3,
+        8
+      ]
+    }
+  ],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 3
+  },
+  "regrowDays": 8,
+  "rarity": "common",
+  "effects": [],
+  "lore": {
+    "sacredTo": "the old gods: oaths are sworn under oaks"
+  }
+}

@@ -11,7 +11,7 @@ import { exposeLies } from "./deception.js";
 import { saleChanceFactor } from "./events-calendar.js";
 import { tickNeeds } from "./needs.js";
 import { blockAt, planHour, scheduleOf } from "./schedule.js";
-import { isCold } from "./weather.js";
+import { isCold, whereOf } from "./weather.js";
 import { mendEquipment } from "./gear.js";
 import { skillLevel } from "../npc/skills.js";
 import { finishCraft, fitsCraft, hasInputs, startCraft, tradeRecipes } from "./crafting.js";
@@ -187,7 +187,7 @@ function hourTick(persona: NpcPersona, state: NpcState, world: WorldSnapshot, rn
   const chosen = chosenPlan(state, absoluteHour(world));
   const plan = state.inCombat && state.activity ? state.activity : chosen ? { activity: chosen.activity, place: chosen.place, why: chosen.why } : planHour(persona, state, world);
   state.activity = { activity: plan.activity, place: plan.place, ...(plan.why ? { why: plan.why } : {}), at: absoluteHour(world) };
-  tickNeeds(state.needs, plan.activity, { cold: isCold(world.day), drain: illnessDrain(state) });
+  tickNeeds(state.needs, plan.activity, { cold: isCold(world.day, whereOf(world)), drain: illnessDrain(state) });
   regenNpc(persona, state, plan.activity === "sleep");
   const used = state.inCombat ? null : npcSelfHeal(persona, state);
   if (used?.ok) log.push(`${persona.name} treated their wounds. ${used.message}`);

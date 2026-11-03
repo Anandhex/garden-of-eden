@@ -89,6 +89,9 @@ export const config = {
    */
   /** Fields outside the villages (N26G): plots worked by their households, food from the harvest. FIELDS=off keeps the old food formula. */
   fields: (process.env.FIELDS ?? "on") !== "off",
+  // Quick walking (N26 Part C2, decided 2026-10-23): while nothing is in view on the road, the walk and the clock run this
+  // many times faster in real time (a step passes the same game time); back to 1 as soon as anything comes into view.
+  quietFactor: Math.max(1, Number(process.env.QUIET_FACTOR ?? 4)),
   balance: {
     break: new Set((process.env.BALANCE_BREAK ?? "").split(",").map((x) => x.trim()).filter(Boolean)),
   },

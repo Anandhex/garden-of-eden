@@ -1,0 +1,29 @@
+{
+  "id": "nightingale",
+  "kind": "animal",
+  "name": "nightingale",
+  "plural": "nightingales",
+  "class": "bird",
+  "biomes": {
+    "forest": 0.8,
+    "valley": 0.8
+  },
+  "seasons": {
+    "spring": 1.5,
+    "summer": 1,
+    "autumn": 0.2,
+    "winter": 0
+  },
+  "abundance": 0.4,
+  "group": {
+    "min": 1,
+    "max": 1
+  },
+  "active": "dawn",
+  "flees": 6,
+  "signs": [],
+  "products": [],
+  "rarity": "common",
+  "small": true,
+  "lore": {}
+}

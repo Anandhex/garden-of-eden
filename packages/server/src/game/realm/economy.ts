@@ -10,6 +10,7 @@ import { type BuildingId, KIND_POPULATION, type Realm, type Settlement, type Set
 import { sendArrival } from "./arrivals.js";
 import { cofferMod, placeInst, unrun, worksMod } from "../office/posts.js";
 import { noteDay } from "../office/repute.js";
+import { judgeHarvest, noteHarvest, seasonYield } from "./harvest.js";
 
 /**
  * Prosperity, building and moving (N13.2), a day at a time, in code.
@@ -23,7 +24,6 @@ import { noteDay } from "../office/repute.js";
  * People, and ambitious figures, move to better places nearby.
  */
 const TERRAIN_FOOD: Record<string, number> = { valley: 1.05, plains: 1.08, coast: 1.02, forest: 0.98, hills: 0.96, marsh: 0.94 };
-const SEASON_FOOD: Record<string, number> = { spring: 1.0, summer: 1.1, autumn: 1.2, winter: 0.75 };
 /** How big a place is, for costs and upkeep. */
 export const KIND_SCALE: Record<SettlementKind, number> = { hamlet: 0.5, village: 1, town: 2.5, city: 5, capital: 7 };
 /** Highest level of a building each kind of place can have. */
@@ -84,10 +84,15 @@ export function upkeep(s: Settlement): number {
   return Math.round(3 * sumLevels(s) * KIND_SCALE[s.kind] + 2 * level(s, "barracks") * KIND_SCALE[s.kind]);
 }
 
-/** Food made per head, as a share of what's eaten (1 = enough). */
-export function foodRatio(realm: Realm, s: Settlement, day: number): number {
+/** Food made per head before the season, as a share of what's eaten. */
+function baseFood(realm: Realm, s: Settlement): number {
   const workers = residents(realm, s.id).filter((f) => f.role === "farmer" || f.role === "hunter").length;
-  return (0.92 + 0.08 * level(s, "farms") + 0.02 * workers) * (TERRAIN_FOOD[s.terrain] ?? 1) * (SEASON_FOOD[seasonOf(day)] ?? 1);
+  return (0.92 + 0.08 * level(s, "farms") + 0.02 * workers) * (TERRAIN_FOOD[s.terrain] ?? 1);
+}
+
+/** Food made per head, as a share of what's eaten (1 = enough): the land, and the farming year (N30, harvest.ts). */
+export function foodRatio(realm: Realm, s: Settlement, day: number): number {
+  return baseFood(realm, s) * seasonYield(realm, s, day, atWar(realm, s)).now;
 }
 
 /** Where prosperity is heading: food, coin, safety, taxes and buildings. */
@@ -135,8 +140,13 @@ export function economyDay(realm: Realm, day: number, rng: Rng, live: ReadonlySe
     const own = live.has(s.id);
     // Food.
     // Where the fields are kept (N26G), food is what they yield, on harvest days, less what is eaten every day; else the old formula.
-    const ratio = foodRatio(realm, s, day);
+    judgeHarvest(realm, s, day);
+    const base = baseFood(realm, s);
+    const yieldNow = seasonYield(realm, s, day, atWar(realm, s));
+    const ratio = base * yieldNow.now;
     let delta = s.fields?.kept ? -perDay(EATEN_PER_YEAR) : (ratio - 1) * perDay(FOOD_SWING);
+    // The autumn's harvest, against what fair weather would have brought (judged on the first day of winter).
+    if (!s.fields?.kept && seasonOf(day) === "autumn") noteHarvest(s, day, ratio * perDay(FOOD_SWING), base * yieldNow.ideal * perDay(FOOD_SWING));
     if (seasonOf(day) === "winter") delta += (level(s, "granary") * GRANARY_WINTER) / seasonDays();
     s.food = clamp(s.food + delta);
     // Short of food, a place with coin buys it from its neighbours.
@@ -150,6 +160,10 @@ export function economyDay(realm: Realm, day: number, rng: Rng, live: ReadonlySe
     // Prosperity drifts toward its target, 2 points a day at most.
     const target = prosperityTarget(realm, s, day);
     s.prosperity = clamp(s.prosperity + Math.max(-2, Math.min(2, (target - s.prosperity) * 0.2)));
+    // How long it has been hungry, and its stores at the end of winter (N30's bounds).
+    if (s.food < FAMINE) s.hungrySince ??= day;
+    else delete s.hungrySince;
+    if (seasonOf(day) === "winter" && seasonOf(day + 1) !== "winter" && s.harvest) s.harvest.end = Math.round(s.food * 10) / 10;
     // People.
     if (s.food < FAMINE) {
       const lost = own ? 0 : roundBy(rng, s.population * perDay(STARVING_SHARE));

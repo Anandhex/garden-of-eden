@@ -1,0 +1,30 @@
+{
+  "id": "bat",
+  "kind": "animal",
+  "name": "pipistrelle",
+  "plural": "bats",
+  "class": "beast",
+  "biomes": {
+    "forest": 0.6,
+    "valley": 0.8,
+    "marsh": 0.6
+  },
+  "seasons": {
+    "spring": 1,
+    "summer": 1.2,
+    "autumn": 0.8,
+    "winter": 0
+  },
+  "abundance": 0.4,
+  "group": {
+    "min": 2,
+    "max": 8
+  },
+  "active": "night",
+  "flees": 6,
+  "signs": [],
+  "products": [],
+  "rarity": "common",
+  "small": true,
+  "lore": {}
+}

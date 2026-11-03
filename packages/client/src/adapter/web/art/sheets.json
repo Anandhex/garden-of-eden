@@ -1778,6 +1778,78 @@
     0
    ]
   },
+  "props/bed": {
+   "sheet": "props",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "props/table": {
+   "sheet": "props",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "props/hearth": {
+   "sheet": "props",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "props/chest": {
+   "sheet": "props",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "props/shelf": {
+   "sheet": "props",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "props/altar": {
+   "sheet": "props",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "props/counter": {
+   "sheet": "props",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "props/bench": {
+   "sheet": "props",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
   "people/body/s0.body": {
    "sheet": "people",
    "w": 16,

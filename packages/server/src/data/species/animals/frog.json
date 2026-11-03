@@ -1,0 +1,30 @@
+{
+  "id": "frog",
+  "kind": "animal",
+  "name": "common frog",
+  "plural": "frogs",
+  "class": "beast",
+  "biomes": {
+    "marsh": 1,
+    "valley": 0.5
+  },
+  "seasons": {
+    "spring": 1.4,
+    "summer": 1,
+    "autumn": 0.6,
+    "winter": 0
+  },
+  "abundance": 0.6,
+  "group": {
+    "min": 2,
+    "max": 6
+  },
+  "active": "dawn-dusk",
+  "flees": 2,
+  "signs": [],
+  "products": [],
+  "rarity": "common",
+  "water": true,
+  "small": true,
+  "lore": {}
+}

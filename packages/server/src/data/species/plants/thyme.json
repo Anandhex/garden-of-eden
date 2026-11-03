@@ -1,0 +1,47 @@
+{
+  "id": "thyme",
+  "kind": "plant",
+  "name": "wild thyme",
+  "class": "herb",
+  "biomes": {
+    "hills": 1,
+    "plains": 0.5
+  },
+  "calendar": {
+    "bud": [
+      0.05,
+      0.25
+    ],
+    "flower": [
+      0.25,
+      0.55
+    ],
+    "fruit": [
+      0.55,
+      0.75
+    ],
+    "dormant": [
+      0.75,
+      1.05
+    ]
+  },
+  "cover": 0.3,
+  "products": [
+    {
+      "stage": "flower",
+      "item": "thyme",
+      "qty": [
+        1,
+        3
+      ]
+    }
+  ],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 8
+  },
+  "regrowDays": 8,
+  "rarity": "common",
+  "effects": [],
+  "lore": {}
+}

@@ -1,0 +1,51 @@
+{
+  "id": "sea_kale",
+  "kind": "plant",
+  "name": "sea kale",
+  "class": "herb",
+  "biomes": {
+    "coast": 1
+  },
+  "calendar": {
+    "bud": [
+      0.0,
+      0.2
+    ],
+    "flower": [
+      0.2,
+      0.4
+    ],
+    "fruit": [
+      0.4,
+      0.6
+    ],
+    "dormant": [
+      0.6,
+      1.0
+    ]
+  },
+  "cover": 0.3,
+  "products": [
+    {
+      "stage": "bud",
+      "item": "sea kale",
+      "qty": [
+        1,
+        2
+      ]
+    }
+  ],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 8
+  },
+  "regrowDays": 8,
+  "rarity": "common",
+  "effects": [
+    {
+      "when": "eaten",
+      "food": 6
+    }
+  ],
+  "lore": {}
+}

@@ -10,6 +10,8 @@
 import { lintCast } from "../src/npc/lint.js";
 import { loadSituations } from "../src/game/road/situations.js";
 import { loadTemplates } from "../src/npc/templates.js";
+import { checkSpecies, loadSpecies } from "../src/game/nature/species.js";
+import { loadCreatureTemplates } from "../src/game/creatures.js";
 import { generatedCast } from "./generated.js";
 
 let failed = false;
@@ -22,6 +24,17 @@ try {
 }
 try {
   console.log(`Road situations: ${loadSituations().map((s) => s.id).join(", ")}`);
+} catch (err) {
+  failed = true;
+  console.error((err as Error).message);
+}
+// Species files (N28): they parse, and point at real items, creatures, illnesses and plants.
+try {
+  const book = loadSpecies();
+  const bad = checkSpecies(book, Object.keys(loadCreatureTemplates()));
+  for (const b of bad) console.error(b);
+  if (bad.length > 0) failed = true;
+  else console.log(`Species: ${Object.keys(book.animals).length} animals, ${Object.keys(book.plants).length} plants`);
 } catch (err) {
   failed = true;
   console.error((err as Error).message);

@@ -1,0 +1,48 @@
+{
+  "id": "crow",
+  "kind": "animal",
+  "name": "carrion crow",
+  "plural": "crows",
+  "class": "bird",
+  "biomes": {
+    "plains": 1,
+    "valley": 1,
+    "forest": 0.5,
+    "hills": 0.6,
+    "coast": 0.5
+  },
+  "seasons": {
+    "spring": 1,
+    "summer": 1,
+    "autumn": 1,
+    "winter": 1
+  },
+  "abundance": 0.6,
+  "group": {
+    "min": 3,
+    "max": 9
+  },
+  "active": "day",
+  "flees": 12,
+  "signs": [
+    "feathers"
+  ],
+  "products": [
+    {
+      "item": "feathers",
+      "qty": [
+        1,
+        3
+      ]
+    }
+  ],
+  "rarity": "common",
+  "hunt": {
+    "skill": "hunting",
+    "difficulty": 12
+  },
+  "creature": "crow",
+  "lore": {
+    "omen": "crows on a roof mean a death"
+  }
+}

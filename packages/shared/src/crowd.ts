@@ -86,6 +86,9 @@ export const JOBS = [
   "beggar",
   "miner",
   "hunter",
+  // Living off the land (N28): out to the woods for simples, out to the water for fish, both sold at home.
+  "herbalist",
+  "fisher",
   "adventurer",
   // A fighter for hire (N26F decision 13): towns with too few guards hire them from the cities, for coin.
   "sellsword",
@@ -137,6 +140,8 @@ export const JOB_INFO: Record<Job, JobInfo> = {
   beggar: { words: "beggar", sells: false, outdoor: true },
   miner: { words: "miner", sells: false },
   hunter: { words: "hunter", sells: false },
+  herbalist: { words: "herbalist", sells: true },
+  fisher: { words: "fisher", sells: true, outdoor: true },
   adventurer: { words: "adventurer", sells: false },
   sellsword: { words: "sellsword", sells: false },
 };
@@ -237,6 +242,15 @@ export interface CrowdIntent {
 export interface CrowdDay {
   weather: string;
   festival: boolean;
+  /** Sunrise and sunset, minutes from midnight (N30): the working day follows the light. Unset: the old fixed hours. */
+  rise?: number;
+  set?: number;
+  /** The season (N30): people keep indoors more in winter. */
+  season?: string;
+  /** Harvest days (N30): farmers work late. */
+  harvest?: boolean;
+  /** The place's mood (N36), when one shows: grief, fear, anger, joy, hope, unease. Fewer out in grief and fear; talk follows it. */
+  mood?: string;
   /** Townsfolk who chose to do something else with their day (N38). */
   intents?: CrowdIntent[];
 }
@@ -492,7 +506,7 @@ export class CrowdSim {
 
   /** Their plan for a day (kept until the day or the weather changes). */
   plan(p: Townsperson, day: number, d: CrowdDay): PlanEntry[] {
-    const key = `${day}|${d.weather}|${d.festival}|${intentSig(d)}`;
+    const key = `${day}|${d.weather}|${d.festival}|${d.rise ?? ""}|${d.season ?? ""}|${d.harvest ? 1 : 0}|${d.mood ?? ""}|${intentSig(d)}`;
     const hit = this.plans.get(p.id);
     if (hit && hit.key === key) return hit.plan;
     const plan = dayPlan(this, p, day, d);
@@ -665,6 +679,19 @@ function rounds(sim: CrowdSim, r: () => number): Target {
  * A person's day, as a list of (minute, where, doing). Rolled from their id and the
  * day, so it's the same wherever it's worked out.
  */
+/** How much more or less people go out of an evening in a mood (N36). */
+const MOOD_OUT: Record<string, number> = { grief: 0.4, fear: 0.3, anger: 1, joy: 1.4, hope: 1.1, unease: 0.8 };
+
+/** What people say in a mood (N36): quiet in grief, whispers in fear, complaints in anger, songs in joy. */
+export const MOOD_TALK: Record<string, Array<[string, string]>> = {
+  grief: [["So many graves.", "Don't. Not today."], ["I keep thinking of them.", "We all do."], ["How's your mother bearing it?", "Badly."], ["The bell's been ringing all morning.", "Let it ring."]],
+  fear: [["Did you bar your door last night?", "Twice over."], ["Keep your voice down.", "Who's listening?"], ["They say they'll come back.", "Don't say that."], ["Stay off the road after dark.", "I'm not going anywhere."]],
+  anger: [["Somebody has to answer for it.", "Somebody will."], ["And the lord sat in his hall.", "Careful who hears you."], ["I'm sick of it.", "We all are."], ["They'll pay, mark me.", "Aye."]],
+  joy: [["Have you ever seen {place} so merry?", "Not in years!"], ["Another round!", "On you, then!"], ["Sing us the old one.", "Only if you dance."], ["What a day!", "What a year!"]],
+  hope: [["Things are turning, I think.", "About time."], ["Next year we'll build.", "Next year."], ["My boy's to be apprenticed.", "Good for him."]],
+  unease: [["Something's not right.", "You feel it too?"], ["Prices again.", "Don't start."], ["How long can it go on?", "Who knows."]],
+};
+
 function dayPlan(sim: CrowdSim, p: Townsperson, day: number, d: CrowdDay): PlanEntry[] {
   const r = seeded(mix(p.id, day));
   const roll = (lo: number, hi: number) => Math.round(lo + r() * (hi - lo));
@@ -843,12 +870,16 @@ function dayPlan(sim: CrowdSim, p: Townsperson, day: number, d: CrowdDay): PlanE
       // The working day: up at dawn, a break at midday, maybe an evening out.
       const early = p.cls === "serf" || p.job === "farmer" || p.job === "smith" || p.job === "baker";
       push(0, home, "asleep");
-      const wake = early ? roll(5 * H, 6 * H) : roll(6 * H, 7 * H);
+      // Up with the light (N30): work starts at sunrise, held between five and eight.
+      const dawn = d.rise === undefined ? null : Math.max(5 * H, Math.min(8 * H, d.rise));
+      const wake = dawn !== null ? (early ? roll(dawn - 30, dawn + 15) : roll(dawn + 30, dawn + 90)) : early ? roll(5 * H, 6 * H) : roll(6 * H, 7 * H);
       push(wake, homeFront, "up and about");
       const start = wake + roll(15, 45);
       const lunch = roll(11.5 * H, 13.5 * H);
       const lunchEnd = lunch + (p.cls === "serf" ? roll(20, 35) : roll(30, 60));
-      const end = p.cls === "serf" ? roll(18.5 * H, 19.5 * H) : p.job === "baker" ? roll(15 * H, 16 * H) : roll(17 * H, 18.5 * H);
+      let end = p.cls === "serf" ? roll(18.5 * H, 19.5 * H) : p.job === "baker" ? roll(15 * H, 16 * H) : roll(17 * H, 18.5 * H);
+      // Outdoor work ends with the light; at harvest the farmers work on till dusk and after.
+      if (info.outdoor && d.set !== undefined) end = d.harvest && p.job === "farmer" ? Math.max(end, roll(d.set, d.set + 45)) : Math.min(end, Math.max(lunch + 2 * H, d.set));
       // A short morning break at the well for some.
       if (r() < 0.3 && !storm) {
         const brk = roll(9.5 * H, 10.5 * H);
@@ -858,7 +889,7 @@ function dayPlan(sim: CrowdSim, p: Townsperson, day: number, d: CrowdDay): PlanE
       } else work(start, lunch);
       push(lunch, storm ? home : leisure(sim, p, r, false), storm ? "eating at home" : "on a break");
       work(lunchEnd, end);
-      const outFor = d.festival ? 1 : storm ? 0 : wet ? 0.15 : p.cls === "serf" ? 0.2 : 0.45;
+      const outFor = (d.festival ? 1 : storm ? 0 : wet ? 0.15 : p.cls === "serf" ? 0.2 : 0.45) * (d.season === "winter" && !d.festival ? 0.5 : 1) * (d.festival ? 1 : (MOOD_OUT[d.mood ?? ""] ?? 1));
       if (r() < outFor) {
         push(end + roll(10, 40), d.festival ? square(sim) : leisure(sim, p, r, true), d.festival ? "at the festival" : "taking their ease");
         push(roll(21 * H, 22.5 * H), homeFront, "home for the night");
@@ -960,6 +991,10 @@ function workDoing(job: Job): string {
       return "down the mine";
     case "hunter":
       return "out hunting";
+    case "herbalist":
+      return "gathering simples";
+    case "fisher":
+      return "out fishing";
     case "adventurer":
       return "looking for work";
     case "baker":
@@ -1016,6 +1051,12 @@ const pickBy = <T>(list: readonly T[], seed: number): T => list[seed % list.leng
  * faction grudges, gossip, the news, the weather and the hour.
  */
 export function chatLines(roster: Pick<CrowdRoster, "place" | "lord" | "ruler" | "rivals" | "talk" | "laws"> & Partial<Pick<CrowdRoster, "scorn">>, a: Townsperson, b: Townsperson, d: CrowdDay, minute: number, seed: number): [string, string] {
+  // The mood of the place (N36) is what most talk turns to.
+  const moodTalk = d.mood ? MOOD_TALK[d.mood] : undefined;
+  if (moodTalk && seed % 10 < 7) {
+    const pair = moodTalk[seed % moodTalk.length]!;
+    return [pair[0].replace("{place}", roster.place), pair[1].replace("{place}", roster.place)];
+  }
   const ra = CLASS_RANK[a.cls];
   const rb = CLASS_RANK[b.cls];
   const s2 = Math.floor(seed / 7);

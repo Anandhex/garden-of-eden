@@ -25,6 +25,12 @@ export const SKILLS = [
   "alchemy",
   "foraging",
   "hunting",
+  // Finding the way off the road (N27)
+  "survival",
+  // Living off the land (N28): knowing plants, fishing, handling animals
+  "herbalism",
+  "fishing",
+  "animal_handling",
   // Stealth
   "sneak",
   "lockpicking",
@@ -61,6 +67,10 @@ const LABELS: Record<Skill, string> = {
   alchemy: "alchemy",
   foraging: "foraging",
   hunting: "hunting",
+  survival: "finding the way",
+  herbalism: "herbalism",
+  fishing: "fishing",
+  animal_handling: "handling animals",
   sneak: "sneaking",
   lockpicking: "lockpicking",
 };

@@ -42,7 +42,7 @@
   },
   "props/rock": {
    "frame": {
-    "x": 512,
+    "x": 908,
     "y": 0,
     "w": 64,
     "h": 64
@@ -62,7 +62,7 @@
   },
   "props/reeds": {
    "frame": {
-    "x": 446,
+    "x": 842,
     "y": 0,
     "w": 64,
     "h": 64
@@ -82,7 +82,7 @@
   },
   "props/milestone": {
    "frame": {
-    "x": 380,
+    "x": 776,
     "y": 0,
     "w": 64,
     "h": 64
@@ -102,8 +102,8 @@
   },
   "props/signpost": {
    "frame": {
-    "x": 578,
-    "y": 0,
+    "x": 66,
+    "y": 98,
     "w": 64,
     "h": 64
    },
@@ -142,7 +142,7 @@
   },
   "props/farmhouse": {
    "frame": {
-    "x": 314,
+    "x": 644,
     "y": 0,
     "w": 64,
     "h": 64
@@ -162,7 +162,7 @@
   },
   "props/bar": {
    "frame": {
-    "x": 248,
+    "x": 314,
     "y": 0,
     "w": 64,
     "h": 64
@@ -182,8 +182,8 @@
   },
   "props/thatch": {
    "frame": {
-    "x": 644,
-    "y": 0,
+    "x": 198,
+    "y": 98,
     "w": 64,
     "h": 64
    },
@@ -202,8 +202,8 @@
   },
   "props/chimney": {
    "frame": {
-    "x": 836,
-    "y": 0,
+    "x": 390,
+    "y": 98,
     "w": 32,
     "h": 44
    },
@@ -222,8 +222,8 @@
   },
   "props/chimney_stone": {
    "frame": {
-    "x": 870,
-    "y": 0,
+    "x": 424,
+    "y": 98,
     "w": 32,
     "h": 44
    },
@@ -242,7 +242,7 @@
   },
   "props/sign_inn": {
    "frame": {
-    "x": 0,
+    "x": 566,
     "y": 98,
     "w": 48,
     "h": 40
@@ -262,8 +262,8 @@
   },
   "props/sign_forge": {
    "frame": {
-    "x": 962,
-    "y": 0,
+    "x": 516,
+    "y": 98,
     "w": 48,
     "h": 40
    },
@@ -282,7 +282,7 @@
   },
   "props/anvil": {
    "frame": {
-    "x": 84,
+    "x": 650,
     "y": 98,
     "w": 48,
     "h": 32
@@ -302,8 +302,8 @@
   },
   "props/barrel": {
    "frame": {
-    "x": 760,
-    "y": 0,
+    "x": 314,
+    "y": 98,
     "w": 40,
     "h": 48
    },
@@ -322,8 +322,8 @@
   },
   "props/crate": {
    "frame": {
-    "x": 710,
-    "y": 0,
+    "x": 264,
+    "y": 98,
     "w": 48,
     "h": 48
    },
@@ -342,7 +342,7 @@
   },
   "props/lamp_wall": {
    "frame": {
-    "x": 50,
+    "x": 616,
     "y": 98,
     "w": 32,
     "h": 40
@@ -382,8 +382,8 @@
   },
   "props/hay": {
    "frame": {
-    "x": 904,
-    "y": 0,
+    "x": 458,
+    "y": 98,
     "w": 56,
     "h": 40
    },
@@ -402,8 +402,8 @@
   },
   "props/banner": {
    "frame": {
-    "x": 802,
-    "y": 0,
+    "x": 356,
+    "y": 98,
     "w": 32,
     "h": 44
    },
@@ -419,6 +419,166 @@
     "w": 32,
     "h": 44
    }
+  },
+  "props/bed": {
+   "frame": {
+    "x": 380,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "props/table": {
+   "frame": {
+    "x": 132,
+    "y": 98,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "props/hearth": {
+   "frame": {
+    "x": 710,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "props/chest": {
+   "frame": {
+    "x": 512,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "props/shelf": {
+   "frame": {
+    "x": 0,
+    "y": 98,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "props/altar": {
+   "frame": {
+    "x": 248,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "props/counter": {
+   "frame": {
+    "x": 578,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "props/bench": {
+   "frame": {
+    "x": 446,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
   }
  },
  "meta": {
@@ -427,8 +587,8 @@
   "image": "props.png",
   "format": "RGBA8888",
   "size": {
-   "w": 1012,
-   "h": 140
+   "w": 972,
+   "h": 164
   },
   "scale": "1"
  }
