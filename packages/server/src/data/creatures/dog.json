@@ -1,0 +1,55 @@
+{
+  "id": "dog",
+  "name": "dog",
+  "species": "dog",
+  "tier": "G",
+  "potential": [
+    "G",
+    "F"
+  ],
+  "ageRange": [
+    1,
+    8
+  ],
+  "stats": {
+    "maxHp": 14,
+    "maxMp": 0,
+    "attributes": {
+      "strength": 9,
+      "agility": 15,
+      "endurance": 10,
+      "intelligence": 3,
+      "willpower": 6,
+      "charisma": 3,
+      "perception": 16,
+      "luck": 10
+    }
+  },
+  "skills": {
+    "evasion": 3
+  },
+  "attack": {
+    "name": "teeth",
+    "die": 4,
+    "skill": "unarmed"
+  },
+  "fleeAt": 0.5,
+  "loot": [],
+  "barks": {
+    "idle": [
+      "*a dog sniffs about*"
+    ],
+    "attack": [
+      "*snarls and snaps*"
+    ],
+    "hurt": [
+      "*yelps*"
+    ],
+    "flee": [
+      "*runs off with its tail down*"
+    ]
+  },
+  "aggressive": false,
+  "hunts": [],
+  "rivalry": 0
+}

@@ -1,0 +1,33 @@
+{
+  "id": "hawk",
+  "kind": "animal",
+  "name": "goshawk",
+  "plural": "goshawks",
+  "class": "bird",
+  "biomes": {
+    "forest": 0.8,
+    "hills": 0.4
+  },
+  "seasons": {
+    "spring": 1,
+    "summer": 1,
+    "autumn": 1,
+    "winter": 1
+  },
+  "abundance": 0.08,
+  "group": {
+    "min": 1,
+    "max": 1
+  },
+  "active": "day",
+  "flees": 20,
+  "signs": [],
+  "products": [],
+  "rarity": "uncommon",
+  "tame": {
+    "skill": "animal_handling",
+    "difficulty": 16,
+    "days": 5
+  },
+  "lore": {}
+}

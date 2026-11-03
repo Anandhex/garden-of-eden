@@ -28,6 +28,8 @@ export const TABLES = {
   sowings: ["plot", "crop", "day", "year"],
   field_events: ["id", "site", "plot", "day", "kind", "tiles", "by", "amount"],
   plot_years: ["plot", "year", "reaped", "lost"],
+  marks: ["id", "site", "kind", "x", "y", "w", "h", "building", "ref", "label", "since", "ends", "data"],
+  household_goods: ["site", "building", "slot", "item", "qty", "hidden", "owner", "ref"],
 } as const;
 export type TableName = keyof typeof TABLES;
 
@@ -50,6 +52,8 @@ export const ORDER_BY: Record<TableName, string> = {
   sowings: "plot, year",
   field_events: "id",
   plot_years: "plot, year",
+  marks: "id",
+  household_goods: "site, building, slot, item",
 };
 
 const V1 = `
@@ -237,6 +241,23 @@ const MIGRATIONS: Array<(db: DatabaseSync) => void> = [
     if (!have.has("renown")) db.exec("ALTER TABLE people ADD COLUMN renown INTEGER");
     if (!have.has("epithet")) db.exec("ALTER TABLE people ADD COLUMN epithet TEXT");
     db.exec("CREATE INDEX IF NOT EXISTS people_faction ON people(faction) WHERE death IS NULL AND faction IS NOT NULL");
+  },
+  // 14 (N31): marks on a place's map. A burned house, a ruin, scaffolding, a grave: where, why (`ref`, the realm ref or person), since
+  // when and until when (`ends`, null while it lasts). Banners, guards and empty stalls are worked out from the realm when drawn.
+  (db) => {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS marks (id TEXT PRIMARY KEY, site TEXT NOT NULL, kind TEXT NOT NULL, x INTEGER NOT NULL, y INTEGER NOT NULL, w INTEGER NOT NULL, h INTEGER NOT NULL,
+        building INTEGER, ref TEXT, label TEXT, since INTEGER NOT NULL, ends INTEGER, data TEXT);
+      CREATE INDEX IF NOT EXISTS marks_site ON marks(site, ends);
+    `);
+  },
+  // 15 (N32): what a household keeps, by the piece of furniture it's kept in (`slot`), made the first time anyone touches the
+  // building (a row with slot "_" marks it rolled). `hidden`: found only by searching; `ref`: a letter's secret.
+  (db) => {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS household_goods (site TEXT NOT NULL, building INTEGER NOT NULL, slot TEXT NOT NULL, item TEXT NOT NULL, qty INTEGER NOT NULL,
+        hidden INTEGER NOT NULL DEFAULT 0, owner TEXT, ref TEXT, PRIMARY KEY (site, building, slot, item));
+    `);
   },
 ];
 

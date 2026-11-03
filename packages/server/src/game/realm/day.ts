@@ -1,3 +1,4 @@
+import { moodRealmDay } from "../mood/model.js";
 import { timed } from "../../metrics/timing.js";
 import { type Rng, streamFor } from "../dice.js";
 import { directorDay } from "./director.js";
@@ -54,6 +55,8 @@ export function realmDay(realm: Realm, day: number, only?: Rng, opts: RealmDayOp
     // Support, challenges, epithets, fading renown; what the realm owes townsfolk, and those whose name is known rising (N69).
     timed("realm.repute", () => reputeDay(realm, day, opts.store, opts.live));
     refreshHierarchy(realm);
+    // Every place's mood from what happened today (N36), after everything that could shock it; the people's day reads it.
+    timed("realm.mood", () => moodRealmDay(realm, day));
     realm.day = day;
   }));
 }

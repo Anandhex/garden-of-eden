@@ -1,8 +1,19 @@
+import { moodLine } from "../game/mood/model.js";
+import { maxSkipHours, passUntil, summaryLines, type WakeCondition } from "../game/time/pass.js";
+import { follow, unfollow } from "../game/follow/follow.js";
+import { playerWrites } from "../game/follow/letters.js";
+import { enter, householdOf, interiorAt, lockedNow, peopleInside, search, stepInside, take, takeable, type InsideCtx } from "../game/interior/inside.js";
+import { ITILE, type InsideView, type TileKind } from "@millbrook/shared";
+import { doorOf } from "../view/frame.js";
+import { marksToDraw } from "../game/marks/rules.js";
+import { animalsNear, huntAnimal, natureView, showToHerbalist, tameStray, useWildItem } from "../game/nature/wild.js";
+import { loadSpecies } from "../game/nature/species.js";
 import { promoteWild, wildNear } from "../game/road/wild.js";
 import { forceGate, offerBribe, onDuty, playerMayEnter, refusal, sneakPast, type Post } from "../game/town/access.js";
 import { districtAt } from "./districtLayout.js";
 import { surrenderToJustice } from "../game/crime.js";
 import { captiveAct, isCaptive } from "../game/law/taken.js";
+import { reportFind, unreported } from "../game/road/wildPlaces.js";
 import { commutersNear } from "../game/road/commute.js";
 import { fieldStagesIn } from "../game/farm/day.js";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
@@ -585,7 +596,7 @@ function siteView(): Snapshot["site"] {
   const map = here();
   const area = { id: map.area, name: map.name, exits: map.exits.map((e) => e.label) };
   if (!realm || !s) return { id: town.site(), name: PLAIN_VILLAGE.name, kind: "village", kingdom: null, destinations: [], area };
-  return { id: s.id, name: s.name, kind: s.kind, kingdom: s.kingdom ? (realm.kingdoms[s.kingdom]?.name ?? null) : null, destinations: destinationsOnRoad(realm, s.id), area };
+  return { id: s.id, name: s.name, kind: s.kind, kingdom: s.kingdom ? (realm.kingdoms[s.kingdom]?.name ?? null) : null, destinations: destinationsOnRoad(realm, s.id), area, mood: moodLine(s, realm), moodLevels: s.mood ? { grief: s.mood.grief ?? 0, fear: s.mood.fear ?? 0, joy: s.mood.joy ?? 0 } : null };
 }
 
 /** The places the roads lead to, with the walk to each by the real road (N26): hours of walking, not the old straight-line days. */
@@ -597,17 +608,92 @@ function destinationsOnRoad(realm: NonNullable<typeof world.realm>, from: string
   });
 }
 
+// ---------- inside buildings (N32) ----------
+
+/** What the interior functions need, from this server's world. */
+function insideCtx(): InsideCtx | null {
+  if (!world.realm || !town.store || town.area() !== "village") return null;
+  return {
+    realm: world.realm,
+    store: town.store,
+    player: world.player,
+    day: world.day,
+    hour: world.hour,
+    minute: world.minute ?? 0,
+    seed: world.realm.seed,
+    map: here(),
+    sim: crowdHere(),
+    crowdDay: crowdDay(),
+    personas,
+    relationship: (id) => agents[id]?.state.relationship ?? 0,
+    world,
+  };
+}
+
+function insideView(): InsideView | null {
+  const c = insideCtx();
+  const ins = world.player.inside;
+  if (!c || !ins) return null;
+  const h = householdOf(c, ins.building);
+  const int = interiorAt(c, ins.building);
+  const b = c.map.buildings[ins.building];
+  return {
+    building: ins.building,
+    kind: b?.kind ?? "house",
+    name: b?.name || (h.owner ? `${h.owner.name}'s house` : "a house"),
+    owner: h.owner?.name ?? null,
+    trespass: !!ins.trespass,
+    people: peopleInside(c, ins.building, int).map((x) => ({ id: x.id, name: x.name, doing: x.doing, x: x.x, y: x.y })),
+    furniture: int.furniture.map((f) => ({ id: f.id, kind: f.kind, x: f.x, y: f.y, keeps: !!f.slot && (!f.slot.hidden || (ins.found ?? []).includes(f.slot.id)) })),
+    takeable: takeable(c).map((t) => ({ slot: t.slot, item: t.item, words: t.words })),
+  };
+}
+
+/** The interior as the snapshot's map: walls, the door, floor. */
+function insideMap(v: InsideView): Snapshot["map"] {
+  const c = insideCtx()!;
+  const int = interiorAt(c, v.building);
+  const tiles: TileKind[][] = [];
+  for (let y = 0; y < int.h; y++) tiles.push(Array.from({ length: int.w }, (_, x) => { const t = int.tiles[y * int.w + x]; return t === ITILE.wall ? "wall" : t === ITILE.door ? "door" : "floor"; }));
+  return { id: `in:${town.site()}:${v.building}`, name: v.name, w: int.w, h: int.h, tiles, buildings: [], talkRange: TALK_RANGE, exits: [], zones: [] };
+}
+
+/** The door of a building next to the player in a village, and whether it's locked to them (N32). */
+function doorBeside(): { building: number; name: string; locked: boolean } | null {
+  const c = insideCtx();
+  const pos = world.position;
+  if (!c || !pos) return null;
+  const i = c.map.buildings.findIndex((b) => { const d = doorOf(c.map.tiles, b); return !!d && Math.abs(d.x - pos.x) + Math.abs(d.y - pos.y) === 1; });
+  if (i < 0) return null;
+  const h = householdOf(c, i);
+  const anyone = peopleInside(c, i).length > 0;
+  const welcome = h.members.some((r) => r.persona && (agents[r.persona]?.state.relationship ?? 0) >= 40);
+  return { building: i, name: c.map.buildings[i]!.name || (h.owner ? `${h.owner.name}'s house` : "the house"), locked: !welcome && lockedNow(h, world.hour, anyone) };
+}
+
+/** Step out of a building to the street before its door. */
+function leaveBuilding(building: number): void {
+  const b = here().buildings[building];
+  delete world.player.inside;
+  if (b) world.position = { ...(b.front ?? { x: b.x, y: b.y + b.h }) };
+  crowd = null;
+}
+
 function snapshot(): Snapshot {
   // The chronicle's news, from background work, joins the feed.
   for (const text of town.takeNews()) pushNews({ t: "system", text });
   const p = world.player;
   const roadView = town.road.view();
+  const insideNow = !roadView && p.inside && p.inside.site === town.site() && world.realm && town.store ? insideView() : null;
   return {
     llm: { ready: llmReady, error: llmError },
     map: roadView
       ? { id: "road", name: roadView.where, w: 1, h: 1, tiles: [["path"]], buildings: [], talkRange: TALK_RANGE, exits: [], zones: [] }
-      : { id: here().id, name: here().name, w: here().w, h: here().h, tiles: here().tiles, buildings: here().buildings, talkRange: TALK_RANGE, exits: here().exits.map((e) => ({ x: e.x, y: e.y, label: e.label })), zones: here().zones },
+      : insideNow
+        ? insideMap(insideNow)
+        : { id: here().id, name: here().name, w: here().w, h: here().h, tiles: here().tiles, buildings: here().buildings, talkRange: TALK_RANGE, exits: here().exits.map((e) => ({ x: e.x, y: e.y, label: e.label })), zones: here().zones },
     crowd: (() => {
+      if (insideNow) return null;
       const sim = crowdHere();
       if (!sim) return null;
       const told = town.toldLately();
@@ -617,9 +703,15 @@ function snapshot(): Snapshot {
     timeFlowSeconds: config.timeFlowSeconds,
     site: siteView(),
     time: { text: formatTime(world), day: world.day, hour: world.hour, minute: world.minute ?? 0, timeOfDay: world.timeOfDay, today: describeToday(world), ...todayInfo(world) },
-    position: roadView && p.road ? { x: p.road.x, y: p.road.y } : world.position!,
+    position: roadView && p.road ? { x: p.road.x, y: p.road.y } : insideNow ? { x: p.inside!.x, y: p.inside!.y } : world.position!,
     road: roadView,
+    inside: insideNow,
+    door: !roadView && !insideNow ? doorBeside() : null,
     player: {
+      follows: Object.entries(p.follows ?? {}).map(([id, f]) => ({ id, name: f.name, why: f.why, last: f.lastKnown ? `${f.lastKnown.dead ? "dead, heard" : `last known in ${world.realm?.settlements[f.lastKnown.site ?? ""]?.name ?? "parts unknown"}`} (day ${f.lastKnown.day}, ${f.lastKnown.how})` : "not heard of since", news: f.heard.map((h) => `day ${h.day}: ${h.text} (${h.from})`) })),
+      letters: (p.letters ?? []).map((l) => ({ from: l.fromName, day: l.written, text: l.text })),
+      nature: natureView(p, town.road.onRoad() ? null : town.site(), town.store ?? null),
+      wilds: { known: Object.keys(p.map?.pois ?? {}).length, lost: !!p.map?.lost, finds: unreported(p).map((f) => ({ id: f.id, name: f.name, kind: f.kind })) },
       name: p.name,
       money: p.money,
       hp: p.hp,
@@ -704,8 +796,8 @@ function snapshot(): Snapshot {
           }))
         : [],
     },
-    npcs: local().filter((id) => !agents[id]!.state.dormant).map(npcView),
-    creatures: presentCreatures()
+    npcs: insideNow ? [] : local().filter((id) => !agents[id]!.state.dormant).map(npcView),
+    creatures: (insideNow ? [] : presentCreatures())
       .filter((c) => c.pos)
       .map((c) => {
         const t = creatureTemplates[c.template]!;
@@ -730,7 +822,13 @@ function snapshot(): Snapshot {
       // The road's wild animals (N26F): drawn where the shared formula puts them; hunting one makes it a creature.
       .concat(
         town.road.onRoad()
-          ? wildNear(town).map((w) => ({ uid: w.id, name: w.n > 1 ? `${w.n} ${w.kind === "deer" ? "deer" : `${w.kind}s`}` : w.kind, kind: w.kind, x: w.x, y: w.y, color: CREATURE_COLORS[w.kind] ?? "#8a7a5f", hp: 1, maxHp: 1, rank: "G", age: 0, growth: "wild", titles: [], aggressive: w.kind === "adder", engaged: false }))
+          ? wildNear(town)
+              .map((w) => ({ uid: w.id, name: w.n > 1 ? `${w.n} ${w.kind === "deer" ? "deer" : `${w.kind}s`}` : w.kind, kind: w.kind as string, x: w.x, y: w.y, color: CREATURE_COLORS[w.kind] ?? "#8a7a5f", hp: 1, maxHp: 1, rank: "G" as const, age: 0, growth: "wild", titles: [] as never[], aggressive: w.kind === "adder", engaged: false }))
+              // Fauna off the road as well (N28): the species files' animals where the shared formula puts them.
+              .concat(animalsNear(town).map((g) => {
+                const def = loadSpecies().animals[g.species]!;
+                return { uid: g.id, name: g.n > 1 ? `${g.n} ${def.plural}` : def.name, kind: g.species, x: g.x, y: g.y, color: CREATURE_COLORS[def.creature ?? g.species] ?? "#8a7a5f", hp: 1, maxHp: 1, rank: "G" as const, age: 0, growth: "wild", titles: [] as never[], aggressive: false, engaged: false };
+              }))
           : [],
       ),
     engaged,
@@ -948,6 +1046,43 @@ async function act(body: Record<string, unknown>, emit: Emit): Promise<void> {
     if (op === "labour" && r.ok) for (const line of passHours(10)) emit({ t: "system", text: line });
     return;
   }
+  // Inside buildings (N32): pick a lock, search the furniture beside you, take what's in it, go out.
+  if (action === "picklock" || action === "search" || action === "take" || action === "leave") {
+    const c = insideCtx();
+    if (!c) return void emit({ t: "system", text: "There's no door here." });
+    let lines: string[] = [];
+    if (action === "picklock") {
+      const pos = world.position!;
+      const i = here().buildings.findIndex((b) => { const d = doorOf(here().tiles, b); return !!d && Math.abs(d.x - pos.x) + Math.abs(d.y - pos.y) <= 1; });
+      lines = i >= 0 ? enter(c, i, true).lines : ["There's no door here."];
+    } else if (action === "search") lines = search(c);
+    else if (action === "take") lines = take(c, String(body.slot ?? ""), String(body.item ?? ""));
+    else if (world.player.inside) {
+      leaveBuilding(world.player.inside.building);
+      lines = ["You go out."];
+    }
+    for (const text of lines) emit({ t: "note", kind: "action", text });
+    for (const line of walkMinutes(action === "picklock" || action === "search" ? 5 : 1)) emit({ t: "system", text: line });
+    return;
+  }
+  // Following people (N34).
+  if (action === "follow" || action === "unfollow") {
+    const id = String(body.npc ?? "");
+    const persona = personas[id];
+    const row = town.store?.people.get(id);
+    const name = persona?.name ?? row?.name ?? id;
+    const text = action === "follow" ? follow(world.player, id, name, "chosen", world.day, { site: row?.site ?? town.site(), how: "you saw them there" }) : unfollow(world.player, id);
+    return void emit({ t: "note", kind: "action", text });
+  }
+  if (action === "write") {
+    if (!world.realm || town.road.onRoad()) return void emit({ t: "system", text: "Write from a town or village, where travellers set out." });
+    return void emit({ t: "note", kind: "action", text: playerWrites(world.realm, roadDataOf(world.realm), world.player, town.site(), String(body.to ?? ""), String(body.text ?? ""), world.day) });
+  }
+  if (action === "reportfind") {
+    // A find in the wilds told to the head of the place (N27).
+    for (const text of reportFind(town, String(body.find ?? ""))) emit({ t: "note", kind: "action", text });
+    return;
+  }
   if (action === "gate") {
     // At a closed quarter's gate (N26H): a bribe, sneaking past, or forcing it.
     const op = String(body.op ?? "");
@@ -977,6 +1112,22 @@ async function act(body: Record<string, unknown>, emit: Emit): Promise<void> {
     return;
   }
   if (action === "eat") return void emit({ t: "note", kind: "action", text: town.road.eat(String(body.item ?? ""))[0]! });
+  // Something gathered (N28): brewed into a tea, or pressed to a wound.
+  if (action === "brew" || action === "apply") {
+    for (const text of useWildItem(town, String(body.item ?? ""), action === "brew" ? "brewed" : "applied")) emit({ t: "note", kind: "action", text });
+    return;
+  }
+  if (action === "tame") {
+    for (const text of tameStray(town)) emit({ t: "note", kind: "action", text });
+    return;
+  }
+  if (action === "identify") {
+    // Show what's been gathered to the place's herbalist (N28).
+    const herb = town.store ? (town.store.people.loadSite(town.site(), "coarse") as Array<{ name: string; job: string }>).find((r) => r.job === "herbalist") : undefined;
+    if (!herb) return void emit({ t: "system", text: "There's no herbalist here." });
+    for (const text of showToHerbalist(world.player, herb.name)) emit({ t: "note", kind: "action", text });
+    return;
+  }
   if (action === "drink") return void emit({ t: "note", kind: "action", text: town.road.drinkHere()[0]! });
   if (action === "mount") {
     const op = String(body.op ?? "");
@@ -987,9 +1138,29 @@ async function act(body: Record<string, unknown>, emit: Emit): Promise<void> {
   if (action === "wait") {
     const fighting = Object.values(agents).some((a) => a.state.inCombat) || (engaged !== null && creatureById(engaged) !== undefined && !creatureById(engaged)!.outcome);
     if (fighting) return void emit({ t: "system", text: "You can't wait around in the middle of a fight." });
+    // Waiting goes through the time engine (N35): it stops early for danger, and says what you heard.
     const hours = Math.max(1, Math.min(24, Math.floor(Number(body.hours ?? 1))));
-    for (const line of passHours(hours)) emit({ t: "system", text: line });
+    const r = passUntil(town, { maxHours: hours, conditions: [], step: passHours });
+    for (const line of r.log) emit({ t: "system", text: line });
+    if (r.stoppedBy || r.heard.length > 0) for (const line of summaryLines(r)) emit({ t: "note", kind: "action", text: line });
     emit({ t: "system", text: `Time passes. It's now ${formatTime(world)}.` });
+    return;
+  }
+  if (action === "waituntil") {
+    // "Wake me when…" and skips (N35): until something happens to someone you follow, the season turns, the next day, a market or festival, new work.
+    const fighting = Object.values(agents).some((a) => a.state.inCombat) || (engaged !== null && creatureById(engaged) !== undefined && !creatureById(engaged)!.outcome);
+    if (fighting) return void emit({ t: "system", text: "You can't wait around in the middle of a fight." });
+    if (town.road.onRoad()) return void emit({ t: "system", text: "Find a place to stay first: waiting long is done in a town, a village or an inn." });
+    const until = String(body.until ?? "day");
+    const who = String(body.who ?? "");
+    if (until === "arrives" && !town.store?.people.get(who)) return void emit({ t: "system", text: "You've no way to know when they'd come." });
+    // "time": until the next time the clock shows that hour (morning is six).
+    const at = Math.max(0, Math.min(23, Math.floor(Number(body.hour ?? 6))));
+    const nowHour = (world.day - 1) * 24 + world.hour;
+    const conditions: WakeCondition[] = until === "followed" ? [{ kind: "followed" }] : until === "season" ? [{ kind: "season" }] : until === "job" ? [{ kind: "job" }] : until === "market" ? [{ kind: "market" }] : until === "festival" ? [{ kind: "festival" }] : until === "arrives" ? [{ kind: "arrives", who }] : until === "time" ? [{ kind: "time", at: nowHour + (((at - world.hour + 23) % 24) + 1) }] : [];
+    const r = passUntil(town, { maxHours: until === "day" ? 24 : maxSkipHours(), conditions, step: passHours });
+    for (const line of summaryLines(r)) emit({ t: "note", kind: "action", text: line });
+    emit({ t: "system", text: `It's now ${formatTime(world)}.` });
     return;
   }
 
@@ -1017,6 +1188,9 @@ async function act(body: Record<string, unknown>, emit: Emit): Promise<void> {
     setScene(id);
     // What they know of the wider world, now (N33): the townsfolk they talked to, the travellers who passed.
     town.syncTalker(id);
+    // A traveller, a trader or a courier tells the way they know (N26 Part C).
+    const way = town.toldTheWay(id);
+    if (way) emit({ t: "note", kind: "action", text: way });
     emit({ t: "opened", npc: id });
     // They may speak first (N6.3): a job they gave you, a promise due, a greeting.
     if (!agent.state.inCombat && !agent.busyWith(world) && llmReady) {
@@ -1380,6 +1554,29 @@ function move(dx: number, dy: number): { ok: boolean; log: string[]; reason?: st
   }
   engaged = null;
   if (town.road.onRoad()) return roadMove(dx, dy);
+  // Inside a building (N32): steps on its floor; the door leads back out.
+  if (world.player.inside) {
+    const c = insideCtx();
+    if (!c) {
+      delete world.player.inside;
+      return { ok: false, log: [] };
+    }
+    const building = world.player.inside.building;
+    const r = stepInside(c, Math.sign(dx), Math.sign(dy));
+    if (!r.ok) return { ok: false, log: r.lines };
+    if (r.out) leaveBuilding(building);
+    return { ok: true, log: [...r.lines, ...walkMinutes(MINUTES_PER_STEP)] };
+  }
+  // Onto a building's door: in, if the door opens (N32).
+  if (here().tiles[ny]?.[nx] === "door" && town.area() === "village") {
+    const c = insideCtx();
+    const i = here().buildings.findIndex((b) => nx >= b.x && nx < b.x + b.w && ny >= b.y && ny < b.y + b.h);
+    if (c && i >= 0) {
+      const r = enter(c, i);
+      if (!r.ok) return { ok: false, log: r.lines, reason: r.lines[0] ?? "" };
+      return { ok: true, log: [...r.lines, ...walkMinutes(MINUTES_PER_STEP)] };
+    }
+  }
   if (here().isSolid(nx, ny)) return { ok: false, log: [] };
   // Into a closed quarter (N26H): the gate's guard lets the player through, or says why not.
   const into = districtAt(here().districts, nx, ny);
@@ -1526,6 +1723,12 @@ function afterCreatureRound(c: Creature, round: CreatureRound): string[] {
 function creatureAction(action: "hunt" | "escape", uid: string, emit: Emit): void {
   // A wild animal by the road (N26F) becomes a creature when the player goes after it.
   if (action === "hunt" && uid.startsWith("a:") && !creatureById(uid) && town.road.onRoad()) emit({ t: "note", kind: "combat", text: promoteWild(town, uid).line });
+  // An animal of the species files (N28): a fight if it has a creature, else a hunt with a single check.
+  if (action === "hunt" && uid.startsWith("n:") && !creatureById(uid) && town.road.onRoad()) {
+    const r = huntAnimal(town, uid);
+    for (const text of r.lines) emit({ t: "note", kind: "combat", text });
+    if (!r.creature) return;
+  }
   const c = creatureById(uid);
   const t = c && creatureTemplates[c.template];
   if (!c || !t || c.outcome || !c.pos) return void emit({ t: "system", text: "There's nothing there to fight." });
@@ -1674,7 +1877,7 @@ async function runAct(body: Record<string, unknown>, emit: Emit): Promise<void> 
       turnActions = [];
       try {
         // Waiting, opening a chat and fighting creatures need no model.
-        const offline = ["travel", "wait", "open", "hunt", "escape", "equip", "unequip", "look", "retrieve", "raise", "join", "dismiss", "forage", "craft", "sneak", "loot", "payfine", "surrender", "joinguild", "delve", "situation", "camp", "fasttravel", "coach", "joinjourney", "rob", "roadplace", "eat", "drink", "mount", "insult", "confront"].includes(String(body.action));
+        const offline = ["travel", "wait", "open", "hunt", "escape", "equip", "unequip", "look", "retrieve", "raise", "join", "dismiss", "forage", "craft", "sneak", "loot", "payfine", "surrender", "joinguild", "delve", "situation", "camp", "fasttravel", "coach", "joinjourney", "rob", "roadplace", "eat", "drink", "mount", "insult", "confront", "reportfind", "brew", "apply", "tame", "identify", "picklock", "search", "take", "leave", "follow", "unfollow", "write", "waituntil"].includes(String(body.action));
         if (!llmReady && !offline) await checkLlm();
         if (!llmReady && !offline) emit({ t: "error", text: llmError });
         else await act(body, emit);
@@ -1705,6 +1908,7 @@ const viewHost: ViewHost = {
   crowd: crowdHere,
   land: () => (world.realm ? landOf(world.realm) : null),
   roadData: () => (world.realm ? roadDataOf(world.realm) : null),
+  marks: () => (world.realm && !town.road.onRoad() && world.player.area === undefined ? marksToDraw(world.realm, town.store ?? null, town.site(), world.day, here()) : []),
   fieldStages: (x0, y0, w, h) => (world.realm && town.store ? fieldStagesIn(world.realm, town.store, x0, y0, w, h, world.day) : new Map()),
   commuters: (radius) =>
     commutersNear(town, radius).map((c) => ({ id: c.person, x: c.x, y: c.y, name: c.name, role: c.job, kind: "work", purpose: c.where === "working" ? `at work at ${c.to.startsWith("woods") ? "the woods" : "the mine"}` : `${c.where} ${c.to.startsWith("woods") ? "to the woods" : "to the mine"}${c.cargo ? ", with the day's ore" : ""}`, from: world.realm?.settlements[c.from]?.name ?? c.from, to: c.to, journey: "" })),

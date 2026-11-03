@@ -1,0 +1,41 @@
+{
+  "id": "wood_pigeon",
+  "kind": "animal",
+  "name": "wood pigeon",
+  "plural": "wood pigeons",
+  "class": "bird",
+  "biomes": {
+    "forest": 0.8,
+    "plains": 0.8,
+    "valley": 1
+  },
+  "seasons": {
+    "spring": 1,
+    "summer": 1,
+    "autumn": 1,
+    "winter": 1
+  },
+  "abundance": 0.6,
+  "group": {
+    "min": 2,
+    "max": 10
+  },
+  "active": "day",
+  "flees": 10,
+  "signs": [],
+  "products": [
+    {
+      "item": "pigeon meat",
+      "qty": [
+        1,
+        1
+      ]
+    }
+  ],
+  "rarity": "common",
+  "hunt": {
+    "skill": "hunting",
+    "difficulty": 10
+  },
+  "lore": {}
+}

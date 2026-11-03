@@ -1,0 +1,38 @@
+{
+  "id": "ash",
+  "kind": "plant",
+  "name": "ash",
+  "class": "tree",
+  "biomes": {
+    "forest": 0.8,
+    "valley": 0.8
+  },
+  "calendar": {
+    "bud": [
+      0.1,
+      0.25
+    ],
+    "flower": [
+      0.0,
+      0.1
+    ],
+    "fruit": [
+      0.55,
+      0.75
+    ],
+    "dormant": [
+      0.75,
+      1.0
+    ]
+  },
+  "cover": 0.3,
+  "products": [],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 4
+  },
+  "regrowDays": 8,
+  "rarity": "common",
+  "effects": [],
+  "lore": {}
+}

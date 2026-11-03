@@ -212,6 +212,9 @@
                         "type": "null"
                       }
                     ]
+                  },
+                  "smoke": {
+                    "type": "boolean"
                   }
                 },
                 "required": [
@@ -321,6 +324,222 @@
                   "y",
                   "text",
                   "kind"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "sound": {
+              "type": "object",
+              "properties": {
+                "where": {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "site",
+                        "road",
+                        "interior"
+                      ]
+                    },
+                    "area": {
+                      "type": "string"
+                    },
+                    "biome": {
+                      "type": "string"
+                    },
+                    "building": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ],
+                  "additionalProperties": false
+                },
+                "minute": {
+                  "type": "number"
+                },
+                "season": {
+                  "type": "string"
+                },
+                "weather": {
+                  "type": "string"
+                },
+                "near": {
+                  "type": "object",
+                  "properties": {
+                    "people": {
+                      "type": "number"
+                    },
+                    "working": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "number"
+                      }
+                    },
+                    "chatting": {
+                      "type": "number"
+                    },
+                    "children": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "people",
+                    "working",
+                    "chatting",
+                    "children"
+                  ],
+                  "additionalProperties": false
+                },
+                "buildings": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "type": "string"
+                      },
+                      "d": {
+                        "type": "number"
+                      },
+                      "dx": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "d",
+                      "dx"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "wildlife": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "species": {
+                        "type": "string"
+                      },
+                      "d": {
+                        "type": "number"
+                      },
+                      "dx": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "species",
+                      "d",
+                      "dx"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "water": {
+                  "type": "string",
+                  "enum": [
+                    "river",
+                    "sea"
+                  ]
+                },
+                "predatorsNear": {
+                  "type": "boolean"
+                },
+                "mood": {
+                  "type": "object",
+                  "properties": {
+                    "grief": {
+                      "type": "number"
+                    },
+                    "fear": {
+                      "type": "number"
+                    },
+                    "joy": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "grief",
+                    "fear",
+                    "joy"
+                  ],
+                  "additionalProperties": false
+                },
+                "curfew": {
+                  "type": "boolean"
+                },
+                "events": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "where",
+                "minute",
+                "season",
+                "weather",
+                "near",
+                "buildings"
+              ],
+              "additionalProperties": false
+            },
+            "marks": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "burned",
+                      "ruin",
+                      "scaffold",
+                      "grave",
+                      "stall_empty",
+                      "banner",
+                      "guards",
+                      "boarded",
+                      "memorial"
+                    ]
+                  },
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  },
+                  "w": {
+                    "type": "number"
+                  },
+                  "h": {
+                    "type": "number"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "colour": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "kind",
+                  "x",
+                  "y",
+                  "w",
+                  "h"
                 ],
                 "additionalProperties": false
               }
@@ -528,6 +747,9 @@
                 },
                 "season": {
                   "type": "string"
+                },
+                "snow": {
+                  "type": "boolean"
                 }
               },
               "required": [

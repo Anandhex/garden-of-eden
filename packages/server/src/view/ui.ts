@@ -81,9 +81,9 @@ function header(s: Snapshot, st: UiState): UiModel["header"] {
   const busy = st.busy;
   return {
     place: where,
-    placeTip: `${s.site.name}, a ${s.site.kind}${s.site.kingdom ? ` of ${s.site.kingdom}` : ""}. Travel from the Realm tab.${ways}`,
+    placeTip: `${s.site.name}, a ${s.site.kind}${s.site.kingdom ? ` of ${s.site.kingdom}` : ""}.${s.site.mood ? ` ${s.site.mood}` : ""} Travel from the Realm tab.${ways}`,
     clock: s.time.text,
-    today: `${s.time.weather}, ${s.time.season}${s.time.events.length ? ` · ${s.time.events.join(", ")}` : ""}`,
+    today: `${s.time.weather}, ${s.time.season}${s.time.events.length ? ` · ${s.time.events.join(", ")}` : ""}${s.site.mood && !s.road ? ` · ${s.site.mood.replace(/^.*? is (\w+).*$/, "$1")}` : ""}`,
     todayTip: s.time.today,
     hp: `HP ${s.player.hp}/${s.player.maxHp}`,
     mp: `MP ${s.player.mp}/${s.player.maxMp}`,
@@ -96,6 +96,14 @@ function header(s: Snapshot, st: UiState): UiModel["header"] {
       button("sneak", "Sneak", act("sneak"), { enabled: !busy, why: "Try to move unseen here" }),
       button("wait1", "Wait 1h", act("wait", { hours: 1 }), { enabled: !busy }),
       button("wait4", "Wait 4h", act("wait", { hours: 4 }), { enabled: !busy }),
+      // Wake me when… and skips (N35).
+      button("waitday", "Skip a day", act("waituntil", { until: "day" }), { enabled: !busy && !s.road, why: "A day passes; you're told what you heard" }),
+      button("waitfollow", "Wait for news", act("waituntil", { until: "followed" }), { enabled: !busy && !s.road && !!s.player.follows?.length, why: "Until you hear of someone you follow (a season at most)" }),
+      button("waitmorning", "Until morning", act("waituntil", { until: "time", hour: 6 }), { enabled: !busy && !s.road, why: "Until six in the morning; danger wakes you" }),
+      button("waitmarket", "Until market day", act("waituntil", { until: "market" }), { enabled: !busy && !s.road, why: "Until the market opens here" }),
+      button("waitfestival", "Until the festival", act("waituntil", { until: "festival" }), { enabled: !busy && !s.road, why: "Until the season's festival begins (a season at most)" }),
+      button("waitjob", "Until new work", act("waituntil", { until: "job" }), { enabled: !busy && !s.road, why: "Until someone here posts a new job" }),
+      button("waitseason", "Skip the season", act("waituntil", { until: "season" }), { enabled: !busy && !s.road, why: "Until the season turns; danger wakes you" }),
       button("newgame", "New game", { t: "newGame" }, { style: "ghost" }),
     ],
     time: { flows: st.timeFlows, shown: s.timeFlowSeconds > 0 },
@@ -174,6 +182,9 @@ function chat(s: Snapshot, st: UiState): UiModel["chat"] {
   if (npc.wares.length > 0) tool("wares", "Wares", panel("wares"));
   if (npc.repairs) tool("repair", "Repair…", panel("repair"));
   tool("look", "Look", on("look"));
+  // Following (N34): keep an ear out for news of them, and their letters.
+  if (p.follows?.some((f) => f.id === npc.id)) tool("unfollow", "Stop following", on("unfollow"));
+  else tool("follow", "Follow", on("follow"), undefined, "Keep track of them: news of them and their letters reach you");
   if (npc.knowsYouAs !== p.name) tool("introduce", "Introduce yourself", on("introduce"));
   tool("give", "Give…", panel("give"));
   tool("favour", "Ask a favour…", panel("favour"));
@@ -250,7 +261,11 @@ function invTab(s: Snapshot, busy: boolean): Section[] {
     const name = it.item.replace(/ \[.*$/, "");
     const acts: UiAction[] = [];
     // Food and drink (N26): eaten on the road or anywhere; a mount eats what it can.
-    if (/^(bread loaf|stew|eggs|turnips|ale|wild herbs)\b/.test(it.item)) acts.push(button(`eat:${it.item}`, "Eat", act("eat", { item: name }), { enabled: !busy }));
+    const uses = p.nature?.uses[name] ?? [];
+    if (/^(bread loaf|stew|eggs|turnips|ale|wild herbs)\b/.test(it.item) || uses.includes("eat")) acts.push(button(`eat:${it.item}`, "Eat", act("eat", { item: name }), { enabled: !busy }));
+    // Gathered herbs (N28): brewed into a tea, or pressed to a wound.
+    if (uses.includes("brew")) acts.push(button(`brew:${it.item}`, "Brew", act("brew", { item: name }), { enabled: !busy }));
+    if (uses.includes("apply")) acts.push(button(`apply:${it.item}`, "Apply", act("apply", { item: name }), { enabled: !busy }));
     if (s.road?.mount && /^(turnips|bread loaf|wild herbs)\b/.test(it.item)) acts.push(button(`feed:${it.item}`, "Feed", act("mount", { op: "feed", item: name }), { enabled: !busy }));
     if (it.slot) acts.push(button(`equip:${it.item}`, "Equip", act("equip", { item: it.item }), { enabled: !busy && !it.needs, ...(it.needs ? { why: it.needs } : {}) }));
     t.kv(it.item, `×${it.qty}`, acts);
@@ -339,6 +354,39 @@ function realmTab(s: Snapshot, st: UiState): Section[] {
   } else if (place && place.id === s.site.id) t.p("Click a place on the map to see the road there.");
   const near = s.site.destinations.slice(0, 5);
   if (near.length) t.row({ text: "Nearest:", actions: near.map((d) => button(`travel:${d.id}`, `${d.name} · ${hoursWords(d.hours)}`, act("travel", { to: d.id }), { enabled: !busy, why: d.dangers.length ? `On the way: ${d.dangers.join(", ")}` : "A quiet road" })) });
+  // The wilds (N27): what the player knows off the road, and finds to report here.
+  const wild = s.player.wilds;
+  if (wild && (wild.known > 0 || wild.finds.length > 0)) {
+    t.h("The wilds");
+    t.p(`You know of ${wild.known} place${wild.known === 1 ? "" : "s"} off the road.${wild.lost ? " You're lost." : ""}`);
+    for (const f of wild.finds) t.row({ text: `${f.name} (${f.kind})`, actions: s.road ? [] : [button(`reportfind:${f.id}`, `Report to ${s.site.name}`, act("reportfind", { find: f.id }), { enabled: !busy, why: "Tell whoever runs the place: they pay for finds worth having" })] });
+  }
+  // Following people (N34): where the player last knew each to be, and what they last heard; letters; write back.
+  if (s.player.follows?.length) {
+    t.h(`People you follow (${s.player.follows.length})`);
+    for (const f of s.player.follows) {
+      t.row({ text: `${f.name} (${f.why}): ${f.last}`, actions: s.road ? [] : [button(`write:${f.id}`, "Write", act("write", { to: f.id }), { enabled: !busy, input: { arg: "text", placeholder: "A few lines…" }, why: "Leave a letter for the next traveller going their way" }), button(`waitfor:${f.id}`, "Wait for them", act("waituntil", { until: "arrives", who: f.id }), { enabled: !busy, why: "Wait here until they come to this place (a season at most)" }), button(`unfollow:${f.id}`, "Stop", act("unfollow", { npc: f.id }), { enabled: !busy, style: "ghost" })] });
+      for (const n of f.news.slice(-2)) t.p(`· ${n}`);
+    }
+  }
+  if (s.player.letters?.length) {
+    t.h("Letters");
+    for (const l of s.player.letters.slice(-5).reverse()) t.p(`From ${l.from}, day ${l.day}: "${l.text}"`);
+  }
+  // Fauna and flora (N28): the bestiary and herbarium, pets, and the place's stray and herbalist.
+  const nat = s.player.nature;
+  if (nat) {
+    if (!s.road && (nat.stray || nat.herbalist)) {
+      t.h("About the place");
+      if (nat.stray) t.row({ text: nat.taming ? `The stray: ${nat.taming}` : "A stray dog hangs about. It might be won over with food, a day at a time.", actions: [button("tame", "Feed the stray", act("tame"), { enabled: !busy })] });
+      if (nat.herbalist) t.row({ text: `${nat.herbalist} the herbalist will look over what you've gathered.`, actions: [button("identify", "Show your gatherings", act("identify"), { enabled: !busy })] });
+    }
+    if (nat.pets.length > 0) t.p(`With you: ${nat.pets.join(", ")}.`);
+    if (nat.entries.length > 0) {
+      t.h(`Bestiary and herbarium (${nat.entries.length})`);
+      for (const e of nat.entries) t.kv(`${e.name} [${e.kind}]`, e.text || "seen");
+    }
+  }
   // Adventuring.
   t.h("Adventuring");
   const adv = s.adventurer;
@@ -374,8 +422,21 @@ const JOINABLE = ["caravan", "pilgrims", "adventurers", "patrol", "migrants", "r
 
 function roadbar(s: Snapshot, st: UiState): UiModel["roadbar"] {
   const r = s.road;
-  if (!r) return { shown: false, items: [], actions: [] };
   const busy = st.busy;
+  // Inside a building (N32): whose, who's in, what's within reach; search, take, leave.
+  const ins = s.inside;
+  if (ins) {
+    const items: UiModel["roadbar"]["items"] = [{ text: `Inside ${ins.name}${ins.owner ? ` (${ins.owner}'s)` : ""}` }];
+    if (ins.trespass) items.push({ text: "You've no business here: trespassing" });
+    items.push({ text: ins.people.length ? ins.people.map((q) => `${q.name.split(" ")[0]} (${q.doing})`).join(", ") : "Nobody's in", dim: true });
+    const actions: UiAction[] = [button("search", "Search what's beside you", act("search"), { enabled: !busy, why: "Look in the chest, the desk, the shelf next to you; a careful search finds what's hidden" })];
+    for (const t of ins.takeable) actions.push(button(`take:${t.slot}:${t.item}`, `Take ${t.words}`, act("take", { slot: t.slot, item: t.item }), { enabled: !busy, ...(ins.owner ? { style: "danger" as const, why: "Not yours: theft, if anyone sees" } : {}) }));
+    actions.push(button("leave", "Go out", act("leave"), { enabled: !busy }));
+    return { shown: true, items, actions };
+  }
+  // At a locked door (N32): pick the lock, if you dare.
+  if (!r && s.door?.locked) return { shown: true, items: [{ text: `The door of ${s.door.name} is locked` }], actions: [button("picklock", "Pick the lock", act("picklock"), { enabled: !busy, style: "danger", why: "Lockpicking; going in uninvited is trespass" })] };
+  if (!r) return { shown: false, items: [], actions: [] };
   const items: UiModel["roadbar"]["items"] = [{ text: r.off ? `Off the road (${r.off} tiles) · ${r.where}` : r.where }];
   for (const e of r.ends) items.push({ text: `${e.name}: ${e.walk}`, dim: true });
   const actions: UiAction[] = [];
@@ -385,6 +446,8 @@ function roadbar(s: Snapshot, st: UiState): UiModel["roadbar"] {
     if (r.canFast) actions.push(button("fasttravel", "Fast travel", act("fasttravel"), { enabled: !busy, why: "Along stretches you've walked before; stops for anything worth stopping for" }));
   }
   if (r.inn) items.push({ text: `An inn nearby: ${r.inn.name}`, dim: true });
+  if (r.lost) items.push({ text: "You're not sure where you are" });
+  for (const c of r.closed ?? []) items.push({ text: `Snowed in: ${c.replace(/ is snowed in$/, "")}`, dim: true });
   if (r.needs) {
     items.push({ text: "food", need: r.needs.food }, { text: "water", need: r.needs.water }, { text: "rest", need: r.needs.rest });
     if (r.needs.words) items.push({ text: r.needs.words, dim: true });

@@ -26,6 +26,8 @@ export interface ViewHost {
   roadData(): RoadData | null;
   /** The fields in a rectangle of the road world (N26G): each plot tile's stage (0..7 growing, 10+ a mark), keyed "x,y". */
   fieldStages?(x0: number, y0: number, w: number, h: number): Map<string, number>;
+  /** The marks on the place the player is in (N31): burned houses, scaffolding, graves, banners, empty stalls. */
+  marks?(): import("@millbrook/shared/view").Mark[];
   /** The journeys within `radius` tiles of the player on the road now. */
   journeysNear(radius: number): Journey[];
   /** People walking to work along the road near the player (N26F decision 12): miners, hunters, the ore cart, the watch. */

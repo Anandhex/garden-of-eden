@@ -644,6 +644,20 @@ export interface PlayerState {
   area?: AreaId;
   /** On the open road between places (N26): where, and what they've asked and paid. `site` stays the place they set out from. */
   road?: RoadState;
+  /** Roads the player knows of without having walked them (N26 Part C1): told the way at an inn, or on a bought map. */
+  knownRoads?: string[];
+  /** The places off the road they know of, and being lost (N27, game/road/wildPlaces.ts). */
+  map?: import("../game/road/wildPlaces.js").WildState;
+  /** People the player keeps track of (N34, game/follow/follow.ts): what they've heard and where they last knew them to be. */
+  follows?: Record<string, import("../game/follow/follow.js").FollowEntry>;
+  /** Letters that reached the player (N34, game/follow/letters.ts), newest last. */
+  letters?: import("../game/follow/letters.js").Letter[];
+  /** Inside a building (N32, game/interior/inside.ts): which, where, and whether uninvited. */
+  inside?: import("../game/interior/inside.js").InsideState;
+  /** The player's own home (N66 gives them one; N32's doors already let them in): a building of a place. */
+  home?: { site: string; building: number };
+  /** Fauna and flora (N28, game/nature/wild.ts): the bestiary and herbarium, patches gathered, mistaken gatherings, pets. */
+  nature?: import("../game/nature/wild.js").NatureState;
   /** A chapter of the player's life that limits what they can do (N26J step 3): held captive by a gang. */
   chapter?: import("../game/law/taken.js").Chapter;
   /** The player's rank in society (N26H; N66 lets it change): commoner unless something has raised them. */

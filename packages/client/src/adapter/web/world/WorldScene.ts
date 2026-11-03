@@ -14,6 +14,7 @@ import { SHEET_NAMES, sheetsLoaded } from "../art";
 import { Bubble, DPR, font, Sprite } from "./actors";
 import { Atmosphere } from "./atmosphere";
 import { BuildingLayer } from "./buildings";
+import { MarksLayer } from "./marks";
 import { DEPTH } from "./depth";
 import { fpsWanted, mountFpsOverlay, nearestShown } from "./fps";
 import { GroundLayer } from "./ground";
@@ -43,6 +44,7 @@ export class WorldScene extends Phaser.Scene {
   origin = { x: 0, y: 0 };
   private ground!: GroundLayer;
   private buildings!: BuildingLayer;
+  private marksLayer!: MarksLayer;
   private lighting!: Lighting;
   private atmosphere!: Atmosphere;
   private look: LookPrefs = lookPrefs();
@@ -101,6 +103,7 @@ export class WorldScene extends Phaser.Scene {
     this.lighting = new Lighting(this);
     this.ground = new GroundLayer(this, POOL_W, POOL_H);
     this.buildings = new BuildingLayer(this);
+    this.marksLayer = new MarksLayer(this);
     this.atmosphere = new Atmosphere(this, this.look);
     this.hover = this.add.graphics().setDepth(DEPTH.hover);
     this.prompt = this.add.text(0, 0, "", font(13, "#ffd27a")).setOrigin(0.5, 0).setDepth(DEPTH.prompt).setResolution(DPR);
@@ -196,6 +199,11 @@ export class WorldScene extends Phaser.Scene {
       change = { ...change, lights: true };
     }
     if (change.signs) this.drawSigns();
+    // Marks (N31) and chimney smoke, drawn again when they or the buildings change (or the map does).
+    if (change.marks || change.whole || change.buildings) {
+      this.marksLayer.draw(m.marks, this.origin);
+      this.marksLayer.setSmoke(m.buildings, this.origin);
+    }
     this.lighting.setAmbience(m.ambience);
     this.atmosphere.setAmbience(m.ambience);
     if (change.lights) this.buildings.setLights(m.lights);
@@ -356,7 +364,7 @@ export class WorldScene extends Phaser.Scene {
     const tile = m.tileAt(t.x, t.y);
     const solid = !tile || tile.ground === "terrain/water" || (!!tile.object && tile.object !== "buildings/door" && tile.object !== "buildings/gate");
     this.input.setDefaultCursor(who ? "pointer" : solid ? "default" : "crosshair");
-    const tip = who?.tip ?? m.buildingAt(t.x, t.y)?.tip ?? "";
+    const tip = who?.tip ?? m.markAt(t.x, t.y)?.label ?? m.buildingAt(t.x, t.y)?.tip ?? "";
     if (tip && wx !== undefined && wy !== undefined) {
       const v = this.cameras.main.worldView;
       this.tip.setText(tip);
@@ -369,6 +377,7 @@ export class WorldScene extends Phaser.Scene {
   update(time: number, delta: number): void {
     this.fps?.update(time, delta, this.game.loop.actualFps);
     this.lighting.update(time, delta);
+    this.marksLayer.update(time);
     this.atmosphere.update(time, delta, this.lighting.tint);
     // Off the map's edge is the grass colour, darkened like the lit world round it.
     const t = this.lighting.tint;

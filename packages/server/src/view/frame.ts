@@ -21,7 +21,7 @@ import {
   type CrowdPos,
   type Snapshot,
 } from "@millbrook/shared";
-import { dress, OBJECT_IDS, TEMPLATES, templateFor, TERRAIN_IDS, type Actor, type Frame, type Patch } from "@millbrook/shared/view";
+import { dress, OBJECT_IDS, TEMPLATES, templateFor, TERRAIN_IDS, type Actor, type Frame, type Patch, type ScapeInput } from "@millbrook/shared/view";
 import { groundAt } from "../game/road/ground.js";
 import type { Land, ViewHost } from "./host.js";
 import { TRADES } from "../game/ambition/kinds.js";
@@ -38,6 +38,61 @@ const O = (id: NonNullable<(typeof OBJECT_IDS)[number]>) => OBJECT_IDS.indexOf(i
 
 /** A journey's colour by its kind (N26). */
 export const KIND_COLOR: Record<string, string> = { caravan: "#b5763f", courier: "#d9a441", market: "#9aa86a", kin: "#b58aa0", work: "#a08a6a", officials: "#6a7fa8", patrol: "#4f6fa0", pilgrims: "#c9c3b0", adventurers: "#b5503f", refugees: "#8a7a5f", migrants: "#8a7a5f", coach: "#7a9b57" };
+
+/** The art each piece of furniture is drawn with (N32): a straw bed is a bed, a desk a table. */
+const FURNITURE_ART: Record<string, NonNullable<(typeof OBJECT_IDS)[number]>> = {
+  bed: "props/bed", straw: "props/bed", table: "props/table", desk: "props/table", loom: "props/table", hearth: "props/hearth", forge: "props/hearth",
+  chest: "props/chest", strongbox: "props/chest", shelf: "props/shelf", rack: "props/shelf", anvil: "props/anvil", altar: "props/altar",
+  barrel: "props/barrel", counter: "props/counter", bench: "props/bench", pew: "props/bench", throne: "props/bench", cell: "props/bar",
+};
+
+/**
+ * The facts of what can be heard where the player stands (N29): the place, the hour, the weather, the people within twelve
+ * tiles by what they're doing, the buildings within twenty, wildlife and hostiles near, water, the mood, the day's events.
+ */
+export function soundOf(s: Snapshot, sim: CrowdSim | null, pos: CrowdPos[], land: Land | null): ScapeInput {
+  const me = s.position;
+  const minute = s.time.hour * 60 + s.time.minute;
+  const working: Record<string, number> = {};
+  let people = 0;
+  let chatting = 0;
+  let children = 0;
+  if (sim) {
+    pos.forEach((p, k) => {
+      if (!p.visible && p.inside === undefined) return;
+      if (Math.abs(p.x - me.x) > 12 || Math.abs(p.y - me.y) > 12) return;
+      const who = sim.roster.people[k]!;
+      people++;
+      if (who.job === "child") children++;
+      if (/work|forge|smith|baking|loom|at the/.test(p.doing)) working[who.job] = (working[who.job] ?? 0) + 1;
+      if (/chat|ease|break|festival/.test(p.doing)) chatting++;
+    });
+  }
+  const buildings = s.road || s.inside ? [] : s.map.buildings.map((b) => ({ kind: b.kind ?? "house", d: Math.round(Math.hypot(b.x + b.w / 2 - me.x, b.y + b.h / 2 - me.y)), dx: Math.round(b.x + b.w / 2 - me.x) })).filter((b) => b.d <= 20);
+  const wildlife = s.creatures.filter((c) => c.growth === "wild").map((c) => ({ species: c.kind, d: Math.round(Math.hypot(c.x - me.x, c.y - me.y)), dx: Math.round(c.x - me.x) })).filter((w) => w.d <= 30);
+  const predatorsNear = s.creatures.some((c) => c.aggressive && Math.hypot(c.x - me.x, c.y - me.y) <= 60);
+  let water: "river" | "sea" | undefined;
+  if (land && s.road) {
+    for (let dy = -6; dy <= 6 && !water; dy += 3) for (let dx = -6; dx <= 6 && !water; dx += 3) if (groundAt(land, me.x + dx, me.y + dy) === Ground.water) water = "river";
+  } else if (!s.road && !s.inside) {
+    for (let dy = -8; dy <= 8 && !water; dy += 2) for (let dx = -8; dx <= 8 && !water; dx += 2) if (s.map.tiles[me.y + dy]?.[me.x + dx] === "water") water = "river";
+  }
+  const biome = s.road ? (land ? ({ [Ground.tree]: "forest", [Ground.hill]: "hills", [Ground.rock]: "hills", [Ground.marsh]: "marsh", [Ground.reeds]: "marsh", [Ground.sand]: "coast" } as Record<number, string>)[groundAt(land, me.x, me.y)] : undefined) : undefined;
+  const events = [...s.time.events, ...(s.time.festival ? ["festival"] : [])];
+  return {
+    where: s.inside ? { kind: "interior", building: s.inside.kind } : s.road ? { kind: "road", ...(biome ? { biome } : {}) } : { kind: "site", area: s.site.area.id },
+    minute,
+    season: s.time.season,
+    weather: s.time.weather,
+    near: { people, working, chatting, children },
+    buildings,
+    ...(wildlife.length ? { wildlife } : {}),
+    ...(water ? { water } : {}),
+    ...(predatorsNear ? { predatorsNear } : {}),
+    ...(s.site.moodLevels ? { mood: s.site.moodLevels } : {}),
+    ...(events.length ? { events } : {}),
+  };
+}
 
 /** A road tile as terrain and object art. */
 function roadArt(g: number): [number, number] {
@@ -90,6 +145,7 @@ function placeArt(t: string | undefined, inBuilding: boolean): [number, number] 
     // Under a building is a yard: its template covers it, except where a tent, cart or fire leaves the ground showing.
     case "wall": return inBuilding ? [T("terrain/yard"), 0] : [T("terrain/town"), O("buildings/wall")];
     case "door": return [T("terrain/path"), O("buildings/door")];
+    case "floor": return [T("terrain/yard"), 0];
     default: return [T("terrain/grass"), 0];
   }
 }
@@ -297,7 +353,8 @@ export function buildFrame(f: FrameInput): Frame {
   const { s, host } = f;
   const box = boxOf(s, f.view);
   const land = s.road ? host.land() : null;
-  const sim = s.road ? null : host.crowd();
+  // Inside a building (N32) the crowd isn't drawn: only the people the interior has in it.
+  const sim = s.road || s.inside ? null : host.crowd();
   const pos = f.crowd.at(s, sim);
   const travellers = s.road ? travellersNow(host, s, Math.max(f.view.w, f.view.h) + MARGIN * 2) : [];
   const near = nearOf(s, f.crowd, travellers);
@@ -321,7 +378,8 @@ export function buildFrame(f: FrameInput): Frame {
       for (let y = y0; y < y0 + h; y++) {
         for (let x = x0; x < x0 + w; x++) {
           const field = fields?.get(`${x},${y}`);
-          const [g, o] = field !== undefined ? fieldArt(field) : land ? roadArt(groundAt(land, x, y)) : placeArt(s.map.tiles[y]?.[x], s.map.buildings.some((b) => x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h));
+          const furn = s.inside?.furniture.find((q) => q.x === x && q.y === y);
+          const [g, o] = furn ? [T("terrain/yard"), O(FURNITURE_ART[furn.kind] ?? "props/table")] : field !== undefined ? fieldArt(field) : land ? roadArt(groundAt(land, x, y)) : placeArt(s.map.tiles[y]?.[x], s.map.buildings.some((b) => x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h));
           ground.push(g);
           objects.push(o);
         }
@@ -352,7 +410,9 @@ export function buildFrame(f: FrameInput): Frame {
       const lit = light < 0.6 && who.length > 0;
       const door = doorOf(s.map.tiles, b);
       const template = templateFor(b.kind, b.name, `${s.map.id}:${i}`);
-      buildings.push({ id: i, x: b.x, y: b.y, w: b.w, h: b.h, kind: b.kind ?? "house", color: b.color, lit, label: sign ?? (b.name && b.name !== "Gate" ? b.name : ""), tip, template, door });
+      // Smoke from the chimney while someone is in with a fire lit: the cold months, or after dark (N31).
+      const smoke = who.length > 0 && (light < 0.6 || s.time.season === "winter" || s.time.season === "autumn");
+      buildings.push({ id: i, x: b.x, y: b.y, w: b.w, h: b.h, kind: b.kind ?? "house", color: b.color, lit, label: sign ?? (b.name && b.name !== "Gate" ? b.name : ""), tip, template, door, ...(smoke ? { smoke: true } : {}) });
       lights.push(...buildingLights(i, template, { ...b, door }, { lit, dark: light < 0.6, occupied: who.length > 0 }));
     });
     for (const e of s.map.exits) {
@@ -408,6 +468,10 @@ export function buildFrame(f: FrameInput): Frame {
     if (c.engaged) flags.push("engaged");
     actors.push({ id: c.uid, kind: "creature", x: c.x, y: c.y, look: { sprite: person ? "people/body" : `creature/${["wolf", "bear", "boar", "spider", "horse"].includes(c.kind) ? c.kind : "beast"}`, tint: c.color }, label: `${c.name} [${c.rank}]`, shortLabel: `[${c.rank}]`, tip: `${c.name}, ${c.kind} [${c.rank}], ${c.growth}`, hp: c.hp / Math.max(1, c.maxHp), flags });
   }
+  // A fire in the hearth or the forge of the building the player is in (N32).
+  for (const q of s.inside?.furniture ?? []) if (q.kind === "hearth" || q.kind === "forge") lights.push({ id: `in-fire:${q.id}`, x: q.x, y: q.y, kind: "fire", on: true });
+  // The people inside the building the player is in (N32): where the interior puts them by what they're doing.
+  for (const q of s.inside?.people ?? []) actors.push({ id: q.id, kind: "folk", x: q.x, y: q.y, look: { sprite: "people/body", size: 0.88 }, label: q.name.split(" ")[0]!, tip: `${q.name}: ${q.doing}`, flags: [] });
   if (sim) {
     pos.forEach((at, i) => {
       if (!at.visible || !inBox(box, at.x, at.y)) return;
@@ -443,21 +507,27 @@ export function buildFrame(f: FrameInput): Frame {
     prompt = { text: `E: talk to ${near.talker.name}`, target: near.talker.id, x: near.talker.x, y: near.talker.y, tone: "talk" };
   }
 
+  // ---- what there is to hear (N29): facts only; the adapter's soundscape() decides the mix ----
+  const sound = soundOf(s, sim, pos, land);
+
   return {
+    sound,
     map: { id: mapId, name: s.road ? s.road.where : s.map.name, kind: s.road ? "road" : "place", w: s.road ? null : s.map.w, h: s.road ? null : s.map.h },
     box,
     patches,
     buildings,
     lights,
     signs,
+    ...(s.road || s.inside ? {} : { marks: host.marks?.() ?? [] }),
     actors: { upsert: actors, remove: [] },
     player: { id: "player", x: s.position.x, y: s.position.y },
-    ambience: { light, timeOfDay: s.time.timeOfDay, weather: s.time.weather, season: s.time.season },
+    ambience: { light, timeOfDay: s.time.timeOfDay, weather: s.time.weather, season: s.time.season, ...(s.time.snow ? { snow: true } : {}) },
     prompt,
     fight: s.fight,
     chatter: f.chatter ?? [],
     gossip: f.gossip ?? [],
-    stepMs: STEP_MS,
+    // Quick walking (N26 Part C2): the adapter animates a step in the time the server takes over it.
+    stepMs: Math.round(STEP_MS / (s.road?.quiet ?? 1)),
   };
 }
 
@@ -495,6 +565,8 @@ export class SentFrame {
   buildings = new Map<number, string>();
   lights = new Map<string, string>();
   signs = "";
+  marks = "";
+  sound = "";
   rest = "";
 
   reset(): void {
@@ -503,7 +575,7 @@ export class SentFrame {
     this.actors.clear();
     this.buildings.clear();
     this.lights.clear();
-    this.signs = this.rest = "";
+    this.signs = this.marks = this.sound = this.rest = "";
   }
 }
 
@@ -568,11 +640,17 @@ export function diffFrame(sent: SentFrame, full: Frame, solid: (x: number, y: nu
   const signs = JSON.stringify(full.signs ?? []);
   if (signs === sent.signs && !whole) delete frame.signs;
   sent.signs = signs;
+  const sound = JSON.stringify(full.sound ?? null);
+  if (sound === sent.sound && !whole) delete frame.sound;
+  sent.sound = sound;
+  const marks = JSON.stringify(full.marks ?? []);
+  if (marks === sent.marks && !whole) delete frame.marks;
+  sent.marks = marks;
   if (!frame.patches?.length) delete frame.patches;
   if (!frame.chatter?.length) delete frame.chatter;
   if (!frame.gossip?.length) delete frame.gossip;
   const rest = JSON.stringify([full.box, full.player, full.ambience, full.prompt, full.fight, full.map]);
-  const empty = !whole && upsert.length === 0 && move.length === 0 && remove.length === 0 && !frame.patches && !frame.buildings && !frame.lights && !frame.drop && !frame.signs && !frame.chatter && !frame.gossip && rest === sent.rest;
+  const empty = !whole && upsert.length === 0 && move.length === 0 && remove.length === 0 && !frame.patches && !frame.buildings && !frame.lights && !frame.drop && !frame.signs && !frame.marks && !frame.sound && !frame.chatter && !frame.gossip && rest === sent.rest;
   sent.rest = rest;
   if (move.length === 0) delete frame.actors.move;
   if (routes.length === 0) delete frame.actors.routes;

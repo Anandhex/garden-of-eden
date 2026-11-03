@@ -1,3 +1,4 @@
+import { moodHere } from "../game/events-calendar.js";
 import { config } from "../config.js";
 import { payDebts } from "../game/debts.js";
 import { defaultRng, type Rng } from "../game/dice.js";
@@ -265,7 +266,7 @@ export class NpcAgent {
     const player = world.player;
     const lines: string[] = [];
     let mood: "angry" | "annoyed" | null = null;
-    firstImpression(s, player, world.day);
+    firstImpression(s, player, world.day, moodHere(world));
     lines.push(...deliverMessages(player, this.persona, world));
     lines.push(...advanceArcs(this.persona, s, world, line));
     // A rumour about them: code says whether it's true.

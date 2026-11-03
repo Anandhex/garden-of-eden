@@ -110,6 +110,9 @@ export interface RoadPath {
   pts: RoadPoint[];
   /** Length in tiles. */
   length: number;
+  /** A high road over the hills (N30): snow at its pass (`pass`, a tile) closes it (road/passes.ts). */
+  high?: boolean;
+  pass?: RoadPoint;
 }
 
 export interface RiverPath {

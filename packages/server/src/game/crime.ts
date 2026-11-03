@@ -15,7 +15,7 @@ import { sentencePlayer } from "./law/justice.js";
  * tries to arrest them by force. The player can /payfine or /surrender (time in the
  * cells instead of coin). Hurting bandits isn't a crime.
  */
-export const CRIME_KINDS = ["assault", "murder", "theft", "looting"] as const;
+export const CRIME_KINDS = ["assault", "murder", "theft", "looting", "trespass"] as const;
 export type CrimeKind = (typeof CRIME_KINDS)[number];
 
 export interface Crime {
@@ -33,7 +33,7 @@ export interface Crime {
 }
 
 /** Fines in copper. Theft is twice the value taken, at least FINES.theft. */
-export const FINES: Record<CrimeKind, number> = { assault: 200, murder: 2000, theft: 100, looting: 500 };
+export const FINES: Record<CrimeKind, number> = { assault: 200, murder: 2000, theft: 100, looting: 500, trespass: 50 };
 /** A bounty this high and the guard will try to take the player by force. */
 export const ARREST_BOUNTY = 1000;
 /** Hours in the cells per gold of fine, when the player surrenders instead of paying (at least 4, at most 48). */
@@ -87,6 +87,19 @@ export function reportCrimes(world: Pick<WorldSnapshot, "events" | "player" | "d
   return log;
 }
 
+/**
+ * A crime the guard knows of at once: someone raised the alarm (N32: a servant who saw an intruder, a householder who saw
+ * a theft). The same bounty and journal line as `reportCrimes`.
+ */
+export function alarmRaised(player: PlayerState, kind: CrimeKind, victim: { id: string; name: string }, event: string, day: number, fine = FINES[kind]): Crime {
+  const crime: Crime = { id: `crime-${event}`, kind, victim: victim.id, victimName: victim.name, day, event, fine };
+  (player.crimes ??= []).push(crime);
+  player.bounty = bountyOf(player) + fine;
+  shiftStanding(player, "guard", STANDING.attacked / 4);
+  note(player, { id: `crime-${event}`, day, kind: "rumour", text: `The guard wants you for ${kind} (${victim.name}). Fine: ${formatMoney(fine)}.` });
+  return crime;
+}
+
 /** Crimes the player hasn't paid for. */
 export function openCrimes(player: Pick<PlayerState, "crimes">): Crime[] {
   return (player.crimes ?? []).filter((c) => !c.settled);
@@ -104,7 +117,7 @@ export function payFine(player: PlayerState): { ok: boolean; message: string; pa
 }
 
 /** The crime of N26J's table each kind of the player's crimes is. */
-export const LAW_CRIME: Record<CrimeKind, string> = { assault: "assault", murder: "killing", theft: "theft", looting: "theft" };
+export const LAW_CRIME: Record<CrimeKind, string> = { assault: "assault", murder: "killing", theft: "theft", looting: "theft", trespass: "trespass" };
 
 /**
  * Give yourself up where the realm has a head to judge you (N26J): the place's head sentences you for the gravest of your

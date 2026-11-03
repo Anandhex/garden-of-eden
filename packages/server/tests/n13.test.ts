@@ -547,7 +547,9 @@ describe("N13 closing the gaps", () => {
     town.passHours(24);
     expect(w.atWar).toBe(true);
     expect(priceFactor("iron sword", w)).toBeCloseTo(1.25);
-    expect(priceFactor("bread loaf", w)).toBeCloseTo(1.15);
+    // Food also follows the place's stores (N30): take that out to see the war's part.
+    const { storesFactor, storesHere } = await import("../src/game/events-calendar.js");
+    expect(priceFactor("bread loaf", w) / storesFactor(storesHere(w) ?? 50)).toBeCloseTo(1.15);
   });
 
   it("a lost battle can knock down the walls", async () => {

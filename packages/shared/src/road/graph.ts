@@ -37,8 +37,11 @@ export interface Way {
   tiles: number;
 }
 
-/** The shortest way between two places by road length, or null if the roads don't join them. `skip`: places not to pass through. */
-export function shortestWay(data: RoadData, from: string, to: string, skip?: (id: string) => boolean): Way | null {
+/**
+ * The shortest way between two places by road length, or null if the roads don't join them. `skip`: places not to pass
+ * through; `closed`: roads that can't be taken (snowed in, N30).
+ */
+export function shortestWay(data: RoadData, from: string, to: string, skip?: (id: string) => boolean, closed?: ReadonlySet<string>): Way | null {
   if (from === to) return { path: [from], roads: [], tiles: 0 };
   const g = graphOf(data);
   if (!g.has(from) || !g.has(to)) return null;
@@ -52,6 +55,7 @@ export function shortestWay(data: RoadData, from: string, to: string, skip?: (id
     if (cur === to) break;
     for (const e of g.get(cur) ?? []) {
       if (skip && e.to !== to && skip(e.to)) continue;
+      if (closed?.has(e.road)) continue;
       const d = best.get(cur)! + e.len;
       if (!best.has(e.to) || d < best.get(e.to)!) {
         best.set(e.to, d);

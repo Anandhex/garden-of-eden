@@ -1,0 +1,49 @@
+{
+  "id": "rowan",
+  "kind": "plant",
+  "name": "rowan",
+  "class": "tree",
+  "biomes": {
+    "hills": 0.8,
+    "forest": 0.6
+  },
+  "calendar": {
+    "bud": [
+      0.05,
+      0.2
+    ],
+    "flower": [
+      0.2,
+      0.35
+    ],
+    "fruit": [
+      0.5,
+      0.7
+    ],
+    "dormant": [
+      0.7,
+      1.05
+    ]
+  },
+  "cover": 0.3,
+  "products": [
+    {
+      "stage": "fruit",
+      "item": "rowan berries",
+      "qty": [
+        2,
+        5
+      ]
+    }
+  ],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 6
+  },
+  "regrowDays": 8,
+  "rarity": "common",
+  "effects": [],
+  "lore": {
+    "charm": "rowan over the door keeps witches out"
+  }
+}

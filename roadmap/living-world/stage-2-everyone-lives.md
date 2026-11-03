@@ -41,6 +41,7 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 - `site_days` is left out of the world hash (it is pruned on its own schedule); `people.rev` is left out too, since it counts saves.
 - Cross-place marriage and illness (N61) are out of scope, as planned. Pinned-NPC full detail uses the place the player is in; pins wait for N34.
 - Balance is measured, not perfect: children are 40-45% of a growing realm and about a third of the small hamlets empty over 40 years (the old model lost about a quarter). Tuning continues with N22's `sim:years`.
+- *Bounds in the long run (2026-11-03):* `checkLifeBounds` is in `sim:years`' end bounds, judged only when everyone lives (`LIVE=all`): in a slice run every place has rows but only the slice's are stepped, so births, deaths and the roster count say nothing there.
 
 ## N25a: A world without a centre
 
@@ -142,6 +143,7 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 5. *Part E, what differs from its plan:* (a) journeys, what each place has heard (`realm.heard`: place → news id → [day, told from, journey]) and tax coin in transit (`realm.transit`) live in the **realm**, not on `SiteState`/`world`, so lazy places and sims hear and send too; `SiteState.newsSeen` stays what a place has *told* its talkers. (b) A round trip is one journey with a turn (`journey.turn`), and `placeAt(journey, minute)` says whether they are on the road, at an inn or visiting a town; visitors are rows from other places added to a town's crowd by `rosterFromStore`. (c) Migration departs households as journeys (`departHouseholds`) and applies the move on the day after they arrive (`arriveHouseholds`); with no road or no room for a journey the move is made at once, as before. (d) Places that send trips are brought up to yesterday first (`ensure`), so a lazy place gives the same trips as a daily one; the N25.9 lazy test now uses seed 2 (seeds where a lazy place's lagging population moves coin were never equal). (e) Tax coin goes with a clerk and is handed over when he reaches the lord (a day later if nobody can be sent), so coin climbs the chain a level a trip instead of all at once. (f) Adventurers are the delving figures (`Figure.away`); the delve is fought on arrival. (g) A new job `courier` in capitals and cities; great news (importance 7+) that reaches one is sent to the kingdom's towns on a tour. (h) Kin trips only start once families span places (the first people have no kin yet), so they are rare early. (i) The admin Roads tab lists every journey (people clickable, news with its chain); a person's card and a place's card show who is away and who is visiting; pinned travellers are drawn on the realm map. Bounds: `roads-not-empty`, `roads-not-clogged`, `news-reaches`, `nobody-twice`, `trips-return`, `migration-follows-need` (`road/bounds.ts`).
 6. *Encounters:* the two-roll system is gone from the web game (a pack's ground and a gang's ambush are places); the CLI's `/travel` keeps the old time skip, since it has no screen to walk on.
 7. *Not built:* river boats (the realm has few places on a river), the "ferry" as a boat you ride (it is a ford with a ferryman's toll), companions' night lines by the model (they are code's words), the darker sight at night (the sky darkens as before), `ROAD=slice` (the whole realm is walkable).
+8. *Part C, quiet travel is quick (decided 2026-10-23): built 2026-11-03 with N35* (fast travel on known roads, quick walking; see N35). Roads are learned from people (the 2026-11-03 audit fixes): a traveller on a journey tells the roads they are walking, and a merchant, porter, courier or sellsword at home tells the roads out of their place, when the player opens a conversation (`Town.toldTheWay`). Not from N33's knowledge rows: a road isn't a thing gossip carries yet.
 
 > **Playtest pack 1 (2026-10-24).** N26F–N26J come from the first play of the vertical slice and are built before the rest of this stage, in the order N26F step 0b → foundations (the N22 cut, the speed budget, the coin ledger) → N26F → N26G → N26J steps 1–2 → N26H → N26I with N26J step 3 → playtest 2. Shared rules: [plans README Part 3](plans/README.md#part-3-rules-for-the-playtest-phases-n26fn26j).
 
@@ -208,6 +210,7 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 4. *Food:* where a place's fields are kept (`FIELDS=off` turns it off), its food falls by what's eaten from stores (70 points a year) and rises at harvest by what was reaped (`YIELD_SCALE` 0.68, measured to give ~84 points a year on plains). Places whose people aren't rows keep the old formula.
 5. *Browser and admin:* road frames draw plots by stage and marks; the admin place card has a Fields section. The player tramples crops by walking through them, and can hire on for a day's reaping at a ripe field.
 6. *Bounds:* `fields-feed` and `losses-band` (3% to 30%, measured 3 to 13%) apply to places of 40 people or more; `no-orphan-plots`.
+7. *Plot order (fixed 2026-11-03):* the farm store keeps a place's plots in id order after adding new ones, the order a loaded world reads them in, so a world played on and the same world exported and loaded pick the same neighbour's stock (n18's export test caught it). Stray stock (also 2026-11-03): the neighbour is the household of the nearest plot along the layout, not the place's first plot (one household was blamed for every stray); the trampling is a `stock-strayed` event the grievance cites, so revenge points at it (N37); and it weighs 0.2, under an insult's 0.25, so one stray no longer starts a feud by itself but several do.
 
 ## N26H: Districts, access and buildings to scale
 
@@ -282,10 +285,11 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 1. *Sentences:* `data/law/crimes.json` and `game/law/sentence.ts`; the head's temper comes from their figure's traits (bravery and ambition make them harsh, greed makes them fine). The kingdom's custom decides hanging (some do, some don't). `/surrender` now goes before the head; crimes seen in a place (caught thefts, field thefts, assaults, killings, bribes with witnesses) are judged daily.
 2. *Bribes:* `recordBribe`; a seen bribe turns the guard out of the watch and sentences the briber.
 3. *The player taken* (`game/law/taken.ts`): beaten by a gang's member with a camp or stronghold, the player may be taken; while held they can't leave the map; ways out: escape (by night, past a watchman they may have bribed), ransom (their coin, a friend's, or home's if they're renowned), labour (6 days), joining, or a hero of home coming for them.
+4. *Not places on the map:* the lock-up and the stocks are sentences, not buildings or props in the place (the plan's step 1); serving one passes the time in words.
 
 ## N27: The wilds
 
-**Status:** ⬜ Planned
+**Status:** ✅ Built 2026-11-02 (uncommitted; tests/n27.test.ts). No save bump: `player.map` and `realm.finds` are optional.
 
 **Implementation plan:** [plans/n27-the-wilds.md](plans/n27-the-wilds.md)
 
@@ -293,19 +297,33 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 
 **The rules:** the land away from roads is walkable chunks too (N26), by terrain, with points of interest placed by seed and by the realm's state (a pack's lair where its pack lives, a hidden camp where a gang or liberation group really is). Nothing is on the player's map until they find it or hear of it (N65).
 
-- [ ] **Points of interest:** caves, ruins, abandoned villages (N13's emptied hamlets), old battlefields (N55), standing stones, groves, hermits' huts, shrines, beast lairs, hidden camps (N15, N59), dungeon mouths, herb patches and ore outcrops
-- [ ] **Discovery:** finding a place puts it on the player's map and is news if it matters; an ore outcrop or a ruin the player finds is an N63 find they can tell a settlement about (or sell, or keep)
-- [ ] **Getting lost and finding the way:** off-road travel is slower; without a map, a guide or skill the player can lose their bearings; maps bought from merchants or drawn by the player
-- [ ] **Living wilds:** game and beasts move by ecology (N60), seasons change the land (N30), weather is harsher, nights are dangerous
-- [ ] **People out there:** hunters, prospectors, hermits, outlaws, runaways in hiding, explorers on N63 trips; each real and somewhere for a reason
-- [ ] **Secrets in the land:** ruins with a story from the realm's history (N68), a lost camp with clues to what happened, a grave with a name
-- [ ] Tests, README, this roadmap
+- [x] **Points of interest:** caves, ruins, abandoned villages (N13's emptied hamlets), old battlefields (N55), standing stones, groves, hermits' huts, shrines, beast lairs, hidden camps (N15, N59), dungeon mouths, herb patches and ore outcrops
+- [x] **Discovery:** finding a place puts it on the player's map and is news if it matters; an ore outcrop or a ruin the player finds is an N63 find they can tell a settlement about (or sell, or keep)
+- [x] **Getting lost and finding the way:** off-road travel is slower; without a map, a guide or skill the player can lose their bearings; maps bought from merchants or drawn by the player
+- [x] **Living wilds:** game and beasts move by ecology (N60), seasons change the land (N30), weather is harsher, nights are dangerous
+- [x] **People out there:** hunters, prospectors, hermits, outlaws, runaways in hiding, explorers on N63 trips; each real and somewhere for a reason
+- [x] **Secrets in the land:** ruins with a story from the realm's history (N68), a lost camp with clues to what happened, a grave with a name
+- [x] Tests, README, this roadmap
 
 - **Done when:** leaving the road east of Millbrook the player finds a cave not on any map, a ruin from an old war with a named grave, and an ore outcrop they can report to the mayor; they get lost in the marsh at night without a guide; a hidden runaway camp is found exactly where the realm says the runaways are.
 
+**Built:** `shared/src/road/wilds.ts` (`wildPoiIn`, `wildPoisNear`, `offRoad`: one seeded place in about one chunk in seven, at least 160 tiles from any road or place; integer maths so every engine agrees) drawn by `chunkAt` (step 4b); `server/src/game/road/wildPlaces.ts`: the realm's places (`statePois`: a lair for every pack with beasts, the mouth of every dungeon, the ruins of every abandoned place, a field for every battle), the player's map (`player.map.pois`: found, told or from a bought map), spotting as they walk (`spotPlaces`: sight by the ground and the hour, a perception check helped by `survival` for hidden places, rolled once a day per place), the innkeeper's and the farmer's word and the inn's map (`hearOfPlaces`, `buyMap`), what can be done at each (`useWild`: caves, ruins, herbs, ore and stones as their roadside kin; resting in a grove; a lair's pack comes out; the graves of a battlefield and the ruins of an abandoned place name their dead from N25's death records), getting lost (`lostHour`, `driftStep`), lairs dangerous at night, needs falling a quarter faster off the road, and reporting finds (`reportFind`, paid from the place's coffers through the ledger, `realm.finds`). Event kind `discovered`, skill `survival`. Bounds `pois-band`, `finds-reported`. The admin Roads tab lists every state place and whether the player knows it; the player's Realm panel lists finds to report.
+
+**What differs from the plan:**
+1. *No `pois` table:* seeded places are a pure function of the road data; the realm's are worked out from the realm each day (cached), so nothing new is saved but `player.map` and `realm.finds`.
+2. *No interiors:* caves and ruins are searched in place, as N26F's are; an abandoned place's ruins and a battlefield are read in place. Interiors wait for N32.
+3. *Hermits' huts are empty:* a hermit would be a person row living outside any place, which the people table can't hold yet (a person's `site` is a settlement). The hut is a roof and a landmark. Hunters and herb-gatherers in the wilds are still N26F's commuters (to fields and the mine), not wild trips.
+4. *Graves of named dead* are at battlefields and in the ruins of abandoned places; graveyards in towns wait for N32.
+5. *A gang's hidden camp* is N26F's (`campsNear`): exactly where the gang's territory puts it, found within sight; the runaway version waits for N59.
+6. *Telling and selling:* the player hears of places from innkeepers and farmers beside the road (not yet from hunters by lore), buys a map at an inn, and reports finds to a place's head from the Realm panel; selling a location and drawing maps are left for N63.
+7. *Lost:* the minimap isn't hidden yet (the road bar says "You're not sure where you are"); drift turns a step left or right three times in ten.
+8. *Localities folded in:* already done by N26F (woods, camp and mine are entered from the road).
+9. *Survival is taught by hunters* (added 2026-11-03): a `hunter` template (`data/templates/hunter.json`) teaches `survival`; a companion with hunting 2+ still guides.
+10. *Battlefields have no old gear to loot* (step 3): their graves are read, nothing is picked up. A gang's hidden camp "exactly where the gang is seated" is proved by n26f.test.ts (`campsNear`), not n27.
+
 ## N28: Fauna and flora
 
-**Status:** ⬜ Planned
+**Status:** ✅ Built 2026-11-02 (uncommitted; tests/n28.test.ts). No save bump: `player.nature` is optional.
 
 **Implementation plan:** [plans/n28-fauna-and-flora.md](plans/n28-fauna-and-flora.md)
 
@@ -315,22 +333,33 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 
 **The rules:** species are data files (like creatures and templates), each with the terrains and seasons it lives in, how common it is, how it behaves, what it eats or needs, and what it's good for. Where each lives on a map is placed by seed from terrain, season and the realm's state (N60's populations), so the land looks and behaves the same on every visit and changes with the year. Most wildlife is light: drawn and simulated cheaply (N19's budgets), and only becomes a full creature when hunted, provoked or tamed.
 
-- [ ] **Animals by terrain:** in the forest deer, boar, foxes, badgers, owls, woodpeckers; in the hills goats, eagles, hares; in marshes herons, frogs, eels, midges; on plains rabbits, partridges, skylarks; on coasts and rivers gulls, otters, fish, crabs; in caves bats and stranger things; around villages cats, dogs, rats, crows, pigeons and livestock
-- [ ] **Behaviour:** herds and flocks, grazing and fleeing, nests and dens, day and night animals, birdsong at dawn, migration with the seasons (N30), animals that follow the plough or raid the grain store
-- [ ] **Plants by terrain and season:** trees (oak, ash, pine, birch, willow, fruit trees), flowers and grasses, herbs, mushrooms, berries, reeds, crops in the fields; budding, flowering, fruiting and dying back through the year (N30)
-- [ ] **Uses:** food, medicine and poison (N8's injuries and illness, N61's plague cures), dyes, timber, fibre, hides and feathers, alchemy and crafting (N10); rare ones worth a lot and sought on the quest market (N42)
-- [ ] **Signs in the land:** tracks, droppings, broken branches, a silent wood before a predator; skill shows the player what they mean
-- [ ] **Hunting, fishing, gathering and taming:** traps, bows, nets, rods; seasons when it's forbidden or a lord's right (N48's poaching); taming a dog, a hawk or a horse; NPC hunters, herbalists, foragers and fishers doing the same for their living (N38, N40)
-- [ ] **Knowledge:** a bestiary and herbarium in the player's journal (N65) that fills in as they see, are told about or study species; herbalists and hunters can teach; wrong identification has consequences (the wrong mushroom)
-- [ ] **In culture and belief:** sacred animals and trees, omens from birds (N50), regional dishes (N53), animals in songs and names (N68)
-- [ ] **Beyond the ordinary:** rare and strange creatures and plants in deep wilds and dungeons, with legends about them, seen by few
-- [ ] Tests, README, this roadmap
+- [x] **Animals by terrain:** in the forest deer, boar, foxes, badgers, owls, woodpeckers; in the hills goats, eagles, hares; in marshes herons, frogs, eels, midges; on plains rabbits, partridges, skylarks; on coasts and rivers gulls, otters, fish, crabs; in caves bats and stranger things; around villages cats, dogs, rats, crows, pigeons and livestock
+- [x] **Behaviour:** herds and flocks, grazing and fleeing, nests and dens, day and night animals, birdsong at dawn, migration with the seasons (N30), animals that follow the plough or raid the grain store
+- [x] **Plants by terrain and season:** trees (oak, ash, pine, birch, willow, fruit trees), flowers and grasses, herbs, mushrooms, berries, reeds, crops in the fields; budding, flowering, fruiting and dying back through the year (N30)
+- [x] **Uses:** food, medicine and poison (N8's injuries and illness, N61's plague cures), dyes, timber, fibre, hides and feathers, alchemy and crafting (N10); rare ones worth a lot and sought on the quest market (N42)
+- [x] **Signs in the land:** tracks, droppings, broken branches, a silent wood before a predator; skill shows the player what they mean
+- [x] **Hunting, fishing, gathering and taming:** traps, bows, nets, rods; seasons when it's forbidden or a lord's right (N48's poaching); taming a dog, a hawk or a horse; NPC hunters, herbalists, foragers and fishers doing the same for their living (N38, N40)
+- [x] **Knowledge:** a bestiary and herbarium in the player's journal (N65) that fills in as they see, are told about or study species; herbalists and hunters can teach; wrong identification has consequences (the wrong mushroom)
+- [x] **In culture and belief:** sacred animals and trees, omens from birds (N50), regional dishes (N53), animals in songs and names (N68)
+- [x] **Beyond the ordinary:** rare and strange creatures and plants in deep wilds and dungeons, with legends about them, seen by few
+- [x] Tests, README, this roadmap
 
 - **Done when:** a walk through the woods east of Millbrook shows deer that flee, birds at dawn and different flowers in spring and autumn; the player tracks a boar by its signs, gathers a herb that cures a fever and a mushroom that sickens them, fishes the river, and tames a stray dog; the bestiary has the species they've met; an NPC herbalist goes out at the right season for a rare root and sells it.
 
+**Built:** 49 animal and 45 plant files in `server/src/data/species/` (zod schema and checks in `game/nature/species.ts`, run by `npm run check-npcs`); `shared/src/nature/place.ts` (`animalsInChunk`, `plantsInChunk`, `stageOf`, `activeAt`: pure functions of seed, chunk, day and minute); `game/nature/wild.ts`: animals near the player (fleeing out to their distance, small things quiet within 260 tiles of a lair), plants near them, the bestiary and herbarium (`player.nature.seen`, levels 1–4), hunting (a fight for species with a creature template: deer, hare, fox, crow, heron, adder, wild goat; one check for the rest), poaching (`isForbidden`: closed seasons, the lord's game near a town), fishing (needs a `fishing rod`, `fishing` skill), gathering with lookalikes (a failed identification of a field mushroom gives a death cap believed to be one; the true name never reaches the browser), eating, brewing and poultices (`useWildItem`: willow bark cures a fever, a death cap poisons), a herbalist putting mistakes right (`showToHerbalist`), signs and tracking (`signsNear`, `track`), taming a place's stray dog over a few days (`tameStray`), herbalists' and fishers' daily hauls (`herbalistHaul`, `fisherHaul`) put in their stock when they talk (`Town.landHauls`). New skills `herbalism`, `fishing`, `animal_handling`; new jobs `herbalist` and `fisher` (templates in `data/templates/`); illnesses `poisoned` and `bellyache`; creature templates `goat` and `dog`; about 60 new items. Bounds `wildlife-not-empty`, `herbalist-income`.
+
+**What differs from the plan:**
+1. *Placement is server-side only:* since G5 the browser only draws, so the animals go out in the snapshot's creature list (as N26F's did) and plants, signs and water as nearby actions; no `/api/species`, no client-side fleeing animation (fleeing is computed on the server from where the player stands).
+2. *Plants aren't drawn as overlays* (no art yet): they show as things to gather within reach. Crops are N26G's plots.
+3. *Wild boars stay N26F's roadside lone boar;* boars in packs are the realm's. Tracking is tested on wild goats (not a pack species).
+4. *Herbalists and fishers* are a share of labourers (by a hash of who they are, so no other place's roster changes); they go out through the woods exit or the road like hunters, but not as N26 journeys. The hawk is tameable in the data, but only the stray dog has a way to tame it in play; a dog helps with tracking and hunting (no ambush warning yet).
+5. *Telling:* species are learned by seeing (level 1), tracking (2), hunting, fishing or gathering (3) and a herbalist's word (4); NPCs don't tell of species yet, and the journal kinds are a panel of their own, not `journal.ts` entries.
+6. *Legendary species* (step 10) are not in the data yet: kingsroot and mandrake are the rare ones.
+7. *Not built (2026-11-03 audit):* traps (step 7: set one, checked hourly) and a bow or ranged opening to a hunt; a `forager` job (step 9: only herbalists and fishers live off the land; a new job changes every place's roster and the balance baselines, so it waits for its own pass); species lore in NPCs' lore (step 10: it is only in the bestiary).
+
 ## N29: A soundscape
 
-**Status:** ⬜ Planned
+**Status:** ✅ Built 2026-11-03 (uncommitted; packages/shared/tests/sound.test.ts, tests/n29.test.ts). Synthesis only, music only where it is heard in the world (the plan's defaults: no sound files added).
 
 **Implementation plan:** [plans/n29-a-soundscape.md](plans/n29-a-soundscape.md)
 
@@ -338,20 +367,32 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 
 **The rules:** ambient sound is chosen in the client from state the client already has (place, area, time, weather, N16's crowd nearby, N28's wildlife, N36's mood), so it costs no server time. Speech stays with the existing voices (Piper, T14).
 
-- [ ] **Place and time:** birdsong at dawn, a busy market by day, crickets and owls at night, a silent street under curfew (N58), bells from the temple
-- [ ] **Weather and season:** rain on roofs and on the road (N26), wind in the hills, snow's hush, thunder (N30)
-- [ ] **Crowds and work:** murmur by crowd size, the smith's hammer, the mill, carts, livestock, children playing
-- [ ] **Wildlife:** each species' calls where it lives (N28); a wood going quiet before a predator
-- [ ] **Events:** battle at a distance, a fire's roar and shouting (N62), a festival's music, a bard in the inn (N41)
-- [ ] **Mood:** a grieving town is quieter (N36)
-- [ ] Volume and mix settings; off by default in tests
-- [ ] Tests, README, this roadmap
+- [x] **Place and time:** birdsong at dawn, a busy market by day, crickets and owls at night, a silent street under curfew (N58), bells from the temple
+- [x] **Weather and season:** rain on roofs and on the road (N26), wind in the hills, snow's hush, thunder (N30)
+- [x] **Crowds and work:** murmur by crowd size, the smith's hammer, the mill, carts, livestock, children playing
+- [x] **Wildlife:** each species' calls where it lives (N28); a wood going quiet before a predator
+- [x] **Events:** battle at a distance, a fire's roar and shouting (N62), a festival's music, a bard in the inn (N41)
+- [x] **Mood:** a grieving town is quieter (N36)
+- [x] Volume and on/off settings (one master volume, no separate mix: see What differs); off by default in tests
+- [x] Tests, README, this roadmap
 
 - **Done when:** standing in Millbrook's square from dawn to night the sound changes with the hour and the crowd, rain is heard on the roofs in a storm, the woods have birdsong by day and owls by night and go quiet when wolves are near, and a curfew night is silent but for the watch.
 
+**Built:** `shared/src/view/sound.ts`: `soundscape(input)` (pure): beds (wind, rain on roofs or in the open, storm, snow's hush, river, sea, the crowd's murmur rising with its size and hushed in grief and fear, the market on its day, the inn of an evening, the hearth inside, insects and frogs at night, birdsong at dawn and by day hushed when a predator is near, festival music) and spots (thunder, the smith's hammer while the smith works, the temple bell on the hour, an owl at night, a woodpecker or hawk by country, a wolf's howl near a pack, crows, dogs and carts in a busy place by day, cheers in a glad crowd, shouts in a raid, a curfew's watch). `frame.sound` (`ScapeInputSchema`, sent when it changes): the facts the server knows (`soundOf` in view/frame.ts: where, the hour, the weather, the crowd within twelve tiles by what they do, buildings within twenty, wildlife and hostiles near, water, the place's mood, the day's events). The web adapter's `SoundEngine` (`client/src/adapter/web/audio.ts`): Web Audio synthesis only (filtered noise beds that fade over a few seconds and stop when silent, at most eight; synthesized spots panned by where they are, at most six at once; chirps and a pipe tune made of notes), started by the first click or key, suspended in a hidden tab, and a "🎵 Sound" button in the header (this browser's setting).
+
+**What differs from the plan:**
+1. *The server sends the facts:* since G5 the client only draws and imports only `@millbrook/shared/view`, so the facts come in the frame and the pure function is in `shared/view`; no inputs are worked out in the browser.
+2. *No samples, no channels:* everything is synthesized (the plan's default answer to its question 1); one master volume (a slider beside the 🎵 button, remembered by the browser like the on/off, added 2026-11-03) and an on/off switch, no separate ambience, life, events and music sliders; voices aren't ducked yet.
+3. *Spots aren't seeded:* when a spot plays within its range is the browser's own roll (what plays where is decided by the pure function); the bell is once on the hour.
+4. *Species calls:* N28's species don't carry calls yet: crows by sight, and a table by country (woodpecker, hawk, owl).
+5. *Curfew and fire* are inputs with no source yet (N58, N62); a raid's shouts come from the day's events.
+6. *Crowds and work (2026-11-03):* children playing (from the crowd's children near) and stock lowing in open farm country by the road were added. There's no mill (no place has a mill building), and no battle heard at a distance.
+7. *Tests:* the pure function is tested (`packages/shared/tests/sound.test.ts`); the Web Audio engine isn't (no `client/tests/audio.test.ts`): it needs a browser's AudioContext.
+
+
 ## N30: Seasons and the farming year
 
-**Status:** ⬜ Planned
+**Status:** ✅ Built 2026-11-02 (uncommitted; tests/n30.test.ts). No save bump: `Settlement.harvest` and `hungrySince` are optional.
 
 **Implementation plan:** [plans/n30-seasons-and-the-farming-year.md](plans/n30-seasons-and-the-farming-year.md)
 
@@ -359,19 +400,31 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 
 **The rules:** the calendar decides the season; the season changes what code does: food made, prices, schedules, travel, beasts and festivals. Seeded weather (N6) is weighted by season.
 
-- [ ] Planting, growing, harvest and winter: farm output by season, stores that run down over winter, a lean late winter
-- [ ] Prices follow stores (N10's demand prices); hunger in a bad winter feeds N13's starvation and migration and N56's grievances
-- [ ] Schedules by season: long days at harvest, short days in winter, townsfolk (N16) indoors more
-- [ ] Travel: snow closes high roads, mud slows them; beasts migrate and are hungrier in winter
-- [ ] Seasonal festivals in every kingdom (planting, midsummer, harvest home, midwinter), filling squares as N16's festival does
-- [ ] The season shows on the map (snow, bare fields, harvest stooks)
-- [ ] Tests, README, this roadmap
+- [x] Planting, growing, harvest and winter: farm output by season, stores that run down over winter, a lean late winter
+- [x] Prices follow stores (N10's demand prices); hunger in a bad winter feeds N13's starvation and migration and N56's grievances
+- [x] Schedules by season: long days at harvest, short days in winter, townsfolk (N16) indoors more
+- [x] Travel: snow closes high roads, mud slows them; beasts migrate and are hungrier in winter
+- [x] Seasonal festivals in every kingdom (planting, midsummer, harvest home, midwinter), filling squares as N16's festival does
+- [x] The season shows on the map (snow, bare fields, harvest stooks)
+- [x] Tests, README, this roadmap
 
 - **Done when:** over a simulated year Millbrook's stores rise at harvest and fall in winter, bread costs more in late winter, a high road closes with snow and reopens, and each season's festival fills the square.
 
+**Built:** `shared/src/calendar.ts` (`yearDay`, `yearNumber`, `yearFraction`, `seasonAt`, `seasonDay`, `seasonStart`, `daylight`), `shared/src/weather.ts` (`climateOf`, `weatherAt`, `regionOf`, `overrideWeather` for tests, a `fog` weather), `shared/src/road/passes.ts` (`markHighRoads`, `roadClosed`, `closedRoads`), `server/src/game/realm/harvest.ts` (the farming year, `noteHarvest`, `judgeHarvest`), `realm/seasonBounds.ts` (`no-permanent-famine`, `harvest-matters`, `roads-reopen`, in `balance/run.ts`), `road/snow.ts` (closures for journeys and the player), `events-calendar.ts` (`festivalOn`, `crowdDayAt`, `storesFactor`), the crowd's day in `shared/crowd.ts` (`rise`, `set`, `season`, `harvest`), the client's season cast and snow cover (`lightPlan.ts`, `atmosphere.ts`), and the admin place card's "Season and stores".
+
+**What differs from the plan:**
+1. *`weatherOn(day)` takes a place:* `weatherOn(day, where)` with `{ realm, site }` or `{ realm, tile }` is regional; with no place it is the old realm-wide roll (a bare world, the CLI with no realm). Every caller that knows where it is passes it (`whereOf(world)`); illness (`health.ts`) still reads the season only.
+2. *The farming year is the old formula reshaped:* where fields aren't kept (N26G), the season factor became spring 0.95, summer 1.0, autumn 1.45 (the harvest), winter 0.75, and an autumn day lost to a storm or two wet days makes only 1.0; at war the harvest has 85% of its hands. Where fields are kept the harvest is what was reaped, judged against what is eaten in a year (70 points). Poor under 80% of what it could be, good over 112%.
+3. *A poor harvest worries people:* `SiteDay.harvest` feeds the N25b review (`poorHarvest`: a little less trust in the lord, a lower mood), not a separate system.
+4. *Mud:* rain already slows the road (N26); "rain recently" was not added.
+5. *The map:* a seasonal cast on the light and a snow cover over the land while snow lies (snowed today or yesterday); field stages were already drawn by N26G. Leafless trees and stooks need art (stand-ins: none drawn).
+6. *Closed passes:* a journey leaving on a closed day takes the shortest way round, or doesn't go that day (the trip rule rolls again the next day); the player is stopped by the drift at the pass with a line, fast travel stops before it, and the road bar lists the snowed-in high roads nearby. No drift sprite. News from beyond rides those journeys, so it arrives later (tested).
+7. *Beasts in winter:* hungrier (`WINTER_HUNGER`, tested), but they don't migrate: a pack stays by its place all year.
+8. *Inn specials on festival days* (step 7) aren't built: a festival fills the square and gladdens the place, but the inn's table is the same.
+
 ## N31: Visible consequences on the map
 
-**Status:** ⬜ Planned
+**Status:** ✅ Built 2026-11-02 (uncommitted; tests/n31.test.ts). Database schema 14 (`marks`); no save bump.
 
 **Implementation plan:** [plans/n31-visible-consequences.md](plans/n31-visible-consequences.md)
 
@@ -379,18 +432,29 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 
 **The rules:** a place's map is still generated from a seed (N15), and its **marks** (damage, works in progress, graves) are laid over it from the realm's state. Marks fade or are repaired over time in code.
 
-- [ ] Burned and broken buildings after a raid, fire (N62) or war, repaired as the place rebuilds (N13 building)
-- [ ] Scaffolding while something is built; the new building when it's done
-- [ ] A graveyard that grows, each grave with a real name and date (from N25's deaths); hover to read it
-- [ ] Empty stalls and thin crowds in a famine; extra guards and empty streets under a curfew (N58); banners of a new ruler or faction
-- [ ] Smoke from chimneys, lit windows at night by who's home (N16's roster)
-- [ ] Tests, README, this roadmap
+- [x] Burned and broken buildings after a raid, fire (N62) or war, repaired as the place rebuilds (N13 building)
+- [x] Scaffolding while something is built; the new building when it's done
+- [x] A graveyard that grows, each grave with a real name and date (from N25's deaths); hover to read it
+- [x] Empty stalls and thin crowds in a famine; extra guards and empty streets under a curfew (N58); banners of a new ruler or faction
+- [x] Smoke from chimneys, lit windows at night by who's home (N16's roster)
+- [x] Tests, README, this roadmap
 
 - **Done when:** after a raid on Millbrook the player sees burned houses that are rebuilt over the following weeks, the graveyard has a grave for each person killed, and the market's stalls empty during a famine.
 
+**Built:** `store/markStore.ts` and the `marks` table (schema 14); `game/marks/rules.ts`: `marksRealmDay` (every place, in `lifeDay`: one to three houses burned on a raid day, with the raid's ref, repaired after `repairDays` (half a season in a thriving place, up to a season and a half in a poor one); scaffolding while `settlement.project` stands, taken down when it's done), `marksSiteDay` (each living place's day and its catch-up: a grave for each of its dead with a body, named with the day and how, rows by the temple; faded to an unnamed mound after ten years), `marksToDraw` (the stored marks standing, plus what is worked out from the realm when drawn: empty stalls in a famine, the banners of the factions with a hall there, the kingdom's colours on the hall, a curfew's guards (no source until N58)). The frame carries `marks` (only when they change) and `smoke` on buildings where someone is home with a fire lit; the client's `MarksLayer` draws soot, scaffolding, gravestones, empty trestles, banners and chimney smoke, and the hover shows a mark's words. The admin place card lists its marks. Bounds `marks-bounded`, `ruins-repaired`.
+
+**What differs from the plan:**
+1. *Fixed layouts* were N26H's (`mapFrozen`): a place's map is laid out once and kept. So a building finished after the map was made isn't drawn on it (its scaffolding stands beside the square while it's built, then is taken down); reserved lots for every future building are not done.
+2. *Only burns, scaffolds and graves are stored;* famine stalls, banners and guards are worked out when drawn, since they follow the realm's state from day to day.
+3. *The people of a burned house* stay in it (the crowd's homes don't move yet); the house is drawn burned until repaired.
+4. *A raid burns houses only;* which named building a raid damaged isn't known to the marks, so its level falls as before with no mark of its own.
+5. *Graves of those who died away* (in a far battle, on the road) are not in their home graveyard yet (N55's memorials).
+6. *Repairs follow the place's fortune (2026-11-03):* a house burned while a place was poor is put right sooner once it thrives (its end day is brought forward each day), and `ruins-repaired` judges what still stands; it used to judge every burn by today's prosperity, which failed when a raided place recovered. `marks-bounded` is 600 marks or half the place's people, whichever is more: a capital's named graves over ten years are more than 600.
+
+
 ## N32: Interiors and homes
 
-**Status:** ⬜ Planned
+**Status:** ✅ Built 2026-11-03 (uncommitted; tests/n32.test.ts). Database schema 15 (`household_goods`); no save bump (`player.inside` and `player.home` are optional).
 
 **Implementation plan:** [plans/n32-interiors-and-homes.md](plans/n32-interiors-and-homes.md)
 
@@ -398,14 +462,26 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 
 **The rules:** every building gets an interior map, generated by seed from its kind and its owner's class, wealth and trade (N16's roster), so a serf's hovel, a merchant's house and a lord's hall differ and stay the same between visits. Belongings are kept per household, cheaply (N18), and become real items when touched.
 
-- [ ] **Interiors:** homes, workshops, inns, temples, halls, shops, prisons (N48), guild halls; rooms, furniture and goods by wealth and trade
-- [ ] **Belongings:** what a household owns, where it's kept; hidden things (coin under a floorboard, letters, N46's secrets in a drawer)
-- [ ] **Life indoors:** people at home by their day (N16), eating, sleeping, working, quarrelling; family scenes
-- [ ] **Trespass:** locked doors, people who notice an intruder, guards called (N7's theft and stealth, N48)
-- [ ] **Change:** homes show fortune and misfortune (a new table after a good year, bare rooms in famine, damage after a raid, N31); the player's own home (N66) furnished by them
-- [ ] Tests, README, this roadmap
+- [x] **Interiors:** homes, workshops, inns, temples, halls, shops, prisons (N48), guild halls; rooms, furniture and goods by wealth and trade
+- [x] **Belongings:** what a household owns, where it's kept; hidden things (coin under a floorboard, letters, N46's secrets in a drawer)
+- [x] **Life indoors:** people at home by their day (N16), eating, sleeping, working (quarrelling and family scenes aren't built: see What differs)
+- [x] **Trespass:** locked doors, people who notice an intruder, guards called (N7's theft and stealth, N48)
+- [x] **Change:** homes show fortune and misfortune (a new table after a good year, bare rooms in famine, damage after a raid, N31); the player's own home (N66) furnished by them
+- [x] Tests, README, this roadmap
 
 - **Done when:** the player walks into a serf's hovel and a merchant's house in Millbrook and they look as different as their owners are; at night the family is asleep inside; the player finds a hidden letter in the mayor's desk that is one of his real secrets, and a servant who sees them raises the alarm.
+
+**Built:** `shared/src/interior/generate.ts` (`interiorOf`: rooms by the building's kind and a house's style (hovel, cottage, craft, merchant), furniture by room and class, quality by the wealth band; `interiorWalkable`, `spotFor`); `server/src/game/interior/inside.ts`: the household (`householdOf`: its people by home, the head's class and trade, a wealth band from class and the place's prosperity and hunger), `enter` (stepping onto a door: locked by class, hour and who's in; `picklock` with `lockpicking`; a home entered uninvited, or a shop after it shuts, is trespass), `peopleInside` (the crowd's people in that building, at their bed, table or work by what they're doing), `stepInside` (the door leads out), goods rolled on first touch (`goodsOf`, `store/goodsStore.ts`), `search` (hidden slots need a perception check), `take` (coin to the purse, things to the pack; theft if seen), letters with a talker's real secret in a hidden slot of their home or the head's hall (`readLetter` → `learnSecret`), `notice` and the alarm (crime kind `trespass`, event `trespass`, `alarmRaised` in `crime.ts`: the bounty at once). The snapshot carries `inside` (and `door` beside a locked door); the frame draws the interior's floor, walls and furniture (ten new prop sprites: bed, table, hearth, chest, shelf, altar, counter, bench, and the old anvil and barrel), a fire in the hearth, and the people inside; the road bar shows search, take and go-out buttons inside, and "Pick the lock" at a locked door. Bound `goods-bounded`.
+
+**What differs from the plan:**
+1. *Not an area:* inside is `player.inside`, like the road's `player.road`, not an `in:<i>` area id, so the area enum, saves and every area-reading system are untouched. The village's crowd and talkers aren't drawn while inside.
+2. *Talkers inside* are drawn as the household's people but talked to outside (their talker positions are still the village's); the schedule's places (the forge, the inn) aren't yet mapped to buildings.
+3. *Prisons and the player's home:* the cells are furniture in barracks; the player's home (`player.home`) is honoured by the doors but nothing gives one yet (N66).
+4. *Fortune shows in furnishing* by the wealth band (class, prosperity, famine) recomputed when looked at, without hysteresis; N31's burned marks aren't drawn inside.
+5. *Noticing* is a chance by who's awake (servants and slaves the most watchful), less when sneaking; not yet a perception roll per person.
+6. *No family scenes or quarrels indoors:* the household is at its bed, table or work by what the crowd has them doing; nothing plays out between them inside.
+7. *Tests:* fortune in furnishing (a good year against a famine) is in n32.test.ts; the planned shared `interior.test.ts` wasn't written (determinism is checked in n32).
+
 
 ## N33: Gossip for everyone
 
@@ -439,11 +515,12 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 - **Talkers and townsfolk share rows.** A townsperson who becomes a talker (`meetTownsperson`), and every talker when the player opens a conversation or an hour passes, gets what their row knows (news told straight becomes lore; a death, or news told with a changed detail, becomes a rumour in the version they heard, with how sure they are); news a talker learned goes into their row. When the player asks for gossip, `shareRumour` records what they were told in `player.known` (version, accuracy, who told them), and the journal note says it.
 - **The player's place talks by the hour** (`Town.gossipHours`): each hour only the venues open then, each at its share of the day's talk, replacing the daily spread there (not the day's seeding). The client shows what was passed on in a bubble over the speaker (its roster person), not over a pair of chatting people, because the browser doesn't know who knows what.
 - **Balance bounds** (`gossip/bounds.ts`): `knowledge-bounded` (rows ≤ 24 per person) and `gossip-not-instant` (no row is dated before the thing happened). That a far event reaches a place only with a traveller is a test with journeys on and off, not a bound, because a teller who forgot something and heard it again would look like an early row.
+- **Bounds in the long run (2026-11-03):** `checkGossipBounds` is in `sim:years`' end bounds. The step 4 test allows the first day's rows in the liege town to come from a neighbour who had it from the traveller that same day: a party talks at its stop before the place's own talk of the day, so the news can be passed on at once (it always could; regional weather moved seed 2's traveller onto such a day).
 - **Not done:** the place's "talk of the town" (`recentEvents`, what its talkers talk about) is still made by `deliverNews`, not read from the knowledge rows; per-pair credence (N37), festivals as a venue, `r:` refs (talkers' rumours about each other are still `gossipTogether`'s), letters, the player's journal pane showing the told version beyond the existing note (N65), the rest of N24 (`deliverToPlayer`, the feed reading only knowledge).
 
 ## N34: Following people in the game
 
-**Status:** ⬜ Planned
+**Status:** ✅ Built 2026-11-03 (uncommitted; tests/n34.test.ts). No save bump: `player.follows`, `player.letters` and `realm.letters` are optional.
 
 **Implementation plan:** [plans/n34-following-people.md](plans/n34-following-people.md)
 
@@ -451,17 +528,28 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 
 **The rules:** the in-game version of N17's pin, bound by what the player knows (N24): following someone means news of them is noticed and kept when it reaches the player, not that the player sees them.
 
-- [ ] Follow friends, family, rivals, a nemesis (N44), a famous adventurer
-- [ ] Word of them when it arrives ("your brother made sergeant", "Greyfang was seen near Highdale"), with source and how sure
-- [ ] Letters: followed people (and the player) can send and receive them by carriers (N33)
-- [ ] A followed list in the journal (N65) with each person's last known whereabouts
-- [ ] Tests, README, this roadmap
+- [x] Follow friends, family, rivals, a nemesis (N44), a famous adventurer
+- [x] Word of them when it arrives ("your brother made sergeant", "Greyfang was seen near Highdale"), with source and how sure
+- [x] Letters: followed people (and the player) can send and receive them by carriers (N33)
+- [x] A followed list in the journal (N65) with each person's last known whereabouts
+- [x] Tests, README, this roadmap
 
 - **Done when:** the player follows a friend who leaves for Highdale, hears weeks later from a caravan that she married there, and gets a letter from her that arrives days after she sent it.
 
+**Built:** `game/follow/follow.ts` (`follow`/`unfollow`, at most 30; `aboutOf` a knowledge ref; `noticeFollowed`: a heard ref about a followed person is kept with its source and how sure, a journal line, and their last known place if it says where; `overhear`: once a day and on arriving, anything about a followed person that someone living where the player is knows reaches the player, with that person's source in words, e.g. "from a caravan out of Highdale"); `game/follow/letters.ts` (`writeLetter`; `lettersDay` in `lifeDay` after the day's trips: a letter waits at a place until a party leaves it toward the letter's place (or nearer), rides with them, is put down where they stop or turn, and is lost if their journey ends before; `collectLetters` gives the player letters waiting where they are, naming who carried them; `playerWrites` to a followed person's last known place, postage by distance; `letterText`). `Town.followDay`: a followed friend whose talker cares for the player (relationship 40+) writes the day after their life turns (a marriage, a child, a move, a rank, a shop, a seat, freedom), at most every six days, to where they believe the player is; the player's letters warm their reader on arrival. The chat has Follow/Stop following; the Realm panel lists the people followed (last known place, the latest word, Write and Stop) and the letters.
+
+**What differs from the plan:**
+1. *No model call for letters:* the words are code's template (`letterText`), from the events the writer wanted to tell; N19's `letter` kind can better them later.
+2. *Family isn't followed automatically:* the player has no family rows yet (N66); nemesis is N44's.
+3. *A letter waits where it was put down;* the innkeeper doesn't forward one the player missed, and letters ride whole parties (not handed between strangers at inns: a party stopping at an inn takes it on).
+4. *Where the writer believes the player is* is where the player is when they write (talkers know where they met the player; no separate belief kept).
+5. *Overheard news* reads the knowledge table for refs about a followed person; it is N33's gossip that brings a fact to the place (a caravan's people tell it), so how long it takes is N33's.
+6. *Tested end to end (2026-11-03):* `Town.followDay` writes after a followed friend's marriage, and a real traveller carries the letter home (n34.test.ts).
+
+
 ## N35: Moving through time
 
-**Status:** ⬜ Planned
+**Status:** ✅ Built 2026-11-03 (uncommitted; tests/n35.test.ts), with N26 Part C (quick travel). No save bump (`player.knownRoads` is optional).
 
 **Implementation plan:** [plans/n35-moving-through-time.md](plans/n35-moving-through-time.md)
 
@@ -469,16 +557,26 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 
 **The rules:** waiting and travelling run the world fast (N25's levels of detail and catch-up) and stop when something happens that the player would care about: to them, to people they follow (N34), or where they are.
 
-- [ ] "Wake me when…": something happens to someone I follow, a person arrives, a job is posted, a season turns, a set time
-- [ ] Fast travel only along roads already walked (N26), and it stops for real events on the road (people, situations, news from a passing traveller)
-- [ ] Skip days or a season, with a summary of what the player heard while time passed
-- [ ] Tests, README, this roadmap
+- [x] "Wake me when…": something happens to someone I follow, a person arrives, a job is posted, a season turns, a set time
+- [x] Fast travel only along roads already walked (N26), and it stops for real events on the road (people, situations, news from a passing traveller)
+- [x] Skip days or a season, with a summary of what the player heard while time passed
+- [x] Tests, README, this roadmap
 
 - **Done when:** the player waits "until something happens to someone I follow" and is woken when their friend in Highdale falls ill; a season skip ends with a short list of the news they heard; fast travel stops for a gang on the road.
 
+**Built:** `game/time/pass.ts`: `passUntil(town, { maxHours, conditions, step })` passes time an hour at a time with the clock's own step and stops at the first wake condition (`followed`, optionally by what: ill, dead, married, moved, rank; `arrives`; `job`; `season`; `time`; `festival`; `market`), then danger, which always wakes (a raid on the place, hunger on the road, bad wounds); at most a season (`maxSkipHours`); the summary (`summaryLines`): what was heard, news of followed people first, each with source and sureness, a dozen at most. The web `wait` goes through it; `waituntil` with header buttons for each wake: skip a day, until morning (`time`), until market day, until the festival, until new work (`job`), wait for news (`followed`), skip the season; and *Wait for them* on each followed person (`arrives`). The CLI's `/wait [hours | day | morning | market | festival | work | news | season]` goes through the same engine. **N26 Part C:** C1 `knownRoad`/`learnRoadsNear` in `road/fast.ts` (fast travel on any road walked or heard of: an inn's "ask about the country" tells the way along the roads near it, a bought map shows the roads of its country; fast travel still stops for parties, situations, threats, night, hunger and tolls; stretches it crosses are walked); C2 `RoadPlay.quiet()` (`config.quietFactor`, `QUIET_FACTOR`, default 4: while no party, commuter, hostile, threat's ground, roadside place or gate is in view the server's walk and the frame's step run that many times faster in real time; a step passes the same game time).
+
+**What differs from the plan:**
+1. *Hours, not days:* the engine always steps an hour (the clock's own step), never a day at a time while asleep; a season's skip in a town with people is a few seconds of work.
+2. *Fast travel keeps its own look-ahead:* `fast.ts` already finds every stop before it runs the clock (a party, a situation, a gang or pack's ground, night, hunger, a toll); it was not rewritten onto the engine. A test shows it stops for a gang's stretch.
+3. *No progress bar or budget "skipping" mode:* a skip is one action; model calls during it fall back as the budget already makes them under load.
+4. *Arrivals* are of a named person (`arrives` needs `who`); "any traveller" isn't a condition. Where to wait is where the player stands (an inn's bed is still the inn's own action).
+5. *"The years pass"* (the realism note) is not built: skips stop at a season.
+
+
 ## N36: The mood of a place
 
-**Status:** ⬜ Planned
+**Status:** ✅ Built 2026-11-03 (uncommitted; tests/n36.test.ts). No save bump: `Settlement.mood` is optional.
 
 **Implementation plan:** [plans/n36-the-mood-of-a-place.md](plans/n36-the-mood-of-a-place.md)
 
@@ -486,9 +584,20 @@ Every person is real and the year has a rhythm: they age, marry, die, gossip and
 
 **The rules:** a place's mood (grief, fear, anger, joy, hope, unease) is computed in code from recent events weighted by how many there felt them, and decays. It shifts chatter, prices, willingness to help, N38's scoring and N58's unrest.
 
-- [ ] Mood from events: a massacre (grief), a curfew (fear), a tax hike (anger), a good harvest or a victory (joy)
-- [ ] Mood in chatter, NPC personas, prices and how strangers (the player) are treated
-- [ ] Mood on the map and in the admin view
-- [ ] Tests, README, this roadmap
+- [x] Mood from events: a massacre (grief), a curfew (fear), a tax hike (anger), a good harvest or a victory (joy)
+- [x] Mood in chatter, NPC personas, prices and how strangers (the player) are treated
+- [x] Mood on the map and in the admin view
+- [x] Tests, README, this roadmap
 
 - **Done when:** after a raid kills several people Millbrook is in grief, its chatter and prices show it and it fades over weeks; a festival after a good harvest lifts it to joy.
+
+**Built:** `game/mood/model.ts`: six numbers per place (grief, fear, anger, joy, hope, unease, 0..100) worked out at the end of the realm's day for every place (`moodRealmDay`), from yesterday's mood decaying toward a baseline (`baseline`: a poor or hungry place is uneasy, a thriving one hopeful; half-lives from two days for joy to a week for grief), plus today's shocks (`shocksOf`: the day's dead by cause, weighted by the share of families they touch, capped at 60; a raid; a war begun; hunger and long hunger; the harvest judged good or poor; a festival, more after a good harvest), with the strongest causes kept. The dominant mood (over 30) is `dominant`, said by `moodLine`. Its effects: `SiteDay.mood` (the N25b reviews: gloom lowers people's mood, cheer lifts it), `CrowdDay.mood` (fewer out of an evening in grief and fear, more in joy; most talk from the mood's lines, `MOOD_TALK` in shared crowd.ts), prices (ale and blades a tenth dearer in grief or fear, ale cheaper in joy), first impressions (a frightened or angry town is cooler to a stranger, a glad one warmer), one line in talkers' prompts, the header's "today" and its tip, and the admin place card. Bound `moods-move` (no mood pinned above 70 for over a season without a fresh shock of its kind; days each mood showed).
+
+**What differs from the plan:**
+1. *Kept on the settlement, not only in `site_days`:* the realm's day computes it for every place (lived in by rows or not), and the place's conditions copy it, so a lazy place and a lived one agree by construction.
+2. *Felt-by* is the dead times a family of four over the population, not a lineage query per death.
+3. *No N38 score input or help modifier yet,* and no map tint (fewer people out is what shows); N58's unrest will read anger and fear from the same numbers.
+4. *Candles* aren't an item: drink and blades carry the price effect.
+5. *Tax and victory (2026-11-03):* a tax day angers a place paying a war levy or a heavy share (over a quarter); a war's end gladdens the winning side's places and angers and grieves the losers' (`War.winner`). A curfew's fear waits for N58.
+6. *The bound* `moods-move` judges only pinned moods; that every mood is dominant somewhere at some time is reported, not judged. The admin shows the mood as a line on the place card, not a chart.
+

@@ -47,6 +47,8 @@ export const DELVE_CHANCE = 0.12;
  * BEAST_REST of a year. Attacks kill townsfolk, so how many a place suffers is stated over the year.
  */
 export const BEAST_ATTACK_YEARLY = 0.97;
+/** Packs are hungrier in winter (N30 decision 7): their attack chance is this much higher. */
+export const WINTER_HUNGER = 1.5;
 export const BEAST_REST = 5 / 12;
 
 const roundBy = (rng: Rng, n: number) => Math.floor(n) + (rng() < n - Math.floor(n) ? 1 : 0);
@@ -86,7 +88,7 @@ export function packsDay(realm: Realm, day: number, rng: Rng): void {
     // A beast rises to lead the pack.
     if (!p.alpha && p.count >= 5 && rng() < 0.02) crownAlpha(realm, p, day, rng, "beating its rivals for the lead of the pack");
     // Too many: they come for the settlement.
-    if (p.count >= Math.ceil(p.cap * 0.8) && (p.lastAttack === undefined || day - p.lastAttack >= Math.round(BEAST_REST * config.daysPerYear)) && rng() < dailyChance(BEAST_ATTACK_YEARLY)) attackFrom(realm, p, day, rng);
+    if (p.count >= Math.ceil(p.cap * 0.8) && (p.lastAttack === undefined || day - p.lastAttack >= Math.round(BEAST_REST * config.daysPerYear)) && rng() < dailyChance(BEAST_ATTACK_YEARLY) * (seasonOf(day) === "winter" ? WINTER_HUNGER : 1)) attackFrom(realm, p, day, rng);
   }
 }
 

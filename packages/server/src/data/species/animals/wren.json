@@ -1,0 +1,30 @@
+{
+  "id": "wren",
+  "kind": "animal",
+  "name": "wren",
+  "plural": "wrens",
+  "class": "bird",
+  "biomes": {
+    "forest": 1,
+    "valley": 0.8,
+    "marsh": 0.5
+  },
+  "seasons": {
+    "spring": 1,
+    "summer": 1,
+    "autumn": 1,
+    "winter": 1
+  },
+  "abundance": 0.6,
+  "group": {
+    "min": 1,
+    "max": 2
+  },
+  "active": "dawn",
+  "flees": 4,
+  "signs": [],
+  "products": [],
+  "rarity": "common",
+  "small": true,
+  "lore": {}
+}

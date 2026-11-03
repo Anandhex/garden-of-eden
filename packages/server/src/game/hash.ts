@@ -23,7 +23,7 @@ export function canonical(value: unknown): string {
 }
 
 /** Tables the hash reads. (`site_days` is a working record of each day's conditions, pruned on its own schedule, so it is left out.) */
-export const HASHED_TABLES: TableName[] = ["people", "relationships", "knowledge", "grievances", "ambitions", "jobs_held", "events", "director_log", "memories", "site_seq", "life_reviews", "beasts", "plots", "sowings", "field_events", "plot_years"];
+export const HASHED_TABLES: TableName[] = ["people", "relationships", "knowledge", "grievances", "ambitions", "jobs_held", "events", "director_log", "memories", "site_seq", "life_reviews", "beasts", "plots", "sowings", "field_events", "plot_years", "marks", "household_goods"];
 /** `rev` counts how often a row was written, which depends on when the world was saved, not on what happened in it. */
 const SKIP_COLUMNS: Partial<Record<TableName, string[]>> = { memories: ["vector", "embedder"], people: ["rev"] };
 

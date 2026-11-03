@@ -1,0 +1,49 @@
+{
+  "id": "goose",
+  "kind": "animal",
+  "name": "greylag goose",
+  "plural": "geese",
+  "class": "bird",
+  "biomes": {
+    "marsh": 1,
+    "coast": 0.8,
+    "plains": 0.3
+  },
+  "seasons": {
+    "spring": 0.8,
+    "summer": 0.5,
+    "autumn": 1.5,
+    "winter": 1.2
+  },
+  "abundance": 0.35,
+  "group": {
+    "min": 4,
+    "max": 16
+  },
+  "active": "day",
+  "flees": 14,
+  "signs": [],
+  "products": [
+    {
+      "item": "goose meat",
+      "qty": [
+        1,
+        2
+      ]
+    },
+    {
+      "item": "feathers",
+      "qty": [
+        2,
+        5
+      ]
+    }
+  ],
+  "rarity": "common",
+  "hunt": {
+    "skill": "hunting",
+    "difficulty": 12
+  },
+  "water": true,
+  "lore": {}
+}

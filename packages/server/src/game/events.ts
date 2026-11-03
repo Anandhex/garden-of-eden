@@ -84,6 +84,12 @@ export const EVENT_KINDS = [
   "story-turn",
   // The open road (N26): a situation met on it, and what came of it later
   "road",
+  // The wilds (N27): a place found off the road
+  "discovered",
+  // Interiors (N32): going into a home uninvited
+  "trespass",
+  // A household's stock got into a neighbour's crop (N26G): the wrong behind the quarrel, so revenge can point at it (N37).
+  "stock-strayed",
   // Chatter with consequences (N37): a snub or a refusal, an insult or a humiliation, a threat, an apology
   "slight",
   "affront",

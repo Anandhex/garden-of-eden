@@ -12,7 +12,9 @@ const DAWN: Rgb = [1.0, 0.8, 0.66];
 const DUSK: Rgb = [1.0, 0.66, 0.42];
 const NOON: Rgb = [1, 1, 1];
 /** Weather's dimming (and a little colour). */
-const WEATHER: Record<string, Rgb> = { clear: [1, 1, 1], rain: [0.8, 0.82, 0.88], storm: [0.62, 0.64, 0.72], snow: [0.94, 0.96, 1.0] };
+const WEATHER: Record<string, Rgb> = { clear: [1, 1, 1], rain: [0.8, 0.82, 0.88], storm: [0.62, 0.64, 0.72], snow: [0.94, 0.96, 1.0], fog: [0.86, 0.87, 0.9] };
+/** The season's cast (N30): plain in spring and summer, a warm gold autumn, a cold blue winter. */
+const SEASON: Record<string, Rgb> = { spring: [1, 1, 1], summer: [1, 1, 1], autumn: [1, 0.94, 0.84], winter: [0.9, 0.94, 1] };
 
 const mix = (a: Rgb, b: Rgb, k: number): Rgb => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
 
@@ -25,7 +27,8 @@ export function ambientOf(a: Frame["ambience"]): Rgb {
   if (k >= 1 && a.timeOfDay === "evening") c = mix(c, DUSK, 0.18);
   if (k >= 1 && a.timeOfDay === "morning") c = mix(c, DAWN, 0.08);
   const w = WEATHER[a.weather] ?? WEATHER.clear!;
-  return [c[0] * w[0], c[1] * w[1], c[2] * w[2]];
+  const s = SEASON[a.season] ?? SEASON.summer!;
+  return [c[0] * w[0] * s[0], c[1] * w[1] * s[1], c[2] * w[2] * s[2]];
 }
 
 export const rgbToInt = (c: Rgb): number => (Math.round(Math.min(1, c[0]) * 255) << 16) | (Math.round(Math.min(1, c[1]) * 255) << 8) | Math.round(Math.min(1, c[2]) * 255);

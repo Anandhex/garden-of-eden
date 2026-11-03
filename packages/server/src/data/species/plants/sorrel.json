@@ -1,0 +1,60 @@
+{
+  "id": "sorrel",
+  "kind": "plant",
+  "name": "sorrel",
+  "class": "herb",
+  "biomes": {
+    "plains": 0.8,
+    "valley": 0.8
+  },
+  "calendar": {
+    "bud": [
+      0.02,
+      0.15
+    ],
+    "flower": [
+      0.15,
+      0.4
+    ],
+    "fruit": [
+      0.4,
+      0.6
+    ],
+    "dormant": [
+      0.6,
+      1.02
+    ]
+  },
+  "cover": 0.3,
+  "products": [
+    {
+      "stage": "bud",
+      "item": "sorrel",
+      "qty": [
+        1,
+        3
+      ]
+    },
+    {
+      "stage": "flower",
+      "item": "sorrel",
+      "qty": [
+        1,
+        3
+      ]
+    }
+  ],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 7
+  },
+  "regrowDays": 8,
+  "rarity": "common",
+  "effects": [
+    {
+      "when": "eaten",
+      "food": 4
+    }
+  ],
+  "lore": {}
+}

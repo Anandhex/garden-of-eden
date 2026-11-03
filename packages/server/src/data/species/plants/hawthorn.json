@@ -1,0 +1,54 @@
+{
+  "id": "hawthorn",
+  "kind": "plant",
+  "name": "hawthorn",
+  "class": "shrub",
+  "biomes": {
+    "plains": 1,
+    "valley": 0.8
+  },
+  "calendar": {
+    "bud": [
+      0.02,
+      0.15
+    ],
+    "flower": [
+      0.15,
+      0.3
+    ],
+    "fruit": [
+      0.55,
+      0.75
+    ],
+    "dormant": [
+      0.75,
+      1.02
+    ]
+  },
+  "cover": 0.3,
+  "products": [
+    {
+      "stage": "fruit",
+      "item": "haws",
+      "qty": [
+        2,
+        5
+      ]
+    }
+  ],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 5
+  },
+  "regrowDays": 8,
+  "rarity": "common",
+  "effects": [
+    {
+      "when": "eaten",
+      "food": 3
+    }
+  ],
+  "lore": {
+    "omen": "never bring hawthorn blossom indoors"
+  }
+}

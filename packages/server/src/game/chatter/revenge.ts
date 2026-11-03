@@ -36,7 +36,14 @@ export const REVENGE = {
   faded: 0.15,
   /** The share of the weight settled that the target now holds against the avenger. */
   backlash: 0.5,
+  /** Days someone just paid back is left alone: others with a grudge against them wait, and their grudge cools meanwhile. */
+  respite: 7,
 } as const;
+
+/** Was `who` the target of someone's revenge in the last REVENGE.respite days (today included)? */
+function paidBackLately(store: LifeCtx["store"], who: string, day: number): boolean {
+  return store.eventsAbout(who, 30).some((e) => e.target === who && e.id.includes("vendetta:") && e.kind !== "new-goal" && e.day > day - REVENGE.respite);
+}
 
 /** How much hatred a person needs to hold against one other before they want revenge: the proud and hot-tempered need less, the forgiving more. */
 export function thresholdOf(t: Pick<Temper, "pride" | "temper" | "forgiveness">): number {
@@ -117,7 +124,7 @@ export function vendettaDay(ctx: LifeCtx, site: string, day: number): VendettaRe
       if (goal.since < day && left >= REVENGE.actAt) {
         const target = store.people.get(goal.target);
         // They can only reach someone of their own place; if the other has gone away, the goal waits (it fades as the hatred does).
-        if (target && target.death === null && target.site === row.site && !target.away && !row.away) {
+        if (target && target.death === null && target.site === row.site && !target.away && !row.away && !paidBackLately(store, target.id, day)) {
           actOnVendetta(ctx, row, target, goal, live.filter((g) => g.against === target.id), day);
           out.acted++;
           continue;

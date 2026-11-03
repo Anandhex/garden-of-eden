@@ -1,6 +1,8 @@
 /** The view protocol (G5), the art ids and the building templates (G6). Engine adapters import only this (and GameEvent). */
 export * from "./schema.js";
 export * from "./art.js";
+/** The soundscape (N29): what should be heard, from the frame's `sound` facts. */
+export * from "./sound.js";
 /** Building templates (G6): how a building is dressed, the same everywhere. */
 export * from "./templates.js";
 export type { GameEvent } from "../events.js";

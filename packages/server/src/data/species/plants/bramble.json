@@ -1,0 +1,54 @@
+{
+  "id": "bramble",
+  "kind": "plant",
+  "name": "bramble",
+  "class": "shrub",
+  "biomes": {
+    "forest": 1,
+    "valley": 1,
+    "plains": 0.6
+  },
+  "calendar": {
+    "bud": [
+      0.05,
+      0.25
+    ],
+    "flower": [
+      0.25,
+      0.5
+    ],
+    "fruit": [
+      0.5,
+      0.68
+    ],
+    "dormant": [
+      0.68,
+      1.05
+    ]
+  },
+  "cover": 0.3,
+  "products": [
+    {
+      "stage": "fruit",
+      "item": "blackberries",
+      "qty": [
+        2,
+        6
+      ]
+    }
+  ],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 3
+  },
+  "regrowDays": 5,
+  "rarity": "common",
+  "effects": [
+    {
+      "when": "eaten",
+      "food": 8,
+      "water": 4
+    }
+  ],
+  "lore": {}
+}

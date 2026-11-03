@@ -11,7 +11,7 @@ import { speciesOf } from "../../world/species.js";
 import type { PeopleStore, PersonRow } from "../../store/peopleStore.js";
 import { journeysNear } from "./journeys.js";
 import { fightOnRoad, type Foe } from "../realm/travel.js";
-import { weatherOn } from "../weather.js";
+import { weatherOn, whereOf } from "../weather.js";
 import type { Realm } from "../realm/types.js";
 import type { Town } from "../town.js";
 import { groundAt, landOf } from "./ground.js";
@@ -174,7 +174,7 @@ function country(realm: Realm, p: { x: number; y: number }): string[] {
   return out;
 }
 
-const rained = (day: number) => ["rain", "storm"].includes(weatherOn(day)) || ["rain", "storm"].includes(weatherOn(day - 1));
+const rained = (realm: Realm, day: number, tile: { x: number; y: number }) => ["rain", "storm"].includes(weatherOn(day, { realm, tile })) || ["rain", "storm"].includes(weatherOn(day - 1, { realm, tile }));
 
 /** What the stretch of `road` between waypoints `seg` and `seg + 1` has on it on `day`, or null. The same for everyone. */
 export function rollSegment(realm: Realm, data: RoadData, road: RoadPath & { cum?: number[] }, seg: number, day: number, people?: PeopleStore): Rolled | null {
@@ -200,7 +200,7 @@ function rollNow(realm: Realm, data: RoadData, road: RoadPath & { cum?: number[]
   const where = country(realm, at);
   const crossing = data.crossings.find((c) => c.road === road.id && Math.abs(c.t - t) < 90);
   if (crossing) where.push(crossing.kind === "bridge" ? "bridge" : "ford");
-  const ok = loadSituations().filter((d) => d.chance > 0 && d.where.some((w) => where.includes(w)) && !d.when.crackdown && (!d.when.rain || rained(day)));
+  const ok = loadSituations().filter((d) => d.chance > 0 && d.where.some((w) => where.includes(w)) && !d.when.crackdown && (!d.when.rain || rained(realm, day, at)));
   // Something tied to a crossing or a kind of country beats a plain one if both could be: a ford in flood is what's there.
   const special = ok.filter((d) => !d.where.every((w) => w === "road"));
   const pool = special.length > 0 && rng() < 0.7 ? special : ok;
@@ -356,7 +356,7 @@ function apply(c: Ctx, e: EffectDef): void {
       break;
     case "time":
       if (e.minutes) {
-        c.lines.push(...tickNeeds(p, e.minutes, c.now, { weather: weatherOn(world.day) }));
+        c.lines.push(...tickNeeds(p, e.minutes, c.now, { weather: weatherOn(world.day, whereOf(world)) }));
         c.town.walkMinutes(e.minutes);
       }
       break;

@@ -1,0 +1,62 @@
+{
+  "id": "hemlock",
+  "kind": "plant",
+  "name": "hemlock",
+  "class": "herb",
+  "biomes": {
+    "valley": 0.8,
+    "marsh": 0.6
+  },
+  "calendar": {
+    "bud": [
+      0,
+      0.1
+    ],
+    "flower": [
+      0.1,
+      0.3
+    ],
+    "fruit": [
+      0.3,
+      0.45
+    ],
+    "dormant": [
+      0.45,
+      1
+    ]
+  },
+  "cover": 0.3,
+  "products": [
+    {
+      "stage": "bud",
+      "item": "hemlock",
+      "qty": [
+        1,
+        2
+      ]
+    },
+    {
+      "stage": "flower",
+      "item": "hemlock",
+      "qty": [
+        1,
+        2
+      ]
+    }
+  ],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 12
+  },
+  "regrowDays": 8,
+  "rarity": "common",
+  "effects": [
+    {
+      "when": "eaten",
+      "causes": "poisoned"
+    }
+  ],
+  "lore": {
+    "warning": "the philosophers' poison"
+  }
+}

@@ -1,7 +1,6 @@
 import { type ClassCounts, CrowdSim, type CrowdDay, type CrowdRoster, type Townsperson } from "@millbrook/shared";
-import { townEventsOn } from "../game/events-calendar.js";
+import { crowdDayAt } from "../game/events-calendar.js";
 import { figureClass } from "../game/realm/townsfolk.js";
-import { weatherOn } from "../game/weather.js";
 import { siteMap, type SiteMap } from "../web/sites.js";
 import type { AdminContext } from "./context.js";
 
@@ -43,7 +42,7 @@ export function folkOf(ctx: AdminContext, site: string): Folk | null {
 /** Today's conditions for where the townsfolk go. */
 export function crowdDay(ctx: AdminContext): CrowdDay {
   const world = ctx.world();
-  return { weather: weatherOn(world.day), festival: townEventsOn(world).includes("festival") };
+  return crowdDayAt(world, world.player?.site ?? null);
 }
 
 /** One of the townsfolk by id (`t_<site>_<n>`), with the place they live in. */

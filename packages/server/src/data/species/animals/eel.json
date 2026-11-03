@@ -1,0 +1,42 @@
+{
+  "id": "eel",
+  "kind": "animal",
+  "name": "eel",
+  "plural": "eels",
+  "class": "fish",
+  "biomes": {
+    "marsh": 1,
+    "valley": 0.6,
+    "coast": 0.4
+  },
+  "seasons": {
+    "spring": 1,
+    "summer": 1,
+    "autumn": 1,
+    "winter": 1
+  },
+  "abundance": 0.35,
+  "group": {
+    "min": 1,
+    "max": 1
+  },
+  "active": "night",
+  "flees": 0,
+  "signs": [],
+  "products": [
+    {
+      "item": "eel",
+      "qty": [
+        1,
+        1
+      ]
+    }
+  ],
+  "rarity": "common",
+  "hunt": {
+    "skill": "fishing",
+    "difficulty": 10
+  },
+  "water": true,
+  "lore": {}
+}

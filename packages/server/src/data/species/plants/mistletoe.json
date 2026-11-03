@@ -1,0 +1,49 @@
+{
+  "id": "mistletoe",
+  "kind": "plant",
+  "name": "mistletoe",
+  "class": "herb",
+  "biomes": {
+    "forest": 0.6,
+    "valley": 0.4
+  },
+  "calendar": {
+    "bud": [
+      0.2,
+      0.4
+    ],
+    "flower": [
+      0,
+      0.15
+    ],
+    "fruit": [
+      0.75,
+      1
+    ],
+    "dormant": [
+      0.4,
+      0.75
+    ]
+  },
+  "cover": 0.3,
+  "products": [
+    {
+      "stage": "fruit",
+      "item": "mistletoe",
+      "qty": [
+        1,
+        2
+      ]
+    }
+  ],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 12
+  },
+  "regrowDays": 8,
+  "rarity": "uncommon",
+  "effects": [],
+  "lore": {
+    "sacredTo": "midwinter: kisses under the mistletoe"
+  }
+}

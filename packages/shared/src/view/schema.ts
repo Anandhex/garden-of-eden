@@ -5,6 +5,7 @@
  * show something, never what is true or allowed.
  */
 import { z } from "zod";
+import { ScapeInputSchema } from "./sound.js";
 
 /** Bumped when a message changes shape; the server refuses a client with another version. */
 export const PROTOCOL_VERSION = 1;
@@ -86,9 +87,15 @@ export const BuildingSchema = z.object({
   template: z.string().optional(),
   /** Its door's tile, if it has one. */
   door: Point.nullable().optional(),
+  /** Smoke from its chimney (N31): someone home with a fire lit, in the cold months or after dark. */
+  smoke: z.boolean().optional(),
 });
 export const LightSchema = z.object({ id: z.string(), x: z.number(), y: z.number(), kind: z.enum(["window", "lamp", "fire", "torch", "forge", "magic"]), on: z.boolean() });
 export const SignSchema = z.object({ id: z.string(), x: z.number(), y: z.number(), text: z.string(), kind: z.enum(["exit", "place"]) });
+/** A mark on a place's map (N31): what happened there, drawn over the ground and buildings; `label` on hover. */
+export const MARK_KINDS = ["burned", "ruin", "scaffold", "grave", "stall_empty", "banner", "guards", "boarded", "memorial"] as const;
+export const MarkSchema = z.object({ id: z.string(), kind: z.enum(MARK_KINDS), x: z.number(), y: z.number(), w: z.number(), h: z.number(), label: z.string().optional(), colour: z.string().optional() });
+export type Mark = z.infer<typeof MarkSchema>;
 export const ChatterSchema = z.object({ a: z.string(), b: z.string(), lines: z.tuple([z.string(), z.string()]), hot: z.boolean(), bow: z.boolean() });
 
 export const FrameSchema = z.object({
@@ -103,6 +110,10 @@ export const FrameSchema = z.object({
    */
   drop: z.object({ buildings: z.array(z.number()), lights: z.array(z.string()) }).optional(),
   signs: z.array(SignSchema).optional(),
+  /** What there is to hear (N29): the plain facts `soundscape()` (sound.ts) turns into beds and spots; sent when they change. */
+  sound: ScapeInputSchema.optional(),
+  /** The place's marks (N31), whole, when they change. */
+  marks: z.array(MarkSchema).optional(),
   /**
    * `upsert`: actors new or changed in more than their place (whole). `move`: actors that only moved, as compact
    * `[id, x, y]` (a busy town moves hundreds a minute). `routes`: the tiles to walk through for some of the movers.
@@ -114,7 +125,8 @@ export const FrameSchema = z.object({
     remove: z.array(z.string()),
   }),
   player: z.object({ id: z.literal("player"), x: z.number(), y: z.number() }),
-  ambience: z.object({ light: z.number(), timeOfDay: z.string(), weather: z.string(), season: z.string() }),
+  /** `snow`: snow lies on the ground (N30), drawn as a white cover over the land. */
+  ambience: z.object({ light: z.number(), timeOfDay: z.string(), weather: z.string(), season: z.string(), snow: z.boolean().optional() }),
   /** "E: talk", drawn under `target`. */
   prompt: z.object({ text: z.string(), target: z.string(), x: z.number(), y: z.number(), tone: z.enum(["talk", "fight", "danger"]) }).nullable(),
   fight: z.object({ secondsLeft: z.number(), tick: z.number() }).nullable(),

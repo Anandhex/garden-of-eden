@@ -1,0 +1,52 @@
+{
+  "id": "birch",
+  "kind": "plant",
+  "name": "birch",
+  "class": "tree",
+  "biomes": {
+    "forest": 0.8,
+    "hills": 0.6
+  },
+  "calendar": {
+    "bud": [
+      0.05,
+      0.2
+    ],
+    "flower": [
+      0.05,
+      0.15
+    ],
+    "fruit": [
+      0.5,
+      0.7
+    ],
+    "dormant": [
+      0.7,
+      1.05
+    ]
+  },
+  "cover": 0.3,
+  "products": [
+    {
+      "stage": "bud",
+      "item": "birch sap",
+      "qty": [
+        1,
+        2
+      ]
+    }
+  ],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 5
+  },
+  "regrowDays": 8,
+  "rarity": "common",
+  "effects": [
+    {
+      "when": "eaten",
+      "water": 10
+    }
+  ],
+  "lore": {}
+}

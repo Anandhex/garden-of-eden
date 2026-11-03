@@ -5,6 +5,7 @@
  */
 import "./style.css";
 import type { Frame, GameEvent, PromptMsg, SpeechMsg, UiModel } from "@millbrook/shared/view";
+import { SoundEngine } from "./audio";
 import { Core, type ConnectionStatus, type EngineAdapter, type FrameChange } from "../../core";
 import { $ } from "../../dom";
 import { Panels } from "./panels";
@@ -28,7 +29,12 @@ class WebAdapter implements EngineAdapter {
 
   frame(f: Frame, changed: FrameChange): void {
     this.world.frame(changed, f);
+    // What there is to hear (N29): only when the facts changed.
+    if (f.sound) this.sound.setInput(f.sound);
   }
+
+  /** The soundscape's player (N29). */
+  private sound = new SoundEngine();
 
   event(e: GameEvent): void {
     this.world.event(e);
@@ -125,6 +131,21 @@ class WebAdapter implements EngineAdapter {
       showLook();
     };
     showLook();
+    // The soundscape (N29): this browser's setting too, on and off and how loud.
+    const snd = $("sound-btn");
+    const vol = $<HTMLInputElement>("sound-volume");
+    const showSound = () => {
+      snd.textContent = this.sound.on ? "🎵 Sound" : "🎵 Sound off";
+      snd.classList.toggle("off", !this.sound.on);
+      vol.disabled = !this.sound.on;
+    };
+    snd.onclick = () => {
+      this.sound.setOn(!this.sound.on);
+      showSound();
+    };
+    vol.value = String(Math.round(this.sound.volume * 100));
+    vol.oninput = () => this.sound.setVolume(Number(vol.value) / 100);
+    showSound();
     $("modal-close").onclick = () => this.panels.closeModal();
     $<HTMLDialogElement>("modal").addEventListener("cancel", (e) => {
       e.preventDefault();

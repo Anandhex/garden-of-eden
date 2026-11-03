@@ -1,0 +1,60 @@
+{
+  "id": "comfrey",
+  "kind": "plant",
+  "name": "comfrey",
+  "class": "herb",
+  "biomes": {
+    "marsh": 0.8,
+    "valley": 1
+  },
+  "calendar": {
+    "bud": [
+      0.05,
+      0.2
+    ],
+    "flower": [
+      0.2,
+      0.45
+    ],
+    "fruit": [
+      0.45,
+      0.7
+    ],
+    "dormant": [
+      0.7,
+      1.05
+    ]
+  },
+  "cover": 0.3,
+  "products": [
+    {
+      "stage": "bud",
+      "item": "comfrey leaf",
+      "qty": [
+        1,
+        2
+      ]
+    },
+    {
+      "stage": "flower",
+      "item": "comfrey leaf",
+      "qty": [
+        1,
+        3
+      ]
+    }
+  ],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 10
+  },
+  "regrowDays": 8,
+  "rarity": "common",
+  "effects": [
+    {
+      "when": "applied",
+      "heals": 10
+    }
+  ],
+  "lore": {}
+}

@@ -1,0 +1,43 @@
+{
+  "id": "heron",
+  "kind": "animal",
+  "name": "grey heron",
+  "plural": "herons",
+  "class": "bird",
+  "biomes": {
+    "marsh": 1,
+    "coast": 0.6,
+    "valley": 0.5
+  },
+  "seasons": {
+    "spring": 1,
+    "summer": 1,
+    "autumn": 1,
+    "winter": 1
+  },
+  "abundance": 0.3,
+  "group": {
+    "min": 1,
+    "max": 1
+  },
+  "active": "day",
+  "flees": 14,
+  "signs": [],
+  "products": [
+    {
+      "item": "feathers",
+      "qty": [
+        2,
+        4
+      ]
+    }
+  ],
+  "rarity": "common",
+  "hunt": {
+    "skill": "hunting",
+    "difficulty": 12
+  },
+  "creature": "heron",
+  "water": true,
+  "lore": {}
+}

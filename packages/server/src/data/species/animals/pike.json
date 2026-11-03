@@ -1,0 +1,42 @@
+{
+  "id": "pike",
+  "kind": "animal",
+  "name": "pike",
+  "plural": "pike",
+  "class": "fish",
+  "biomes": {
+    "marsh": 1,
+    "valley": 0.6,
+    "plains": 0.6
+  },
+  "seasons": {
+    "spring": 1,
+    "summer": 1,
+    "autumn": 1,
+    "winter": 1
+  },
+  "abundance": 0.3,
+  "group": {
+    "min": 1,
+    "max": 1
+  },
+  "active": "always",
+  "flees": 0,
+  "signs": [],
+  "products": [
+    {
+      "item": "pike",
+      "qty": [
+        1,
+        1
+      ]
+    }
+  ],
+  "rarity": "common",
+  "hunt": {
+    "skill": "fishing",
+    "difficulty": 13
+  },
+  "water": true,
+  "lore": {}
+}

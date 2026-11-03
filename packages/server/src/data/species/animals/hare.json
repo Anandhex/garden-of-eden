@@ -1,0 +1,44 @@
+{
+  "id": "hare",
+  "kind": "animal",
+  "name": "hare",
+  "plural": "hares",
+  "class": "beast",
+  "biomes": {
+    "plains": 1,
+    "valley": 0.8,
+    "hills": 0.5
+  },
+  "seasons": {
+    "spring": 1,
+    "summer": 1,
+    "autumn": 1,
+    "winter": 1
+  },
+  "abundance": 0.5,
+  "group": {
+    "min": 1,
+    "max": 2
+  },
+  "active": "dawn-dusk",
+  "flees": 7,
+  "signs": [
+    "tracks"
+  ],
+  "products": [
+    {
+      "item": "hare meat",
+      "qty": [
+        1,
+        1
+      ]
+    }
+  ],
+  "rarity": "common",
+  "hunt": {
+    "skill": "hunting",
+    "difficulty": 10
+  },
+  "creature": "hare",
+  "lore": {}
+}

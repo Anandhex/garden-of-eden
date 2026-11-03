@@ -142,6 +142,11 @@ describe("G6 light as facts", () => {
     expect(dawn[0]).toBeGreaterThan(dawn[2]);
     expect(at(1, "afternoon", "storm")[0]).toBeLessThan(at(1, "afternoon", "rain")[0]);
     expect(at(1, "afternoon", "rain")[0]).toBeLessThan(1);
+    // The season's cast (N30): a winter noon is bluer than a summer one, an autumn noon warmer.
+    const winter = ambientOf({ light: 1, timeOfDay: "afternoon", weather: "clear", season: "winter" });
+    const autumn = ambientOf({ light: 1, timeOfDay: "afternoon", weather: "clear", season: "autumn" });
+    expect(winter[2]).toBeGreaterThan(winter[0]);
+    expect(autumn[0]).toBeGreaterThan(autumn[2]);
   });
 
   it("the real lights go to the nearest that are on, within the budget", () => {

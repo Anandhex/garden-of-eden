@@ -13,6 +13,7 @@ import { realmNews, tally } from "../realm/log.js";
 import type { Realm, Settlement } from "../realm/types.js";
 import { weatherOn } from "../weather.js";
 import { cropFor, loadCrops } from "./crops.js";
+import { noteHarvest } from "../realm/harvest.js";
 import { ensurePlots, householdsAt, plotsOf, workersOf } from "./fields.js";
 
 /**
@@ -82,7 +83,7 @@ export function fieldsDay(realm: Realm, store: WorldStore, site: string, day: nu
   const hh = householdsAt(store, site, day);
   const everyone = [...hh.all.values()].flat();
   const year = yearOf(day, config.daysPerYear);
-  const c: Ctx = { realm, store, s, day, year, doy: dayOfYear(day, config.daysPerYear), rng: streamFor(realm.seed, "fields", site, day), rows, households: hh.all, everyone, weather: weatherOn(day), rained: ["rain", "storm"].includes(weatherOn(day)) && ["rain", "storm"].includes(weatherOn(day - 1)) };
+  const c: Ctx = { realm, store, s, day, year, doy: dayOfYear(day, config.daysPerYear), rng: streamFor(realm.seed, "fields", site, day), rows, households: hh.all, everyone, weather: weatherOn(day, { realm, site }), rained: ["rain", "storm"].includes(weatherOn(day, { realm, site })) && ["rain", "storm"].includes(weatherOn(day - 1, { realm, site })) };
   const f = s.fields!;
   // The first day the fields are kept: what should already be in the ground this year is (the switch mustn't starve anyone).
   const backfill = !f.kept;
@@ -138,6 +139,7 @@ export function fieldsDay(realm: Realm, store: WorldStore, site: string, day: nu
   }
   if (reaped > 0) {
     s.food = Math.min(100, s.food + pointsFor(reaped, s.population));
+    noteHarvest(s, day, pointsFor(reaped, s.population), 0);
     tally(realm, "harvest_units", Math.round(reaped));
   }
   // When a new year begins, the last year's events are folded into each plot's year.
@@ -169,12 +171,19 @@ function damage(c: Ctx, p: Plot, row: PlotRow, sown: number, eatenBy: string[], 
   if (eatenBy.includes("crows") && d <= 3 && r() < 0.06) record(c, p, "seed-eaten", tiles(2 + Math.floor(r() * 4)), "crows");
   // A neighbour's stock got in: a quarrel between the households (N37).
   if (p.kind === "strip" && fence === 0 && r() < 0.002) {
-    const neighbour = [...c.rows.values()].find((x) => x.holder !== row.holder && x.holder.startsWith("hh:"));
+    // The household of the nearest plot along the layout (plot ids end in their number), not the place's first.
+    const at = (id: string) => Number(id.slice(id.lastIndexOf(":") + 1));
+    const neighbour = [...c.rows.values()]
+      .filter((x) => x.holder !== row.holder && x.holder.startsWith("hh:"))
+      .sort((a, b) => Math.abs(at(a.id) - at(p.id)) - Math.abs(at(b.id) - at(p.id)) || at(a.id) - at(b.id))[0];
     if (neighbour && row.holder.startsWith("hh:")) {
       record(c, p, "stock", tiles(4 + Math.floor(r() * 5)), neighbour.holder);
       const victim = c.households.get(row.holder)?.find((x) => x.job !== "child");
       const culprit = c.households.get(neighbour.holder)?.find((x) => x.job !== "child");
-      if (victim && culprit && config.chatter) addGrievance(c.store, { who: victim.id, against: culprit.id, cause: `field:${p.id}:${c.day}`, weight: 0.35, day: c.day });
+      if (victim && culprit && config.chatter) {
+        const ev = recordLifeEvent(c.realm, c.store, { kind: "stock-strayed", actor: culprit.id, target: victim.id, site: c.s.id, day: c.day, key: `${p.id}:${culprit.id}`, details: `${culprit.name}'s stock got into ${victim.name}'s crop and trampled it`, importance: 1 });
+        addGrievance(c.store, { who: victim.id, against: culprit.id, cause: `e:${ev.id}`, weight: 0.2, day: c.day });
+      }
       raiseFence(c, p, row);
     }
   }
@@ -270,6 +279,7 @@ export function playerReaps(realm: Realm, store: WorldStore, site: string, plotI
   const units = Math.round(healthy * def.yield * (events.some((e) => e.kind === "weed") ? 1 : 0.8) * land * YIELD_SCALE * 10) / 10;
   store.farm.record(site, { plot: p.id, day, kind: "harvest", tiles: [], by: "player", amount: units });
   s.food = Math.min(100, s.food + pointsFor(units, s.population));
+  noteHarvest(s, day, pointsFor(units, s.population), 0);
   player.duty = { site, day, wage: 6, what: `the harvest at ${s.name}` };
   return [`You work the day at the ${def.name} with them: ${healthy} rows of it in, and you're owed a day's wage at sundown.`];
 }

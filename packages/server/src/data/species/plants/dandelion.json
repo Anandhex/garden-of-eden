@@ -1,0 +1,60 @@
+{
+  "id": "dandelion",
+  "kind": "plant",
+  "name": "dandelion",
+  "class": "herb",
+  "biomes": {
+    "plains": 1,
+    "valley": 1
+  },
+  "calendar": {
+    "bud": [
+      0,
+      0.1
+    ],
+    "flower": [
+      0.1,
+      0.4
+    ],
+    "fruit": [
+      0.4,
+      0.6
+    ],
+    "dormant": [
+      0.6,
+      1
+    ]
+  },
+  "cover": 0.3,
+  "products": [
+    {
+      "stage": "flower",
+      "item": "dandelion",
+      "qty": [
+        2,
+        4
+      ]
+    },
+    {
+      "stage": "bud",
+      "item": "dandelion",
+      "qty": [
+        1,
+        3
+      ]
+    }
+  ],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 4
+  },
+  "regrowDays": 8,
+  "rarity": "common",
+  "effects": [
+    {
+      "when": "eaten",
+      "food": 3
+    }
+  ],
+  "lore": {}
+}

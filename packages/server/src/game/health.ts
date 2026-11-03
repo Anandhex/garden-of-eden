@@ -52,6 +52,9 @@ export interface IllnessDef {
 
 export const ILLNESSES = {
   fever: { name: "a fever", visible: "a flushed, sweating face", attributes: { endurance: -2, strength: -1 }, energyDrain: 2, work: 0.5, spread: 0.08, days: 4, remedy: { item: "healing salve", qty: 1 } },
+  // From eating the wrong thing (N28): a poisonous plant or fungus.
+  poisoned: { name: "poisoning", visible: "a grey, sweating face and shaking hands", attributes: { endurance: -3, strength: -2 }, energyDrain: 4, work: 0.25, spread: 0, days: 3, remedy: { item: "healing salve", qty: 2 } },
+  bellyache: { name: "a bellyache", visible: "a hand pressed to the belly", attributes: { endurance: -1 }, energyDrain: 1, work: 0.75, spread: 0, days: 1, remedy: { item: "mint", qty: 2 } },
   winter_cough: { name: "a winter cough", visible: "a hacking cough", attributes: { endurance: -1, charisma: -1 }, energyDrain: 1, work: 0.75, spread: 0.12, days: 5, remedy: { item: "wild herbs", qty: 2 } },
 } as const satisfies Record<string, IllnessDef>;
 export type IllnessId = keyof typeof ILLNESSES;

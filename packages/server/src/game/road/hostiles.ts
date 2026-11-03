@@ -135,7 +135,7 @@ export function hostilesStep(town: Town, rng: Rng): string[] {
       if (!strongEnough(realm, t)) continue;
       const species = t.kind === "pack" ? (realm.packs[t.owner]?.species ?? null) : null;
       const roll = streamFor(realm.seed, "hostiles", t.id, day, hour)();
-      if (roll >= hourlyChance(t.kind, species, hour, weatherOn(day))) continue;
+      if (roll >= hourlyChance(t.kind, species, hour, weatherOn(day, { realm, tile: road }))) continue;
       road.met[t.id] = day;
       const made = stockTerritory(town, t, rng);
       if (made.length > 0) town.roadSighted.delete(t.id);

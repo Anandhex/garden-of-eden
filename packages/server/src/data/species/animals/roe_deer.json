@@ -1,0 +1,56 @@
+{
+  "id": "roe_deer",
+  "kind": "animal",
+  "name": "roe deer",
+  "plural": "roe deer",
+  "class": "beast",
+  "biomes": {
+    "forest": 1,
+    "valley": 0.6,
+    "plains": 0.3
+  },
+  "seasons": {
+    "spring": 1,
+    "summer": 1,
+    "autumn": 1,
+    "winter": 1
+  },
+  "abundance": 0.35,
+  "group": {
+    "min": 1,
+    "max": 3
+  },
+  "active": "dawn-dusk",
+  "flees": 9,
+  "signs": [
+    "tracks",
+    "droppings"
+  ],
+  "products": [
+    {
+      "item": "venison",
+      "qty": [
+        1,
+        2
+      ]
+    },
+    {
+      "item": "deer hide",
+      "qty": [
+        1,
+        1
+      ]
+    }
+  ],
+  "rarity": "common",
+  "hunt": {
+    "skill": "hunting",
+    "difficulty": 11
+  },
+  "creature": "deer",
+  "closedSeason": [
+    "spring"
+  ],
+  "lordsGame": true,
+  "lore": {}
+}

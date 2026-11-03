@@ -1,0 +1,53 @@
+{
+  "id": "rabbit",
+  "kind": "animal",
+  "name": "rabbit",
+  "plural": "rabbits",
+  "class": "beast",
+  "biomes": {
+    "plains": 1,
+    "valley": 1,
+    "forest": 0.4,
+    "coast": 0.4
+  },
+  "seasons": {
+    "spring": 1,
+    "summer": 1,
+    "autumn": 1,
+    "winter": 1
+  },
+  "abundance": 0.6,
+  "group": {
+    "min": 2,
+    "max": 6
+  },
+  "active": "dawn-dusk",
+  "flees": 6,
+  "signs": [
+    "droppings",
+    "burrows"
+  ],
+  "products": [
+    {
+      "item": "hare meat",
+      "qty": [
+        1,
+        1
+      ]
+    },
+    {
+      "item": "rabbit pelt",
+      "qty": [
+        1,
+        1
+      ],
+      "chance": 0.6
+    }
+  ],
+  "rarity": "common",
+  "hunt": {
+    "skill": "hunting",
+    "difficulty": 9
+  },
+  "lore": {}
+}

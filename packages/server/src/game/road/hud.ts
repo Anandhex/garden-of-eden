@@ -2,6 +2,7 @@ import { describeWalk, shortestWay, type RoadPath } from "@millbrook/shared";
 import type { PlayerState } from "../../npc/types.js";
 import type { Realm } from "../realm/types.js";
 import { landOf, nearestRoad } from "./ground.js";
+import { closedOn } from "./snow.js";
 
 /** What the header says about where the player is on the road (N26): the road, how far each way, and how far to where they are going. */
 export interface RoadHud {
@@ -19,7 +20,7 @@ export interface RoadHud {
 
 const nameOf = (realm: Realm, id: string) => realm.settlements[id]?.name ?? id;
 
-export function hudOf(realm: Realm, player: PlayerState): RoadHud | null {
+export function hudOf(realm: Realm, player: PlayerState, today = realm.day): RoadHud | null {
   const state = player.road;
   if (!state) return null;
   const land = landOf(realm);
@@ -38,7 +39,7 @@ export function hudOf(realm: Realm, player: PlayerState): RoadHud | null {
     // Go by whichever end is on the shortest way.
     let best: { tiles: number } | null = null;
     for (const e of ends) {
-      const w = shortestWay(land.data, e.id, state.dest);
+      const w = shortestWay(land.data, e.id, state.dest, undefined, closedOn(realm, land.data, today));
       if (w && (!best || e.tiles + w.tiles < best.tiles)) best = { tiles: e.tiles + w.tiles };
     }
     if (best) dest = { id: state.dest, name: nameOf(realm, state.dest), tiles: Math.round(best.tiles), walk: describeWalk(best.tiles) };

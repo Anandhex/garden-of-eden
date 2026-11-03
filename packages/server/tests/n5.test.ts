@@ -289,7 +289,8 @@ describe("N5.4 the player can lie", () => {
 
 describe("N5.5 promises and commitments", () => {
   it("done when: Brena finishes a commission late, apologises unprompted, and gives a discount", async () => {
-    const world = worldAt(19);
+    // Day 3, so the next day isn't a festival (day 2 is the planting festival, N30) with news of its own.
+    const world = worldAt(19, 3);
     world.minute = 30;
     world.player.money = 2000;
     const llm = new FakeProvider([say("Done, by tomorrow."), say("Sorry it's late."), say("There.")]);
@@ -297,7 +298,7 @@ describe("N5.5 promises and commitments", () => {
     npc.state.inventory["iron ore [F]"] = 4;
     const order = await npc.commission("iron sword", world);
     expect(order.order.ok).toBe(true);
-    expect(order.order.message).toContain("ready by Day 2, 01:00"); // 4 hours' work and an hour's slack, from 19:30
+    expect(order.order.message).toContain("ready by Day 4, 01:00"); // 4 hours' work and an hour's slack, from 19:30
     npc.wait(world, 16); // she stops at 20:00, sleeps, starts at 6:00
     expect(npc.state.commission).toMatchObject({ status: "ready", late: true });
     const first = await npc.speakFirst(world);

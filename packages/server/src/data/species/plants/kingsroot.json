@@ -1,0 +1,54 @@
+{
+  "id": "kingsroot",
+  "kind": "plant",
+  "name": "kingsroot",
+  "class": "herb",
+  "biomes": {
+    "hills": 1
+  },
+  "calendar": {
+    "bud": [
+      0.1,
+      0.25
+    ],
+    "flower": [
+      0.25,
+      0.35
+    ],
+    "fruit": [
+      0.5,
+      0.58
+    ],
+    "dormant": [
+      0.58,
+      1.1
+    ]
+  },
+  "cover": 0.3,
+  "products": [
+    {
+      "stage": "fruit",
+      "item": "kingsroot",
+      "qty": [
+        1,
+        1
+      ]
+    }
+  ],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 15
+  },
+  "regrowDays": 48,
+  "rarity": "rare",
+  "effects": [
+    {
+      "when": "brewed",
+      "heals": 40,
+      "cures": "fever"
+    }
+  ],
+  "lore": {
+    "legend": "a cure-all that grows only on the high hills in early autumn"
+  }
+}

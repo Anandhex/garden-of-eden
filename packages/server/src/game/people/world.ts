@@ -1,3 +1,5 @@
+import { lettersDay } from "../follow/letters.js";
+import { marksRealmDay, marksSiteDay } from "../marks/rules.js";
 import { syncBeasts } from "../realm/beasts.js";
 import { fieldsDay } from "../farm/day.js";
 import { justiceDay } from "../law/justice.js";
@@ -79,6 +81,7 @@ export function catchUp(ctx: LifeCtx, site: string, toDay: number): SiteStep[] {
         if (config.fields) fieldsDay(ctx.realm, ctx.store, site, d);
         justiceDay(ctx.realm, ctx.store, site, d);
         rehouse(ctx.realm, ctx.store, site, d);
+        marksSiteDay(ctx.realm, ctx.store, site, d);
         ambitionDay(ctx, step, d);
         officesSiteDay(ctx.realm, ctx.store, site, d);
         out.push(step);
@@ -116,6 +119,8 @@ export function lifeDay(ctx: LifeCtx, day: number, opts: LifeOptions = {}): DayL
   timed("beasts.day", () => syncBeasts(realm, store.beasts, day));
   // Places broken by attacks fall; lairs and strongholds live their days (N26I).
   timed("fallen.day", () => fallenDay(ctx, day));
+  // Burned houses after today's raids, scaffolding for projects (N31): every place, whether its people live or not.
+  timed("marks.day", () => marksRealmDay(realm, store, day));
   if (live.size === 0) return result;
   timed("people.day", () => {
     writeConditions(ctx, day, live);
@@ -126,6 +131,8 @@ export function lifeDay(ctx: LifeCtx, day: number, opts: LifeOptions = {}): DayL
     timed("road.arrivals", () => roadArrivals(ctx, day, ensureCurrent));
     result.moved = timed("people.moves", () => migrationDay(ctx, day, live, ensureCurrent));
     roadTrips(ctx, day, live, ensureCurrent);
+    // The post (N34): letters put down where their carriers stop, and handed to parties leaving today.
+    timed("letters.day", () => lettersDay(realm, roadDataOf(realm), day));
     // The mine watch: guards posted, swords hired and paid (N26F decision 13).
     timed("road.watch", () => watchDay(realm, store.people, roadDataOf(realm), day, live));
     const sites = [...live].filter((id) => realm.settlements[id]).sort((a, b) => Number(watched.has(b)) - Number(watched.has(a)) || a.localeCompare(b));
@@ -147,6 +154,8 @@ export function lifeDay(ctx: LifeCtx, day: number, opts: LifeOptions = {}): DayL
       justiceDay(realm, store, id, day);
       // Those whose class no longer fits their quarter move when a house is free (N26H).
       rehouse(realm, store, id, day);
+      // Its graves (N31).
+      marksSiteDay(realm, store, id, day);
       ambitionDay(ctx, step, day);
       // Its posts, its townsfolk asked to join, audits of its townsfolk keepers, what the realm owes them, risers (N69).
       timed("offices.site", () => officesSiteDay(realm, store, id, day));

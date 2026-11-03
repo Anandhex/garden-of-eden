@@ -1,0 +1,40 @@
+{
+  "id": "herring",
+  "kind": "animal",
+  "name": "herring",
+  "plural": "herring",
+  "class": "fish",
+  "biomes": {
+    "coast": 1
+  },
+  "seasons": {
+    "spring": 1,
+    "summer": 1,
+    "autumn": 1,
+    "winter": 1
+  },
+  "abundance": 0.6,
+  "group": {
+    "min": 1,
+    "max": 1
+  },
+  "active": "always",
+  "flees": 0,
+  "signs": [],
+  "products": [
+    {
+      "item": "herring",
+      "qty": [
+        1,
+        1
+      ]
+    }
+  ],
+  "rarity": "common",
+  "hunt": {
+    "skill": "fishing",
+    "difficulty": 9
+  },
+  "water": true,
+  "lore": {}
+}

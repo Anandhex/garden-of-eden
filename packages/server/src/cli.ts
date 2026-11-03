@@ -5,8 +5,8 @@ import { AREA_WALK_MINUTES } from "./web/map.js";
 import { describeFactions, describeRealm, describeSettlement } from "./game/realm/view.js";
 import { joinGuild, playerDelve } from "./game/realm/wilds.js";
 import { CLASSES, CLASS_WORDS, CrowdSim, JOB_INFO } from "@millbrook/shared";
-import { weatherOn } from "./game/weather.js";
-import { townEventsOn } from "./game/events-calendar.js";
+import { weatherOn, whereOf } from "./game/weather.js";
+import { crowdDayAt, townEventsOn } from "./game/events-calendar.js";
 import { createInterface } from "node:readline/promises";
 import { argv, stdin, stdout } from "node:process";
 import { config } from "./config.js";
@@ -71,6 +71,7 @@ import { describeToday } from "./game/events-calendar.js";
 import { friendshipOf } from "./npc/relationship.js";
 import { quoteCommission } from "./game/commissions.js";
 import { Town } from "./game/town.js";
+import { maxSkipHours, passUntil, summaryLines, type WakeCondition } from "./game/time/pass.js";
 import { WorldStore } from "./game/db.js";
 import { pickEmbedder } from "./game/embeddings.js";
 import { OllamaEmbedder } from "./llm/ollama.js";
@@ -183,7 +184,7 @@ function crowdHere(): CrowdSim | null {
   if (!crowd || crowd.map.id !== map.id || crowd.roster.people !== roster.people) crowd = new CrowdSim({ id: map.id, w: map.w, h: map.h, tiles: map.tiles, buildings: map.buildings, zones: map.zones }, roster);
   return crowd;
 }
-const crowdDay = () => ({ weather: weatherOn(world.day), festival: townEventsOn(world).includes("festival") });
+const crowdDay = () => crowdDayAt(world, town.site());
 
 /** The settlement the player is at, or a plain village when there's no realm. */
 function siteInfo() {
@@ -854,17 +855,23 @@ while (!world.player.death) {
     printQuests();
     continue;
   }
-  const wait = line.match(/^\/wait(?:\s+(\d+))?$/);
+  const wait = line.match(/^\/wait(?:\s+(\d+|day|morning|market|festival|work|news|season))?$/);
   if (wait) {
     if (fighting) {
       console.log("  You can't wait around in the middle of a fight.");
       continue;
     }
-    const hours = Math.max(1, Math.min(24, Number(wait[1] ?? 1)));
+    // The time engine (N35), as in the browser: a number of hours, or until something; danger wakes you either way.
+    const word = wait[1] ?? "1";
+    const number = /^\d+$/.test(word);
+    const nowHour = (world.day - 1) * 24 + world.hour;
+    const conditions: WakeCondition[] = word === "morning" ? [{ kind: "time", at: nowHour + (((6 - world.hour + 23) % 24) + 1) }] : word === "market" ? [{ kind: "market" }] : word === "festival" ? [{ kind: "festival" }] : word === "work" ? [{ kind: "job" }] : word === "news" ? [{ kind: "followed" }] : word === "season" ? [{ kind: "season" }] : [];
+    const maxHours = number ? Math.max(1, Math.min(24, Number(word))) : word === "day" || word === "morning" ? 24 : maxSkipHours();
     const startHour = world.hour;
-    const log = passAll(hours);
-    const healed = restPlayer(world.player, startHour, hours);
-    for (const entry of log) console.log(`  ${entry}`);
+    const r = passUntil(town, { maxHours, conditions, step: (h) => passAll(h) });
+    const healed = restPlayer(world.player, startHour, r.hours);
+    for (const entry of r.log) console.log(`  ${entry}`);
+    if (!number || r.stoppedBy || r.heard.length > 0) for (const entry of summaryLines(r)) console.log(`  ${entry}`);
     console.log(`  It's now ${formatTime(world)}.${healed > 0 ? ` You rested and healed ${healed} HP (${world.player.hp}/${world.player.maxHp}).` : ""}`);
     await arrive();
     persist();

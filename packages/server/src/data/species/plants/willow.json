@@ -1,0 +1,54 @@
+{
+  "id": "willow",
+  "kind": "plant",
+  "name": "white willow",
+  "class": "tree",
+  "biomes": {
+    "marsh": 1,
+    "valley": 1
+  },
+  "calendar": {
+    "bud": [
+      0,
+      0.1
+    ],
+    "flower": [
+      0.1,
+      0.25
+    ],
+    "fruit": [
+      0.25,
+      0.75
+    ],
+    "dormant": [
+      0.75,
+      1
+    ]
+  },
+  "cover": 0.3,
+  "products": [
+    {
+      "stage": "any",
+      "item": "willow bark",
+      "qty": [
+        1,
+        2
+      ]
+    }
+  ],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 9
+  },
+  "regrowDays": 8,
+  "rarity": "common",
+  "effects": [
+    {
+      "when": "brewed",
+      "cures": "fever"
+    }
+  ],
+  "lore": {
+    "cure": "willow bark tea for a fever"
+  }
+}

@@ -453,7 +453,7 @@ describe("N26 D supplies, mounts and fast travel", () => {
     // Nothing walked: no fast travel.
     town.road.setDestination(dest.id, (t) => town.leaveByRoad(t));
     expect(canFast(town)).toBe(false);
-    expect(town.road.fast().join(" ")).toMatch(/haven't walked/);
+    expect(town.road.fast().join(" ")).toMatch(/don't know this stretch/);
     // Walk it once.
     walkTo(town, data, from, dest.id);
     expect(town.site()).toBe(dest.id);

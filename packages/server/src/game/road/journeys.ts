@@ -1,6 +1,7 @@
 import { DAY_ENDS, DAY_STARTS, WALK_PACE, buildRoundTimeline, buildTimeline, graphOf, isOnTheRoad, journeyLine, placeAt, positionAt, type Away, type Carry, type Journey, type JourneyKind, type JourneyPosition, type JourneyRoad, type RoadData, type Traveller } from "@millbrook/shared";
 import type { PeopleStore } from "../../store/peopleStore.js";
 import type { Realm } from "../realm/types.js";
+import { pathAround } from "./snow.js";
 
 /**
  * The journeys (N26 decision 6, Part E). They are kept in the realm (`realm.journeys`): a few hundred at most, each a
@@ -55,8 +56,16 @@ export interface Launch {
 
 /** Start a journey: its roads, its timeline, an id, and its people away. Null if the roads don't join the places or the party is empty. */
 export function launch(realm: Realm, data: RoadData, o: Launch, people?: PeopleStore): Journey | null {
-  const roads = roadsAlong(data, o.path);
+  let roads = roadsAlong(data, o.path);
   if (!roads || roads.length === 0 || o.party.length === 0) return null;
+  // A high road snowed in on the day they set out (N30): they go round by another road, or wait for the thaw.
+  const around = pathAround(realm, data, o.path, roads, Math.floor(o.depart / 1440) + 1, o.turn?.index);
+  if (!around) return null;
+  if (around.path !== o.path) {
+    o = { ...o, path: around.path, ...(o.turn && around.turn !== undefined ? { turn: { ...o.turn, index: around.turn } } : {}) };
+    roads = roadsAlong(data, o.path);
+    if (!roads || roads.length === 0) return null;
+  }
   const list = journeysOf(realm);
   if (list.length >= MAX_JOURNEYS) return null;
   const pace = o.pace ?? WALK_PACE;

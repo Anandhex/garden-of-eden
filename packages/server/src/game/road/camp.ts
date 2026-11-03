@@ -2,7 +2,7 @@ import { streamFor } from "../dice.js";
 import { recordEvent } from "../events.js";
 import { fightOnRoad, type Foe } from "../realm/travel.js";
 import type { Town } from "../town.js";
-import { weatherOn } from "../weather.js";
+import { weatherOn, whereOf } from "../weather.js";
 import { tickMount } from "./mounts.js";
 import { needsOf, tickNeeds } from "./needs.js";
 
@@ -44,7 +44,7 @@ export function camp(town: Town, hours: number, minute: number): string[] {
   lines.push(...fireside(town, pickLine));
   for (let h = 0; h < hours; h++) {
     const hour = world.hour;
-    lines.push(...tickNeeds(p, 60, world.day * 1440 + hour * 60, { resting: true, weather: weatherOn(world.day) }));
+    lines.push(...tickNeeds(p, 60, world.day * 1440 + hour * 60, { resting: true, weather: weatherOn(world.day, whereOf(world)) }));
     lines.push(...tickMount(p, 1, { riding: false, rng: streamFor(world.seed, "mount", world.day, hour) }));
     town.walkMinutes(60); // the place they left lives the hour; its gossip is not theirs to hear
     const night = hour >= 20 || hour < 5;

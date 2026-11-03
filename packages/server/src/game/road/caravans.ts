@@ -10,7 +10,7 @@ import { landOf } from "./ground.js";
 import { describeJourney, journeyOf, lineOf } from "./journeys.js";
 import { threatsOf } from "./threats.js";
 import { streamFor } from "../dice.js";
-import { weatherOn } from "../weather.js";
+import { weatherOn, whereOf } from "../weather.js";
 import { formatMoney } from "../money.js";
 
 /**
@@ -73,7 +73,7 @@ export function travelWith(town: Town, journeyId: string): { ok: boolean; lines:
   // The days go by at the party's pace; the player is fed from the party's pot.
   const arrive = outward ? j.turn!.arrive : j.arrive;
   const minutes = Math.max(1, Math.round(arrive - m));
-  lines.push(...tickNeeds(p, Math.round(minutes * 0.4), m, { weather: weatherOn(world.day) }), ...tickNeeds(p, Math.round(minutes * 0.6), m, { resting: true }));
+  lines.push(...tickNeeds(p, Math.round(minutes * 0.4), m, { weather: weatherOn(world.day, whereOf(world)) }), ...tickNeeds(p, Math.round(minutes * 0.6), m, { resting: true }));
   if (p.roadNeeds) {
     p.roadNeeds.food = Math.max(p.roadNeeds.food, 45);
     p.roadNeeds.water = Math.max(p.roadNeeds.water, 45);

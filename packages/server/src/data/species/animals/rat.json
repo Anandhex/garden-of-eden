@@ -1,0 +1,27 @@
+{
+  "id": "rat",
+  "kind": "animal",
+  "name": "rat",
+  "plural": "rats",
+  "class": "beast",
+  "biomes": {},
+  "seasons": {
+    "spring": 1,
+    "summer": 1,
+    "autumn": 1,
+    "winter": 1
+  },
+  "abundance": 0.5,
+  "group": {
+    "min": 1,
+    "max": 4
+  },
+  "active": "night",
+  "flees": 2,
+  "signs": [],
+  "products": [],
+  "rarity": "common",
+  "village": true,
+  "small": true,
+  "lore": {}
+}

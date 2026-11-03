@@ -64,9 +64,18 @@ export class FarmStore {
 
   addPlots(rows: PlotRow[]): void {
     const st = this.sql("INSERT OR REPLACE INTO plots (id, site, holder, fence) VALUES (?, ?, ?, ?)");
+    const touched = new Set<string>();
     for (const r of rows) {
       st.run(r.id, r.site, r.holder, r.fence);
       this.plotsOf(r.site).set(r.id, { ...r });
+      touched.add(r.site);
+    }
+    // In the order a fresh load gives (by id), so a world played on and the same world loaded walk its plots alike.
+    for (const site of touched) {
+      const m = this.plotsOf(site);
+      const sorted = [...m.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+      m.clear();
+      for (const [k, v] of sorted) m.set(k, v);
     }
   }
 

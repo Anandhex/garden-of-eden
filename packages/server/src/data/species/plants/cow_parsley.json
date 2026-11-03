@@ -1,0 +1,62 @@
+{
+  "id": "cow_parsley",
+  "kind": "plant",
+  "name": "cow parsley",
+  "class": "herb",
+  "biomes": {
+    "valley": 1,
+    "plains": 0.8,
+    "forest": 0.5
+  },
+  "calendar": {
+    "bud": [
+      0,
+      0.1
+    ],
+    "flower": [
+      0.1,
+      0.3
+    ],
+    "fruit": [
+      0.3,
+      0.45
+    ],
+    "dormant": [
+      0.45,
+      1
+    ]
+  },
+  "cover": 0.3,
+  "products": [
+    {
+      "stage": "bud",
+      "item": "cow parsley",
+      "qty": [
+        1,
+        3
+      ]
+    },
+    {
+      "stage": "flower",
+      "item": "cow parsley",
+      "qty": [
+        1,
+        3
+      ]
+    }
+  ],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 12
+  },
+  "regrowDays": 8,
+  "rarity": "common",
+  "effects": [
+    {
+      "when": "eaten",
+      "food": 3
+    }
+  ],
+  "lore": {},
+  "lookalike": "hemlock"
+}

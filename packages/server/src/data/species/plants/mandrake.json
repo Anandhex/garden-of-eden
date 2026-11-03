@@ -1,0 +1,54 @@
+{
+  "id": "mandrake",
+  "kind": "plant",
+  "name": "mandrake",
+  "class": "herb",
+  "biomes": {
+    "forest": 0.4,
+    "valley": 0.4
+  },
+  "calendar": {
+    "bud": [
+      0.05,
+      0.15
+    ],
+    "flower": [
+      0.15,
+      0.25
+    ],
+    "fruit": [
+      0.55,
+      0.62
+    ],
+    "dormant": [
+      0.62,
+      1.05
+    ]
+  },
+  "cover": 0.3,
+  "products": [
+    {
+      "stage": "fruit",
+      "item": "mandrake root",
+      "qty": [
+        1,
+        1
+      ]
+    }
+  ],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 16
+  },
+  "regrowDays": 40,
+  "rarity": "rare",
+  "effects": [
+    {
+      "when": "brewed",
+      "rest": 40
+    }
+  ],
+  "lore": {
+    "legend": "it screams when pulled"
+  }
+}

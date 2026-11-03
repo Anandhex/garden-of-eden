@@ -1,0 +1,46 @@
+{
+  "id": "kelp",
+  "kind": "plant",
+  "name": "kelp",
+  "class": "weed",
+  "biomes": {
+    "coast": 1
+  },
+  "calendar": {
+    "bud": [
+      0,
+      0.25
+    ],
+    "flower": [
+      0.25,
+      0.5
+    ],
+    "fruit": [
+      0.5,
+      0.75
+    ],
+    "dormant": [
+      0.75,
+      1
+    ]
+  },
+  "cover": 0.3,
+  "products": [
+    {
+      "stage": "any",
+      "item": "kelp",
+      "qty": [
+        2,
+        4
+      ]
+    }
+  ],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 3
+  },
+  "regrowDays": 8,
+  "rarity": "common",
+  "effects": [],
+  "lore": {}
+}

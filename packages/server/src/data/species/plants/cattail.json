@@ -1,0 +1,51 @@
+{
+  "id": "cattail",
+  "kind": "plant",
+  "name": "bulrush",
+  "class": "grass",
+  "biomes": {
+    "marsh": 1
+  },
+  "calendar": {
+    "bud": [
+      0.05,
+      0.25
+    ],
+    "flower": [
+      0.25,
+      0.5
+    ],
+    "fruit": [
+      0.5,
+      0.75
+    ],
+    "dormant": [
+      0.75,
+      1.05
+    ]
+  },
+  "cover": 0.3,
+  "products": [
+    {
+      "stage": "bud",
+      "item": "bulrush root",
+      "qty": [
+        1,
+        3
+      ]
+    }
+  ],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 6
+  },
+  "regrowDays": 8,
+  "rarity": "common",
+  "effects": [
+    {
+      "when": "eaten",
+      "food": 6
+    }
+  ],
+  "lore": {}
+}

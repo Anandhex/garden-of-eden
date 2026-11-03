@@ -1,0 +1,47 @@
+{
+  "id": "heather",
+  "kind": "plant",
+  "name": "heather",
+  "class": "shrub",
+  "biomes": {
+    "hills": 1,
+    "marsh": 0.4
+  },
+  "calendar": {
+    "bud": [
+      0.1,
+      0.35
+    ],
+    "flower": [
+      0.35,
+      0.6
+    ],
+    "fruit": [
+      0.6,
+      0.7
+    ],
+    "dormant": [
+      0.7,
+      1.1
+    ]
+  },
+  "cover": 0.3,
+  "products": [
+    {
+      "stage": "flower",
+      "item": "heather",
+      "qty": [
+        2,
+        4
+      ]
+    }
+  ],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 5
+  },
+  "regrowDays": 8,
+  "rarity": "common",
+  "effects": [],
+  "lore": {}
+}

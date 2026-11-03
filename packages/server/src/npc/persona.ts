@@ -1,3 +1,4 @@
+import { moodLineHere } from "../game/mood/model.js";
 import { formatTime } from "../game/clock.js";
 import { describeFamily, FAMILY_TALK, familyPresent } from "../game/family.js";
 import { describeQuestsForNpc, findQuest, isQuestTalk } from "../game/quests.js";
@@ -33,7 +34,7 @@ import { describeFavours } from "../game/favours.js";
 import { describeServices, isServiceTalk } from "../game/services.js";
 import { describeSignature } from "../game/signature.js";
 import { describeToday, townEventsOn } from "../game/events-calendar.js";
-import { weatherOn } from "../game/weather.js";
+import { weatherOn, whereOf } from "../game/weather.js";
 import { activityWords, currentPlan } from "../game/schedule.js";
 import { knowsOf } from "./knowledge.js";
 import { describePresentRelations } from "./social.js";
@@ -183,12 +184,15 @@ function buildSituation(
 
   const plan = currentPlan(persona, state, world);
   // Weather and town events only when there's something to say, or the player asked for news (design rule 3).
-  const today = weatherOn(world.day) !== "clear" || townEventsOn(world).length > 0 || (playerLine !== undefined && isNewsTalk(playerLine)) ? describeToday(world) : null;
+  const today = weatherOn(world.day, whereOf(world)) !== "clear" || townEventsOn(world).length > 0 || (playerLine !== undefined && isNewsTalk(playerLine)) ? describeToday(world) : null;
+  // The mood of the place (N36): one line, when there is one.
+  const placeMood = moodLineHere(world);
   const lines = [
     `Time: ${formatTime(world)}. Place: ${world.location}. You're ${activityWords(plan)}.`,
     world.nearby.length > 0 ? `Nearby: ${world.nearby.join(", ")}.` : null,
     ...(world.sceneLog ?? []),
     today,
+    placeMood,
     news.length > 0 ? `Recent news: ${news.join(" ")}` : null,
     ...lore,
     // Someone dead was named: what this NPC believes (N13.0). Only when the talk is about them.

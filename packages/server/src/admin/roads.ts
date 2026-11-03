@@ -1,3 +1,4 @@
+import { statePois } from "../game/road/wildPlaces.js";
 import { territoriesNow } from "../game/road/territories.js";
 import { strongEnough } from "../game/road/hostiles.js";
 import { describeBeast } from "../game/realm/beasts.js";
@@ -96,7 +97,10 @@ export function roadsOf(ctx: AdminContext): AdminRoads {
       guards: x.watch!.guards.map((id) => people?.get(id)?.name ?? id),
       hired: x.watch!.hired.map((h) => ({ name: people?.get(h.person)?.name ?? h.person, from: realm.settlements[h.from]?.name ?? h.from, wage: h.wage, until: h.until })),
     }));
-  return { day: world.day, journeys, onTheRoad, territories, watches };
+  const known = world.player.map?.pois ?? {};
+  const wilds = statePois(realm, roadDataOf(realm)).map((x) => ({ id: x.id, kind: x.kind, name: x.name, x: x.x, y: x.y, known: !!known[x.id] }));
+  const finds = (realm.finds ?? []).map((f) => ({ poi: f.poi, name: f.name, to: realm.settlements[f.reportedTo]?.name ?? f.reportedTo, day: f.day, paid: f.paid }));
+  return { day: world.day, journeys, onTheRoad, territories, watches, wilds, finds };
 }
 
 /** The journey of a person who is away, as a view (null if they are at home). */

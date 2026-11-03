@@ -34,6 +34,17 @@ export const OBJECT_IDS = [
   "buildings/wall",
   "buildings/door",
   "buildings/gate",
+  // Furniture inside buildings (N32).
+  "props/bed",
+  "props/table",
+  "props/hearth",
+  "props/chest",
+  "props/shelf",
+  "props/anvil",
+  "props/altar",
+  "props/barrel",
+  "props/counter",
+  "props/bench",
 ] as const;
 
 export const PEOPLE_IDS = ["people/body", "people/player"] as const;

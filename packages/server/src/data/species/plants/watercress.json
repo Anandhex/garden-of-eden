@@ -1,0 +1,60 @@
+{
+  "id": "watercress",
+  "kind": "plant",
+  "name": "watercress",
+  "class": "herb",
+  "biomes": {
+    "marsh": 1,
+    "valley": 0.6
+  },
+  "calendar": {
+    "bud": [
+      0,
+      0.15
+    ],
+    "flower": [
+      0.15,
+      0.45
+    ],
+    "fruit": [
+      0.45,
+      0.75
+    ],
+    "dormant": [
+      0.75,
+      1
+    ]
+  },
+  "cover": 0.3,
+  "products": [
+    {
+      "stage": "bud",
+      "item": "watercress",
+      "qty": [
+        1,
+        3
+      ]
+    },
+    {
+      "stage": "flower",
+      "item": "watercress",
+      "qty": [
+        1,
+        2
+      ]
+    }
+  ],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 8
+  },
+  "regrowDays": 8,
+  "rarity": "common",
+  "effects": [
+    {
+      "when": "eaten",
+      "food": 5
+    }
+  ],
+  "lore": {}
+}

@@ -1,0 +1,53 @@
+{
+  "id": "wild_strawberry",
+  "kind": "plant",
+  "name": "wild strawberry",
+  "class": "herb",
+  "biomes": {
+    "forest": 0.8,
+    "valley": 1
+  },
+  "calendar": {
+    "bud": [
+      0.05,
+      0.15
+    ],
+    "flower": [
+      0.15,
+      0.3
+    ],
+    "fruit": [
+      0.3,
+      0.45
+    ],
+    "dormant": [
+      0.45,
+      1.05
+    ]
+  },
+  "cover": 0.3,
+  "products": [
+    {
+      "stage": "fruit",
+      "item": "wild strawberries",
+      "qty": [
+        1,
+        4
+      ]
+    }
+  ],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 5
+  },
+  "regrowDays": 8,
+  "rarity": "common",
+  "effects": [
+    {
+      "when": "eaten",
+      "food": 5,
+      "water": 3
+    }
+  ],
+  "lore": {}
+}

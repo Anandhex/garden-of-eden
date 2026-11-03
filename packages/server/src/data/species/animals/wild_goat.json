@@ -1,0 +1,51 @@
+{
+  "id": "wild_goat",
+  "kind": "animal",
+  "name": "wild goat",
+  "plural": "wild goats",
+  "class": "beast",
+  "biomes": {
+    "hills": 1
+  },
+  "seasons": {
+    "spring": 1,
+    "summer": 1,
+    "autumn": 1,
+    "winter": 1
+  },
+  "abundance": 0.35,
+  "group": {
+    "min": 2,
+    "max": 6
+  },
+  "active": "day",
+  "flees": 12,
+  "signs": [
+    "tracks",
+    "droppings",
+    "tufts of hair on the rocks"
+  ],
+  "products": [
+    {
+      "item": "goat meat",
+      "qty": [
+        1,
+        3
+      ]
+    },
+    {
+      "item": "goat hide",
+      "qty": [
+        1,
+        1
+      ]
+    }
+  ],
+  "rarity": "common",
+  "hunt": {
+    "skill": "hunting",
+    "difficulty": 13
+  },
+  "creature": "goat",
+  "lore": {}
+}

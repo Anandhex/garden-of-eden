@@ -1,0 +1,54 @@
+{
+  "id": "fly_agaric",
+  "kind": "plant",
+  "name": "fly agaric",
+  "class": "fungus",
+  "biomes": {
+    "forest": 1,
+    "hills": 0.4
+  },
+  "calendar": {
+    "bud": [
+      0.4,
+      0.5
+    ],
+    "flower": [
+      0.5,
+      0.55
+    ],
+    "fruit": [
+      0.55,
+      0.72
+    ],
+    "dormant": [
+      0.72,
+      1.4
+    ]
+  },
+  "cover": 0.3,
+  "products": [
+    {
+      "stage": "fruit",
+      "item": "fly agaric",
+      "qty": [
+        1,
+        2
+      ]
+    }
+  ],
+  "identify": {
+    "skill": "herbalism",
+    "difficulty": 5
+  },
+  "regrowDays": 8,
+  "rarity": "common",
+  "effects": [
+    {
+      "when": "eaten",
+      "causes": "bellyache"
+    }
+  ],
+  "lore": {
+    "omen": "the fairies' seat"
+  }
+}
