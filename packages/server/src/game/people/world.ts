@@ -19,6 +19,8 @@ import { migrationDay } from "./migration.js";
 import { chatterDay } from "../chatter/day.js";
 import { gossipDay } from "../gossip/day.js";
 import { choiceDay } from "../choice/day.js";
+import { leisureDay } from "../leisure/day.js";
+import { handOnDrops, inheritDay } from "../items/day.js";
 import { ambitionDay } from "../ambition/day.js";
 import { officesSiteDay } from "../office/day.js";
 import { roadArrivals, roadTrips } from "../road/day.js";
@@ -77,6 +79,8 @@ export function catchUp(ctx: LifeCtx, site: string, toDay: number): SiteStep[] {
         chatterDay(ctx, step, d);
         gossipDay(ctx, step, d);
         choiceDay(ctx, step, d);
+        leisureDay(ctx, step, d);
+        inheritDay(ctx, step, d);
         // The same as a day lived as it comes (lifeDay): fields, justice, homes (N26G, N26J, N26H).
         if (config.fields) fieldsDay(ctx.realm, ctx.store, site, d);
         justiceDay(ctx.realm, ctx.store, site, d);
@@ -117,6 +121,8 @@ export function lifeDay(ctx: LifeCtx, day: number, opts: LifeOptions = {}): DayL
   const result: DayLife = { day, steps: [], moved: 0 };
   // Pack beasts are rows (N26F decision 14): the realm's day logged what happened to them; the rows follow.
   timed("beasts.day", () => syncBeasts(realm, store.beasts, day));
+  // What the realm's dead carried is handed on (N43).
+  if (realm.drops?.length) handOnDrops(realm, store, day);
   // Places broken by attacks fall; lairs and strongholds live their days (N26I).
   timed("fallen.day", () => fallenDay(ctx, day));
   // Burned houses after today's raids, scaffolding for projects (N31): every place, whether its people live or not.
@@ -148,6 +154,10 @@ export function lifeDay(ctx: LifeCtx, day: number, opts: LifeOptions = {}): DayL
       chatterDay(ctx, step, day, { hourly: watched.has(id) });
       gossipDay(ctx, step, day, { hourly: watched.has(id) });
       choiceDay(ctx, step, day);
+      // Games at the inn, contest days (N41): the watched place's tables are played by the hour.
+      leisureDay(ctx, step, day, { hourly: watched.has(id) });
+      // What the day's dead held passes to their kin or their killer (N43).
+      inheritDay(ctx, step, day);
       // The fields outside the place (N26G): sown, worked, damaged and reaped by its people; the harvest is its food.
       if (config.fields) timed("fields.day", () => fieldsDay(realm, store, id, day));
       // The crimes seen today are judged by the place's head (N26J).

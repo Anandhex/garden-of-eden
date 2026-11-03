@@ -37,7 +37,7 @@ const T = (id: (typeof TERRAIN_IDS)[number]) => TERRAIN_IDS.indexOf(id);
 const O = (id: NonNullable<(typeof OBJECT_IDS)[number]>) => OBJECT_IDS.indexOf(id);
 
 /** A journey's colour by its kind (N26). */
-export const KIND_COLOR: Record<string, string> = { caravan: "#b5763f", courier: "#d9a441", market: "#9aa86a", kin: "#b58aa0", work: "#a08a6a", officials: "#6a7fa8", patrol: "#4f6fa0", pilgrims: "#c9c3b0", adventurers: "#b5503f", refugees: "#8a7a5f", migrants: "#8a7a5f", coach: "#7a9b57" };
+export const KIND_COLOR: Record<string, string> = { caravan: "#b5763f", courier: "#d9a441", market: "#9aa86a", kin: "#b58aa0", work: "#a08a6a", officials: "#6a7fa8", patrol: "#4f6fa0", pilgrims: "#c9c3b0", adventurers: "#b5503f", refugees: "#8a7a5f", migrants: "#8a7a5f", coach: "#7a9b57", tourney: "#c0392b" };
 
 /** The art each piece of furniture is drawn with (N32): a straw bed is a bed, a desk a table. */
 const FURNITURE_ART: Record<string, NonNullable<(typeof OBJECT_IDS)[number]>> = {

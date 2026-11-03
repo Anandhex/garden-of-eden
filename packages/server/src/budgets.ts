@@ -23,16 +23,21 @@ const num = (name: string, fallback: number): number => {
 export const CALL_KINDS = [
   "talk", // the player's conversation: never dropped, never delayed by anything else
   "summary", // conversation summaries: memory depends on them
+  "incident-line", // a new game's opening incident, told in a voice (N39: the first minutes matter; fallback: the incident's own words)
   "plan", // daily plans (fallback: the schedule without a model plan)
   "chronicle", // the nightly world director (cheap, and every night's matters more than a story: it comes before the stories and reviews)
   "persona-story", // a new talker's story and depth, written from their facts (fallback: code's pools; a story that was shed is asked for again later)
   "life-review", // a talker's periodic review of how they feel and what they want (fallback: code's rules)
   "retell", // news retold in a voice (fallback: code's words)
+  "taunt", // a nemesis naming a real meeting with the player (N44; fallback: templated from the meeting log)
   "faction-name",
   "child-words",
   "quest-flavor",
   "chatter-line", // the words of an insult the player can see (N37; fallback: the table's lines)
   "choice-reason", // why an NPC did what they did, in their own voice, when asked or pinned (N38; fallback: the score parts in words)
+  "item-name", // a famous item's name (N43; fallback: "<the slain>'s Bane", "the <maker>'s <kind>")
+  "item-legend", // a named item's two-sentence legend (N43; fallback: a template from its deeds)
+  "banter", // table talk at a game the player watches (N41; the lowest: no line at all without it)
   "identity", // `npm run gen` writing a new character: not part of play
 ] as const;
 export type CallKind = (typeof CALL_KINDS)[number];
@@ -82,6 +87,11 @@ export const budgets = {
       "quest-flavor": num("BUDGET_CALLS_QUEST_FLAVOR", 6),
       "chatter-line": num("BUDGET_CALLS_CHATTER_LINE", 12),
       "choice-reason": num("BUDGET_CALLS_CHOICE_REASON", 6),
+      "incident-line": num("BUDGET_CALLS_INCIDENT_LINE", 2),
+      taunt: num("BUDGET_CALLS_TAUNT", 4),
+      "item-name": num("BUDGET_CALLS_ITEM_NAME", 4),
+      "item-legend": num("BUDGET_CALLS_ITEM_LEGEND", 4),
+      banter: num("BUDGET_CALLS_BANTER", 6),
       identity: num("BUDGET_CALLS_IDENTITY", 10),
     } as Record<CallKind, number>,
     /**
@@ -106,6 +116,11 @@ export const budgets = {
       "quest-flavor": 1500,
       "chatter-line": 1500,
       "choice-reason": 1500,
+      "incident-line": 2500,
+      taunt: 1500,
+      "item-name": 1500,
+      "item-legend": 2500,
+      banter: 1500,
       identity: 5000,
     } as Record<CallKind, number>,
   },

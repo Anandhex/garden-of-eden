@@ -41,13 +41,13 @@ Read this page first. It holds the rules every phase shares; the phase plans ass
 | N36 | [The mood of a place](n36-the-mood-of-a-place.md) | N20 (causes), N25b | |
 | N37 | [Chatter with consequences](n37-chatter-with-consequences.md) | N25b, N33 | ✅ built 2026-10-14 (all steps; schema 7, save still v15) |
 | N38 | [NPCs as living players](n38-npcs-as-living-players.md) | N18, N19, N37 | ✅ built 2026-10-22 (all steps; no save or schema bump) |
-| N39 | [The first hour](n39-the-first-hour.md) | N33, N37, N38 | |
+| N39 | [The first hour](n39-the-first-hour.md) | N33, N37, N38 | ✅ built 2026-11-03 (save v16) |
 | N40 | [Ambitions and careers](n40-ambitions-and-careers.md) | N38 | ✅ slice |
 | N69 | [Offices, treasuries and renown](n69-offices-treasuries-and-renown.md) | N37, N38 (with N40) | ✅ built 2026-11-02 (after playtest pack 1) |
-| N41 | [Leisure and contests](n41-leisure-and-contests.md) | N37, N38, N40 | |
-| N42 | [A shared quest market and adventurer grades](n42-shared-quest-market.md) | N38, N40 | |
-| N43 | [Items with a history](n43-items-with-a-history.md) | N20, N33 | |
-| N44 | [A nemesis](n44-a-nemesis.md) | N37, N38, N40, N42 | |
+| N41 | [Leisure and contests](n41-leisure-and-contests.md) | N37, N38, N40 | ✅ built 2026-11-03 (save v16) |
+| N42 | [A shared quest market and adventurer grades](n42-shared-quest-market.md) | N38, N40 | ✅ built 2026-11-03 (schema 16) |
+| N43 | [Items with a history](n43-items-with-a-history.md) | N20, N33 | ✅ built 2026-11-03 (schema 17) |
+| N44 | [A nemesis](n44-a-nemesis.md) | N37, N38, N40, N42 | ✅ built 2026-11-03 (save v16) |
 | N45 | [Family feuds and inheritance](n45-family-feuds-and-inheritance.md) | N25, N37, N40 | |
 | N46 | [Secrets, spies and blackmail](n46-secrets-spies-and-blackmail.md) | N33, N38, N45 | |
 | N47 | [The underworld](n47-the-underworld.md) | N38, N46 | |
@@ -189,7 +189,7 @@ Added 2026-10-14 with the N29–N68 plans. Everything in sections 1–10 still h
 
 ## 11. Where things stand, and the pieces that are missing
 
-**Built (2026-10-23):** N17, N18, N19, N25, N25a, N25b, N26, N33, N37, N38 and N40 (see each stage file's **What differs**). **The vertical slice is built**, and the first play of it (2026-10-24) produced N26F–N26J (Part 3). **Not built:** N20–N24 (except `player.known`, `playerKnows` and `playerLearns`, built as N33's step 0 in `game/playerKnowledge.ts`), N27 and N28.
+**Built (2026-10-23):** N17, N18, N19, N25, N25a, N25b, N26, N33, N37, N38 and N40 (see each stage file's **What differs**). **Since:** playtest pack 1 (2026-10-24), N69 (2026-11-02), the rest of Stage 2 (N27–N36, 2026-11-03) and the rest of Stage 3 (N39, N41–N44, 2026-11-03). **The vertical slice is built**, and the first play of it (2026-10-24) produced N26F–N26J (Part 3). **Not built:** N20–N24 (except `player.known`, `playerKnows` and `playerLearns`, built as N33's step 0 in `game/playerKnowledge.ts`), N27 and N28.
 
 **N26 Part E is built on top of N26 (2026-10-14, save v14)** ([plan](n26-the-open-road.md#part-e-everyone-on-the-road-is-someone-rework-asked-for-2026-10-14), asked for 2026-10-14): every traveller is a real person row (`people.away` while on a journey), migrants arrive on the day their journey does, the messenger relay (`relay.ts`) is deleted, and **news spreads by people**: travellers carry what their place knew when they left (`journey.carries`) and swap it with places at every stop, inns most of all; `reachesAt(news, site)` becomes "the day the place first heard it, or not yet". **The N29–N68 plans assume Part E, which is built.** Where the plans say `SiteState.newsSeen` with a day, read `realm.heard[site][newsId]` (see the stage file's What differs). Where a plan says a journey, a traveller or a carrier, it means a real person on a Part E journey; where it says a place heard news, it means Part E's `newsSeen` day. N33 then makes that knowledge per person instead of per place. Several later plans lean on small parts of those phases. **The rule:** if a phase needs a part that doesn't exist yet, it builds that part (only that part, as written in its own plan) as **step 0**, and says so in the stage file. It doesn't build its own version.
 
@@ -273,7 +273,7 @@ New tables after these: add them to `TABLES` and `ORDER_BY` in [`store/schema.ts
 
 ## 16. Save and schema versions from here on
 
-The save is at **v15** and the database at **schema 9** (N40 and its follow-up, 2026-10-23; schema 7 was N37's, 2026-10-14). Every phase that adds saved state bumps the save version, the schema version or both, **with a real migration and a test from the version before** (the clean breaks at v11 and v13 were one-time decisions). If a phase would rather start clean, ask the user first. Each plan has a **Save** line saying what it adds. Two phases in a row may share a bump if they're built together.
+The save is at **v16** and the database at **schema 17** (Stage 3, 2026-11-03: v16 adds only optional fields, so a v15 save loads as it is; schema 16 is N42's `jobs`, `parties` and `people.grade`, schema 17 N43's `notable_items`; schema 9 was N40's, 2026-10-23). Every phase that adds saved state bumps the save version, the schema version or both, **with a real migration and a test from the version before** (the clean breaks at v11 and v13 were one-time decisions). If a phase would rather start clean, ask the user first. Each plan has a **Save** line saying what it adds. Two phases in a row may share a bump if they're built together.
 
 ## 17. Three grains of detail, and what a daily rule may read
 
@@ -307,6 +307,8 @@ Each phase that wants words from the model adds a **call kind** to N19's budgets
 | `band-creed` | N56/N57 | low | creed templates by grievance |
 | `song`, `tale`, `era-name` | N68 | low | templated verses and names from the facts |
 
+Built with Stage 3 (2026-11-03): `incident-line` (ranked just after `summary`), `taunt` (after `retell`), `item-name`, `item-legend` and `banter` (the last before `identity`), each with its fallback as above.
+
 Every name the model invents goes through the invented-name check (`inventedWords` in [`realm/director.ts`](../../../packages/server/src/game/realm/director.ts)).
 
 ## 20. Suggested order, and when to stop and play
@@ -331,7 +333,7 @@ Every name the model invents goes through the invented-name check (`inventedWord
 **After playtest 2**, in this order unless the playtest says otherwise:
 
 1. [N69](n69-offices-treasuries-and-renown.md) offices, treasuries and renown (builds full ledgers on §24's helper; was "right after N40", moved behind the pack). ✅ Built 2026-11-02: each place's and faction's books are summed from the helper's lines (`game/office/books.ts`), and tax on the road moves through it too (`toTransit`/`fromTransit`).
-2. [N39](n39-the-first-hour.md) the first hour (with N26H's note: show one way into a closed district early).
+2. [N39](n39-the-first-hour.md) the first hour (with N26H's note: show one way into a closed district early). ✅ Built 2026-11-03 (without the closed-district pointer), with the rest of Stage 3 (N41–N44).
 3. The rest of Stage 2: [N30](n30-seasons-and-the-farming-year.md) (✅ built 2026-11-02) (regional weather; its food curve now comes from N26G), [N27](n27-the-wilds.md) (✅ built 2026-11-02), [N28](n28-fauna-and-flora.md) (✅ built 2026-11-02), N31 (✅ built 2026-11-02), N32 (✅ built 2026-11-03), N34 (✅ built 2026-11-03), N35 (✅ built 2026-11-03, with N26 Part C), N36 (✅ built 2026-11-03), N29 (✅ built 2026-11-03), with N20, N21, N23 and N24 where the plans need them.
 4. Then Stages 3–7 in order, minus what the pack already built (parts of N48 and N49 as N26J's stand-ins). Stop and play after each stage, write down what feels alive and what is noise, and change the next stage's plans from that before building it.
 

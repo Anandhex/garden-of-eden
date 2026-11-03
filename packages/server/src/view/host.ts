@@ -17,8 +17,10 @@ export interface ViewHost {
   move(dx: number, dy: number): Promise<{ ok: boolean; log: string[]; reason?: string; events: GameEvent[]; state: Snapshot }>;
   /** A game minute passes while the player stands about, or null when it can't now (a fight, paused, busy). */
   tick(): Promise<{ log: string[]; events: GameEvent[]; state: Snapshot } | null>;
-  /** Start a new game (overwrites the save). Through the queue. */
-  newGame(): Promise<void>;
+  /** Start a new game (overwrites the save), with the seed and start town chosen on the new-game screen (N39). Through the queue. */
+  newGame(opts?: { seed?: number; start?: string }): Promise<void>;
+  /** The towns a new game could begin in (N39): a fresh seed and a few of its startable towns, each with a line. */
+  startChoices?(): { seed: number; choices: Array<{ id: string; name: string; line: string }> } | null;
   /** The townsfolk of the map the player is on, or null. */
   crowd(): CrowdSim | null;
   /** The land between places (N26), or null in a world without a realm. */

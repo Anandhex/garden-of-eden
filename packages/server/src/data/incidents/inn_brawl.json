@@ -1,0 +1,144 @@
+{
+ "id": "inn_brawl",
+ "title": "Trouble at the inn",
+ "weight": 2,
+ "touches": [
+  "grievance",
+  "friendship"
+ ],
+ "needs": [
+  {
+   "kind": "drinkers"
+  }
+ ],
+ "stage": {
+  "where": "inn",
+  "nudge": "A bench goes over in the inn.",
+  "bring": "a night's drinking turns to fists this morning"
+ },
+ "actors": [
+  "brawler",
+  "other"
+ ],
+ "text": "{brawler}, still drinking from the night watch, has {other} by the collar over a spilled cup. The innkeeper is shouting; nobody else moves.",
+ "choices": [
+  {
+   "id": "break_up",
+   "label": "Pull them apart",
+   "deed": "broke up {brawler} and {other} at the inn",
+   "effects": [
+    {
+     "type": "check",
+     "attr": "strength",
+     "target": 12,
+     "success": [
+      {
+       "type": "say",
+       "text": "You wrench {brawler}'s hand off {other}'s collar and sit them down hard."
+      },
+      {
+       "type": "rel",
+       "who": "other",
+       "toward": "player",
+       "trust": 15,
+       "affection": 6
+      },
+      {
+       "type": "rel",
+       "who": "brawler",
+       "toward": "player",
+       "respect": 5
+      },
+      {
+       "type": "grievance",
+       "who": "brawler",
+       "toward": "player",
+       "weight": 0.3
+      }
+     ],
+     "fail": [
+      {
+       "type": "fight",
+       "who": "brawler",
+       "power": 8
+      },
+      {
+       "type": "rel",
+       "who": "other",
+       "toward": "player",
+       "trust": 10
+      },
+      {
+       "type": "grievance",
+       "who": "brawler",
+       "toward": "player",
+       "weight": 0.3
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "buy_round",
+   "label": "Buy a round to settle it (10 copper)",
+   "requires": {
+    "money": 10
+   },
+   "deed": "bought a round to settle {brawler} and {other}",
+   "effects": [
+    {
+     "type": "money",
+     "amount": -10
+    },
+    {
+     "type": "rel",
+     "who": "brawler",
+     "toward": "player",
+     "trust": 10,
+     "affection": 6
+    },
+    {
+     "type": "rel",
+     "who": "other",
+     "toward": "player",
+     "trust": 10,
+     "affection": 6
+    },
+    {
+     "type": "settle",
+     "who": "brawler",
+     "toward": "other",
+     "amount": 0.5
+    },
+    {
+     "type": "say",
+     "text": "Ale is a fine peacemaker. By the second cup they're arguing about something else."
+    }
+   ]
+  },
+  {
+   "id": "side_with",
+   "label": "Side with {other}",
+   "deed": "sided with {other} against {brawler} at the inn",
+   "effects": [
+    {
+     "type": "rel",
+     "who": "other",
+     "toward": "player",
+     "trust": 15,
+     "affection": 5
+    },
+    {
+     "type": "grievance",
+     "who": "brawler",
+     "toward": "player",
+     "weight": 0.5
+    },
+    {
+     "type": "say",
+     "text": "{brawler} lets go and stalks out, looking back at you."
+    }
+   ]
+  }
+ ]
+}

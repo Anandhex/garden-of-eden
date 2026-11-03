@@ -36,6 +36,7 @@ import { applySchema, SCHEMA_VERSION, TABLES } from "../src/store/schema.js";
 import type { LLMProvider } from "../src/llm/provider.js";
 import { createTestWorld } from "../src/world/world.js";
 import { FakeProvider, hale, pickTestPlaces, say } from "./helpers.js";
+import { LONG } from "./long.js";
 
 /**
  * N40: ambitions and careers. Everyone grown wants something from their life, picked in code from class, job, traits and family, with a
@@ -202,7 +203,8 @@ describe("N40: the database", () => {
   });
 });
 
-describe("N40 step 2 and step 6: years of careers", () => {
+// Its setup (eight years of the slice) times out under a full-suite load (2026-11-03): run with LONG=1 (the nightly job).
+describe.skipIf(!LONG)("N40 step 2 and step 6: years of careers", () => {
   // The slice, lived for eight years (one 48-day year each): long enough for an apprentice of the first day to rise and open a shop.
   let w: W;
   let achieved = 0;

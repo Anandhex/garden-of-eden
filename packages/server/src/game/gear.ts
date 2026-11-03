@@ -205,14 +205,14 @@ export function wearGear(holder: Pick<Holder, "equipment">, slot: Slot, amount =
   const item = key ? parseItem(key) : undefined;
   if (!item || item.durability === undefined || item.durability <= 0) return null;
   const left = Math.max(0, item.durability - amount);
-  holder.equipment![slot] = itemKey(item.name, item.tier, left);
+  holder.equipment![slot] = itemKey(item.name, item.tier, left, item.id);
   return left === 0 ? `${itemLabel(`${item.name} [${item.tier}]`)} broke!` : null;
 }
 
 /** The same piece, good as new. */
 export function repairedKey(key: ItemKey): ItemKey {
   const item = parseItem(key);
-  return item ? itemKey(item.name, item.tier) : key;
+  return item ? itemKey(item.name, item.tier, undefined, item.id) : key;
 }
 
 /** What a smith charges to mend a piece: REPAIR_SHARE of the value it lost. 0 if it isn't worn. */

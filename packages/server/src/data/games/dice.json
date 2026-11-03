@@ -1,0 +1,32 @@
+{
+ "id": "dice",
+ "name": "dice",
+ "kind": "table",
+ "where": [
+  "inn"
+ ],
+ "players": [
+  2,
+  6
+ ],
+ "stake": [
+  2,
+  20
+ ],
+ "resolve": {
+  "skill": "gambling",
+  "attribute": "luck",
+  "dice": "2d6",
+  "rounds": 3,
+  "cheat": {
+   "skill": "sleight",
+   "attribute": "agility",
+   "against": "perception"
+  }
+ },
+ "renown": [
+  0,
+  0
+ ],
+ "who": {}
+}

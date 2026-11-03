@@ -1,0 +1,28 @@
+{
+ "id": "drinking",
+ "name": "a drinking contest",
+ "kind": "table",
+ "where": [
+  "inn"
+ ],
+ "players": [
+  2,
+  4
+ ],
+ "stake": [
+  2,
+  10
+ ],
+ "resolve": {
+  "attribute": "endurance",
+  "dice": "d20",
+  "rounds": 4
+ },
+ "renown": [
+  1,
+  0
+ ],
+ "who": {
+  "minAge": 16
+ }
+}

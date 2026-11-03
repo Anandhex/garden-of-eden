@@ -387,6 +387,47 @@ function realmTab(s: Snapshot, st: UiState): Section[] {
       for (const e of nat.entries) t.kv(`${e.name} [${e.kind}]`, e.text || "seen");
     }
   }
+  // Games and contests (N41).
+  const lz = s.leisure;
+  if (lz) {
+    t.h("Games and contests");
+    if (lz.inn) {
+      if (!lz.atInn || !lz.evening) t.p("The inn's tables fill up in the evening.");
+      else
+        for (const g of lz.tables)
+          t.row({
+            text: `${g.name} (from ${coins(g.stake)} a hand)`,
+            actions: [button(`gamble:${g.id}`, "Play", act("gamble", { game: g.id, stake: g.stake }), { enabled: !busy && s.player.money >= g.stake }), ...(g.cheat ? [button(`cheat:${g.id}`, "Cheat", act("gamble", { game: g.id, stake: g.stake, cheat: true }), { enabled: !busy && s.player.money >= g.stake, style: "danger", why: "Sleight of hand against the table's eyes. Caught, and the town will hear of it." })] : [])],
+          });
+    }
+    for (const c of lz.contest)
+      t.row({
+        text: `Today: ${c.name}${c.held ? " (held)" : ""}${c.favourite && !c.held ? `, ${c.favourite.name} the favourite` : ""}`,
+        actions: c.held || !lz.inSquare ? [] : [button(`contest:${c.game}`, "Enter", act("contest", { game: c.game }), { enabled: !busy }), ...(c.favourite ? [button(`bet:${c.game}`, `Bet on ${c.favourite.name}`, act("contest", { game: c.game, enter: false, betOn: c.favourite.id, stake: 10 }), { enabled: !busy && s.player.money >= 10, why: "10 copper on the favourite" }), button(`rig:${c.game}`, "Pay them to lose", act("rig", { game: c.game, who: c.favourite.id }), { enabled: !busy && s.player.money >= 20, style: "danger", why: "20 copper; the judges may see it" })] : [])],
+      });
+    if (lz.contest.length > 0 && !lz.inSquare) t.p("The contests are in the square, mid-morning to afternoon.");
+    for (const r of lz.rivals) t.row({ text: `${r.name} wants a rematch at ${r.game}${r.here ? "" : " (not here)"}`, actions: r.here ? [button(`rematch:${r.id}`, "Rematch", act("rematch", { npc: r.id }), { enabled: !busy })] : [] });
+    if (lz.organise !== null) t.row({ text: `Put on a contest day here tomorrow (${coins(lz.organise)} in prizes)`, actions: [button("organise", "Pay for it", act("organise"), { enabled: !busy && s.player.money >= lz.organise })] });
+  }
+  // Things with a history (N43): what the player knows of each, and who wants one back.
+  for (const it of s.items ?? []) {
+    t.h(`${it.name} [${it.tier}]`);
+    for (const line of it.history.slice(-6)) t.p(line);
+    for (const c of it.claims) t.row({ text: `${c.name}: "${c.line}"`, actions: c.wants ? [button(`giveback:${it.id}:${c.who}`, "Give it back", act("giveback", { item: it.id, npc: c.who }), { enabled: !busy })] : [] });
+  }
+  // The jobs board (N42): every job here and who holds it, the parties about, the player's grade.
+  const bd = s.board;
+  if (bd) {
+    t.h(`The board (your grade: ${bd.grade}${bd.trial ? `, a ${bd.trial}-grade trial set` : ""})`);
+    if (bd.jobs.length === 0) t.p("Nothing posted here just now.");
+    for (const j of bd.jobs)
+      t.row({
+        text: `[${j.tier}] ${j.title}, ${coins(j.reward)}: ${j.status === "open" ? (j.byGiver ? "ask whoever posted it" : "open") : `held by ${j.holder}`}`,
+        actions: j.claimable ? [button(`claimjob:${j.id}`, "Take it", act("claimjob", { job: j.id }), { enabled: !busy })] : j.mine && !j.byGiver ? [button(`giveupjob:${j.id}`, "Give it up", act("giveupjob", { job: j.id }), { enabled: !busy, style: "ghost" })] : [],
+      });
+    for (const r of bd.recent) t.p(`Lately: "${r.title}", done by ${r.by}.`);
+    for (const pt of bd.parties) t.row({ text: `${pt.leader}'s party [${pt.grade}]: ${pt.members.join(", ")}${pt.job ? `, on "${pt.job}"` : ""} (${pt.record.done} done, ${pt.record.failed} failed)`, actions: pt.here ? [button(`joinparty:${pt.id}`, "Go with them", act("joinparty", { party: pt.id }), { enabled: !busy, why: "Share the danger and the loot, on their terms" })] : [] });
+  }
   // Adventuring.
   t.h("Adventuring");
   const adv = s.adventurer;
@@ -476,6 +517,11 @@ function modal(s: Snapshot, st: UiState): UiModel["modal"] {
   if (s.road?.pending) {
     const sit = s.road.pending;
     return { kind: "situation", title: sit.title, body: sit.text, sections: [], actions: sit.choices.map((c) => button(`situation:${c.id}`, c.label, act("situation", { situation: sit.id, choice: c.id }), { enabled: !st.busy, ...(c.hint ? { why: c.hint } : {}) })) };
+  }
+  // The first hour's opening incident (N39) is a choice like the road's, and stays until it is made.
+  if (s.incident) {
+    const sit = s.incident;
+    return { kind: "situation", title: sit.title, body: sit.text, sections: [], actions: sit.choices.map((c) => button(`incident:${c.id}`, c.label, act("incident", { choice: c.id }), { enabled: !st.busy, ...(c.hint ? { why: c.hint } : {}) })) };
   }
   if (!m) return null;
   const p = s.player;

@@ -151,6 +151,16 @@ export class PinnedView implements View {
       d.append(t);
       box.append(d);
     }
+    for (const sec of v.sections ?? []) {
+      box.append(el("h3", { textContent: sec.title }));
+      const st = el("table", { className: "rows" });
+      for (const [k, val] of sec.rows) {
+        const tr = el("tr");
+        tr.append(el("td", { textContent: k }), el("td", { textContent: val }));
+        st.append(tr);
+      }
+      box.append(st);
+    }
     box.append(el("h3", { textContent: "What each of them feels" }));
     const t = el("table", { className: "grid" });
     const head = el("tr");

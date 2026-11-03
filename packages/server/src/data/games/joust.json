@@ -1,0 +1,34 @@
+{
+ "id": "joust",
+ "name": "the joust",
+ "kind": "joust",
+ "where": [
+  "lists"
+ ],
+ "players": [
+  2,
+  2
+ ],
+ "resolve": {
+  "skill": "animal_handling",
+  "attribute": "strength",
+  "dice": "d20",
+  "rounds": 3
+ },
+ "risk": {
+  "injury": 0.18,
+  "death": 0.035
+ },
+ "renown": [
+  10,
+  3
+ ],
+ "who": {
+  "classes": [
+   "gentry",
+   "noble",
+   "royal"
+  ],
+  "minAge": 16
+ }
+}

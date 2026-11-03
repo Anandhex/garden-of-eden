@@ -1,0 +1,30 @@
+{
+ "id": "wrestling",
+ "name": "the wrestling",
+ "kind": "contest",
+ "where": [
+  "square",
+  "field"
+ ],
+ "players": [
+  2,
+  10
+ ],
+ "resolve": {
+  "skill": "unarmed",
+  "attribute": "strength",
+  "dice": "d20",
+  "rounds": 2
+ },
+ "risk": {
+  "injury": 0.06,
+  "death": 0
+ },
+ "renown": [
+  4,
+  1
+ ],
+ "who": {
+  "minAge": 16
+ }
+}

@@ -360,22 +360,31 @@ export class ViewSession {
         this.st.modal = null;
         return this.push();
       case "newGame":
-        return this.ask("New game", "Start a new game? This overwrites your save. NPC deaths stay permanent.", [{ id: "yes", label: "Start again" }, { id: "no", label: "Keep playing" }], async (o) => {
+        return this.ask("New game", "Start a new game? This overwrites your save. NPC deaths stay permanent.", [{ id: "yes", label: "Start again" }, { id: "no", label: "Keep playing" }], (o) => {
           if (o !== "yes") return;
-          await this.host.newGame();
-          this.st.logs = {};
-          this.st.feed = [];
-          this.st.talking = null;
-          this.st.modal = null;
-          this.lastNewsId = null;
-          this.lastTold = null;
-          this.sent.reset();
-          this.sentUi.clear();
-          this.feed(`A new game. You're in ${this.host.snapshot().site.name}.`);
-          this.pendingFeed = [];
-          await this.push(undefined, true);
+          // Where to begin (N39): a few towns of the new world, or the seed's own pick.
+          const offer = this.host.startChoices?.() ?? null;
+          if (!offer || offer.choices.length === 0) return this.beginNew();
+          const body = offer.choices.map((c) => `${c.name}: ${c.line}`).join("\n");
+          return this.ask("Where do you begin?", body, [...offer.choices.map((c) => ({ id: c.id, label: c.name })), { id: "random", label: "Wherever the road takes me" }], (pick) => this.beginNew({ seed: offer.seed, ...(pick !== "random" ? { start: pick } : {}) }));
         });
     }
+  }
+
+  /** Start the new game (after the player has said where): forget everything shown of the old one. */
+  private async beginNew(opts: { seed?: number; start?: string } = {}): Promise<void> {
+    await this.host.newGame(opts);
+    this.st.logs = {};
+    this.st.feed = [];
+    this.st.talking = null;
+    this.st.modal = null;
+    this.lastNewsId = null;
+    this.lastTold = null;
+    this.sent.reset();
+    this.sentUi.clear();
+    this.feed(`A new game. You're in ${this.host.snapshot().site.name}.`);
+    this.pendingFeed = [];
+    await this.push(undefined, true);
   }
 
   private snap(): Snapshot {
@@ -384,7 +393,7 @@ export class ViewSession {
 
   /** Actions with a step of their own before the game's: quotes and confirms. */
   private async act(action: string, args: Record<string, unknown>): Promise<void> {
-    if (action !== "situation") this.st.modal = null;
+    if (action !== "situation" && action !== "incident") this.st.modal = null;
     switch (action) {
       case "walk":
         return void this.autoWalk();

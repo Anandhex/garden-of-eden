@@ -950,6 +950,10 @@ function intentTarget(sim: CrowdSim, i: CrowdIntent): { t: Target; doing: string
   }
   if (i.kind === "gossip") return { t: square(sim), doing: "gone to talk to whoever is about" };
   if (i.kind === "travel") return { t: zoneOr(sim, "gate"), doing: "gone to the gate, meaning to leave" };
+  // Leisure (N41): a game at the inn, the contests and the dancing in the square.
+  if (i.kind === "play") return { t: frontOf(sim, "inn", () => 0), doing: "gone to the inn for a game" };
+  if (i.kind === "compete") return { t: square(sim), doing: "gone to try the contests" };
+  if (i.kind === "dance") return { t: square(sim), doing: "gone to the dancing" };
   return null;
 }
 

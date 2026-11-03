@@ -8,6 +8,7 @@ import { PLACE_NAMES, placeOf } from "../game/schedule.js";
 import { fearOf, holdsGrudge } from "./relationship.js";
 import { bountyOf, describeWanted, isGuard } from "../game/crime.js";
 import type { NpcPersona, NpcState, WorldSnapshot } from "./types.js";
+import { firstHourOpening } from "../game/firsthour/run.js";
 
 /**
  * NPCs who start things (N6.3). Triggers in code decide when an NPC speaks first:
@@ -16,7 +17,7 @@ import type { NpcPersona, NpcState, WorldSnapshot } from "./types.js";
  * the one opening line, from a short event line. A cooldown per trigger stops
  * nagging, and the caller lets at most one NPC per scene speak first (pickOpener).
  */
-export const TRIGGERS = ["crime", "apology", "confront", "promise_due", "grudge", "fear", "favour", "quest_followup", "news", "need", "greeting"] as const;
+export const TRIGGERS = ["crime", "apology", "confront", "promise_due", "recognise", "reclaim", "firsthour", "challenge", "jobdone", "grudge", "fear", "favour", "quest_followup", "news", "need", "greeting"] as const;
 export type InitiativeTrigger = (typeof TRIGGERS)[number];
 
 export const PRIORITY: Record<InitiativeTrigger, number> = {
@@ -24,6 +25,11 @@ export const PRIORITY: Record<InitiativeTrigger, number> = {
   apology: 90,
   confront: 85,
   promise_due: 80,
+  recognise: 78,
+  reclaim: 77,
+  firsthour: 75,
+  challenge: 72,
+  jobdone: 55,
   grudge: 70,
   fear: 65,
   favour: 60,
@@ -83,6 +89,18 @@ export function openingsFor(persona: NpcPersona, state: NpcState, world: WorldSn
   if (loan) {
     add({ trigger: "promise_due", key: "promise_due", event: `${player.name} owes you ${formatMoney(loan.amount ?? 0)}, ${loan.due < now ? "and it's overdue" : `due by ${formatMinute(loan.due, world.day)}`}. Remind them.` });
   }
+  // An item with a history (N43): they know what the player carries, and kin want it back.
+  const claim = (world.itemClaims ?? []).find((c) => c.who === persona.id && !c.done);
+  if (claim) add({ trigger: claim.wants ? "reclaim" : "recognise", key: `item:${claim.item}`, once: true, event: claim.wants ? `${player.name} carries something of your family's. Say so: "${claim.line}" Ask for it back, firmly.` : `${player.name} carries something you know: "${claim.line}" Ask them where they got it.` });
+  // The first hour (N39): someone who was in the opening incident, or has heard the town talk of it, brings it up.
+  const first = firstHourOpening(world, persona.id, state);
+  if (first) add({ trigger: "firsthour", key: first.key, once: true, event: first.event });
+  // A rival the player beat at a contest wants another go (N41).
+  const rival = (player.leisure?.rivals ?? []).find((r) => r.who === persona.id && !r.rematch);
+  if (rival) add({ trigger: "challenge", key: `challenge:${rival.who}:${rival.day}`, once: true, event: `${player.name} beat you at ${rival.game.replace("_", " ")} on day ${rival.day}, in front of everyone. Challenge them to a rematch, proudly.` });
+  // A job of theirs someone else did (N42): they tell the player it's done and paid for.
+  const told = (((world as { realm?: { market?: { told?: Record<string, Array<{ job: string; text: string }>> } } }).realm?.market?.told ?? {})[persona.id] ?? []).at(-1);
+  if (told) add({ trigger: "jobdone", key: `jobdone:${told.job}`, once: true, event: `Tell ${player.name}: ${told.text} The job is done and no longer on offer.` });
   if (holdsGrudge(state, world.day)) {
     add({ trigger: "grudge", key: "grudge", event: `${player.name} just showed up, and you hold a grudge: ${state.grudge!.reason}. Let them know you haven't forgotten.` });
   } else if (fearOf(state, player) >= 50) {

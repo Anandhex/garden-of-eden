@@ -83,7 +83,7 @@ NPCs act for themselves: interactions with consequences, hourly choices, life go
 
 ## N39: The first hour
 
-**Status:** ⬜ Planned
+**Status:** ✅ Built (2026-11-03; save v16: `world.firstHour` (the incident, who is in it, the stage, the choice, the event) and `world.itemClaims`, both optional, so a v15 save loads with no opening; no database change). On by default; `FIRST_HOUR=off` starts quiet.
 
 **Implementation plan:** [plans/n39-the-first-hour.md](plans/n39-the-first-hour.md)
 
@@ -91,15 +91,23 @@ NPCs act for themselves: interactions with consequences, hourly choices, life go
 
 **The rules:** not a fixed script. At a new game, code picks an opening incident from what the seeded world already has brewing in Millbrook (a death, a theft, a stranger, a grudge near breaking, a raid coming), arranges for the player to be there when it breaks, and offers a choice with consequences that run on the normal systems.
 
-- [ ] **Choosing the start town** (deferred from N25a, user decision 2026-10-13): a new game lets the player pick the town to start in, or take one at random; until then `pickStartSite` picks it from the seed
-- [ ] A set of opening incidents with conditions; one picked per seed from the world's state
-- [ ] The incident involves the player within the first few minutes, with a choice that sets a grudge, a debt or a friendship
-- [ ] Gentle pointers to the systems it touches (gossip spreading, someone remembering), in the world, not as tutorials
-- [ ] Tested by playing several seeds' first hours (part of the vertical slice's playtest)
-- [ ] Tests, README, this roadmap
+- [x] **Choosing the start town** (deferred from N25a, user decision 2026-10-13): a new game lets the player pick the town to start in, or take one at random; until then `pickStartSite` picks it from the seed
+- [x] A set of opening incidents with conditions; one picked per seed from the world's state
+- [x] The incident involves the player within the first few minutes, with a choice that sets a grudge, a debt or a friendship
+- [x] Gentle pointers to the systems it touches (gossip spreading, someone remembering), in the world, not as tutorials
+- [~] Tested by playing several seeds' first hours: five seeds' first hours run in tests (and through the browser protocol); a hand playtest is still to do
+- [x] Tests, README, this roadmap
 
-- **Done when:** on five seeds, a new player is drawn into a different incident within five minutes, their choice is gossiped about within the first in-game day, and someone treats them differently because of it.
+- **Done when:** on five seeds, a new player is drawn into a different incident within five minutes, their choice is gossiped about within the first in-game day, and someone treats them differently because of it. ✅ (`tests/n39.test.ts`: "five seeds each pick a satisfiable incident (at least four different)", "the player is drawn in within five game minutes", "the choice is gossiped about within the first day, and someone treats the player differently because of it"; balance `first-hour-variety`: six or more incidents over twenty seeds)
 
+**Built:** `packages/server/src/game/firsthour/`: `schema.ts` (incidents as data: needs, a stage, roles, choices with effects; `loadIncidents`, also run by `npm run check-npcs`), `needs.ts` (twelve need kinds read from the town's real rows and the realm: a frail elder with kin, a grudge heavy enough, a thief and a stall, a stranger from the next place, a pack at the fields, dues at a door, a small child, a carter, raiders due, someone in bondage, a noble and a vendor, two hot tempers at the inn), `run.ts` (`pickIncident`, `beginFirstHour` (staging, logged with `why: first hour`), `firstHourTick` (it breaks at minute three where it is staged, or comes to the player at minute five), `incidentView`, `chooseIncident` (relationships on rows and the talker's own feelings, grievances against the player, favours owed, a death, money, an `incident` event that witnesses learn), `firstHourOpening`), `words.ts` (`incident-line`). Twelve incidents in `data/incidents/`. `realm/start.ts` `startCandidates`/`startLine`; `newWorld(..., { start })`, `openWorld`, the web new-game prompt ("Where do you begin?"), CLI `--start=<name>` and `/incident <n>`; the incident shown as the road situation's panel (`Snapshot.incident`); `npc/initiative.ts` trigger `firsthour`; the admin player card's "The first hour" section.
+
+**What differs from the plan:**
+- **No closed-district pointer yet** (N26H's note): the first hour does not show a way into a closed quarter; a commoner start in a city still meets the gate first.
+- **The stranger is a row of the next place down the road**, staged as come in at the gate, not a traveller on a Part E journey due that morning (few journeys are on the road on day 1). Their news is the newest real news their place has heard, else what is true of its roads (a pack, a gang, a war, a dungeon).
+- **A fresh world has no grudges and no arrivals yet**, so `grudge_breaks` and `raid_scouts` only happen in a world with a past (a later new game on a lived world, or a test); kin links are the household (`home`) on day 1, since nobody is wed or born yet.
+- **Picking warms its stream up.** The first draw of a stream leans alike for keys that differ only a little (FNV into mulberry32), so `pickIncident` skips four draws; without it five seeds picked two incidents. Generic incidents (an old one falls, a cart over) weigh less.
+- **Someone treats the player differently** is shown three ways: a `relationships` row toward `"player"` and open grievances against the player differ by the choice, and the people in it become talkers who open with it (`firsthour` trigger); talkers who have only heard of it bring it up too.
 ## N40: Ambitions and careers
 
 **Status:** ✅ Built (2026-10-23; the save is still v15, the database goes to schema 8: `people.skill`, `people.shop`, `ambitions.step`, and indexes on `jobs_held`; then schema 9 for the follow-up that makes ambitions live: `ambitions.strength`, `frustration`, `route`, `urgent`). On by default; `AMBITIONS=off` turns it off.
@@ -185,7 +193,7 @@ NPCs act for themselves: interactions with consequences, hourly choices, life go
 
 ## N41: Leisure and contests
 
-**Status:** ⬜ Planned
+**Status:** ✅ Built (2026-11-03; save v16: `realm.leisure` (announced fairs and tournaments, results, contest days held) and `player.leisure` (games played, rivals), both optional; no database change; new skills `gambling` and `sleight`, journey kind `tourney`). On by default; `LEISURE=off` turns it off.
 
 **Implementation plan:** [plans/n41-leisure-and-contests.md](plans/n41-leisure-and-contests.md)
 
@@ -193,20 +201,33 @@ NPCs act for themselves: interactions with consequences, hourly choices, life go
 
 **The rules:** leisure is part of N38's action menu and N16's day: people with time, coin and the temperament for it go to games, contests and fairs. Contests are resolved in code by skill, attributes, dice and cheating; the model only writes the banter.
 
-- [ ] **Tavern games:** dice, cards, knucklebones, arm-wrestling, drinking contests, darts; betting and cheating, caught or not (grudges, N37)
-- [ ] **Contests and sports:** archery, wrestling, foot and horse races, strongman feats, a village ball game; prizes and renown
-- [ ] **Tournaments and jousts:** held by lords and crowns, with knights and squires (N55's ranks), heralds, champions, injuries and deaths, a champion's fame across the realm
-- [ ] **Fairs and market days:** travelling merchants, players and performers, menageries (N28), fortune tellers (N50, N51), games of chance; crowds from nearby places (N26)
-- [ ] **Music, stories and dancing:** bards (N68), dances at festivals (N30), storytellers in inns
-- [ ] **Who takes part:** NPCs by class, culture (N53), traits and mood (N36); the player can play, bet, compete, organise or rig them
-- [ ] Contests as news, rivalries and romances (N5.6, N11), and as jobs on the board (N42: "champion wanted")
-- [ ] Tests, README, this roadmap
+- [x] **Tavern games:** dice, cards, knucklebones, arm-wrestling, drinking contests, darts; betting and cheating, caught or not (grudges, N37)
+- [x] **Contests and sports:** archery, wrestling, foot and horse races, strongman feats, a village ball game; prizes and renown
+- [~] **Tournaments and jousts:** held by lords, knights riding in from places up to eight days off, jousts and a melee, injuries and deaths, the champion's name as realm news; no heralds or squires as their own rank (N55)
+- [~] **Fairs and market days:** a town's fair twice a year with visitors from places within two days (journeys arriving the day before) and games; menagerie and fortune tellers only in the fair's news line (N28/N50/N51)
+- [~] **Music, stories and dancing:** dancing at festivals (affection between partners); storytelling and bard games are data; bards' songs of famous items in inns (N43's template, N68 later)
+- [~] **Who takes part:** by class, traits, coin and the place's mood (N36); culture waits for N53; the player can play, bet, compete, organise and rig
+- [~] Contests as news (events that gossip carries), rivalries (a proud runner-up's grudge, the player's rematch) and romances (dancing); not posted as "champion wanted" jobs on N42's board
+- [x] Tests, README, this roadmap
 
-- **Done when:** evenings at the Gilded Goose have dice games where a cheat is caught and a fight breaks out; Highdale's lord holds a tournament that knights from three places travel to, one dies, and the champion's name is news across the kingdom; the player wins an archery contest and a rival challenges them to a rematch.
+- **Done when:** evenings at the Gilded Goose have dice games where a cheat is caught and a fight breaks out; Highdale's lord holds a tournament that knights from three places travel to, one dies, and the champion's name is news across the kingdom; the player wins an archery contest and a rival challenges them to a rematch. ✅ (`tests/n41.test.ts`: "evenings at the start town's inn have dice games where a cheat is caught and a fight breaks out (violence on), or a confrontation and a grudge (off)", "the liege town's lord holds a tournament that knights from three places ride to; one dies; the champion's name is news across the kingdom" (on the first of a fixed list of seeds where three places send riders and someone dies), "the player wins an archery contest and a rival challenges them to a rematch")
 
+**Built:** `packages/server/src/game/leisure/`: `games.ts` (seventeen games as data in `data/games/`, one resolver `resolveGame`: rounds of dice plus attribute and skill, a cheat once a game against watchers' and players' eyes, injuries and deaths in contact games), `people.ts` (`rowEntrant`, `wouldCheat`, `playScore`, `competeScore`), `tavern.ts` (`tavernNight`: tables at every inn every evening; a caught cheat humiliated (N37), the cheated's grudges, a brawl or a confrontation; `tavernLines`), `contests.ts` (contest days on festivals, some market days and when paid for; `holdGame`; prizes, renown, a proud runner-up's grudge; festival dancing), `events.ts` (tournaments: `hostTournament`, knights' decisions and `tourney` journeys, `holdTournament`; fairs: `announceFair`, `holdFair`; `leisureRealmDay`), `day.ts` (`leisureDay` in each place's day and catch-up), `player.ts` (`playerGamble`, `playerContest` (enter or bet), `playerOrganise`, `playerRig`, `playerRematch`, `leisureView`), `words.ts` (`banter`), `bounds.ts` (`cheats-caught`, `tournament-deaths-rare`). N38 actions `play`, `compete`, `dance` (`choice/actions/leisure.ts`) and the crowd's intents for them; the watched place's tables are played by the hour at 20:00 (`Town.leisureHours`); `npc/initiative.ts` trigger `challenge`; the UI's "Games and contests" section; CLI `/gamble`, `/contest`, `/organise`, `/rematch`; the admin place card's "Games and contests".
+
+**What differs from the plan:**
+- **Rows have no purses**, so a lost bet among townsfolk does not make a debt (`debts.ts` is for talkers): a sore loser of a high-stakes table holds a small grudge against the winner instead. `leisure-not-ruinous` is not judged (there is no row coin to ruin).
+- **Prizes are sunk from treasuries** (a townsperson's winnings leave the realm's books, as N69's wages do); the player's prize comes out of the treasury into their purse.
+- **Tournaments reach eight days' ride, with eleven days' notice.** Knights live mostly in cities and capitals; at three days only one or two places ever sent riders. Up to four from any one place, twelve in all.
+- **Knights-errant:** until N55's ranks, the lists take knights (`job: knight`) and bold young gentry and nobles.
+- **A contest day is settled in its place's next day's step** (everyone who came, the same for a place worked out later), unless the player takes part in a game of it there and then; tavern nights in the player's place are played at 20:00 while they are there, so a night is lost for that place if the player leaves by road before it.
+- **No "champion wanted" jobs on the board;** menagerie and fortune tellers are only words in the fair's news.
+- **The rematch** is the rival's opening line (`challenge`) and a player action, not an N38 action the rival scores.
+- **Cheating is tried once a game**, and a player at the table sees it only by beating the cheat's roll by four (they watch their own hand); the inn's own people watch for it. Archery and darts roll 2d6 (steadiness), so the best archer wins most of the time.
+- **The inn's nights are small news (2026-11-03, after the full suite).** Off-screen tables record their events at importance 1 and only those it happened to (the cheat and the one who caught them, the two who fought) learn of it; a caught cheat costs the table a light grudge (0.2), not N37's humiliation (a 0.5 grudge and an importance-4 event). As first built, every inn every night out-ranked a death in gossip and pushed 21 places over `revenge-bounded`. NPC grudges and feelings from leisure are written only with `CHATTER` on.
+- **Who is drawn for fairs and tournaments:** free folk only (no serf or slave sets out alone), a lazy place is caught up first (as the road does), and a place worked out once and then left behind sends nobody (its later catch-up would have them learn older news after newer, past the knowledge cap). A contest settled the next day is learned on that day.
 ## N42: A shared quest market and adventurer grades
 
-**Status:** ⬜ Planned
+**Status:** ✅ Built (2026-11-03; database schema 16: `jobs`, `parties`, `people.grade`; save v16: `realm.market` (figures' grades, givers' news for the player) and `player.grade`/`player.party`, all optional). On by default; `MARKET=off` turns it off.
 
 **Implementation plan:** [plans/n42-shared-quest-market.md](plans/n42-shared-quest-market.md)
 
@@ -216,22 +237,33 @@ NPCs act for themselves: interactions with consequences, hourly choices, life go
 
 **The rules:** a job is one record on a board, open to the player and every NPC alike; whoever claims it first holds it. NPCs choose jobs with N38's scoring (reward, danger against their own strength, N40's ambition, traits); code runs the job like a delve or a hunt today. Grades follow the same rules for the player and NPCs.
 
-- [ ] **One board for everyone:** guild halls, notice boards and quest-givers post jobs (bounties, culls, delves, escorts, deliveries, rescues, N63's surveys); a claimed job is held by that party, with a deadline, and freed again if they fail or give up
-- [ ] **NPCs take jobs:** adventurers, hunters, explorers and willing townsfolk score open jobs; a reckless one takes jobs above their grade, a cautious one doesn't. At coarse detail (N25) they take and finish jobs in daily batches
-- [ ] **Adventurer grades for everyone** (matching the existing tiers): a grade sets which jobs one may take; promotion from jobs done, renown and, for the higher grades, a trial; demotion or expulsion for failures or crimes. `guildRank` becomes this grade
-- [ ] **Parties:** formed by role (fighter, healer, scout), friendship and grade; loot split by agreement; parties break up over arguments, deaths or unfair shares. The player can join an NPC party, hire one, or recruit NPCs into their own (N8's companions)
-- [ ] **Real outcomes:** success, failure, injury and death; an unfinished job goes back on the board. All of it is news (N33), and great deeds become songs (N68)
-- [ ] **Competition:** an NPC party can beat the player to a job ("the Greyfang bounty was claimed by Odo's party yesterday"); rival parties, poached jobs and grudges over stolen kills (N37)
-- [ ] **Quest-givers react:** a giver whose job someone else did stops waiting for the player; givers prefer parties they trust
-- [ ] **Rising:** a famous adventurer becomes a named or talking NPC through N13's rise rules; ambition (N40) can be "reach grade S"
-- [ ] The admin view (N17) lists every board, who holds which job, and each adventurer's grade and record
-- [ ] Tests, README, this roadmap
+- [~] **One board for everyone:** givers' quests (mirrored), culls of full or bountied packs and delves of dangerous or bountied dungeons are jobs; claimed jobs are held with a deadline and freed again on failure, giving up or expiry; escorts, deliveries, rescues and surveys are not sources yet
+- [~] **NPCs take jobs:** realm adventurers and hunters (figures) score open jobs in reach; the reckless take jobs above their grade; daily batches. Willing townsfolk do not take jobs yet
+- [~] **Adventurer grades for everyone** (F…SSS): eligibility, promotion from jobs done, trials from B, demotion after failures; `guildRank` is the grade. Expulsion for crimes waits for N48
+- [~] **Parties:** formed by place and role (fighter, healer, scout), shares equal or leader-heavy (a greedy member's grudge), broken up by deaths or failures; the player can join an NPC party for its job; hiring a party or recruiting NPCs into the player's own is not built
+- [x] **Real outcomes:** success, failure, death; an unfinished job goes back on the board; events and realm news (songs wait for N68)
+- [~] **Competition:** an NPC party can take a job the player saw first, and the board says who holds it; poached jobs and grudges over stolen kills are not built
+- [~] **Quest-givers react:** a giver whose job a party did pays them, stops offering it and tells the player; givers do not keep a trust list of parties
+- [~] **Rising:** adventurers rise by N13's rules as before (renown from jobs counts); no `grade` ambition in N40's ladders
+- [x] The admin view (N17) lists every board, who holds which job, and each adventurer's grade and record
+- [x] Tests, README, this roadmap
 
-- **Done when:** an NPC party claims a wolf-cull job the player saw on Millbrook's board, does it while the player waits, and the giver pays them and tells the player it's done; an NPC adventurer climbs a grade from jobs done and passes a trial; a reckless low-grade adventurer dies on a job above their grade and the job returns to the board; the player joins an NPC party and shares the loot.
+- **Done when:** an NPC party claims a wolf-cull job the player saw on Millbrook's board, does it while the player waits, and the giver pays them and tells the player it's done; an NPC adventurer climbs a grade from jobs done and passes a trial; a reckless low-grade adventurer dies on a job above their grade and the job returns to the board; the player joins an NPC party and shares the loot. ✅ (`tests/n42.test.ts`: "an NPC party claims the wolf cull the player saw on the start town's board, does it while the player waits, and the giver pays them and tells the player", "an NPC adventurer climbs a grade from jobs done and passes a trial", "a reckless low-grade adventurer dies on a job above their grade, and the job returns to the board", "the player joins an NPC party and shares the loot")
 
+**Built:** `store/jobStore.ts` (jobs and parties, read once, written through; in the world hash, export and import), `packages/server/src/game/market/`: `jobs.ts` (`post`, `claim`, `complete`, `reopen`, `boardOf`, `pruneJobs`), `grades.ts` (`gradeRecord` for the player, figures and rows by one rule, `recordJob`, `mayTake`, trials, the player's grade from their old renown rank), `day.ts` (`marketDay` in the realm's day: `postRealmJobs`, `expireJobs`, `formParties`, `resolveJobs` (culls by `cullStrength`, delves by N13's `delve`; pay, shares, renown, grades, breakups), `claimJobs` with `scoreJob`'s named parts), `player.ts` (`mirrorQuest`, `syncJobs` (givers' boards and the market brought together, givers paying), `playerClaim`, `playerGiveUp`, `playerJoinParty`, `boardView`), `bounds.ts` (`jobs-get-done`, `adventurer-deaths`, `grades-spread`, `player-gets-jobs`). Town hooks (`Town.syncJobs` on arrival and every hour), `npc/initiative.ts` trigger `jobdone`, the UI's "The board" section, CLI `/board`, `/claim`, `/giveup`, `/joinparty`, the admin place card's "Jobs on the board", a figure's "Adventurer" section, the player's grade.
+
+**What differs from the plan:**
+- **NPC adventurers are realm figures**, and they choose with `scoreJob`'s named parts (the coin, their strength against it, grade against tier, wanting a name, the road, a trial, recklessness) in the market's day, not through an N38 `ActionDef` (the menu runs for talkers and rows; the adventurers are figures).
+- **Givers keep their `questBoard`.** The player's quests stay as rich as before (dialogue, objectives, turn-in); each realm job on a giver's board is mirrored as a job row (`q:<giver>:<quest>`), and `Town.syncJobs` keeps the two together: held by a party, it leaves the giver's offers; done by one, the giver pays from their purse and tells the player; taken by the player, the row is the player's.
+- **Sources:** escorts, deliveries, rescues, surveys and contest jobs are not posted yet.
+- **Parties:** hiring a party for the player's pay, and recruiting NPCs into the player's own with shares, are not built (N8's companions are unchanged). Givers do not keep a trust list.
+- **A cull fights a few beasts** (`cullStrength`: the stragglers and the leader), not the whole pack, and a failed cull kills less often than the plan's numbers (60 days on seed 1: about a third of jobs done and deaths a quarter of adventurers before tuning, now about one in five).
+- **Grades:** jobs done at the grade promote after three; from B a trial is set (the next job of the next tier). Expulsion for crimes waits for N48.
+- **A first grade is a figure's own tier** (at least F). One below it, as first built, left nearly every adventurer at F, and on seed 2 nobody got past it in two years (`grades-spread`).
+- **A culled pack's standing bounty is paid out through the books** to the party's leader (it is realm coin; zeroing it lost about 2,000 copper by day 60).
 ## N43: Items with a history
 
-**Status:** ⬜ Planned
+**Status:** ✅ Built (2026-11-03; database schema 17: `notable_items`; save v16: figures' `items`, `realm.drops`, `world.itemClaims`, all optional). Item keys may end in `#i<n>`.
 
 **Implementation plan:** [plans/n43-items-with-a-history.md](plans/n43-items-with-a-history.md)
 
@@ -239,19 +271,29 @@ NPCs act for themselves: interactions with consequences, hourly choices, life go
 
 **The rules:** notable items (weapons, armour, jewellery, heirlooms, artefacts, anything named, stolen or used in a notable event) keep a provenance in code: makers, owners, deeds, losses and finds. Ordinary items stay plain, so the cost stays small (N18, N19).
 
-- [ ] **Provenance:** made by whom (N10's smiths), owned by whom, used for what (a killing, a duel, a coronation), lost or stolen where, found how
-- [ ] **Names and legends:** an item used in great deeds gets a name and a story (N68), and its fame grows with its deeds
-- [ ] **Recognition:** NPCs who knew an item or heard of it recognise it ("that's Greyfang's bane, Hale's father carried it"): stolen goods give a thief away (N7, N48), an heirloom stirs feelings in its family (N45), a dead hero's sword brings grief or a claim
-- [ ] **Heirlooms and inheritance:** items passed down by N45's rules; disputes over them
-- [ ] **Artefacts:** old and magical items (N51) in hoards (N54's dragons), ruins (N27) and dungeons, with histories from the realm's past
-- [ ] The item's history in the player's journal (N65) as far as they know it; the full history in the admin view (N17)
-- [ ] Tests, README, this roadmap
+- [x] **Provenance:** made by whom, held by whom, used for what, stolen, looted, lost where, found how (a capped history per item)
+- [x] **Names and legends:** fame from deeds by the other party's renown; a name at fame 25 (template, `item-name`), a two-sentence legend (template, `item-legend`)
+- [~] **Recognition:** people who know an item recognise it; a stolen one names whose it was; kin want an heirloom back; a dead hero's grief is only the kin's claim
+- [~] **Heirlooms and inheritance:** a dead holder's items go to a killing figure, else kin (spouse, grown child, household), else lie where they died; N45's laws and disputes later
+- [ ] **Artefacts:** hoards (N54), ruins and dungeons with old histories, and enchantment (N51) are not built
+- [x] The item's history in the player's view as far as they know it; the full history in the admin view (N17)
+- [x] Tests, README, this roadmap
 
-- **Done when:** the player takes a named sword from a bandit, a guard recognises it as one stolen from a knight's family, the family wants it back, and a bard's song about the knight's last fight names the sword; the admin view shows every hand it passed through.
+- **Done when:** the player takes a named sword from a bandit, a guard recognises it as one stolen from a knight's family, the family wants it back, and a bard's song about the knight's last fight names the sword; the admin view shows every hand it passed through. ✅ (`tests/n43.test.ts`: "taken by the bandit who killed the knight, then by the player; a guard knows it, the family wants it back, a bard sings of it, and the admin sees every hand")
 
+**Built:** `items.ts` (`itemKey(..., id)`, `parseItem` reads `#i<n>`, `notableIdOf`; wear and repair keep the id), `store/notableStore.ts`, `packages/server/src/game/items/`: `notable.ts` (`makeNotable`, `becomeNotable`, `moveItem`, `itemDeed` with fame and names, `legendOf`, `knowItem`, `recognise`, `isKin`, `handOnDrops`), `day.ts` (`inheritDay` after each place's step), `player.ts` (`notableSweep`, `afterPlayerKill` (loot from a slain figure; a deed for the weapon in hand against a renowned foe), `recogniseHere`, `giveBack`, `bardSong`, `knownHistory`, `itemsView`), `words.ts` (`item-name`, `item-legend`), `bounds.ts` (`notables-bounded`, `named-rare`). Gossip knows items (`i:<id>` refs, described by name and holder); `killFigure` queues what the dead carried (`realm.drops`); `npc/initiative.ts` triggers `recognise` and `reclaim`; the UI lists the player's things with a history and a "Give it back" button; the admin item card (`item:<id>`: every hand, legend, who knows it) and the player's notables.
+
+**What differs from the plan:**
+- **`player.stolen` is kept**, not moved into the table at load; a stolen item becomes notable when the player's gear is swept (with its owner first in its history).
+- **Notable on making** is a sweep of the player's gear each minute: weapons and armour of tier B or above get an id (a masterwork or a commission lands there); NPC smiths' work is not swept.
+- **The watch of a place learns what was looted from its dead** (a guard knows the theft), so stolen goods can give a holder away there; elsewhere only gossip carries it.
+- **Reclaim is the kin's opening line and the player's "Give it back"**, not an N38 action with asking, buying, suing and stealing back.
+- **A bard's song is a template line in the inn** (the most famous named item with deeds in the kingdom, with its holder's last fight) until N68.
+- **Hoards (N54), ruins and enchanting (N51) are not built**; a lost item lies at `site:<id>` but nothing yet lets the player find it there.
+- **Ids are made from the item and its day** (`i<day><six digits>`), not taken from `realm.next`: an item made in a lazy place's catch-up would otherwise shift every news, figure and faction id after it.
 ## N44: A nemesis
 
-**Status:** ⬜ Planned
+**Status:** ✅ Built (2026-11-03; save v16: `realm.nemeses` (the nemeses and the meetings of everyone who survived the player), optional; no database change; items `spear` and `wooden shield` added). On by default; `NEMESIS=off` turns it off.
 
 **Implementation plan:** [plans/n44-a-nemesis.md](plans/n44-a-nemesis.md)
 
@@ -259,11 +301,22 @@ NPCs act for themselves: interactions with consequences, hourly choices, life go
 
 **The rules:** a nemesis is chosen in code from who has the strongest grudge against the player and survived them (a beaten bandit, a humiliated noble, a rival adventurer, a deserter the player spared). Their revenge goal (N12, N37) becomes a life ambition (N40). After every meeting code updates what they know of the player's style (weapons, tricks, companions, weak spots) and they prepare against it.
 
-- [ ] Choosing and replacing a nemesis (at most one or two at a time); they can be won over, killed for good, or outlast the player into their heir's life (N66)
-- [ ] Memory of every meeting, in their persona: they taunt with it
-- [ ] Adapting: gear, allies and tactics chosen against the player's last fights
-- [ ] Rising: they climb ranks, grades and offices (N42, N55) faster, driven by the grudge; scars and titles from meetings with the player
-- [ ] They act off-screen against the player's people and holdings (N66, N57)
-- [ ] Tests, README, this roadmap
+- [~] Choosing a nemesis (at most two) from the strongest grudge among those who survived the player; won over or killed for good; outlasting the player is recorded, the heir is N66's
+- [x] Memory of every meeting (where, when, how, what the player used): they taunt with it
+- [x] Adapting: a shield against a spear, armour against arrows, men against companions, a watch against sneaking, training against the player's weapon
+- [~] Rising: their gang's lieutenant after a season (N55's ranks later); scars from meetings; not yet through grades or offices
+- [~] They act off-screen: hired men burn the player's home or their room at the inn, once a season at most; ambushing companions and rumours are not built
+- [x] Tests, README, this roadmap
 
-- **Done when:** a bandit the player beat and let go returns months later as a sergeant with a shield against the player's favoured spear, names the day they met, and has hired men to burn the player's workshop.
+- **Done when:** a bandit the player beat and let go returns months later as a sergeant with a shield against the player's favoured spear, names the day they met, and has hired men to burn the player's workshop. ✅, as a lieutenant and the player's room (`tests/n44.test.ts`: "a bandit the player beat with a spear and let go returns months later as a lieutenant with a shield against the spear, names the day they met, and has hired men to burn the player's room")
+
+**Built:** `packages/server/src/game/nemesis/`: `model.ts` (meetings, the style model as counts, `recordMeeting`, `favouredWeapon`, `dayWords`, `templateTaunt`), `day.ts` (`survivedPlayer`: a beaten foe let go is a `spared` event, a grudge and a meeting, and a nameless outlaw is made a figure of their gang; `chooseNemesis` (followed by the player, N34), `prepare`, `nemesisPower` (held to twice the player's), `rise`, `strike` (a burned mark, a revenge event, realm news), `approach` (a staged ambush with their men, never from nowhere), `endings`, `nemesisDay`), `words.ts` (`taunt`), `bounds.ts` (`strikes-rare`, `nemesis-not-unbeatable`). Town hooks: `settleHaunts` records who was beaten and got away; `realmNights` runs each nemesis's day and queues the taunt; the admin player card shows each nemesis's record, what they know, what they prepared, their men, their strikes and their plan.
+
+**What differs from the plan:**
+- **A gang lieutenant, not a sergeant:** N55's military ranks aren't built, so a nemesis rises to their gang's lieutenant (moved to the chief's right hand), or a captain of sellswords without a gang.
+- **The player's holding is their home, or else their room at the inn** of the place they are in (N66 gives them workshops and land).
+- **Outlasted** is recorded when the player dies; carrying on against the heir is N66's.
+- **Revenge is a ladder on the nemesis record** (gather, rise, strike, finish), not an N40 ambition row (the nemesis is a figure, and N40's ambitions are rows').
+- **New items:** `spear` (two-handed) and `wooden shield` (worn as armour) were added for the done-when.
+- **The taunt** is a template from the first meeting ("<place>'s road, the third day of spring. You let me live."), and the model's `taunt` replaces it only if it still names the place and the day.
+- **Not built:** ambushing a companion, rumours against the player, claiming the player's jobs first, winning one over by deeds (only a settled grudge counts).

@@ -1,0 +1,28 @@
+{
+ "id": "knucklebones",
+ "name": "knucklebones",
+ "kind": "table",
+ "where": [
+  "inn",
+  "square"
+ ],
+ "players": [
+  2,
+  4
+ ],
+ "stake": [
+  1,
+  6
+ ],
+ "resolve": {
+  "skill": "sleight",
+  "attribute": "agility",
+  "dice": "d20",
+  "rounds": 3
+ },
+ "renown": [
+  0,
+  0
+ ],
+ "who": {}
+}

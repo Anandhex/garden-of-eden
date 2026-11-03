@@ -62,6 +62,10 @@ export const W = {
   petition: 0.4,
   seekMaster: 0.45,
   rival: 0.12,
+  /** Leisure (N41): sociability to an evening's game, the gambler's itch (greed without honesty), and nerve to entering a contest. */
+  play: 0.35,
+  gamble: 0.4,
+  compete: 0.4,
   /** A repeat of the same non-habit action is damped by this per time in a row. */
   loop: 0.35,
 } as const;
@@ -78,6 +82,9 @@ export const HOUR_COOLDOWNS: Record<string, number> = {
   recruit: 24,
   travel: 24 * seasonDays(),
   gossip: 1,
+  play: 20,
+  compete: 24,
+  dance: 20,
   flatter: 24,
   petition: 24 * seasonDays(),
 };
@@ -96,6 +103,9 @@ export const DAY_COOLDOWNS: Record<string, number> = {
   flatter: 2,
   petition: seasonDays(),
   seek_master: seasonDays(),
+  play: 1,
+  compete: 1,
+  dance: 1,
 };
 
 /** Violent deeds a place may see in a day, and in the player's place per hour. */

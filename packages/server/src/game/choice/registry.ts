@@ -2,6 +2,7 @@ import { buy, eat, gossip, rest, sell, work } from "./actions/basic.js";
 import { attack, steal, travel } from "./actions/risk.js";
 import { confront, court, insult, recruit, revenge, spreadRumour } from "./actions/social.js";
 import { flatter, petition, seekMaster } from "./actions/ambition.js";
+import { compete, dance, play } from "./actions/leisure.js";
 import { allowed, guarded } from "./guards.js";
 import { choose } from "./score.js";
 import type { ActionDef, Applied, ChoiceCtx, ChoiceHost, ChoiceLog, Option, Ranked } from "./types.js";
@@ -11,7 +12,7 @@ import type { Rng } from "../dice.js";
  * The action menu (N38). A phase that adds something people do adds an `ActionDef` in `actions/` and a line here; it does not add a loop of
  * its own. Order is the tie-break of equal scores, so keep new ones at the end.
  */
-export const ACTIONS: readonly ActionDef[] = [work, eat, rest, gossip, buy, sell, court, confront, insult, revenge, spreadRumour, recruit, travel, steal, attack, flatter, petition, seekMaster];
+export const ACTIONS: readonly ActionDef[] = [work, eat, rest, gossip, buy, sell, court, confront, insult, revenge, spreadRumour, recruit, travel, steal, attack, flatter, petition, seekMaster, play, compete, dance];
 
 export const actionById = (id: string): ActionDef | undefined => ACTIONS.find((a) => a.id === id);
 

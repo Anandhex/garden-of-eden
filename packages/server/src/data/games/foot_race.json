@@ -1,0 +1,24 @@
+{
+ "id": "foot_race",
+ "name": "the foot race",
+ "kind": "race",
+ "where": [
+  "field"
+ ],
+ "players": [
+  3,
+  12
+ ],
+ "resolve": {
+  "attribute": "agility",
+  "dice": "d20",
+  "rounds": 1
+ },
+ "renown": [
+  3,
+  1
+ ],
+ "who": {
+  "minAge": 10
+ }
+}

@@ -1,0 +1,33 @@
+{
+ "id": "arm_wrestling",
+ "name": "arm-wrestling",
+ "kind": "table",
+ "where": [
+  "inn"
+ ],
+ "players": [
+  2,
+  2
+ ],
+ "stake": [
+  2,
+  10
+ ],
+ "resolve": {
+  "skill": "unarmed",
+  "attribute": "strength",
+  "dice": "d20",
+  "rounds": 1
+ },
+ "risk": {
+  "injury": 0.03,
+  "death": 0
+ },
+ "renown": [
+  1,
+  0
+ ],
+ "who": {
+  "minAge": 16
+ }
+}

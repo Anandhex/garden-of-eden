@@ -168,6 +168,8 @@ export function describeJourney(j: Journey, name: (id: string) => string): strin
       return `${lead} and ${more}, leaving ${from} for ${turnTo}`;
     case "coach":
       return `the coach from ${from} to ${turnTo}`;
+    case "tourney":
+      return `${lead} of ${from}, a knight riding to the tournament at ${turnTo}`;
   }
 }
 

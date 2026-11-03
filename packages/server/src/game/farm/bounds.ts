@@ -37,7 +37,10 @@ export function checkFieldBounds(realm: Realm, store: WorldStore, day: number): 
     const hh = householdsAt(store, s.id, day).all;
     // A lord who died today, after the place's field work, is handed back on its next field day: not an orphan yet.
     const diedToday = (h: string) => h.startsWith("lord:") && realm.figures[h.slice(5)]?.deathDay === day;
-    for (const r of store.farm.plotsOf(s.id).values()) if (!holderExists(realm, s, r.holder, hh) && !diedToday(r.holder)) orphans++;
+    // A place that isn't worked out daily (not live; a journey caught it up once) hands plots back on its next field day, whenever that
+    // is: a lord who died since isn't an orphan of it yet.
+    const behind = store.people.seq(s.id).stepped < day - 1;
+    if (!behind) for (const r of store.farm.plotsOf(s.id).values()) if (!holderExists(realm, s, r.holder, hh) && !diedToday(r.holder)) orphans++;
   }
   const lo = losses.length ? Math.min(...losses) : null;
   const hi = losses.length ? Math.max(...losses) : null;

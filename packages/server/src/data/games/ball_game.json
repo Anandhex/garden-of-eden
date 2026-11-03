@@ -1,0 +1,28 @@
+{
+ "id": "ball_game",
+ "name": "the village ball game",
+ "kind": "contest",
+ "where": [
+  "field"
+ ],
+ "players": [
+  6,
+  20
+ ],
+ "resolve": {
+  "attribute": "endurance",
+  "dice": "d20",
+  "rounds": 1
+ },
+ "risk": {
+  "injury": 0.04,
+  "death": 0
+ },
+ "renown": [
+  2,
+  0
+ ],
+ "who": {
+  "minAge": 12
+ }
+}

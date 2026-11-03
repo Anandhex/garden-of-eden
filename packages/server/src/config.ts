@@ -80,6 +80,14 @@ export const config = {
   chatter: (process.env.CHATTER ?? "on") !== "off",
   /** Everyone grown wants something from their life, and careers move: apprentices rise, shops open, seats are fought over (N40). AMBITIONS=off turns it off. */
   ambitions: (process.env.AMBITIONS ?? "on") !== "off",
+  /** People play at the inn, hold contests, fairs and tournaments (N41, game/leisure/). LEISURE=off turns it off. */
+  leisure: (process.env.LEISURE ?? "on") !== "off",
+  /** Jobs on a shared market that NPC parties take too, and adventurer grades for everyone (N42, game/market/). MARKET=off turns it off. */
+  market: (process.env.MARKET ?? "on") !== "off",
+  /** Someone the player beat and let go may become their nemesis, learn their ways and come back (N44, game/nemesis/). NEMESIS=off turns it off. */
+  nemesis: (process.env.NEMESIS ?? "on") !== "off",
+  /** A new game opens with an incident that is already brewing in the start town (N39, game/firsthour/). FIRST_HOUR=off starts quiet. */
+  firstHour: (process.env.FIRST_HOUR ?? "on") !== "off",
   // NPCs as living players (N38, game/choice/): who scores an action menu and picks by a weighted roll. CHOICE: "off", "proto" (the talkers
   // named in CHOICE_PROTO), "talkers" (every talker, an hour at a time), "all" (and the townsfolk, a day at a time). Violent actions (steal,
   // attack, and the hired-men way of revenge) are offered only with CHOICE_VIOLENCE=on.

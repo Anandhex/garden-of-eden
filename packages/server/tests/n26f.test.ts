@@ -1,3 +1,4 @@
+import { LONG } from "./long.js";
 /**
  * N26F: a road worth walking. Pack beasts are rows (step 0c), packs and gangs hold stretches of road (territories), their
  * members come out on the map, wildlife and roadside places along the way, the village's surroundings on the road,
@@ -39,7 +40,8 @@ const bigPack = (realm: Realm): Pack => Object.values(realm.packs).filter((p) =>
 const player = () => ({ name: "Tester", money: 0, renown: 0 }) as never;
 
 describe("N26F step 0c: pack beasts are rows", () => {
-  it("every pack's count is its living rows, day after day, and the young have mothers in the pack", () => {
+  // Times out under a full-suite load (2026-11-03): run with LONG=1 (the nightly job).
+  it.skipIf(!LONG)("every pack's count is its living rows, day after day, and the young have mothers in the pack", () => {
     const { realm, store } = realmWorld(1);
     const live = liveSites(realm, pickStartSite(realm, realm.seed), "slice");
     for (let d = 2; d <= 60; d++) {

@@ -34,6 +34,9 @@ import { fame, nameWords } from "../game/office/repute.js";
 import { TITLES } from "../game/titles.js";
 import { bookRows, figureRepute, officeRows, supportRows } from "../game/office/words.js";
 import type { AdminContext } from "./context.js";
+import { leisureOf } from "../game/leisure/events.js";
+import { gradeRecord } from "../game/market/grades.js";
+import { historyOf, itemName, legendOf, notableRef } from "../game/items/notable.js";
 import { events } from "./events.js";
 import { classCounts, crowdDay, folkOf, townsperson } from "./folk.js";
 import { playerCard } from "./player.js";
@@ -241,6 +244,8 @@ function figureCard(ctx: AdminContext, id: string): AdminCard | null {
       ],
     },
     { title: "Deeds", rows: f.deeds.map((d): [string, string] => ["", d]) },
+    // An adventurer's grade and record on the market (N42).
+    ...(f.role === "adventurer" || f.role === "hunter" ? [{ title: "Adventurer", rows: adventurerRows(ctx, f) }] : []),
     {
       title: "Family",
       rows: (f.parents ?? []).map((p): [string, string, string?] => ["Parent", realm.figures[p] ? titled(realm.figures[p]!) : p, realm.figures[p] ? `figure:${p}` : undefined]).concat(
@@ -528,6 +533,50 @@ function seasonLine(realm: Realm, s: Settlement, day: number): string {
   return `${seasonOf(day)}, ${weatherAtSite(realm, s.id, day)}; ${harvest}${hungry}`;
 }
 
+/** An adventurer's grade, record and party (N42). */
+function adventurerRows(ctx: AdminContext, f: Figure): Array<[string, string, string?]> {
+  const realm = ctx.world().realm!;
+  const g = gradeRecord(realm, f.id, { peek: true });
+  const store = ctx.store;
+  const party = store?.jobs.partyList((p) => p.disbanded === null && JSON.parse(p.members).includes(f.id))[0];
+  const held = party ? store!.jobs.list((j) => j.status === "held" && j.holder === party.id)[0] : undefined;
+  return [
+    ["Grade", `${g.g} since day ${g.since}${g.trial ? `; a ${g.trial}-grade trial set` : ""}`],
+    ["Jobs", `${g.total.done} done, ${g.total.failed} failed (${g.done} toward the next grade, ${g.fail} failed in a row)`],
+    ...(party ? ([["Party", `${JSON.parse(party.members).map((id: string) => realm.figures[id]?.name ?? id).join(", ")} (${party.shares} shares)`], ["On", held ? held.title : "nothing just now"]] as Array<[string, string]>) : []),
+  ];
+}
+
+/** A place's jobs for the admin (N42): open and held first, then the last ended. */
+function jobRows(ctx: AdminContext, id: string): Array<[string, string, string?]> {
+  const store = ctx.store;
+  const realm = ctx.world().realm!;
+  if (!store) return [];
+  const holder = (h: string | null) => (!h ? "open" : h === "player" ? "held by the player" : h === "others" ? "done by others" : `held by ${realm.figures[store.jobs.party(h)?.leader ?? ""]?.name ?? h}'s party`);
+  const rows = store.jobs
+    .list((j) => j.site === id)
+    .sort((a, b) => Number(b.status === "open" || b.status === "held") - Number(a.status === "open" || a.status === "held") || b.posted - a.posted)
+    .slice(0, 20)
+    .map((j): [string, string, string?] => [`[${j.tier}] ${j.title}`, `${j.status}${j.status === "held" || j.status === "done" ? `, ${holder(j.holder)}` : ""}; ${j.reward}c, until day ${j.deadline}`]);
+  return rows.length > 0 ? rows : [["Nothing posted", "no jobs on record"]];
+}
+
+/** A place's leisure for the admin (N41): coming events, then the last results, each with entrants and how it went. */
+function leisureRows(ctx: AdminContext, id: string): Array<[string, string, string?]> {
+  const realm = ctx.world().realm!;
+  // Read without creating the state (the admin never writes).
+  const l = (realm.leisure as ReturnType<typeof leisureOf> | undefined) ?? { events: [], log: [], done: {} };
+  const name = (p: string) => (p === "player" ? "the player" : (ctx.store?.people.get(p)?.name ?? realm.figures[p]?.name ?? p));
+  const rows: Array<[string, string, string?]> = [];
+  for (const e of l.events.filter((x) => x.site === id)) rows.push([`${e.kind.replace("_", " ")} on day ${e.day}`, `${e.why}; ${e.entrants.length} coming${e.entrants.length > 0 ? ` (${e.entrants.slice(0, 8).map(name).join(", ")})` : ""}`]);
+  for (const r of l.log.filter((x) => x.site === id).slice(-8).reverse()) {
+    for (const g of r.games) rows.push([`day ${r.day}: ${g.game.replace("_", " ")}`, `${g.order.slice(0, 6).map(name).join(", ")}${g.cheats.some((c) => c.caught) ? `; ${name(g.cheats.find((c) => c.caught)!.who)} caught cheating` : ""}${g.injuries.length ? `; hurt: ${g.injuries.map(name).join(", ")}` : ""}${g.deaths.length ? `; killed: ${g.deaths.map(name).join(", ")}` : ""}`, g.winner && g.winner !== "player" ? `town:${g.winner}` : undefined]);
+    if (r.visitors !== undefined) rows.push([`day ${r.day}: the fair`, `${r.visitors} came from round about`]);
+    if (r.champion) rows.push([`day ${r.day}: champion`, r.championName ?? r.champion, `town:${r.champion}`]);
+  }
+  return rows.length > 0 ? rows : [["Nothing lately", "no fairs, contests or tournaments on record"]];
+}
+
 function placeCard(ctx: AdminContext, id: string): AdminCard | null {
   const world = ctx.world();
   const realm = world.realm;
@@ -556,6 +605,10 @@ function placeCard(ctx: AdminContext, id: string): AdminCard | null {
       { title: "Away from here", rows: trips.away.slice(0, 25).map((x): [string, string, string] => [x.row.name, `${x.journey.where}: ${x.journey.text}`, `town:${x.row.id}`]) },
       { title: "Visiting", rows: trips.visiting.slice(0, 25).map((x): [string, string, string] => [`${x.row.name} (of ${realm.settlements[x.row.site]?.name ?? x.row.site})`, x.journey.text, `town:${x.row.id}`]) },
       { title: "Factions here", rows: factions.map((f): [string, string] => [f.name, `${f.kind}${f.seat === id ? ", seated here" : ", a branch"}`]) },
+      // Its fairs, contest days and tournaments (N41): what's announced, and what came of the last ones, with who took part.
+      { title: "Games and contests", rows: leisureRows(ctx, id) },
+      // Its boards (N42): every job here, who holds it, and how the last ones ended.
+      { title: "Jobs on the board", rows: jobRows(ctx, id) },
       // Who runs it and where its coin went (N69): its posts, and its books by tax period (the truth: what was stolen is marked).
       { title: "Offices", rows: s.kind === "hamlet" ? [["Elder", "a hamlet has only its head"]] : officeRows(realm, `s:${id}`, ctx.store ?? undefined) },
       { title: "Books", rows: bookRows(realm, `s:${id}`) },
@@ -660,7 +713,36 @@ export function card(ctx: AdminContext, ref: string): AdminCard | null {
       return beastCard(ctx, p.id);
     case "place":
       return placeCard(ctx, p.id);
+    case "item":
+      return itemCard(ctx, p.id);
   }
+}
+
+/** An item with a history (N43): everything about it, and every hand it passed through (the truth, not what anyone knows of it). */
+function itemCard(ctx: AdminContext, id: string): AdminCard | null {
+  const store = ctx.store;
+  const realm = ctx.world().realm;
+  const it = store?.notables.get(id);
+  if (!store || !realm || !it) return null;
+  const nameOf = (who: string) => (who === "player" ? "the player" : (store.people.get(who)?.name ?? realm.figures[who]?.name ?? (who.startsWith("site:") ? `lying at ${realm.settlements[who.slice(5)]?.name ?? who}` : who)));
+  const refOf = (who: string) => (who === "player" ? "player" : store.people.get(who) ? `town:${who}` : realm.figures[who] ? `figure:${who}` : undefined);
+  const knowers = store.knowledge.holders(notableRef(id));
+  return {
+    ref: `item:${id}`,
+    kind: "item",
+    name: itemName(it),
+    subtitle: `${it.base} [${it.tier}], fame ${Math.round(it.fame)}`,
+    alive: it.holder !== null,
+    site: it.made_site,
+    siteName: it.made_site ? (realm.settlements[it.made_site]?.name ?? null) : null,
+    doing: it.holder ? `held by ${nameOf(it.holder)} since day ${it.holder_since}` : "lost",
+    sections: [
+      { title: "Every hand it passed through", rows: historyOf(it).map((e): [string, string, string?] => [`Day ${e.day}: ${e.kind}`, `${e.name ?? nameOf(e.who)}${e.what ? ` (${e.what})` : ""}${e.site ? ` at ${realm.settlements[e.site]?.name ?? e.site}` : ""}`, refOf(e.who)]) },
+      { title: "Legend", rows: [["", legendOf(it, nameOf)]] },
+      { title: "Who knows it", rows: knowers.slice(0, 20).map((k): [string, string, string?] => [store.people.get(k.who)?.name ?? k.who, `${Math.round(k.accuracy * 100)}% sure, since day ${k.learned_day}`, `town:${k.who}`]) },
+      ...(it.lost ? [{ title: "Lost", rows: [["", it.lost] as [string, string]] }] : []),
+    ],
+  };
 }
 
 /** The settlement map and crowd to draw for a follow view. */

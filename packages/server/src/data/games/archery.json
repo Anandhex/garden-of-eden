@@ -1,0 +1,26 @@
+{
+ "id": "archery",
+ "name": "the archery",
+ "kind": "contest",
+ "where": [
+  "field",
+  "square"
+ ],
+ "players": [
+  3,
+  12
+ ],
+ "resolve": {
+  "skill": "archery",
+  "attribute": "perception",
+  "dice": "2d6",
+  "rounds": 3
+ },
+ "renown": [
+  4,
+  1
+ ],
+ "who": {
+  "minAge": 14
+ }
+}

@@ -24,12 +24,15 @@ export function openWorld(o: {
   templates: Record<string, CreatureTemplate>;
   store: WorldStore;
   fresh: boolean;
+  /** A new world's seed and start town (N39: chosen on the new-game screen); otherwise rolled and the seed's pick. */
+  seed?: number;
+  start?: string;
 }): OpenedWorld {
   let world: SavedWorld;
   let notice: string | null = null;
   if (o.fresh) {
     o.store.reset();
-    world = newWorld(o.personas ?? {}, o.templates);
+    world = newWorld(o.personas ?? {}, o.templates, Math.random, o.seed, o.start ? { start: o.start } : {});
   } else {
     const loaded = loadWorldWithNotice(o.file, o.personas ?? {}, o.templates, o.store);
     world = loaded.world;

@@ -104,6 +104,11 @@ describe("game server (G1)", () => {
     await c.until(() => c.since(asked).some((m) => m.t === "prompt"), 10_000, "the new-game question");
     const q = c.since(asked).find((m) => m.t === "prompt") as { id: string };
     c.send({ t: "answer", prompt: q.id, option: "yes" });
+    // Where to begin (N39): wherever the road takes them.
+    await c.until(() => c.since(asked).filter((m) => m.t === "prompt").length >= 2, 30_000, "the start-town question");
+    const where = c.since(asked).filter((m) => m.t === "prompt")[1] as { id: string; options: Array<{ id: string }> };
+    expect(where.options.map((o) => o.id)).toContain("random");
+    c.send({ t: "answer", prompt: where.id, option: "random" });
     await c.until(() => c.map?.id !== undefined && c.map.id !== "road", 60_000, "a new game");
     c.close();
   });
