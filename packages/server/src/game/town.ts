@@ -97,6 +97,9 @@ import { afterFight } from "./realm/beasts.js";
 import { territoriesNow } from "./road/territories.js";
 import { payDuty } from "./road/watch.js";
 import { captiveDay, isCaptive, maybeTake } from "./law/taken.js";
+import { chooseSetback, dieAndReturn, leftForDead, mark, sell, slaveDay } from "./setback/setback.js";
+import { borderCheck } from "./magic/player.js";
+import { dayAmong } from "./culture/day.js";
 import { helpersOf, pickFighters, stillThere } from "./realm/who.js";
 import type { Who } from "./spawning.js";
 import { killFigure, titled } from "./realm/figures.js";
@@ -1043,12 +1046,52 @@ export class Town {
     return { taken: true, lines: [...r.lines, ...this.activate(p.site!)] };
   }
 
+  /**
+   * A defeat that isn't a gang's taking (N49): the chooser picks the setback from who beat the player and where; the player may wake
+   * elsewhere (sold to a market, back where they slept). Returns lines, and `robbed` when it's the old knockout (the caller carries it out).
+   */
+  setback(d: { by: "gang" | "slavers" | "guards" | "beasts" | "nemesis" | "nature"; holder?: string }, witnesses: string[] = []): { lines: string[]; robbed: boolean } {
+    const realm = this.world.realm;
+    if (!realm || !this.store) return { lines: [], robbed: true };
+    const p = this.world.player;
+    const site = this.site();
+    const defeat = { ...d, site, day: this.world.day };
+    const ctx = { realm, store: this.store };
+    const kind = chooseSetback(realm, p, defeat, this.actionRng());
+    const go = (to: string): string[] => {
+      const from = this.site();
+      commitTrack(realm, p);
+      if (from !== to) this.deactivate(from);
+      for (const uid of Object.keys(this.roadCreatures)) this.dropRoadCreature(uid);
+      delete p.road;
+      arrive(p, to);
+      return this.activate(to);
+    };
+    if (kind === "sold") {
+      const r = sell(ctx, p, defeat);
+      if (r) return { lines: [...r.lines, ...go(r.chapter.site)], robbed: false };
+    }
+    if (kind === "left_for_dead") return { lines: leftForDead(ctx, p, defeat, this.actionRng()).lines, robbed: false };
+    if (kind === "branded") {
+      mark(p, "brand", this.world.day);
+      return { lines: ["They hold you down and burn their mark into your shoulder before they leave you."], robbed: true };
+    }
+    if (kind === "death") {
+      const r = dieAndReturn(ctx, p, defeat, witnesses);
+      return { lines: [...r.lines, ...go(r.wakeAt)], robbed: false };
+    }
+    return { lines: [], robbed: true };
+  }
+
   /** The player arrives: they're at the gate of the new place, and its people are about. Returns lines. */
   arriveAt(to: string): string[] {
     const realm = this.world.realm;
     const s = realm?.settlements[to];
     if (!realm || !s) return [];
     const from = this.site();
+    // A border crossed (N51): what's forbidden on the other side, and a toll that searches the pack.
+    const border = this.store ? borderCheck({ realm, store: this.store }, this.world.player, this.world.player.road?.from ?? from, to, this.world.day) : [];
+    if (border.length > 0) this.news.push(...border);
     if (from !== to) this.deactivate(from);
     // Off the open road (N26): the stretch they walked is written down, and they are no longer on it.
     commitTrack(realm, this.world.player);
@@ -1195,6 +1238,14 @@ export class Town {
       for (const line of dueLater(this, d)) this.tell(line);
       // Held captive (N26J): someone from home may come for them.
       log.push(...captiveDay(realm, this.world.player, d, this.rngFor("rescue", d)));
+      // A day among a culture's people: a little more of their tongue (N53).
+      if (config.society.cultures) dayAmong(realm, this.world.player, this.site());
+      // A slave's day of work (N49); mending after being left for dead.
+      if (this.store) log.push(...slaveDay({ realm, store: this.store }, this.world.player, d));
+      if (this.world.player.chapter?.kind === "recovering" && d - this.world.player.chapter.since >= 2) {
+        delete this.world.player.chapter;
+        log.push("You're on your feet again.");
+      }
       // Herbalists and fishers who talk bring home the day's gathering or catch to sell (N28).
       this.landHauls(site, d);
       // Following people (N34): friends write when something big happens to them; letters and news of them reach the player.

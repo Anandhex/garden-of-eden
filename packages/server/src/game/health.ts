@@ -32,7 +32,14 @@ export const INJURIES = {
   deep_cut: { name: "a deep cut", visible: "a blood-soaked bandage", attributes: { agility: -1, endurance: -1 }, days: 4, remedy: { item: "healing salve", qty: 1 } },
   sprained_ankle: { name: "a sprained ankle", visible: "a limp", skills: { evasion: -1 }, attributes: { agility: -2 }, days: 3, remedy: { item: "wild herbs", qty: 2 } },
   bruised_ribs: { name: "bruised ribs", visible: "a wince with every breath", attributes: { endurance: -1, strength: -1 }, days: 3, remedy: { item: "wild herbs", qty: 2 } },
+  // Lasting marks (N49): what a setback leaves for good. They never heal (days beyond any game).
+  scar: { name: "a scar", visible: "a long scar", days: 1_000_000, remedy: { item: "nothing", qty: 1 } },
+  lost_eye: { name: "a lost eye", visible: "an eye patch", skills: { archery: -2 }, days: 1_000_000, remedy: { item: "nothing", qty: 1 } },
+  limp: { name: "a limp", visible: "a lasting limp", skills: { evasion: -1 }, attributes: { agility: -1 }, days: 1_000_000, remedy: { item: "nothing", qty: 1 } },
+  brand: { name: "a slave's brand", visible: "a brand on the shoulder", days: 1_000_000, remedy: { item: "nothing", qty: 1 } },
 } as const satisfies Record<string, InjuryDef>;
+/** Marks that never heal (N49). */
+export const LASTING: ReadonlySet<string> = new Set(["scar", "lost_eye", "limp", "brand"]);
 export type InjuryId = keyof typeof INJURIES;
 export const INJURY_IDS = Object.keys(INJURIES) as InjuryId[];
 

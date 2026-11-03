@@ -11,7 +11,7 @@ import type { DatabaseSync } from "node:sqlite";
 
 /** Columns of each state table, in order: what export and the world hash read, and what import checks. */
 export const TABLES = {
-  people: ["id", "site", "n", "name", "gender", "species", "born_day", "cls", "job", "home", "work", "master", "master_id", "faction", "mother", "father", "spouse", "figure", "persona", "traits", "death", "expecting", "last_birth", "stepped_day", "outlook", "away", "skill", "shop", "origin", "captive", "renown", "epithet", "grade", "rev"],
+  people: ["id", "site", "n", "name", "gender", "species", "born_day", "cls", "job", "home", "work", "master", "master_id", "faction", "mother", "father", "spouse", "figure", "persona", "traits", "death", "expecting", "last_birth", "stepped_day", "outlook", "away", "skill", "shop", "origin", "captive", "renown", "epithet", "grade", "will", "claimed_father", "faith", "gift", "rev"],
   relationships: ["a", "b", "trust", "affection", "respect", "fear", "since"],
   knowledge: ["who", "ref", "learned_day", "source", "accuracy", "variant"],
   grievances: ["id", "who", "against", "cause_ref", "weight", "since", "settled"],
@@ -33,6 +33,7 @@ export const TABLES = {
   jobs: ["id", "site", "board", "kind", "giver", "title", "target", "tier", "reward", "posted", "deadline", "holder", "claimed_day", "status", "result", "ref"],
   parties: ["id", "leader", "members", "roles", "shares", "formed", "disbanded", "record"],
   notable_items: ["id", "base", "tier", "name", "named_by", "maker", "made_day", "made_site", "holder", "holder_since", "fame", "history", "lost"],
+  records: ["id", "kind", "site", "a", "b", "data", "since", "status", "ended"],
 } as const;
 export type TableName = keyof typeof TABLES;
 
@@ -60,6 +61,7 @@ export const ORDER_BY: Record<TableName, string> = {
   jobs: "id",
   parties: "id",
   notable_items: "id",
+  records: "id",
 };
 
 const V1 = `
@@ -287,6 +289,18 @@ const MIGRATIONS: Array<(db: DatabaseSync) => void> = [
       CREATE TABLE IF NOT EXISTS notable_items (id TEXT PRIMARY KEY, base TEXT NOT NULL, tier TEXT NOT NULL, name TEXT, named_by TEXT, maker TEXT, made_day INTEGER NOT NULL,
         made_site TEXT, holder TEXT, holder_since INTEGER NOT NULL, fame REAL NOT NULL DEFAULT 0, history TEXT NOT NULL, lost TEXT);
       CREATE INDEX IF NOT EXISTS notable_holder ON notable_items(holder);
+    `);
+  },
+  // 18 (Stages 4–6, N45–N64): society and a changing world. `people.will` (JSON { heir, day }: whom someone with an estate means it to go
+  // to), `people.claimed_father` (the father a child is said to have, where it isn't the true one: a secret), `people.faith` (JSON { faith,
+  // devotion }), `people.gift` (JSON { gift, schools, rank, hidden }: magic), and `records` (disputes, feuds, secrets, cases, dens, spies'
+  // reports, outbreaks, expeditions: store/recordStore.ts).
+  (db) => {
+    const have = new Set((db.prepare("PRAGMA table_info(people)").all() as Array<{ name: string }>).map((c) => c.name));
+    for (const c of ["will", "claimed_father", "faith", "gift"]) if (!have.has(c)) db.exec(`ALTER TABLE people ADD COLUMN ${c} TEXT`);
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS records (id TEXT PRIMARY KEY, kind TEXT NOT NULL, site TEXT, a TEXT, b TEXT, data TEXT NOT NULL, since INTEGER NOT NULL, status TEXT NOT NULL, ended INTEGER);
+      CREATE INDEX IF NOT EXISTS records_kind ON records(kind, site);
     `);
   },
 ];

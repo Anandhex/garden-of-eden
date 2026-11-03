@@ -1,3 +1,4 @@
+import { MAGIC_SCHOOLS, policyAt } from "../realm/policy.js";
 import { readFileSync } from "node:fs";
 import { z } from "zod";
 import { seedOf } from "@millbrook/shared";
@@ -44,6 +45,8 @@ export interface Accused {
   fled?: boolean;
   /** Earlier sentences at this place (a second offence is dealt with harder). */
   priors?: number;
+  /** Their class (N48): some law books fine a noble where a serf is flogged. */
+  cls?: string;
 }
 
 /** The head who judges at a place: the lord where they sit, else the place's own head. */
@@ -59,6 +62,16 @@ export function temperOf(f: Figure | null): { harsh: number; greedy: number; mer
   return { harsh: Math.min(1, 0.6 * f.bravery + 0.4 * f.ambition), greedy: f.greed, merciful: Math.max(0, 1 - (0.6 * f.bravery + 0.4 * f.ambition) * 0.8 - f.greed * 0.2) };
 }
 
+/**
+ * A kingdom's law book as sentences read it (N48 decision 1): its `punishments` law (harsh: heavier, more flogging and hanging; light: no
+ * flogging, no hanging) and its `class_weight` law (strong: the high-born are fined where the low-born are flogged).
+ */
+export function lawBook(realm: Realm, place: string, day: number): { harsh: number; weight: number; rank: string } {
+  const p = policyAt(realm, place, "punishments", day);
+  const rank = policyAt(realm, place, "class_weight", day);
+  return { harsh: p === "harsh" ? 0.35 : p === "lenient" ? -0.35 : 0, weight: p === "harsh" ? 1 : p === "lenient" ? -1 : 0, rank };
+}
+
 /** Whether a kingdom's custom hangs (decided once per kingdom from the seed: some do, some don't). */
 export function hangs(realm: Realm, place: string): boolean {
   const k = realm.settlements[place]?.kingdom;
@@ -69,10 +82,18 @@ export function hangs(realm: Realm, place: string): boolean {
 export function sentence(realm: Realm, who: Accused, crime: string, place: string, day: number, rng: Rng): Sentence {
   const def = crimes()[crime] ?? { id: crime, weight: 2, words: crime };
   const judge = judgeOf(realm, place);
-  const t = temperOf(judge);
-  const w = def.weight + Math.min(2, who.priors ?? 0);
+  const t0 = temperOf(judge);
+  // The kingdom's law book (N48): how harsh its punishments are, and whether rank buys a lighter one.
+  const book = lawBook(realm, place, day);
+  const t = { ...t0, harsh: Math.max(0, Math.min(1, t0.harsh + book.harsh)), merciful: Math.max(0, Math.min(1, t0.merciful - book.harsh)) };
+  const high = who.cls === "noble" || who.cls === "gentry" || who.cls === "royal";
+  const low = who.cls === "serf" || who.cls === "slave";
+  // Where a school of magic is burned, sorcery is a capital crime (N51); where heresy is hunted, heresy weighs more (N50).
+  const burns = crime === "sorcery" && MAGIC_SCHOOLS.some((sc) => policyAt(realm, place, `magic:${sc}`, day) === "burned");
+  const hunted = crime === "heresy" && policyAt(realm, place, "heresy", day) === "persecute";
+  const w = def.weight + Math.min(2, who.priors ?? 0) + book.weight + (book.rank === "strong" ? (low ? 1 : high ? -1 : 0) : 0) + (burns ? 2 : 0) + (hunted ? 1 : 0);
   const by = judge?.id ?? "";
-  const why = `${def.words}${(who.priors ?? 0) > 0 ? ", and not the first time" : ""}; judged by ${judge?.name ?? "the elders"}${t.harsh > 0.65 ? ", a hard one" : t.greedy > 0.6 ? ", who likes coin" : t.merciful > 0.55 ? ", who is known to be merciful" : ""}`;
+  const why = `${def.words}${(who.priors ?? 0) > 0 ? ", and not the first time" : ""}${book.harsh > 0 ? " (the law here is harsh)" : book.harsh < 0 ? " (the law here is light)" : ""}; judged by ${judge?.name ?? "the elders"}${t.harsh > 0.65 ? ", a hard one" : t.greedy > 0.6 ? ", who likes coin" : t.merciful > 0.55 ? ", who is known to be merciful" : ""}`;
   if (who.fled) return { by, kind: "bounty", crime, amount: 50 * w * w, why };
   // Each choice scored by the weight of the crime and the judge's temper; the roll breaks near-ties.
   const score: Array<[SentenceKind, number]> = [
@@ -81,8 +102,11 @@ export function sentence(realm: Realm, who: Accused, crime: string, place: strin
     ["lockup", 0.6 + (w - 1) * 0.35 + t.harsh * 0.3],
     ["flogging", -0.2 + t.harsh * 1.8 + (w - 2) * 0.35],
     ["banished", -0.8 + (w - 2) * 0.6 + t.harsh * 0.6],
-    ["hanging", w >= 5 && hangs(realm, place) && who.kind !== "player" ? -0.5 + t.harsh * 2 + (w - 4) * 0.5 : -9],
+    ["hanging", w >= 5 && (hangs(realm, place) || burns) && who.kind !== "player" && book.harsh >= 0 ? -0.5 + t.harsh * 2 + (w - 4) * 0.5 + (burns ? 0.8 : 0) : -9],
   ];
+  // A light law book doesn't flog; a book that favours rank lets the high-born pay instead.
+  if (book.harsh < 0) for (const x of score) if (x[0] === "flogging" || x[0] === "banished") x[1] -= 1.2;
+  if (high && book.rank !== "equal") for (const x of score) if (x[0] === "fine") x[1] += book.rank === "strong" ? 1.5 : 0.6;
   const ranked = score.map(([k, s]) => [k, s + rng() * 0.35] as const).sort((a, b) => b[1] - a[1]);
   const kind = ranked[0]![0];
   const out: Sentence = { by, kind, crime, why };

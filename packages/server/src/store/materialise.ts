@@ -18,7 +18,7 @@ export function materialisePeople(realm: Realm, people: PeopleStore, day: number
       if (s.abandoned) continue;
       const roster = rosterFor(realm, s.id, siteMap(s, "village", realm), day);
       if (!roster) continue;
-      people.insertMany(roster.people.map((p) => rowOfTownsperson(p, s.id, day)));
+      people.insertMany(roster.people.map((p) => rowOfTownsperson(p, s.id, day, s.species)));
       // Their lives start today: there is no past to live.
       people.setSeq(s.id, { stepped: day });
       added += roster.people.length;
@@ -41,7 +41,7 @@ export function ensureLivePeople(realm: Realm, people: PeopleStore, live: Readon
     if (!s || s.abandoned || s.population <= 0 || people.count(id) > 0) continue;
     const roster = rosterFor(realm, id, siteMap(s, "village", realm), day);
     if (!roster) continue;
-    people.insertMany(roster.people.map((p) => rowOfTownsperson(p, id, day)));
+    people.insertMany(roster.people.map((p) => rowOfTownsperson(p, id, day, realm.settlements[id]?.species)));
     people.setSeq(id, { stepped: day });
     added += roster.people.length;
   }

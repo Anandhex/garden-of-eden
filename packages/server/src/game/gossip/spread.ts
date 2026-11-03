@@ -94,7 +94,7 @@ export function tellOne(ctx: LifeCtx, speaker: string, listener: string, items: 
     // News of somewhere else is only so interesting to people who will never go there.
     const care = item.ref.startsWith("d:") ? familiar : item.ref.startsWith("n:") && placeOfRef(ctx, item.ref) !== site ? FAR_CARE : 1;
     if (!eager && rng() >= interestIn(tellable(ctx, item, day)) * care) continue;
-    const version = retell(ctx, item, listener, day, credence, rng);
+    const version = retell(ctx, item, listener, day, credence, rng, speaker);
     if (!version) continue;
     if (!learn(ctx, listener, item.ref, { day, source: speaker, accuracy: version.accuracy, variant: version.variant })) continue;
     return item.ref;

@@ -151,7 +151,13 @@ export interface Rolled {
   road: string;
 }
 
-const rolls = new Map<string, Rolled | null>();
+/** Each world's rolled stretches (a world of its own: two worlds of one seed must not share what one of them rolled). */
+const rollsByRealm = new WeakMap<object, Map<string, Rolled | null>>();
+function rollsOf(realm: Realm): Map<string, Rolled | null> {
+  let m = rollsByRealm.get(realm);
+  if (!m) rollsByRealm.set(realm, (m = new Map()));
+  return m;
+}
 
 /** What kind of country is round a point, from what is drawn there. */
 function country(realm: Realm, p: { x: number; y: number }): string[] {
@@ -179,6 +185,7 @@ const rained = (realm: Realm, day: number, tile: { x: number; y: number }) => ["
 /** What the stretch of `road` between waypoints `seg` and `seg + 1` has on it on `day`, or null. The same for everyone. */
 export function rollSegment(realm: Realm, data: RoadData, road: RoadPath & { cum?: number[] }, seg: number, day: number, people?: PeopleStore): Rolled | null {
   const key = `${road.id}#${seg}:${day}`;
+  const rolls = rollsOf(realm);
   if (rolls.has(key)) return rolls.get(key)!;
   const out = rollNow(realm, data, road, seg, day, key, people);
   // Without the people table nobody can be found for a situation: that isn't a roll, so it isn't remembered.
@@ -283,7 +290,7 @@ function unmet(req: { money?: number | undefined; item?: string | undefined } | 
 }
 
 function findRolled(realm: Realm, data: RoadData, key: string, people?: PeopleStore): Rolled | null {
-  const hit = rolls.get(key);
+  const hit = rollsOf(realm).get(key);
   if (hit) return hit;
   const m = /^(.+)#(\d+):(\d+)$/.exec(key);
   const road = m ? data.roads.find((r) => r.id === m[1]) : undefined;

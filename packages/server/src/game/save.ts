@@ -65,8 +65,12 @@ import { registerTalker, type Talker } from "./talkers.js";
  * 16: Stage 3, NPCs choose (N39, N41-N44): the first hour's incident (`firstHour`), leisure events (`leisure`: fairs, contest days,
  *    tournaments), the shared quest market's parties and the player's grade, items with a history, and nemeses (`nemeses`). Every new
  *    field is optional: a v15 save loads as it is (no opening incident, no nemesis yet); the database's new tables come by migration.
+ * 17: Stages 4–6, society, power and a changing world (N45–N64): kingdoms' laws (`kingdom.policy`), cultures, new kingdoms' founding,
+ *    the realm's `society` (spies, faiths, armies, uprisings, outbreaks, disasters, expeditions) and the player's record, tongues, gift and
+ *    secrets. Every new field is optional: a v16 save loads as it is (its kingdoms write their laws down on the next day); the database
+ *    gains schema 18 (`records`, and `will`, `claimed_father`, `faith`, `gift` on people) by migration.
  */
-export const SAVE_VERSION = 16;
+export const SAVE_VERSION = 17;
 /** The oldest save this build can still read (older ones are set aside: N18's clean break). */
 export const MIN_SAVE_VERSION = 14;
 

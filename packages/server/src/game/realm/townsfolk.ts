@@ -13,6 +13,7 @@ import { FACTION_OF_TEMPLATE } from "../factions.js";
 import { titled } from "./figures.js";
 import { knowsFor } from "./lore.js";
 import { personName } from "./names.js";
+import { cultureAt, cultureName } from "../culture/model.js";
 import type { Realm, RealmFaction, Settlement, SettlementKind } from "./types.js";
 
 /**
@@ -178,7 +179,7 @@ export function rosterFor(realm: Realm, site: string, map: MapLike, day: number)
 // ---- The people in the database (N18) ----
 
 /** A townsperson as a `people` row, for the day the world was made. */
-export function rowOfTownsperson(p: Townsperson, site: string, day: number): PersonRow {
+export function rowOfTownsperson(p: Townsperson, site: string, day: number, species = "human"): PersonRow {
   const n = parseTownsfolkId(p.id)?.n ?? 0;
   return {
     id: p.id,
@@ -186,7 +187,8 @@ export function rowOfTownsperson(p: Townsperson, site: string, day: number): Per
     n,
     name: p.name,
     gender: p.gender,
-    species: "human",
+    // The people of the place (N54): a goblin warren's are goblins.
+    species,
     born_day: day - p.age * config.daysPerYear,
     cls: p.cls,
     job: p.job,
@@ -242,7 +244,7 @@ export function ensurePeople(store: PeopleStore, realm: Realm, site: string, map
   if (store.count(site) > 0) return 0;
   const roster = rosterFor(realm, site, map, day);
   if (!roster) return 0;
-  store.insertMany(roster.people.map((p) => rowOfTownsperson(p, site, day)));
+  store.insertMany(roster.people.map((p) => rowOfTownsperson(p, site, day, realm.settlements[site]?.species)));
   store.setSeq(site, { stepped: day });
   return roster.people.length;
 }
@@ -469,9 +471,18 @@ function rollPeople(realm: Realm, site: Site, facs: RealmFaction[], laws: { slav
     else if (job === "labourer" && fr < 0.04) faction = gang;
     else if (!child && lodge.length > 0 && fr > 0.96) faction = lodge[Math.floor(rng() * lodge.length)];
     const id = townsfolkId(s.id, n);
+    // Names follow the place's culture (N53): its syllables, a few tries for a name nobody here has yet.
+    const placeName = (r: Rng, g: "female" | "male", t: Set<string>): string => {
+      const c = config.society.cultures ? cultureAt(realm, s.id) : null;
+      if (!c) return personName(r, g, t);
+      let name = cultureName(c, r, g);
+      for (let i = 0; i < 5 && t.has(name); i++) name = cultureName(c, r, g);
+      t.add(name);
+      return name;
+    };
     const p: Townsperson = {
       id,
-      name: personName(rng, gender, taken),
+      name: placeName(rng, gender, taken),
       gender,
       age,
       cls,

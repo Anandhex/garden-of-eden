@@ -18,6 +18,7 @@ import { dungeonsDay, packsDay } from "./wilds.js";
 import { leisureRealmDay } from "../leisure/events.js";
 import { marketDay } from "../market/day.js";
 import { config } from "../../config.js";
+import { societyRealmDay } from "../society/day.js";
 
 /**
  * One day of the realm (N13), in this order: people age (and some die); empty
@@ -61,6 +62,8 @@ export function realmDay(realm: Realm, day: number, only?: Rng, opts: RealmDayOp
     timed("realm.succession", () => successionDay(realm, day, rng("succession-end")));
     // Support, challenges, epithets, fading renown; what the realm owes townsfolk, and those whose name is known rising (N69).
     timed("realm.repute", () => reputeDay(realm, day, opts.store, opts.live));
+    // Laws, estates, spies, armies, unrest, outbreaks, disasters, exploration, new kingdoms (N45–N64).
+    timed("realm.society", () => societyRealmDay(realm, day, rng, { ...(opts.store ? { store: opts.store } : {}), ...(opts.live ? { live: opts.live } : {}) }));
     refreshHierarchy(realm);
     // Every place's mood from what happened today (N36), after everything that could shock it; the people's day reads it.
     timed("realm.mood", () => moodRealmDay(realm, day));

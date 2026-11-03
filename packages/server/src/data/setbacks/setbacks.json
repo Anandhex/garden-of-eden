@@ -1,0 +1,29 @@
+{
+  "by": {
+    "gang": [
+      { "kind": "robbed", "weight": 5 },
+      { "kind": "taken", "weight": 3, "when": "worth" },
+      { "kind": "sold", "weight": 4, "when": "slave_kingdom" },
+      { "kind": "death", "weight": 0.2 }
+    ],
+    "slavers": [
+      { "kind": "sold", "weight": 8, "when": "slave_kingdom" },
+      { "kind": "taken", "weight": 2 }
+    ],
+    "guards": [
+      { "kind": "imprisoned", "weight": 10 }
+    ],
+    "beasts": [
+      { "kind": "left_for_dead", "weight": 8 },
+      { "kind": "death", "weight": 0.4 }
+    ],
+    "nemesis": [
+      { "kind": "robbed", "weight": 3 },
+      { "kind": "branded", "weight": 2 },
+      { "kind": "taken", "weight": 2, "when": "worth" }
+    ],
+    "nature": [
+      { "kind": "left_for_dead", "weight": 6 }
+    ]
+  }
+}

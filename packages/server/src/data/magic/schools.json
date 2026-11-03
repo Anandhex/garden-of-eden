@@ -1,0 +1,16 @@
+{
+  "schools": [
+    { "id": "healing", "words": "the mending of flesh", "forbidden": false, "policy": "healing", "strongAt": ["temple"] },
+    { "id": "fire", "words": "fire", "forbidden": false, "policy": "elemental", "strongAt": ["smithy", "hills"] },
+    { "id": "water", "words": "water", "forbidden": false, "policy": "elemental", "strongAt": ["coast", "marsh"] },
+    { "id": "earth", "words": "stone and soil", "forbidden": false, "policy": "elemental", "strongAt": ["mine", "hills"] },
+    { "id": "air", "words": "wind and weather", "forbidden": false, "policy": "elemental", "strongAt": ["plains", "coast"] },
+    { "id": "illusion", "words": "seeming", "forbidden": false, "policy": "illusion", "strongAt": [] },
+    { "id": "divination", "words": "seeing what is hidden", "forbidden": false, "policy": "divination", "strongAt": ["temple"] },
+    { "id": "warding", "words": "wards", "forbidden": false, "policy": "warding", "strongAt": ["walls"] },
+    { "id": "beast_speech", "words": "the speech of beasts", "forbidden": false, "policy": "beast", "strongAt": ["forest"] },
+    { "id": "growth", "words": "the green", "forbidden": false, "policy": "beast", "strongAt": ["farms", "forest", "valley"] },
+    { "id": "necromancy", "words": "the dead", "forbidden": true, "policy": "necromancy", "strongAt": [] },
+    { "id": "blood", "words": "blood", "forbidden": true, "policy": "blood", "strongAt": [] }
+  ]
+}

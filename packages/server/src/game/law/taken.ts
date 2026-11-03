@@ -19,7 +19,8 @@ import { gangMembers } from "../realm/who.js";
 export type Exit = "escape" | "ransom" | "rescue" | "labour" | "join";
 
 export interface Chapter {
-  kind: "captive";
+  /** Held by a gang (N26J), or N49's other setbacks: sold as a slave, in a cell, left for dead and mending, exiled. */
+  kind: "captive" | "slave" | "prisoner" | "recovering" | "exiled";
   /** The gang (a faction id). */
   holder: string;
   /** Where they're held. */
@@ -67,6 +68,8 @@ export function maybeTake(realm: Realm, p: PlayerState, gang: string, home: stri
 
 /** May the captive player do this? (They can't walk away.) */
 export const isCaptive = (p: PlayerState): boolean => p.chapter?.kind === "captive";
+/** Held somewhere they can't walk out of (N49): a captive, a slave, a prisoner. */
+export const isHeld = (p: PlayerState): boolean => p.chapter?.kind === "captive" || p.chapter?.kind === "slave" || p.chapter?.kind === "prisoner";
 
 /** The gang member keeping watch tonight (a real one), or null. */
 export function watchman(realm: Realm, c: Chapter, day: number): string | null {

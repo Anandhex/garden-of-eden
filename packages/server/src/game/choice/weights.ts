@@ -106,6 +106,9 @@ export const DAY_COOLDOWNS: Record<string, number> = {
   play: 1,
   compete: 1,
   dance: 1,
+  blackmail: 6,
+  expose: 4,
+  accuse: 12,
 };
 
 /** Violent deeds a place may see in a day, and in the player's place per hour. */

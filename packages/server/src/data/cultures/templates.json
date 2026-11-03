@@ -1,0 +1,82 @@
+{
+  "templates": [
+    {
+      "id": "highland", "family": "north", "terrain": ["hills"],
+      "female": ["Morag", "Ailsa", "Isla", "Fenna", "Brida", "Eilid", "Kenna", "Moira", "Seona", "Una"],
+      "male": ["Calum", "Duncan", "Eoin", "Fergus", "Gorrie", "Lachie", "Murdo", "Ruairi", "Tormod", "Angus"],
+      "familyA": ["Mac", "Mor", "Dun", "Craig", "Glen", "Ben"], "familyB": ["leod", "rae", "cairn", "lochy", "gowan", "tarn"],
+      "greetings": { "up": "Your servant, {title}.", "even": "Hail and well met.", "down": "Aye, what is it?" },
+      "honorifics": { "noble": "Laird", "gentry": "Goodsir", "clergy": "Father", "default": "friend" },
+      "dishes": ["barley bannock", "smoked trout", "mutton broth", "oatcakes and honey"], "drinks": ["heather ale", "peat whisky"],
+      "colours": ["#4b5d3a", "#7a4a2a", "#3c4f6b"],
+      "festivals": { "spring": ["the Lambing", "lambs blessed at the well"], "summer": ["the Fire Leap", "the young leap the midsummer fire"], "autumn": ["the Gathering", "clans gather to feast"], "winter": ["Long Night", "doors left open for the wanderer"] },
+      "customs": ["guest_right", "bow_to_elders"], "taboos": ["killing_ravens", "whistling_at_night"],
+      "attitudes": { "strangers": "wary", "classes": "loose" }
+    },
+    {
+      "id": "river", "family": "west", "terrain": ["valley", "plains"],
+      "female": ["Ada", "Bess", "Cora", "Edda", "Gwen", "Maud", "Nell", "Rosa", "Tilda", "Wynn"],
+      "male": ["Aldo", "Bran", "Cole", "Edric", "Finn", "Hob", "Ned", "Piers", "Tam", "Wat"],
+      "familyA": ["Ash", "Brook", "Mill", "Reed", "Thatch", "Wain"], "familyB": ["ford", "er", "wright", "ley", "son", "well"],
+      "greetings": { "up": "Good day to you, {title}.", "even": "Good day, neighbour.", "down": "Morning." },
+      "honorifics": { "noble": "my lord", "gentry": "sir", "clergy": "Brother", "default": "neighbour" },
+      "dishes": ["eel pie", "pease pottage", "bread and dripping", "river carp"], "drinks": ["brown ale", "cider"],
+      "colours": ["#6b5a3a", "#5a7a4a", "#8a6a3a"],
+      "festivals": { "spring": ["Sowing Day", "seed blessed in the fields"], "summer": ["Midsummer Fair", "ribbons on the maypole"], "autumn": ["Harvest Home", "the last sheaf carried in"], "winter": ["Yule", "a log burned all night"] },
+      "customs": ["bring_bread_to_hosts", "bare_head_in_temple"], "taboos": ["eating_horse", "spilling_salt"],
+      "attitudes": { "strangers": "warm", "classes": "rigid" }
+    },
+    {
+      "id": "coastal", "family": "south", "terrain": ["coast", "marsh"],
+      "female": ["Marisa", "Delphine", "Oriel", "Sabela", "Nerea", "Liora", "Calla", "Ondine", "Perla", "Thessa"],
+      "male": ["Corin", "Davio", "Ennis", "Lucan", "Marro", "Nerio", "Orsin", "Pell", "Silvan", "Tobin"],
+      "familyA": ["Sal", "Mar", "Port", "Vel", "Cor", "Bel"], "familyB": ["vari", "ena", "ucci", "aro", "ezzo", "inna"],
+      "greetings": { "up": "The tide favour you, {title}.", "even": "Fair winds!", "down": "What's your business?" },
+      "honorifics": { "noble": "Excellence", "gentry": "Master", "clergy": "Holy one", "default": "friend" },
+      "dishes": ["salt cod stew", "grilled sardines", "mussels in wine", "seaweed bread"], "drinks": ["spiced wine", "rum"],
+      "colours": ["#2a6b8a", "#c8a24a", "#8a2a3a"],
+      "festivals": { "spring": ["Blessing of the Boats", "nets laid at the temple door"], "summer": ["Lantern Tide", "lanterns floated out to sea"], "autumn": ["the Last Catch", "the first fish given to the poor"], "winter": ["Storm Vigil", "candles in every window"] },
+      "customs": ["haggle_before_buying", "gift_to_hosts"], "taboos": ["whistling_aboard", "eating_gulls"],
+      "attitudes": { "strangers": "warm", "classes": "loose" }
+    },
+    {
+      "id": "forest", "family": "north", "terrain": ["forest"],
+      "female": ["Aino", "Hilja", "Kaisa", "Lumi", "Marja", "Noora", "Saga", "Tyyni", "Ulla", "Vellamo"],
+      "male": ["Aarne", "Eero", "Hannu", "Ilmari", "Kalle", "Lauri", "Oskari", "Tapio", "Ukko", "Vesa"],
+      "familyA": ["Kuu", "Mets", "Kivi", "Lah", "Joki", "Var"], "familyB": ["sela", "anen", "inen", "ola", "aari", "lund"],
+      "greetings": { "up": "The forest knows you, {title}.", "even": "Peace of the trees.", "down": "Mm." },
+      "honorifics": { "noble": "Elder-lord", "gentry": "Honoured", "clergy": "Seer", "default": "kin" },
+      "dishes": ["venison and lingonberry", "mushroom stew", "rye bread", "smoked elk"], "drinks": ["birch beer", "mead"],
+      "colours": ["#3a5a2a", "#6a4a2a", "#9a8a5a"],
+      "festivals": { "spring": ["Thaw Feast", "the first river ice broken"], "summer": ["the Sauna Night", "the sun that won't set"], "autumn": ["Rowan Day", "rowan berries hung on doors"], "winter": ["Bear's Sleep", "silence kept for a day"] },
+      "customs": ["thank_the_hunt", "bow_to_elders"], "taboos": ["killing_bears", "cutting_sacred_birch"],
+      "attitudes": { "strangers": "wary", "classes": "loose" }
+    },
+    {
+      "id": "steppe", "family": "east", "terrain": ["plains"],
+      "female": ["Altani", "Borte", "Checheg", "Khulan", "Oyun", "Saran", "Tuya", "Yesui", "Narana", "Odval"],
+      "male": ["Arslan", "Batu", "Chagan", "Jebe", "Khasar", "Mongke", "Subo", "Temur", "Uldan", "Yesun"],
+      "familyA": ["Kha", "Bor", "Tem", "Ula", "Sar", "Ong"], "familyB": ["gan", "tai", "jin", "dai", "ruk", "ghol"],
+      "greetings": { "up": "May your herds grow, {title}.", "even": "Is your horse well?", "down": "Speak." },
+      "honorifics": { "noble": "Khan", "gentry": "Noyan", "clergy": "Shaman", "default": "rider" },
+      "dishes": ["mutton dumplings", "fermented curds", "roast goat", "millet porridge"], "drinks": ["kumis", "salted tea"],
+      "colours": ["#a83a2a", "#c8882a", "#2a4a8a"],
+      "festivals": { "spring": ["Foaling Feast", "the first foal named"], "summer": ["the Three Games", "wrestling, riding and archery"], "autumn": ["Herd Count", "the herds blessed with milk"], "winter": ["White Month", "the elders visited with gifts"] },
+      "customs": ["guest_right", "milk_offering"], "taboos": ["stepping_on_threshold", "spilling_milk"],
+      "attitudes": { "strangers": "warm", "classes": "loose" }
+    },
+    {
+      "id": "imperial", "family": "west", "terrain": ["valley", "hills", "coast"],
+      "female": ["Aurelia", "Cassia", "Drusa", "Flavia", "Julia", "Livia", "Marcia", "Octavia", "Silvia", "Valeria"],
+      "male": ["Aulus", "Cassius", "Decimus", "Gaius", "Lucius", "Marcus", "Quintus", "Sextus", "Titus", "Varro"],
+      "familyA": ["Aem", "Cor", "Val", "Jun", "Clau", "Fab"], "familyB": ["ilius", "elius", "erius", "onius", "ius", "anus"],
+      "greetings": { "up": "Hail, {title}.", "even": "Health to you.", "down": "State your business." },
+      "honorifics": { "noble": "Dominus", "gentry": "Patron", "clergy": "Pontifex", "default": "citizen" },
+      "dishes": ["garum and bread", "roast dormice", "lentil pottage", "honeyed figs"], "drinks": ["watered wine", "posca"],
+      "colours": ["#8a2a2a", "#e8d8b8", "#4a3a6a"],
+      "festivals": { "spring": ["Floralia", "flowers strewn in the streets"], "summer": ["the Games", "races in the square"], "autumn": ["Vinalia", "the new wine poured for the gods"], "winter": ["Saturnalia", "masters serve their servants for a day"] },
+      "customs": ["bare_head_in_temple", "salute_magistrates"], "taboos": ["entering_temple_armed", "speaking_ill_of_the_dead"],
+      "attitudes": { "strangers": "wary", "classes": "rigid" }
+    }
+  ]
+}

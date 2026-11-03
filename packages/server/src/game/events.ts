@@ -130,6 +130,60 @@ export const EVENT_KINDS = [
   "job-failed",
   // A nemesis (N44): a beaten foe let go, or who ran
   "spared",
+  // Family feuds and inheritance (N45): an estate disputed and decided, a feud between families and its flare-ups, an affair, a marriage
+  // ended or gone cold, a match made by the family
+  "dispute",
+  "feud",
+  "affair",
+  "separation",
+  "arranged-match",
+  // Secrets, spies and blackmail (N46): a secret told on purpose, a demand for silence, paid or refused, a witness silenced, a plot
+  "exposure",
+  "blackmail",
+  "silenced",
+  "plot",
+  // The underworld (N47): goods fenced, a crackdown
+  "fenced",
+  "crackdown",
+  // Law and trials (N48): a hearing and its verdict, a pardon, a jailbreak
+  "trial",
+  "accusation",
+  "pardon",
+  "jailbreak",
+  // Belief (N50): a conversion, a sermon, persecution, a pilgrimage, an omen read
+  "conversion",
+  "sermon",
+  "persecution",
+  "pilgrimage",
+  "omen",
+  // Magic (N51): a gift shown, a spell cast, a witch hunted
+  "gift-shown",
+  "spell",
+  "witch-hunt",
+  // Shaping belief (N52): a rumour planted, someone framed, a song or sermon paid for
+  "planted",
+  "investigation",
+  "framed",
+  "commissioned",
+  // Cultures (N53): a taboo broken, a custom kept
+  "taboo",
+  "custom",
+  // Armies (N55): levied, a battle fought, remembered among the war dead
+  "levied",
+  "battle",
+  "war-dead",
+  // Uprisings (N56–N59): a band formed, a rising, a concession or a crushing, a runaway and their hiding
+  "band",
+  "uprising",
+  "concession",
+  "repression",
+  "runaway",
+  // A changing world (N60–N64): the land changing, an outbreak, a disaster, a new settlement founded, a kingdom born
+  "ecology",
+  "outbreak",
+  "disaster",
+  "founded",
+  "kingdom-born",
 ] as const;
 export type EventKind = (typeof EVENT_KINDS)[number];
 

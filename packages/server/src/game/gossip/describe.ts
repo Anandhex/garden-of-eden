@@ -75,6 +75,16 @@ export function fieldsOf(ctx: LifeCtx, ref: string): Field[] {
     if (rec && MISTAKEN[rec.cause]) out.push(4);
     return out;
   }
+  // A made-up rumour (N52) drifts like any: the wrong one of the family, the thing it was about.
+  if (r.kind === "r") {
+    const f = ctx.store.records?.get(r.id)?.data as { subject?: string; claim?: string } | undefined;
+    if (!f) return [];
+    const row = f.subject ? ctx.store.people.get(f.subject) : null;
+    if (row && (row.spouse || row.mother || row.father)) out.push(1);
+    if (f.claim === "stole") out.push(2);
+    out.push(4);
+    return out;
+  }
   return [];
 }
 
@@ -89,6 +99,9 @@ export function describeKnown(ctx: LifeCtx, ref: string, accuracy: number, varia
   else if (r.kind === "d") text = describeDeath(ctx, r.id, field, alt);
   else if (r.kind === "e") text = describeEvent(ctx, r.id);
   else if (r.kind === "i") text = describeItem(ctx, r.id);
+  else if (r.kind === "r") text = describeRumour(ctx, r.id, field, alt);
+  // A secret they know (N46): what it says, never passed on by gossip by itself.
+  else if (r.kind === "s") text = (ctx.store.records?.get(r.id)?.data as { text?: string } | undefined)?.text ?? null;
   if (!text) return null;
   return accuracy < 0.5 ? `${text} (or so folk say)` : text;
 }
@@ -154,3 +167,34 @@ function describeEvent(ctx: LifeCtx, id: string): string | null {
 
 /** The first word a person says it with, for a short line: "heard that". */
 export const heardThat = (text: string, from?: string): string => `${from ? `${firstName(from)} says` : "Folk say"} ${text.charAt(0).toLowerCase()}${text.slice(1)}`;
+
+/** What was stolen, as the telling has it. */
+const LOOT = ["the tax money", "the grain money", "the church plate", "the well fund", "the market dues"];
+/** How a made-up claim is said, by claim, and by how it grows (field 4). */
+const CLAIMS: Record<string, [string, string]> = {
+  stole: ["{who} stole {what}", "{who} has been stealing {what} for years"],
+  cheats: ["{who} cheats at the scales", "{who} cheats everyone who deals with them"],
+  affair: ["{who} is carrying on behind their spouse's back", "{who} has a lover in every street"],
+  plots: ["{who} plots against the head of the place", "{who} plots with outlaws against the place"],
+  heretic: ["{who} keeps a forbidden faith", "{who} worships something dark"],
+  spy: ["{who} is a spy for another crown", "{who} sells the place's secrets abroad"],
+  sick: ["{who} is sick with something catching", "{who} is dying of the plague"],
+  broke: ["{who} is broke", "{who} owes money to everyone"],
+  hoards: ["{who} is hoarding grain", "{who} is hoarding grain while children go hungry"],
+};
+
+/** A made-up rumour as a person who heard it would tell it (N52): its claim about its subject, drifted by the version they have. */
+function describeRumour(ctx: LifeCtx, id: string, field: number, alt: number): string | null {
+  const f = ctx.store.records?.get(id)?.data as { subject?: string; subjectName?: string; claim?: string; detail?: string } | undefined;
+  if (!f?.claim) return null;
+  let who = f.subjectName ?? "someone";
+  if (field === 1 && f.subject) {
+    const row = ctx.store.people.get(f.subject);
+    const kin = row ? [row.spouse, row.mother, row.father].filter((x): x is string => !!x) : [];
+    const other = kin.length > 0 ? ctx.store.people.get(kin[alt % kin.length]!) : null;
+    if (other) who = other.name;
+  }
+  const what = field === 2 ? LOOT[(alt + 1) % LOOT.length]! : (f.detail ?? LOOT[0]!);
+  const [plain, worse] = CLAIMS[f.claim] ?? ["{who} is not what they seem", "{who} is not what they seem"];
+  return (field === 4 ? worse : plain).replace("{who}", who).replace("{what}", what);
+}

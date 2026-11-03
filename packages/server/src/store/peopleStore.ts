@@ -70,6 +70,14 @@ export interface PersonRow {
   epithet?: string | null;
   /** JSON: their adventurer grade and record (N42, game/market/grades.ts), for townsfolk who take jobs; null for most. */
   grade?: string | null;
+  /** JSON { heir, day } (N45): whom someone with an estate means it to go to; null without a will. */
+  will?: string | null;
+  /** The father a child is said to have, where it isn't the true one (N45): a secret until found out. */
+  claimed_father?: string | null;
+  /** JSON { faith, devotion } (N50): the faith (a cult or order faction id, or "old" for the old ways) and how devout, 0..1. */
+  faith?: string | null;
+  /** JSON { gift, schools, rank, hidden, sick? } (N51): magic, for the few who have it. */
+  gift?: string | null;
   /** Bumped by every flush that writes the row. */
   rev: number;
 }
@@ -100,7 +108,7 @@ const COLUMNS = TABLES.people;
 const INSERT = `INSERT OR REPLACE INTO people (${COLUMNS.join(", ")}) VALUES (${COLUMNS.map(() => "?").join(", ")})`;
 
 /** Columns whose change leaves a place's roster as it was. */
-const QUIET = new Set(["persona", "traits", "expecting", "last_birth", "stepped_day", "spouse", "mother", "father", "figure", "outlook", "skill", "renown", "epithet", "grade"]);
+const QUIET = new Set(["persona", "traits", "expecting", "last_birth", "stepped_day", "spouse", "mother", "father", "figure", "outlook", "skill", "renown", "epithet", "grade", "will", "claimed_father", "faith", "gift"]);
 const values = (r: PersonRow) => COLUMNS.map((c) => r[c] ?? null) as Array<string | number | null>;
 const dayOfDeath = (cell: string): number => {
   try {

@@ -1,3 +1,4 @@
+import { soldierOrders } from "../war/armies.js";
 import { broken } from "../../balance/break.js";
 import { sink, transfer } from "./ledger.js";
 import type { Rng } from "../dice.js";
@@ -336,8 +337,10 @@ export function warsDay(realm: Realm, day: number, rng: Rng): void {
     const defence = settlementSide(realm, at);
     for (const d of w.defenders) defence.strength += armyOf(realm, d, day).strength * (d === w.defenders[0] ? 0.4 : 0.25);
     const r = fight(realm, attack, defence, day, rng, `the battle of ${at.name}`);
-    casualty(realm, attack.home, "battle", r.lost.attackers, `battle:${day}:${at.id}:attackers`, day);
-    casualty(realm, at, "battle", r.lost.defenders, `battle:${day}:${at.id}`, day);
+    casualty(realm, attack.home, "battle", r.lost.attackers, `battle:${day}:${at.id}:attackers`, day, undefined, { war: w.id, side: "attackers" });
+    casualty(realm, at, "battle", r.lost.defenders, `battle:${day}:${at.id}`, day, undefined, { war: w.id, side: "defenders" });
+    // The levies of each side's other places fall too (N55): a share of its dead come from wherever its soldiers were raised.
+    for (const [side, lost] of [["attackers", r.lost.attackers], ["defenders", r.lost.defenders]] as const) for (const o of soldierOrders(realm, w, side, lost, day, at.id)) casualty(realm, realm.settlements[o.site] ?? null, "battle", o.n, `battle:${day}:${at.id}:${side}:${o.site}`, day, undefined, { war: w.id, side });
     at.lastRaided = day;
     // A battle lost at the walls leaves its mark.
     if (r.attackerWon && rng() < 0.5) damageBuilding(at, rng);

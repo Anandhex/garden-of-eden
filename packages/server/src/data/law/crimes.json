@@ -54,6 +54,56 @@
       "id": "killing",
       "weight": 5,
       "words": "killing"
+    },
+    {
+      "id": "slander",
+      "weight": 1,
+      "words": "slander and false witness"
+    },
+    {
+      "id": "smuggling",
+      "weight": 2,
+      "words": "smuggling"
+    },
+    {
+      "id": "sorcery",
+      "weight": 3,
+      "words": "sorcery"
+    },
+    {
+      "id": "heresy",
+      "weight": 2,
+      "words": "heresy"
+    },
+    {
+      "id": "sedition",
+      "weight": 4,
+      "words": "sedition"
+    },
+    {
+      "id": "desertion",
+      "weight": 3,
+      "words": "desertion"
+    },
+    {
+      "id": "runaway",
+      "weight": 2,
+      "words": "running from a master"
+    },
+    {
+      "id": "blackmail",
+      "weight": 3,
+      "words": "blackmail"
+    },
+    {
+      "id": "aiding_escape",
+      "weight": 3,
+      "words": "aiding an escape"
+    },
+    {
+      "id": "murder",
+      "weight": 5,
+      "words": "murder"
     }
   ]
 }

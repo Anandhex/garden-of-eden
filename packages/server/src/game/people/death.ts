@@ -22,6 +22,9 @@ export interface DeathRecord {
   killer?: string;
   /** Any words the cause doesn't say ("killed in the raid on Ashby", "old age"). */
   note?: string;
+  /** A war's dead (N55): the war, and the side they fought on. War dead are never mixed with plague or famine deaths. */
+  war?: string;
+  side?: "attackers" | "defenders";
 }
 
 export const DeathRecordSchema = z.object({
@@ -32,6 +35,8 @@ export const DeathRecordSchema = z.object({
   event: z.string().optional(),
   killer: z.string().optional(),
   note: z.string().optional(),
+  war: z.string().optional(),
+  side: z.enum(["attackers", "defenders"]).optional(),
 });
 
 /** The record in a `people.death` cell, or null for none (a cell that isn't one is read as none). */

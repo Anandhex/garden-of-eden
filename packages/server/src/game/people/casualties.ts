@@ -35,11 +35,13 @@ function weight(r: PersonRow, cause: CasualtyOrder["cause"], day: number): numbe
  * Pick `order.count` of `rows` to die (all of them, if the place has fewer), by weighted sampling without
  * replacement: each person gets the key u^(1/w) and the highest keys die. Returns ids, in the order they fell.
  */
-export function pickCasualties(seed: number, rows: PersonRow[], order: Pick<CasualtyOrder, "cause" | "count" | "event">, day: number): string[] {
+export function pickCasualties(seed: number, rows: PersonRow[], order: Pick<CasualtyOrder, "cause" | "count" | "event" | "war">, day: number): string[] {
   const rng = streamFor(seed, "casualty", order.event, day);
   const keyed: Array<{ id: string; key: number }> = [];
   for (const r of rows) {
-    const w = weight(r, order.cause, day);
+    // A battle's dead are its soldiers first (N55): those away at this war.
+    const soldier = order.war && r.away ? (JSON.parse(r.away) as { purpose?: string; journey?: string }).purpose === "war" && String((JSON.parse(r.away) as { journey?: string }).journey ?? "").includes(order.war) : false;
+    const w = soldier ? 40 : weight(r, order.cause, day);
     if (w <= 0) continue;
     keyed.push({ id: r.id, key: rng() ** (1 / w) });
   }
