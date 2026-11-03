@@ -23,6 +23,7 @@ import {
 } from "@millbrook/shared";
 import { dress, OBJECT_IDS, TEMPLATES, templateFor, TERRAIN_IDS, type Actor, type Frame, type Patch, type ScapeInput } from "@millbrook/shared/view";
 import { groundAt } from "../game/road/ground.js";
+import { heightSeed, patchHeights, type HeightCtx, type LandKind } from "./height.js";
 import type { Land, ViewHost } from "./host.js";
 import { TRADES } from "../game/ambition/kinds.js";
 
@@ -94,6 +95,16 @@ export function soundOf(s: Snapshot, sim: CrowdSim | null, pos: CrowdPos[], land
   };
 }
 
+const ROAD_LAND: Partial<Record<number, LandKind>> = { [Ground.water]: "water", [Ground.ford]: "ford", [Ground.marsh]: "marsh", [Ground.reeds]: "marsh", [Ground.bridge]: "bridge", [Ground.hill]: "hill", [Ground.cave]: "hill", [Ground.ore]: "hill" };
+
+/** How the land's height is made here (G7 Part B): open land, a place's levelled pads, or none inside a building. */
+function heightCtx(s: Snapshot, land: Land | null, mapId: string): HeightCtx | null {
+  if (s.inside) return null;
+  if (land) return { seed: heightSeed(`road:${land.gates.keys().next().value ?? ""}`), open: true, kind: (x, y) => ROAD_LAND[groundAt(land, x, y)] ?? "land" };
+  const tiles = s.map.tiles;
+  return { seed: heightSeed(mapId), open: false, kind: (x, y) => (tiles[y]?.[x] === "water" ? "water" : "land"), pads: s.map.buildings };
+}
+
 /** A road tile as terrain and object art. */
 function roadArt(g: number): [number, number] {
   switch (g) {
@@ -146,6 +157,7 @@ function placeArt(t: string | undefined, inBuilding: boolean): [number, number] 
     case "wall": return inBuilding ? [T("terrain/yard"), 0] : [T("terrain/town"), O("buildings/wall")];
     case "door": return [T("terrain/path"), O("buildings/door")];
     case "floor": return [T("terrain/yard"), 0];
+    case "stairs": return [T("terrain/yard"), O("buildings/stairs")];
     default: return [T("terrain/grass"), 0];
   }
 }
@@ -362,6 +374,7 @@ export function buildFrame(f: FrameInput): Frame {
 
   // ---- terrain ----
   const patches: Patch[] = [];
+  const heights = heightCtx(s, land, mapId);
   for (let py = Math.floor(box.y0 / PATCH); py <= Math.floor(box.y1 / PATCH); py++) {
     for (let px = Math.floor(box.x0 / PATCH); px <= Math.floor(box.x1 / PATCH); px++) {
       const key = `${mapId}:${px}:${py}`;
@@ -384,7 +397,7 @@ export function buildFrame(f: FrameInput): Frame {
           objects.push(o);
         }
       }
-      patches.push({ key, x0, y0, w, h, ground, objects });
+      patches.push({ key, x0, y0, w, h, ground, objects, height: patchHeights(heights, x0, y0, w, h) });
     }
   }
 

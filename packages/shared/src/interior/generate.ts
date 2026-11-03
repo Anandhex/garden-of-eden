@@ -6,8 +6,12 @@ import { hash2, seedOf } from "../road/noise.js";
  * furnishing's quality from the wealth band, so a better year brings a better table without moving a wall. A serf's
  * hovel is one room with straw beds round a hearth; a merchant's house has a shop, a parlour with a strongbox and a
  * bedroom; a hall has a great hall, a solar and the servants' quarters.
+ *
+ * Upper floors (G7 Part B): an inn, a hall, a manor, a palace, a castle, a guildhall and a merchant's or craftsman's
+ * house have a second floor on the same footprint, its own rooms furnished by the same rules, and stairs on the same
+ * tile of both floors. The ground floor's layout and furnishing are the same as a one-floor building's.
  */
-export const ITILE = { floor: 0, wall: 1, door: 2 } as const;
+export const ITILE = { floor: 0, wall: 1, door: 2, stairs: 3 } as const;
 
 export const FURNITURE_KINDS = ["bed", "straw", "table", "hearth", "chest", "strongbox", "desk", "shelf", "anvil", "forge", "loom", "altar", "pew", "counter", "barrel", "cell", "throne", "rack", "bench"] as const;
 export type FurnitureKind = (typeof FURNITURE_KINDS)[number];
@@ -21,6 +25,8 @@ export interface Furniture {
   y: number;
   /** The room it stands in. */
   room: string;
+  /** The floor it is on (absent: the ground floor). */
+  floor?: number;
   /** 0 poor .. 3 fine. */
   quality: number;
   /** Goods can be kept in it (a chest, a desk, a shelf); `hidden` slots need searching for. */
@@ -30,11 +36,17 @@ export interface Furniture {
 export interface Interior {
   w: number;
   h: number;
-  /** Row by row, `ITILE` kinds. */
+  /** Row by row, `ITILE` kinds: the ground floor. */
   tiles: number[];
-  rooms: Array<{ id: string; kind: RoomKind; x: number; y: number; w: number; h: number }>;
+  rooms: Array<{ id: string; kind: RoomKind; x: number; y: number; w: number; h: number; floor?: number }>;
   furniture: Furniture[];
   door: { x: number; y: number };
+  /** How many floors: 1, or 2 with `upper` and `stairs`. */
+  floors: number;
+  /** The upper floor's tiles (same size as the ground floor's). */
+  upper?: number[];
+  /** The stairs: the same tile on both floors. */
+  stairs?: { x: number; y: number };
 }
 
 /** What the generator needs to know of who lives or works there. */
@@ -57,6 +69,26 @@ interface Plan {
   /** Rooms as [kind, share of the width] left to right; a second row of rooms where `back` is set. */
   rooms: Array<[RoomKind, number]>;
   back?: Array<[RoomKind, number]>;
+}
+
+/** The rooms of a building's upper floor, left to right, or none (one floor). */
+function upperOf(h: Household): Array<[RoomKind, number]> | null {
+  switch (h.kind) {
+    case "inn":
+      return [["bed", 0.34], ["bed", 0.33], ["bed", 0.33]];
+    case "hall":
+    case "manor":
+      return [["bed", 0.5], ["main", 0.5]];
+    case "palace":
+    case "castle":
+      return [["bed", 0.4], ["bed", 0.3], ["store", 0.3]];
+    case "guildhall":
+      return [["main", 0.5], ["store", 0.5]];
+  }
+  if (h.kind !== "house") return null;
+  if (h.style === "merchant") return [["bed", 0.6], ["store", 0.4]];
+  if (h.style === "craft") return [["bed", 1]];
+  return null;
 }
 
 function planOf(h: Household): Plan {
@@ -108,15 +140,15 @@ export function interiorOf(seed: number, site: string, index: number, h: Househo
   const rooms: Interior["rooms"] = [];
   // The front row of rooms (by the door), and a back row behind a wall.
   const split = plan.back ? Math.floor(H / 2) : 0;
-  const row = (list: Array<[RoomKind, number]>, y0: number, y1: number, tag: string) => {
+  const row = (list: Array<[RoomKind, number]>, y0: number, y1: number, tag: string, put = set, floor = 0) => {
     let x = 1;
     list.forEach(([kind, share], k) => {
       const x1 = k === list.length - 1 ? w - 2 : Math.max(x + 1, x + Math.round((w - 2) * share) - 1);
-      rooms.push({ id: `${tag}${k}`, kind, x, y: y0, w: x1 - x + 1, h: y1 - y0 + 1 });
+      rooms.push({ id: `${tag}${k}`, kind, x, y: y0, w: x1 - x + 1, h: y1 - y0 + 1, ...(floor ? { floor } : {}) });
       if (k < list.length - 1) {
         // A partition with a doorway in it.
-        for (let y = y0; y <= y1; y++) set(x1 + 1, y, ITILE.wall);
-        set(x1 + 1, Math.floor((y0 + y1) / 2), ITILE.floor);
+        for (let y = y0; y <= y1; y++) put(x1 + 1, y, ITILE.wall);
+        put(x1 + 1, Math.floor((y0 + y1) / 2), ITILE.floor);
       }
       x = x1 + 2;
     });
@@ -131,7 +163,9 @@ export function interiorOf(seed: number, site: string, index: number, h: Househo
   const rng = (k: string) => hash2(seed ^ seedOf(`interior|${site}|${index}|${k}`), index, 0);
   const q = Math.max(0, Math.min(3, Math.round(h.wealth)));
   const furniture: Furniture[] = [];
-  const taken = new Set<string>([`${door.x},${door.y}`, `${door.x},${door.y - 1}`]);
+  let taken = new Set<string>([`${door.x},${door.y}`, `${door.x},${door.y - 1}`]);
+  let floorTiles = tiles;
+  let floorNo = 0;
   const put = (room: Interior["rooms"][number], kind: FurnitureKind, where: "wall" | "middle" | "corner", slot?: { hidden: boolean }) => {
     const spots: Array<[number, number]> = [];
     for (let y = room.y; y < room.y + room.h; y++)
@@ -140,16 +174,16 @@ export function interiorOf(seed: number, site: string, index: number, h: Househo
         const corner = (x === room.x || x === room.x + room.w - 1) && (y === room.y || y === room.y + room.h - 1);
         if (where === "wall" ? edge : where === "corner" ? corner : !edge) spots.push([x, y]);
       }
-    const free = spots.filter(([x, y]) => !taken.has(`${x},${y}`) && tiles[y * w + x] === ITILE.floor && !nextToDoorway(tiles, w, H, x, y));
+    const free = spots.filter(([x, y]) => !taken.has(`${x},${y}`) && floorTiles[y * w + x] === ITILE.floor && !nextToDoorway(floorTiles, w, H, x, y));
     if (free.length === 0) return;
     const [x, y] = free[rng(`${room.id}|${kind}|${furniture.length}`) % free.length]!;
     taken.add(`${x},${y}`);
     const id = `${kind}:${furniture.length}`;
-    furniture.push({ id, kind, x, y, room: room.id, quality: q, ...(slot ? { slot: { id: `${room.id}:${kind}:${furniture.length}`, hidden: slot.hidden } } : {}) });
+    furniture.push({ id, kind, x, y, room: room.id, quality: q, ...(floorNo ? { floor: floorNo } : {}), ...(slot ? { slot: { id: `${room.id}:${kind}:${furniture.length}`, hidden: slot.hidden } } : {}) });
   };
   const poor = h.cls === "slave" || h.cls === "serf" || h.style === "hovel";
   const rich = h.cls === "noble" || h.cls === "royal" || h.cls === "gentry" || h.style === "merchant";
-  for (const room of rooms) {
+  const furnish = (room: Interior["rooms"][number]) => {
     switch (room.kind) {
       case "main":
         put(room, "hearth", "wall");
@@ -200,8 +234,51 @@ export function interiorOf(seed: number, site: string, index: number, h: Househo
         put(room, "straw", "corner");
         break;
     }
+  };
+  for (const room of rooms) furnish(room);
+  const out: Interior = { w, h: H, tiles, rooms, furniture, door, floors: 1 };
+
+  // An upper floor: its rooms in one row, then stairs on a tile free on both floors, then its furniture.
+  const upperRooms = upperOf(h);
+  if (!upperRooms) return out;
+  const upper = new Array<number>(w * H).fill(ITILE.floor);
+  const setUp = (x: number, y: number, t: number) => {
+    if (x >= 0 && y >= 0 && x < w && y < H) upper[y * w + x] = t;
+  };
+  for (let x = 0; x < w; x++) (setUp(x, 0, ITILE.wall), setUp(x, H - 1, ITILE.wall));
+  for (let y = 0; y < H; y++) (setUp(0, y, ITILE.wall), setUp(w - 1, y, ITILE.wall));
+  const before = rooms.length;
+  row(upperRooms, 1, H - 2, "u", setUp, 1);
+  const stairs = stairsSpot(tiles, upper, w, H, furniture, door, rng("stairs"));
+  if (!stairs) {
+    rooms.length = before;
+    return out;
   }
-  return { w, h: H, tiles, rooms, furniture, door };
+  tiles[stairs.y * w + stairs.x] = ITILE.stairs;
+  upper[stairs.y * w + stairs.x] = ITILE.stairs;
+  taken = new Set([`${stairs.x},${stairs.y}`]);
+  floorTiles = upper;
+  floorNo = 1;
+  for (const room of rooms.slice(before)) furnish(room);
+  return { ...out, floors: 2, upper, stairs };
+}
+
+/**
+ * Where the stairs go: a ground-floor tile against an outer or inner wall, clear of furniture, the door and doorways,
+ * and a floor tile upstairs too (not under a partition); picked by `pick` among them, the same every time.
+ */
+function stairsSpot(ground: number[], upper: number[], w: number, h: number, furniture: Furniture[], door: { x: number; y: number }, pick: number): { x: number; y: number } | null {
+  const used = new Set(furniture.map((f) => `${f.x},${f.y}`));
+  const ok: Array<{ x: number; y: number }> = [];
+  for (let y = 1; y < h - 1; y++)
+    for (let x = 1; x < w - 1; x++) {
+      if (ground[y * w + x] !== ITILE.floor || upper[y * w + x] !== ITILE.floor || used.has(`${x},${y}`)) continue;
+      if (Math.abs(x - door.x) + Math.abs(y - door.y) <= 2) continue;
+      if (nextToDoorway(ground, w, h, x, y) || nextToDoorway(upper, w, h, x, y)) continue;
+      const byWall = ground[y * w + x - 1] === ITILE.wall || ground[y * w + x + 1] === ITILE.wall || ground[(y - 1) * w + x] === ITILE.wall;
+      if (byWall) ok.push({ x, y });
+    }
+  return ok.length ? ok[pick % ok.length]! : null;
 }
 
 function nextToDoorway(tiles: number[], w: number, h: number, x: number, y: number): boolean {
@@ -221,22 +298,29 @@ function nextToDoorway(tiles: number[], w: number, h: number, x: number, y: numb
   return false;
 }
 
-/** Can a walker stand on a tile of an interior (floor or the door, no furniture)? */
-export function interiorWalkable(int: Interior, x: number, y: number): boolean {
+/** A floor's tiles (0 the ground floor). */
+export const floorTiles = (int: Interior, floor = 0): number[] => (floor > 0 && int.upper ? int.upper : int.tiles);
+
+/** The furniture on one floor. */
+export const furnitureOn = (int: Interior, floor = 0): Furniture[] => int.furniture.filter((f) => (f.floor ?? 0) === floor);
+
+/** Can a walker stand on a tile of an interior's floor (floor, the door or the stairs, no furniture)? */
+export function interiorWalkable(int: Interior, x: number, y: number, floor = 0): boolean {
   if (x < 0 || y < 0 || x >= int.w || y >= int.h) return false;
-  const t = int.tiles[y * int.w + x]!;
+  const t = floorTiles(int, floor)[y * int.w + x]!;
   if (t === ITILE.wall) return false;
-  return !int.furniture.some((f) => f.x === x && f.y === y);
+  return !int.furniture.some((f) => f.x === x && f.y === y && (f.floor ?? 0) === floor);
 }
 
-/** The spot where someone doing something stands or lies: asleep in a bed, eating at the table, at work at the forge. */
-export function spotFor(int: Interior, doing: string, k: number): { x: number; y: number } {
+/** The spot where someone doing something stands or lies (and on which floor): asleep in a bed, eating at the table, at work at the forge. */
+export function spotFor(int: Interior, doing: string, k: number): { x: number; y: number; floor: number } {
   const want: FurnitureKind[] = /asleep/.test(doing) ? ["bed", "straw"] : /eat|meal|dining/.test(doing) ? ["table", "bench"] : /work|forge|loom|baking|at the|toiling/.test(doing) ? ["anvil", "forge", "loom", "counter", "table"] : ["hearth", "bench", "table"];
   const f = int.furniture.filter((x) => want.includes(x.kind));
   const at = f[k % Math.max(1, f.length)] ?? int.furniture[k % Math.max(1, int.furniture.length)];
-  if (!at) return { x: Math.floor(int.w / 2), y: Math.floor(int.h / 2) };
+  if (!at) return { x: Math.floor(int.w / 2), y: Math.floor(int.h / 2), floor: 0 };
+  const floor = at.floor ?? 0;
   // Beside it on the floor (a bed is lain in: on it).
-  if (at.kind === "bed" || at.kind === "straw") return { x: at.x, y: at.y };
-  for (const [dx, dy] of [[0, 1], [1, 0], [-1, 0], [0, -1]] as const) if (interiorWalkable(int, at.x + dx, at.y + dy)) return { x: at.x + dx, y: at.y + dy };
-  return { x: at.x, y: at.y };
+  if (at.kind === "bed" || at.kind === "straw") return { x: at.x, y: at.y, floor };
+  for (const [dx, dy] of [[0, 1], [1, 0], [-1, 0], [0, -1]] as const) if (interiorWalkable(int, at.x + dx, at.y + dy, floor)) return { x: at.x + dx, y: at.y + dy, floor };
+  return { x: at.x, y: at.y, floor };
 }

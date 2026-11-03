@@ -143,6 +143,34 @@ describe("N32 steps 1 and 4: going in, and who is there", () => {
   });
 });
 
+describe("G7 Part B: up the stairs", () => {
+  it("in the inn, walking onto the stairs goes up; upstairs is its own floor; walking on and back onto them comes down", () => {
+    const { ctx, map, world } = setup(1);
+    const inn = map.buildings.findIndex((b) => b.kind === "inn");
+    const c = ctx(12);
+    expect(enter(c, inn).ok).toBe(true);
+    const int = interiorAt(c, inn);
+    expect(int.floors).toBe(2);
+    const s = int.stairs!;
+    // Stand beside the stairs on the ground floor (somewhere walkable), then step onto them.
+    const ins = world.player.inside!;
+    const beside = ([[0, 1], [1, 0], [-1, 0], [0, -1]] as const).find(([dx, dy]) => interiorWalkable(int, s.x + dx, s.y + dy, 0))!;
+    ins.x = s.x + beside[0];
+    ins.y = s.y + beside[1];
+    const up = stepInside(c, -beside[0], -beside[1]);
+    expect(up.ok).toBe(true);
+    expect(up.lines[0]).toMatch(/up the stairs/);
+    expect(world.player.inside!.floor).toBe(1);
+    // Off them upstairs, and back on: down again.
+    const off = ([[0, 1], [1, 0], [-1, 0], [0, -1]] as const).find(([dx, dy]) => interiorWalkable(int, s.x + dx, s.y + dy, 1))!;
+    expect(stepInside(c, off[0], off[1]).ok).toBe(true);
+    expect(world.player.inside!.floor).toBe(1);
+    const down = stepInside(c, -off[0], -off[1]);
+    expect(down.lines[0]).toMatch(/down the stairs/);
+    expect(world.player.inside!.floor).toBeUndefined();
+  });
+});
+
 describe("N32 step 5: belongings and hidden things", () => {
   it("a hidden letter in the head's desk is one of their real secrets; reading it, the player knows it", () => {
     const { ctx, map, realm, site, town, world, store } = setup(1);

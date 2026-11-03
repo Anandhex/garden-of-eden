@@ -8,7 +8,7 @@ import { maxSkipHours, passUntil, summaryLines, type WakeCondition } from "../ga
 import { follow, unfollow } from "../game/follow/follow.js";
 import { playerWrites } from "../game/follow/letters.js";
 import { enter, householdOf, interiorAt, lockedNow, peopleInside, search, stepInside, take, takeable, type InsideCtx } from "../game/interior/inside.js";
-import { ITILE, type InsideView, type TileKind } from "@millbrook/shared";
+import { floorTiles, furnitureOn, ITILE, type InsideView, type TileKind } from "@millbrook/shared";
 import { doorOf } from "../view/frame.js";
 import { marksToDraw } from "../game/marks/rules.js";
 import { animalsNear, huntAnimal, natureView, showToHerbalist, tameStray, useWildItem } from "../game/nature/wild.js";
@@ -642,14 +642,17 @@ function insideView(): InsideView | null {
   const h = householdOf(c, ins.building);
   const int = interiorAt(c, ins.building);
   const b = c.map.buildings[ins.building];
+  const floor = ins.floor ?? 0;
   return {
     building: ins.building,
+    floor,
+    floors: int.floors,
     kind: b?.kind ?? "house",
     name: b?.name || (h.owner ? `${h.owner.name}'s house` : "a house"),
     owner: h.owner?.name ?? null,
     trespass: !!ins.trespass,
-    people: peopleInside(c, ins.building, int).map((x) => ({ id: x.id, name: x.name, doing: x.doing, x: x.x, y: x.y })),
-    furniture: int.furniture.map((f) => ({ id: f.id, kind: f.kind, x: f.x, y: f.y, keeps: !!f.slot && (!f.slot.hidden || (ins.found ?? []).includes(f.slot.id)) })),
+    people: peopleInside(c, ins.building, int).filter((x) => x.floor === floor).map((x) => ({ id: x.id, name: x.name, doing: x.doing, x: x.x, y: x.y })),
+    furniture: furnitureOn(int, floor).map((f) => ({ id: f.id, kind: f.kind, x: f.x, y: f.y, keeps: !!f.slot && (!f.slot.hidden || (ins.found ?? []).includes(f.slot.id)) })),
     takeable: takeable(c).map((t) => ({ slot: t.slot, item: t.item, words: t.words })),
   };
 }
@@ -659,8 +662,10 @@ function insideMap(v: InsideView): Snapshot["map"] {
   const c = insideCtx()!;
   const int = interiorAt(c, v.building);
   const tiles: TileKind[][] = [];
-  for (let y = 0; y < int.h; y++) tiles.push(Array.from({ length: int.w }, (_, x) => { const t = int.tiles[y * int.w + x]; return t === ITILE.wall ? "wall" : t === ITILE.door ? "door" : "floor"; }));
-  return { id: `in:${town.site()}:${v.building}`, name: v.name, w: int.w, h: int.h, tiles, buildings: [], talkRange: TALK_RANGE, exits: [], zones: [] };
+  const floor = floorTiles(int, v.floor);
+  for (let y = 0; y < int.h; y++) tiles.push(Array.from({ length: int.w }, (_, x) => { const t = floor[y * int.w + x]; return t === ITILE.wall ? "wall" : t === ITILE.door ? "door" : t === ITILE.stairs ? "stairs" : "floor"; }));
+  // Each floor is its own map (G7 Part B), so a view starts it over.
+  return { id: `in:${town.site()}:${v.building}${v.floor ? `:${v.floor}` : ""}`, name: v.floor ? `${v.name}, upstairs` : v.name, w: int.w, h: int.h, tiles, buildings: [], talkRange: TALK_RANGE, exits: [], zones: [] };
 }
 
 /** The door of a building next to the player in a village, and whether it's locked to them (N32). */

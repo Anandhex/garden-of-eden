@@ -45,6 +45,8 @@ export const OBJECT_IDS = [
   "props/barrel",
   "props/counter",
   "props/bench",
+  // The stairs between a building's floors (G7 Part B).
+  "buildings/stairs",
 ] as const;
 
 export const PEOPLE_IDS = ["people/body", "people/player"] as const;

@@ -100,6 +100,13 @@ export class Mirror {
     return { ground: TERRAIN_IDS[p.ground[i]!] ?? "terrain/grass", object: OBJECT_IDS[p.objects[i]!] ?? null };
   }
 
+  /** The land's height at a tile in tiles (G7 Part B), if its patch has come; a patch without heights is flat. */
+  heightAt(x: number, y: number): number | undefined {
+    const p = this.patches.get(this.patchKey(x, y));
+    if (!p || x < p.x0 || y < p.y0 || x >= p.x0 + p.w || y >= p.y0 + p.h) return undefined;
+    return (p.height?.[(y - p.y0) * p.w + (x - p.x0)] ?? 0) / 8;
+  }
+
   /** A mark on a tile, if any (its words go in the hover). */
   markAt(x: number, y: number): NonNullable<Frame["marks"]>[number] | undefined {
     return this.marks.find((m) => x >= m.x && x < m.x + m.w && y >= m.y && y < m.y + m.h);

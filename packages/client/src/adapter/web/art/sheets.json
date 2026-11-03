@@ -1022,6 +1022,24 @@
     "mask": "15"
    }
   },
+  "terrain/bank_0": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "terrain/bank_1": {
+   "sheet": "terrain",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
   "buildings/thatch_top_m": {
    "sheet": "buildings",
    "w": 16,
@@ -1581,6 +1599,69 @@
    ]
   },
   "buildings/porch": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/plaster_side": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/plaster_gable": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/stone_side": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/stone_gable": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/plank_side": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/plank_gable": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/stairs": {
    "sheet": "buildings",
    "w": 16,
    "h": 16,

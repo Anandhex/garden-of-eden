@@ -69,6 +69,8 @@ export const PatchSchema = z.object({
   ground: z.array(z.number().int()),
   /** Indices into OBJECT_IDS (0 = nothing), row by row. */
   objects: z.array(z.number().int()),
+  /** The land's height (G7 Part B), eighths of a tile, row by row; drawing only. Absent: flat. */
+  height: z.array(z.number().int().min(0).max(40)).optional(),
 });
 export type Patch = z.infer<typeof PatchSchema>;
 

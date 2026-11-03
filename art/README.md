@@ -76,6 +76,15 @@ draws as nothing; it draws the fallback and the console says `[art] no sheet art
 4. If it is a new art id the server sends, add it to `art.ts` and to the web manifest (`SHEET_ART` and `MANIFEST`);
    the G6 test checks both ways.
 
+## In the 2.5D view (G7)
+
+The 2.5D view (`packages/client/src/adapter/web/iso/`) draws from the same packed sheets, with no art of its own
+format. A building's box is dressed from its template: the front row on the front, `<material>_side` on the side
+walls and `<material>_gable` under the ends of the roof (the front's plain piece when a material has none). People,
+beasts and trees stand as sprites facing the camera; a person's layers are baked into one strip per look. Steep land
+shows `terrain/bank_0`/`_1`, which only the 2.5D view picks. Some props are low-poly models instead of sprites
+(`iso/models.ts`), coloured from this palette; a frame without a model stays a sprite.
+
 ## Templates
 
 A template (`tiled/templates/<id>.tmj`) dresses a generated building. Open it in Tiled with `tiled/buildings.tsj`.
