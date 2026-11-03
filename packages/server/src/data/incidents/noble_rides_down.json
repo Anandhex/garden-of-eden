@@ -1,0 +1,97 @@
+{
+ "id": "noble_rides_down",
+ "title": "A rider in the square",
+ "weight": 3,
+ "touches": [
+  "grievance",
+  "friendship"
+ ],
+ "needs": [
+  {
+   "kind": "noble"
+  }
+ ],
+ "stage": {
+  "where": "square",
+  "nudge": "Hooves and a crash in the square.",
+  "bring": ""
+ },
+ "actors": [
+  "noble",
+  "vendor"
+ ],
+ "text": "{noble}'s horse comes through the square too fast and scatters {vendor}'s goods across the mud. {noble} doesn't so much as look round.",
+ "choices": [
+  {
+   "id": "call_out",
+   "label": "Call {noble} back to pay for it",
+   "deed": "called {noble} back to pay {vendor}",
+   "effects": [
+    {
+     "type": "grievance",
+     "who": "noble",
+     "toward": "player",
+     "weight": 0.4
+    },
+    {
+     "type": "rel",
+     "who": "noble",
+     "toward": "player",
+     "respect": 4,
+     "trust": -8
+    },
+    {
+     "type": "rel",
+     "who": "vendor",
+     "toward": "player",
+     "trust": 20,
+     "affection": 10
+    },
+    {
+     "type": "favour",
+     "who": "vendor",
+     "owes": "them"
+    },
+    {
+     "type": "say",
+     "text": "{noble} reins in, gives you a long look, and throws a coin into the mud. \"Mind your tongue.\" {vendor} looks at you like you've grown a crown."
+    }
+   ]
+  },
+  {
+   "id": "help_pick_up",
+   "label": "Help pick up the goods",
+   "deed": "helped {vendor} pick up their goods",
+   "effects": [
+    {
+     "type": "time",
+     "minutes": 20
+    },
+    {
+     "type": "rel",
+     "who": "vendor",
+     "toward": "player",
+     "trust": 12,
+     "affection": 8
+    },
+    {
+     "type": "say",
+     "text": "You and {vendor} gather what can be saved."
+    }
+   ]
+  },
+  {
+   "id": "say_nothing",
+   "label": "Say nothing",
+   "deed": "said nothing when {noble} rode down {vendor}'s goods",
+   "effects": [
+    {
+     "type": "rel",
+     "who": "vendor",
+     "toward": "player",
+     "trust": -2
+    }
+   ]
+  }
+ ]
+}

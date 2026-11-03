@@ -1,0 +1,92 @@
+{
+ "id": "raid_scouts",
+ "title": "Riders on the ridge",
+ "weight": 4,
+ "touches": [
+  "friendship",
+  "debt"
+ ],
+ "needs": [
+  {
+   "kind": "arrival_due"
+  }
+ ],
+ "stage": {
+  "where": "gate",
+  "nudge": "The watch at the gate is pointing at something.",
+  "bring": "the scouts of a coming attack are seen this morning, before the night"
+ },
+ "actors": [
+  "watchman"
+ ],
+ "text": "{watchman} points you to riders on the ridge, watching the town and not hiding it. \"Scouts. {arrival}, coming tonight or tomorrow, I'd swear it.\"",
+ "choices": [
+  {
+   "id": "warn_head",
+   "label": "Take the warning to the head of the place",
+   "deed": "carried the warning of {arrival} to the head of the place",
+   "effects": [
+    {
+     "type": "standing",
+     "who": "head",
+     "amount": 5
+    },
+    {
+     "type": "rel",
+     "who": "watchman",
+     "toward": "player",
+     "trust": 15,
+     "respect": 10
+    },
+    {
+     "type": "say",
+     "text": "The head of the place hears you out, and the gate will be barred tonight."
+    }
+   ]
+  },
+  {
+   "id": "stand_watch",
+   "label": "Stand the watch with {watchman} (an hour)",
+   "deed": "stood the watch with {watchman} against {arrival}",
+   "effects": [
+    {
+     "type": "time",
+     "minutes": 60
+    },
+    {
+     "type": "rel",
+     "who": "watchman",
+     "toward": "player",
+     "trust": 20,
+     "affection": 8
+    },
+    {
+     "type": "favour",
+     "who": "watchman",
+     "owes": "them"
+    },
+    {
+     "type": "xp",
+     "amount": 8
+    },
+    {
+     "type": "say",
+     "text": "You stand the hour together. The riders go at last; {watchman} won't forget you stood with them."
+    }
+   ]
+  },
+  {
+   "id": "keep_out",
+   "label": "It's no business of yours",
+   "deed": "kept out of the town's danger",
+   "effects": [
+    {
+     "type": "rel",
+     "who": "watchman",
+     "toward": "player",
+     "respect": -6
+    }
+   ]
+  }
+ ]
+}

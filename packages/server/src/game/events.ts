@@ -115,6 +115,21 @@ export const EVENT_KINDS = [
   "appointed",
   "caught-stealing",
   "made-a-name",
+  // The first hour (N39): what the player chose in a new game's opening incident
+  "incident",
+  // Leisure and contests (N41): a cheat caught at a table, a heavy loss, a contest won, a fair, a tournament, a rematch asked for
+  "cheat-caught",
+  "gamble",
+  "contest",
+  "fair",
+  "tournament",
+  "challenge",
+  // The shared quest market (N42): a job claimed from a board, done, failed
+  "job-claimed",
+  "job-done",
+  "job-failed",
+  // A nemesis (N44): a beaten foe let go, or who ran
+  "spared",
 ] as const;
 export type EventKind = (typeof EVENT_KINDS)[number];
 

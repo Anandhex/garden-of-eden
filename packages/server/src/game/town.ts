@@ -103,6 +103,17 @@ import { killFigure, titled } from "./realm/figures.js";
 import { realmNews } from "./realm/log.js";
 import type { Figure, RealmNews } from "./realm/types.js";
 import { ITEM_TIERS, ITEMS, itemKey } from "./items.js";
+import { beginFirstHour, chooseIncident, firstHourTick, incidentView } from "./firsthour/run.js";
+import { writeIncidentLine } from "./firsthour/words.js";
+import { leisureOf } from "./leisure/events.js";
+import { TAVERN, tavernLines, tavernNight } from "./leisure/tavern.js";
+import { writeBanter } from "./leisure/words.js";
+import { mirrorQuest, syncJobs } from "./market/player.js";
+import { afterPlayerKill, bardSong, deadFigures, notableSweep, recogniseHere } from "./items/player.js";
+import { nemesisDay, survivedPlayer } from "./nemesis/day.js";
+import { dayWords, nemesesOf } from "./nemesis/model.js";
+import { writeTaunt } from "./nemesis/words.js";
+import type { SituationView } from "@millbrook/shared";
 
 const HEAD = new Set(["ruler", "lord", "mayor", "village head", "elder"]);
 
@@ -185,9 +196,29 @@ export class Town {
     const before = absoluteHour(this.world);
     advanceMinutes(this.world, minutes);
     const crossed = absoluteHour(this.world) - before;
-    if (crossed <= 0) return [];
+    if (crossed <= 0) return this.firstHourTick();
     advanceMinutes(this.world, -crossed * 60); // passHours moves the clock itself
-    return this.passHours(crossed);
+    return [...this.passHours(crossed), ...this.firstHourTick()];
+  }
+
+  /** The first hour (N39): does the opening incident break now (the player at its stage, or minute five)? Lines to show. Also, each minute, whether anyone about recognises what the player carries (N43). */
+  firstHourTick(): string[] {
+    const out = firstHourTick(this.world);
+    if (this.store && this.world.realm) {
+      notableSweep(this);
+      out.push(...recogniseHere(this));
+    }
+    return out;
+  }
+
+  /** The opening incident waiting for the player's choice, or null. */
+  incident(): SituationView | null {
+    return incidentView(this.world);
+  }
+
+  /** The player's choice in the opening incident: effects on the normal systems, and lines to show. */
+  chooseIncident(choice: string): { ok: boolean; lines: string[] } {
+    return chooseIncident(this, choice);
   }
 
   /**
@@ -465,8 +496,17 @@ export class Town {
   settleHaunts(): string[] {
     const realm = this.world.realm;
     if (!realm) return [];
+    // Who of the realm fell here (N43): what they carried is the player's to take, and a renowned foe gives the player's weapon a deed.
+    const dead = deadFigures(this.creaturesHere());
+    // Who was beaten and got away (N44): a meeting remembered, a grudge, and maybe a nemesis in the making.
+    if (config.nemesis) for (const c of Object.values(this.creaturesHere())) {
+      const t = this.templates[c.template];
+      if (c.outcome !== "fled" || c.packId || !t || !(c.figure || c.den === "camp" || c.person) || c.hp >= creatureStats(t, c).maxHp) continue;
+      survivedPlayer(this, { ...(c.figure ? { figure: c.figure } : {}), name: c.name, gang: c.figure ? (realm.figures[c.figure]?.faction ?? null) : null, outcome: "spared", companions: this.companions().length, site: this.site(), day: this.world.day });
+    }
     this.settlePeople();
-    return settleHaunts(realm, this.creaturesHere(), this.site(), this.world.player, this.world.day, this.store?.beasts, this.templates);
+    const lines = settleHaunts(realm, this.creaturesHere(), this.site(), this.world.player, this.world.day, this.store?.beasts, this.templates);
+    return [...lines, ...afterPlayerKill(this, dead)];
   }
 
   /** People on the map as creatures (raiders, ambushers, lookouts) who fell: their rows and figures die too (N26F step 0b). */
@@ -1057,10 +1097,26 @@ export class Town {
     this.stockHaunts();
     castCrowd(realm, this.creaturesHere(), this.world.day, site);
     // A new game's first day: the head of the place has work, even if nothing is pressing yet.
-    if (this.generate && !state.visited && this.world.day <= 1) log.push(...postNeedQuests(realm, this.world, site, folk, { opening: true }));
-    else log.push(...postNeedQuests(realm, this.world, site, folk));
+    if (this.generate && !state.visited && this.world.day <= 1) {
+      log.push(...postNeedQuests(realm, this.world, site, folk, { opening: true }));
+      // The first hour (N39): something already brewing in the start town breaks a few minutes in, where the player will see it.
+      if (config.firstHour && this.store && site === this.world.startSite) {
+        log.push(...beginFirstHour(this.world, this.store, site));
+        const fh = this.world.firstHour;
+        if (fh && config.director)
+          this.background.add({
+            key: `incident-line:${fh.incident}`,
+            kind: "incident-line",
+            run: async () => {
+              const told = await writeIncidentLine(this.bgLlm, fh, realm.settlements[site]?.name ?? "the town");
+              if (told && fh.state !== "done") fh.told = told;
+            },
+          });
+      }
+    } else log.push(...postNeedQuests(realm, this.world, site, folk));
     state.visited = true;
     state.lastActive = undefined;
+    log.push(...this.syncJobs());
     // The people there think over the time away: one review each, however many cycles were missed.
     if (config.review.enabled && away >= 1) this.reviews.arrive(site);
     return log;
@@ -1143,6 +1199,15 @@ export class Town {
       this.landHauls(site, d);
       // Following people (N34): friends write when something big happens to them; letters and news of them reach the player.
       log.push(...this.followDay(site, d));
+      // A nemesis lives their day (N44): chosen, prepared, rising, striking, coming for the player.
+      if (config.nemesis) {
+        log.push(...nemesisDay(this, d));
+        // The taunt in their own voice, when the model has time (N44: `taunt`); the template stands otherwise.
+        for (const n of nemesesOf(realm).list.filter((x) => x.faced === d && config.director)) {
+          const first = nemesesOf(realm).meetings[n.who]?.[0];
+          if (first) this.background.add({ key: `taunt:${n.who}`, kind: "taunt", run: async () => { const line = await writeTaunt(this.bgLlm, { name: n.name, player: this.world.player.name, place: realm.settlements[first.site ?? ""]?.name ?? "the", when: dayWords(first.day), how: first.outcome === "spared" ? "you beat them and let them go" : "they ran from you" }); if (line) n.taunt = line; } });
+        }
+      }
       // A day's hire the player stood (N26F): the place pays.
       const pay = payDuty(realm, this.world.player, d);
       if (pay) log.push(pay);
@@ -1411,12 +1476,62 @@ export class Town {
     if (this.world.day > start.day) log.push(...this.realmNights(start.day));
     this.gossipHours(start, hours);
     this.chatterHours(start, hours);
+    log.push(...this.leisureHours(start, hours));
+    log.push(...this.syncJobs());
     // The realm's packs and gangs grow and thin as the days pass: the beasts and outlaws on the map follow.
     this.stockHaunts();
     log.push(...this.takeLifeNews());
     log.push(...this.consequences());
     if (this.world.day > start.day) this.newDay(start.day);
     return log;
+  }
+
+  /** The shared quest market and the givers' boards brought together (N42): a giver's quests are jobs, and what NPC parties took is gone. */
+  syncJobs(): string[] {
+    const realm = this.world.realm;
+    if (!config.market || !realm || !this.store) return [];
+    // Every realm job on a giver's board is a job on the market.
+    for (const id of this.talkersAt(this.site())) {
+      const st = this.agents[id]?.state;
+      for (const q of st?.questBoard ?? []) if (q.id.startsWith("rq_") && !this.store.jobs.job(`q:${id}:${q.id}`)) mirrorQuest(realm, this.store, this.site(), id, q, this.world.day);
+    }
+    return syncJobs(this);
+  }
+
+  /** A line of table talk at the player's game (N41), in the background at the lowest priority; told when it comes, if it does. */
+  banter(about: Parameters<typeof writeBanter>[1]): void {
+    this.background.add({
+      key: `banter:${this.world.day}:${this.world.hour}`,
+      kind: "banter",
+      run: async () => {
+        const line = await writeBanter(this.bgLlm, about);
+        if (line) this.tell(line);
+      },
+    });
+  }
+
+  /**
+   * The evening's tables at the inn of the place the player is in (N41): played when the evening hour passes while the player is there,
+   * the same night the place's day would have played. The player sees it if they are at the inn, and hears of a brawl from anywhere.
+   */
+  private leisureHours(start: { day: number; hour: number }, hours: number): string[] {
+    const realm = this.world.realm;
+    if (!config.leisure || !realm || !this.store || this.road.onRoad() || this.world.player.area !== undefined) return [];
+    const site = this.site();
+    const done = leisureOf(realm).done;
+    const out: string[] = [];
+    const from = absoluteHour(start);
+    for (let h = from + 1; h <= from + hours; h++) {
+      const day = Math.floor(h / 24) + 1;
+      if (h % 24 !== TAVERN.hour || done[`tavern:${site}:${day}`]) continue;
+      done[`tavern:${site}:${day}`] = true;
+      const night = this.store.social.transaction(() => tavernNight({ realm, store: this.store! }, site, day));
+      out.push(...tavernLines(this.store, night, this.world.player.place === "inn"));
+      // A bard sings of a famous item (N43; N68's songs later).
+      const song = this.world.player.place === "inn" ? bardSong(realm, this.store, site) : null;
+      if (song) out.push(song);
+    }
+    return out;
   }
 
   /**

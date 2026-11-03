@@ -24,6 +24,7 @@ import { casualty, fight, settlementSide, type Side } from "./military.js";
 import { beastName } from "./names.js";
 import type { Dungeon, Figure, Pack, Realm } from "./types.js";
 import { sendArrival } from "./arrivals.js";
+import { playerGrade } from "../market/grades.js";
 
 /**
  * Beasts and dungeons (N13.6), in code.
@@ -290,11 +291,10 @@ export function dungeonsInReach(realm: Realm, from: string): Dungeon[] {
   return Object.values(realm.dungeons).filter((d) => travelDays(realm, d.near, from) <= 1);
 }
 
-/** The player's rank in the adventurers' guild, by renown. */
-export function guildRank(player: Pick<PlayerState, "renown" | "factions">): string | null {
+/** The player's rank in the adventurers' guild: their grade (N42, the same rule as every NPC adventurer's), mapped from renown at first look. */
+export function guildRank(player: Pick<PlayerState, "renown" | "factions" | "grade" | "level">): string | null {
   if (!inGuild(player)) return null;
-  const r = player.renown ?? 0;
-  return r >= 60 ? "master" : r >= 25 ? "journeyman" : "apprentice";
+  return `grade ${(player.grade ?? playerGrade(player, 0)).g}`;
 }
 
 export function inGuild(player: Pick<PlayerState, "factions">): boolean {

@@ -147,7 +147,7 @@ export interface AdminHealth {
   summary: string[];
 }
 
-export type AdminCardKind = "cast" | "figure" | "townsperson" | "beast" | "player" | "place";
+export type AdminCardKind = "cast" | "figure" | "townsperson" | "beast" | "player" | "place" | "item";
 
 /** A group of facts on a card. `rows` are [label, value, ref?]: a ref makes the value a link. */
 export type AdminSection = { title: string; rows: Array<[string, string, string?]> } | { title: string; unavailable: string };
@@ -277,6 +277,8 @@ export interface AdminPlayerView {
   standing: Record<string, number>;
   opinions: AdminOpinion[];
   beliefs: AdminBelief[];
+  /** What later phases add about the player (N39's first hour, N42's grade, N43's notable items, N44's nemeses): a titled table each. */
+  sections?: Array<{ title: string; rows: Array<[string, string]> }>;
 }
 
 export interface AdminPinned {

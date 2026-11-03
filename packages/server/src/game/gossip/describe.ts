@@ -88,6 +88,7 @@ export function describeKnown(ctx: LifeCtx, ref: string, accuracy: number, varia
   if (r.kind === "n") text = describeNews(ctx, r.id, field, alt);
   else if (r.kind === "d") text = describeDeath(ctx, r.id, field, alt);
   else if (r.kind === "e") text = describeEvent(ctx, r.id);
+  else if (r.kind === "i") text = describeItem(ctx, r.id);
   if (!text) return null;
   return accuracy < 0.5 ? `${text} (or so folk say)` : text;
 }
@@ -135,6 +136,16 @@ function describeDeath(ctx: LifeCtx, id: string, field: number, alt: number): st
   const rank = CLASS_RANK[row.cls as SocialClass] ?? 2;
   const title = row.job && row.job !== "child" && rank < 5 ? `, the ${row.job},` : "";
   return `${who}${field === 1 ? "" : title} died ${deathWords({ cause, ...(rec.note ? { note: rec.note } : {}) })}${where}`;
+}
+
+/** A notable item as someone who knows it would speak of it (N43): its name, and who has it last they heard. */
+function describeItem(ctx: LifeCtx, id: string): string | null {
+  const it = ctx.store.notables?.get(id);
+  if (!it) return null;
+  const h = JSON.parse(it.history) as Array<{ who: string; name?: string; kind: string }>;
+  const last = [...h].reverse().find((e) => e.kind !== "used" && e.kind !== "named");
+  const who = last ? (last.name ?? ctx.store.people.get(last.who)?.name ?? ctx.realm.figures[last.who]?.name) : undefined;
+  return `${it.name ?? `a fine ${it.base}`}${who ? ` is ${last!.kind === "stolen" || last!.kind === "looted" ? "in the hands of" : "held by"} ${who}` : " is lost"}`;
 }
 
 function describeEvent(ctx: LifeCtx, id: string): string | null {

@@ -1,0 +1,24 @@
+{
+ "id": "dance",
+ "name": "the dancing",
+ "kind": "dance",
+ "where": [
+  "square"
+ ],
+ "players": [
+  2,
+  30
+ ],
+ "resolve": {
+  "attribute": "agility",
+  "dice": "d20",
+  "rounds": 1
+ },
+ "renown": [
+  0,
+  0
+ ],
+ "who": {
+  "minAge": 14
+ }
+}

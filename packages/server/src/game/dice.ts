@@ -36,6 +36,20 @@ export function streamFor(seed: number, ...keys: Array<string | number>): Rng {
   return seededRng(seedFrom([seed, ...keys].join(":")));
 }
 
+/**
+ * One well-mixed 0..1 draw for `(seed, keys)`: the first draw of a fresh stream leans alike for keys that differ only a little (FNV into
+ * mulberry32: "t_x_12" and "t_x_13" start close), so a single per-person, per-day chance uses this instead.
+ */
+export function unitFor(seed: number, ...keys: Array<string | number>): number {
+  let x = (seedFrom([seed, ...keys].join(":")) ^ 0x9e3779b9) | 0;
+  x = Math.imul(x ^ (x >>> 16), 0x85ebca6b);
+  x = Math.imul(x ^ (x >>> 13), 0xc2b2ae35);
+  x ^= x >>> 16;
+  x = Math.imul(x ^ (x >>> 15), 0x2c1b3c6d);
+  x ^= x >>> 12;
+  return (x >>> 0) / 4294967296;
+}
+
 export function rollDie(rng: Rng, sides: number): number {
   return Math.floor(rng() * sides) + 1;
 }

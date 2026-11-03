@@ -11,7 +11,7 @@ import type { DatabaseSync } from "node:sqlite";
 
 /** Columns of each state table, in order: what export and the world hash read, and what import checks. */
 export const TABLES = {
-  people: ["id", "site", "n", "name", "gender", "species", "born_day", "cls", "job", "home", "work", "master", "master_id", "faction", "mother", "father", "spouse", "figure", "persona", "traits", "death", "expecting", "last_birth", "stepped_day", "outlook", "away", "skill", "shop", "origin", "captive", "renown", "epithet", "rev"],
+  people: ["id", "site", "n", "name", "gender", "species", "born_day", "cls", "job", "home", "work", "master", "master_id", "faction", "mother", "father", "spouse", "figure", "persona", "traits", "death", "expecting", "last_birth", "stepped_day", "outlook", "away", "skill", "shop", "origin", "captive", "renown", "epithet", "grade", "rev"],
   relationships: ["a", "b", "trust", "affection", "respect", "fear", "since"],
   knowledge: ["who", "ref", "learned_day", "source", "accuracy", "variant"],
   grievances: ["id", "who", "against", "cause_ref", "weight", "since", "settled"],
@@ -30,6 +30,9 @@ export const TABLES = {
   plot_years: ["plot", "year", "reaped", "lost"],
   marks: ["id", "site", "kind", "x", "y", "w", "h", "building", "ref", "label", "since", "ends", "data"],
   household_goods: ["site", "building", "slot", "item", "qty", "hidden", "owner", "ref"],
+  jobs: ["id", "site", "board", "kind", "giver", "title", "target", "tier", "reward", "posted", "deadline", "holder", "claimed_day", "status", "result", "ref"],
+  parties: ["id", "leader", "members", "roles", "shares", "formed", "disbanded", "record"],
+  notable_items: ["id", "base", "tier", "name", "named_by", "maker", "made_day", "made_site", "holder", "holder_since", "fame", "history", "lost"],
 } as const;
 export type TableName = keyof typeof TABLES;
 
@@ -54,6 +57,9 @@ export const ORDER_BY: Record<TableName, string> = {
   plot_years: "plot, year",
   marks: "id",
   household_goods: "site, building, slot, item",
+  jobs: "id",
+  parties: "id",
+  notable_items: "id",
 };
 
 const V1 = `
@@ -257,6 +263,30 @@ const MIGRATIONS: Array<(db: DatabaseSync) => void> = [
     db.exec(`
       CREATE TABLE IF NOT EXISTS household_goods (site TEXT NOT NULL, building INTEGER NOT NULL, slot TEXT NOT NULL, item TEXT NOT NULL, qty INTEGER NOT NULL,
         hidden INTEGER NOT NULL DEFAULT 0, owner TEXT, ref TEXT, PRIMARY KEY (site, building, slot, item));
+    `);
+  },
+  // 16 (N42): the shared quest market. `jobs` (every job on every board, open to the player and every NPC: who holds it, until when, how
+  // it ended), `parties` (adventurers who take jobs together: members, roles, how loot is shared, their record) and `people.grade` (JSON:
+  // a townsperson's adventurer grade and record, for the willing townsfolk who take jobs).
+  (db) => {
+    const have = new Set((db.prepare("PRAGMA table_info(people)").all() as Array<{ name: string }>).map((c) => c.name));
+    if (!have.has("grade")) db.exec("ALTER TABLE people ADD COLUMN grade TEXT");
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS jobs (id TEXT PRIMARY KEY, site TEXT NOT NULL, board TEXT NOT NULL, kind TEXT NOT NULL, giver TEXT, title TEXT NOT NULL, target TEXT,
+        tier TEXT NOT NULL, reward INTEGER NOT NULL, posted INTEGER NOT NULL, deadline INTEGER NOT NULL, holder TEXT, claimed_day INTEGER, status TEXT NOT NULL, result TEXT, ref TEXT);
+      CREATE INDEX IF NOT EXISTS jobs_site ON jobs(site, status);
+      CREATE INDEX IF NOT EXISTS jobs_status ON jobs(status);
+      CREATE TABLE IF NOT EXISTS parties (id TEXT PRIMARY KEY, leader TEXT NOT NULL, members TEXT NOT NULL, roles TEXT NOT NULL, shares TEXT NOT NULL, formed INTEGER NOT NULL, disbanded INTEGER, record TEXT NOT NULL);
+    `);
+  },
+  // 17 (N43): items with a history. A notable item is a stack of one with an id in its key (`iron sword [B] #i12`); its row says who made
+  // it, who holds it (a person, a figure, `site:<id>` where it lies, or null when lost), how famous it is, its name, and what it has been
+  // through (`history`, capped), and where and how it was lost.
+  (db) => {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS notable_items (id TEXT PRIMARY KEY, base TEXT NOT NULL, tier TEXT NOT NULL, name TEXT, named_by TEXT, maker TEXT, made_day INTEGER NOT NULL,
+        made_site TEXT, holder TEXT, holder_since INTEGER NOT NULL, fame REAL NOT NULL DEFAULT 0, history TEXT NOT NULL, lost TEXT);
+      CREATE INDEX IF NOT EXISTS notable_holder ON notable_items(holder);
     `);
   },
 ];

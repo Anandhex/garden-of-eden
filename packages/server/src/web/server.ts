@@ -1,4 +1,9 @@
 import { moodLine } from "../game/mood/model.js";
+import { startCandidates } from "../game/realm/start.js";
+import { boardView, playerClaim, playerGiveUp, playerJoinParty } from "../game/market/player.js";
+import { giveBack, itemsView } from "../game/items/player.js";
+import { leisureView, playerContest, playerGamble, playerOrganise, playerRematch, playerRig } from "../game/leisure/player.js";
+import { generateRealm } from "../game/realm/generate.js";
 import { maxSkipHours, passUntil, summaryLines, type WakeCondition } from "../game/time/pass.js";
 import { follow, unfollow } from "../game/follow/follow.js";
 import { playerWrites } from "../game/follow/letters.js";
@@ -212,9 +217,9 @@ let turnActions: AppliedAction[] = [];
 // NPC voices (T14): Piper if it's set up, else the browser speaks.
 const voice = await setUpVoice(config.voice);
 
-function startGame(fresh: boolean): void {
+function startGame(fresh: boolean, start: { seed?: number; start?: string } = {}): void {
   // The world and its database come as a pair (N18): a new one starts from an empty database and every place's people are rolled into it.
-  const opened = openWorld({ file: config.saveFile, deathsFile: config.deathsFile, templates: creatureTemplates, store, fresh });
+  const opened = openWorld({ file: config.saveFile, deathsFile: config.deathsFile, templates: creatureTemplates, store, fresh, ...start });
   world = opened.world;
   if (opened.notice) console.log(opened.notice);
   // A new world starts on its map's own start tile (the road in: maps are sized to their place since N26H), set once the town is up.
@@ -373,9 +378,9 @@ function walkMinutes(minutes: number): string[] {
   const before = absoluteHour(world);
   advanceMinutes(world, minutes);
   const crossed = absoluteHour(world) - before;
-  if (crossed <= 0) return [];
+  if (crossed <= 0) return town.firstHourTick();
   advanceMinutes(world, -crossed * 60); // passHours moves the clock itself
-  return passHours(crossed);
+  return [...passHours(crossed), ...town.firstHourTick()];
 }
 
 /** Where an NPC is (N6), or null when they're not out on the map (asleep, at home, dead or run off). */
@@ -707,6 +712,10 @@ function snapshot(): Snapshot {
     road: roadView,
     inside: insideNow,
     door: !roadView && !insideNow ? doorBeside() : null,
+    incident: town.incident(),
+    leisure: leisureView(town),
+    board: config.market ? boardView(town) : null,
+    items: itemsView(town),
     player: {
       follows: Object.entries(p.follows ?? {}).map(([id, f]) => ({ id, name: f.name, why: f.why, last: f.lastKnown ? `${f.lastKnown.dead ? "dead, heard" : `last known in ${world.realm?.settlements[f.lastKnown.site ?? ""]?.name ?? "parts unknown"}`} (day ${f.lastKnown.day}, ${f.lastKnown.how})` : "not heard of since", news: f.heard.map((h) => `day ${h.day}: ${h.text} (${h.from})`) })),
       letters: (p.letters ?? []).map((l) => ({ from: l.fromName, day: l.written, text: l.text })),
@@ -987,6 +996,49 @@ async function act(body: Record<string, unknown>, emit: Emit): Promise<void> {
     if (!lying || distance(world.position!, lying) > TALK_RANGE) return void emit({ t: "system", text: `You are too far from ${a.persona.name}.` });
     const witnesses = town.presentAt(world.player.place).filter((x) => x !== a).map((x) => x.persona.id);
     emit({ t: "note", kind: "action", text: lootBody(a.persona, a.state, world, witnesses, body.item ? String(body.item) : undefined).message });
+    for (const text of town.consequences()) emit({ t: "system", text });
+    return;
+  }
+
+  // Items with a history (N43): giving one back to the family that claims it.
+  if (action === "giveback") {
+    const r = giveBack(town, String(body.item ?? ""), String(body.npc ?? ""));
+    for (const text of r.lines) emit({ t: "note", kind: r.ok ? "action" : "fail", text });
+    return;
+  }
+
+  // The shared quest market (N42): a board job claimed or given up, an NPC party joined.
+  if (action === "claimjob" || action === "giveupjob" || action === "joinparty") {
+    const r = action === "claimjob" ? playerClaim(town, String(body.job ?? "")) : action === "giveupjob" ? playerGiveUp(town, String(body.job ?? "")) : playerJoinParty(town, String(body.party ?? ""));
+    for (const text of r.lines) emit({ t: "note", kind: r.ok ? "action" : "fail", text });
+    for (const text of town.consequences()) emit({ t: "system", text });
+    return;
+  }
+
+  // Games and contests (N41).
+  if (["gamble", "contest", "organise", "rig", "rematch"].includes(action)) {
+    const r =
+      action === "gamble"
+        ? playerGamble(town, { game: String(body.game ?? "dice"), stake: Number(body.stake ?? 0) || undefined, cheat: body.cheat === true })
+        : action === "contest"
+          ? playerContest(town, { game: String(body.game ?? ""), enter: body.enter !== false, ...(body.betOn ? { bet: { on: String(body.betOn), stake: Math.max(1, Number(body.stake ?? 10)) } } : {}) })
+          : action === "organise"
+            ? playerOrganise(town)
+            : action === "rig"
+              ? playerRig(town, { game: String(body.game ?? ""), who: String(body.who ?? "") })
+              : playerRematch(town, String(body.npc ?? ""));
+    for (const text of r.lines) emit({ t: "note", kind: r.ok ? "action" : "fail", text });
+    for (const text of town.consequences()) emit({ t: "system", text });
+    // A line of table talk at the player's game, when the model has time for it (N41: `banter`, the lowest priority).
+    const mates = action === "gamble" && r.ok && config.director ? /with (.+) for /.exec(r.lines[0] ?? "")?.[1]?.split(" and ") : undefined;
+    if (mates && mates.length > 0) town.banter({ game: String(body.game ?? "dice"), speaker: mates[0]!, others: [world.player.name, ...mates.slice(1)], how: r.lines.at(-1) ?? "the game goes on" });
+    return;
+  }
+
+  // The first hour (N39): the player's choice in the opening incident.
+  if (action === "incident") {
+    const r = town.chooseIncident(String(body.choice ?? ""));
+    for (const text of r.lines) emit({ t: "note", kind: r.ok ? "action" : "fail", text });
     for (const text of town.consequences()) emit({ t: "system", text });
     return;
   }
@@ -1862,8 +1914,23 @@ function runTick() {
   });
 }
 
-function runNew(): Promise<void> {
-  return queue.run(() => startGame(true));
+function runNew(opts: { seed?: number; start?: string } = {}): Promise<void> {
+  return queue.run(() => startGame(true, opts));
+}
+
+/** The towns a new game could begin in (N39): a seed rolled now, and the best startable towns of its realm. */
+/** `--start=<town>` (or `--start <town>`) on the command line: the town a `--new` game begins in (N39). */
+function startArg(): string | null {
+  const i = process.argv.findIndex((a) => a === "--start" || a.startsWith("--start="));
+  if (i < 0) return null;
+  const a = process.argv[i]!;
+  return a.includes("=") ? a.slice(a.indexOf("=") + 1) : (process.argv[i + 1] ?? null);
+}
+
+function startChoices(): { seed: number; choices: Array<{ id: string; name: string; line: string }> } | null {
+  if (!config.realm) return null;
+  const seed = config.realmSeed ?? Math.floor(Math.random() * 1_000_000_000);
+  return { seed, choices: startCandidates(generateRealm(seed, 1)).map((c) => ({ id: c.id, name: c.name, line: c.line })) };
 }
 
 /** An action, streamed through `emit`, ending with `done` and the new state. Through the queue. */
@@ -1877,7 +1944,7 @@ async function runAct(body: Record<string, unknown>, emit: Emit): Promise<void> 
       turnActions = [];
       try {
         // Waiting, opening a chat and fighting creatures need no model.
-        const offline = ["travel", "wait", "open", "hunt", "escape", "equip", "unequip", "look", "retrieve", "raise", "join", "dismiss", "forage", "craft", "sneak", "loot", "payfine", "surrender", "joinguild", "delve", "situation", "camp", "fasttravel", "coach", "joinjourney", "rob", "roadplace", "eat", "drink", "mount", "insult", "confront", "reportfind", "brew", "apply", "tame", "identify", "picklock", "search", "take", "leave", "follow", "unfollow", "write", "waituntil"].includes(String(body.action));
+        const offline = ["travel", "wait", "open", "hunt", "escape", "equip", "unequip", "look", "retrieve", "raise", "join", "dismiss", "forage", "craft", "sneak", "loot", "payfine", "surrender", "joinguild", "delve", "situation", "camp", "fasttravel", "coach", "joinjourney", "rob", "roadplace", "eat", "drink", "mount", "insult", "confront", "reportfind", "brew", "apply", "tame", "identify", "picklock", "search", "take", "leave", "follow", "unfollow", "write", "waituntil", "incident", "gamble", "contest", "organise", "rig", "rematch", "claimjob", "giveupjob", "joinparty", "giveback"].includes(String(body.action));
         if (!llmReady && !offline) await checkLlm();
         if (!llmReady && !offline) emit({ t: "error", text: llmError });
         else await act(body, emit);
@@ -1905,6 +1972,7 @@ const viewHost: ViewHost = {
   move: runMove,
   tick: runTick,
   newGame: runNew,
+  startChoices,
   crowd: crowdHere,
   land: () => (world.realm ? landOf(world.realm) : null),
   roadData: () => (world.realm ? roadDataOf(world.realm) : null),
@@ -2024,7 +2092,7 @@ const server = createServer(async (req, res) => {
 // One writer at a time: the save file and the database go together (N18).
 acquireSaveLock(config.saveFile);
 try {
-  startGame(process.argv.includes("--new"));
+  startGame(process.argv.includes("--new"), startArg() ? { start: startArg()! } : {});
 } catch (err) {
   if (!(err instanceof SaveMismatchError)) throw err;
   console.error(err.message);

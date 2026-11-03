@@ -1,0 +1,132 @@
+{
+ "id": "dues_collector",
+ "title": "Men at a door",
+ "weight": 3,
+ "touches": [
+  "grievance",
+  "debt",
+  "friendship"
+ ],
+ "needs": [
+  {
+   "kind": "dues"
+  }
+ ],
+ "stage": {
+  "where": "square",
+  "nudge": "Raised voices from a house by the square.",
+  "bring": "a reckoning that was due comes to the door this morning"
+ },
+ "actors": [
+  "collector",
+  "debtor"
+ ],
+ "text": "{collector} is at {debtor}'s door with two men behind, come for {owed}. {debtor} is pleading for another week; children watch from the doorway.",
+ "choices": [
+  {
+   "id": "pay_for_them",
+   "label": "Pay it for them (30 copper)",
+   "requires": {
+    "money": 30
+   },
+   "deed": "paid {owed} for {debtor}'s household",
+   "effects": [
+    {
+     "type": "money",
+     "amount": -30
+    },
+    {
+     "type": "rel",
+     "who": "debtor",
+     "toward": "player",
+     "trust": 25,
+     "affection": 15
+    },
+    {
+     "type": "favour",
+     "who": "debtor",
+     "owes": "them"
+    },
+    {
+     "type": "rel",
+     "who": "collector",
+     "toward": "player",
+     "respect": 4
+    },
+    {
+     "type": "say",
+     "text": "{collector} takes the coin and goes. {debtor} can't speak for a moment."
+    }
+   ]
+  },
+  {
+   "id": "speak_up",
+   "label": "Tell {collector} to give them the week",
+   "deed": "stood up to {collector} at {debtor}'s door",
+   "effects": [
+    {
+     "type": "check",
+     "attr": "charisma",
+     "target": 12,
+     "success": [
+      {
+       "type": "say",
+       "text": "{collector} looks you up and down, then shrugs: a week. {debtor} squeezes your arm."
+      },
+      {
+       "type": "rel",
+       "who": "debtor",
+       "toward": "player",
+       "trust": 15,
+       "affection": 8
+      },
+      {
+       "type": "grievance",
+       "who": "collector",
+       "toward": "player",
+       "weight": 0.3
+      }
+     ],
+     "fail": [
+      {
+       "type": "say",
+       "text": "{collector} tells you to mind your own business, and takes the household's pot as surety."
+      },
+      {
+       "type": "rel",
+       "who": "collector",
+       "toward": "player",
+       "trust": -6,
+       "respect": -4
+      },
+      {
+       "type": "grievance",
+       "who": "collector",
+       "toward": "player",
+       "weight": 0.35
+      },
+      {
+       "type": "rel",
+       "who": "debtor",
+       "toward": "player",
+       "trust": 6
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "leave_be",
+   "label": "Leave them to it",
+   "deed": "walked past {debtor}'s door",
+   "effects": [
+    {
+     "type": "rel",
+     "who": "debtor",
+     "toward": "player",
+     "trust": -4
+    }
+   ]
+  }
+ ]
+}

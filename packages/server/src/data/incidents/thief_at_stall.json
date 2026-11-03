@@ -1,0 +1,128 @@
+{
+ "id": "thief_at_stall",
+ "title": "A thief at a stall",
+ "weight": 3,
+ "touches": [
+  "grievance",
+  "debt",
+  "friendship"
+ ],
+ "needs": [
+  {
+   "kind": "thief"
+  }
+ ],
+ "stage": {
+  "where": "square",
+  "nudge": "A shout of \"Thief!\" from the square.",
+  "bring": "a hand in a stall's takings, caught this morning"
+ },
+ "actors": [
+  "thief",
+  "stallholder"
+ ],
+ "text": "{stallholder} has {thief} by the wrist at their stall, the takings box knocked over. \"Thief! You saw it!\" they shout at you. {thief} looks at you too, white-faced.",
+ "choices": [
+  {
+   "id": "speak_against",
+   "label": "Say you saw it",
+   "deed": "spoke against {thief} at {stallholder}'s stall",
+   "effects": [
+    {
+     "type": "rel",
+     "who": "stallholder",
+     "toward": "player",
+     "trust": 15,
+     "respect": 6
+    },
+    {
+     "type": "favour",
+     "who": "stallholder",
+     "owes": "them"
+    },
+    {
+     "type": "grievance",
+     "who": "thief",
+     "toward": "player",
+     "weight": 0.5
+    },
+    {
+     "type": "rel",
+     "who": "thief",
+     "toward": "player",
+     "trust": -15,
+     "fear": 6
+    },
+    {
+     "type": "say",
+     "text": "{stallholder} drags {thief} off to find the watch. {thief} looks back once, and you know they'll remember your face."
+    }
+   ]
+  },
+  {
+   "id": "speak_for",
+   "label": "Say it was an accident",
+   "deed": "spoke up for {thief} at {stallholder}'s stall",
+   "effects": [
+    {
+     "type": "rel",
+     "who": "thief",
+     "toward": "player",
+     "trust": 18,
+     "affection": 10
+    },
+    {
+     "type": "favour",
+     "who": "thief",
+     "owes": "them"
+    },
+    {
+     "type": "rel",
+     "who": "stallholder",
+     "toward": "player",
+     "trust": -10
+    },
+    {
+     "type": "say",
+     "text": "{stallholder} lets go with a curse. {thief} slips away, and murmurs as they pass, \"I owe you.\""
+    }
+   ]
+  },
+  {
+   "id": "pay_for_it",
+   "label": "Pay what was taken (20 copper)",
+   "requires": {
+    "money": 20
+   },
+   "deed": "paid {stallholder} what {thief} took",
+   "effects": [
+    {
+     "type": "money",
+     "amount": -20
+    },
+    {
+     "type": "rel",
+     "who": "stallholder",
+     "toward": "player",
+     "trust": 6
+    },
+    {
+     "type": "rel",
+     "who": "thief",
+     "toward": "player",
+     "trust": 12,
+     "affection": 12
+    },
+    {
+     "type": "favour",
+     "who": "thief",
+     "owes": "them"
+    },
+    {
+     "type": "say",
+     "text": "You count the coins into {stallholder}'s palm. {thief} doesn't know where to look."
+    }
+   ]
+  }
+ ]
+}

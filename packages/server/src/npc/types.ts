@@ -509,6 +509,10 @@ export interface WorldSnapshot {
   chronicleDay?: number;
   /** Marriages, courtships and children on the way (game/family.ts). */
   family?: FamilyState;
+  /** Who recognised an item the player carries, and who wants it back (N43, game/items/player.ts). */
+  itemClaims?: import("../game/items/player.js").ItemClaim[];
+  /** A new game's opening incident and what the player chose in it (N39, game/firsthour/run.ts). */
+  firstHour?: import("../game/firsthour/run.js").FirstHour;
   /** Where the world began: the start town the seed picked. Only new-game setup and the `slice` config read it. */
   startSite?: string;
   /** What each place keeps about its own day (game/site.ts), by settlement id. */
@@ -676,6 +680,12 @@ export interface PlayerState {
   walked?: string[];
   /** Food, water and rest on the road (N26 D1). */
   roadNeeds?: RoadNeeds;
+  /** The player's adventurer grade and record (N42, game/market/grades.ts): the same rule as every NPC adventurer's. */
+  grade?: import("../game/market/grades.js").GradeRecord;
+  /** The NPC party the player travels with, if they joined one (N42). */
+  party?: string;
+  /** Games and contests (N41): how many games played at inns, and the rivals beaten who want a rematch. */
+  leisure?: { games?: number; rivals?: import("../game/leisure/player.js").Rival[] };
   /** A horse or a cart (N26 D2). */
   mount?: Mount;
 }

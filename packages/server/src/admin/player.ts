@@ -4,6 +4,10 @@ import { formatMoney } from "../game/money.js";
 import { describeReputation } from "../game/reputation.js";
 import type { NpcState } from "../npc/types.js";
 import type { AdminContext } from "./context.js";
+import { eventRef } from "../game/gossip/refs.js";
+import { gradeRecord } from "../game/market/grades.js";
+import { historyOf, itemName } from "../game/items/notable.js";
+import { nemesesOf } from "../game/nemesis/model.js";
 
 /**
  * Pinning the player (N17): what each NPC currently believes about them, and who believes
@@ -62,7 +66,57 @@ export function playerView(ctx: AdminContext): AdminPlayerView {
     standing: { ...(player.standing ?? {}) },
     opinions,
     beliefs,
+    sections: playerSections(ctx),
   };
+}
+
+/** What Stage 3 adds about the player (N39's first hour; later phases add theirs here). */
+function playerSections(ctx: AdminContext): NonNullable<AdminPlayerView["sections"]> {
+  const world = ctx.world();
+  const out: NonNullable<AdminPlayerView["sections"]> = [];
+  const fh = world.firstHour;
+  if (fh) {
+    const store = ctx.town().store;
+    const heard = fh.event && store ? store.knowledge.holders(eventRef(fh.event)).length : 0;
+    out.push({
+      title: "The first hour",
+      rows: [
+        ["incident", `${fh.incident} at the ${fh.stage} (${fh.state})`],
+        ["people in it", Object.entries(fh.names).map(([role, name]) => `${name} (${role})`).join(", ")],
+        ...fh.staged.map((l): [string, string] => ["staged", l]),
+        ...(fh.deed ? [["the player", fh.deed] as [string, string], ["who know of it", `${heard}`] as [string, string]] : []),
+        ...(fh.owed?.length ? [["owe the player", fh.owed.map((id) => fh.names[Object.entries(fh.roles).find(([, x]) => x === id)?.[0] ?? ""] ?? id).join(", ")] as [string, string]] : []),
+      ],
+    });
+  }
+  // The notable items the player carries (N43): the full history of each, every hand it passed through.
+  const store = ctx.town().store;
+  if (world.realm && store) {
+    for (const it of store.notables.heldBy("player")) out.push({ title: `${itemName(it)} (item:${it.id})`, rows: historyOf(it).map((e): [string, string] => [`day ${e.day} ${e.kind}`, `${e.name ?? e.who}${e.what ? ` (${e.what})` : ""}`]) });
+  }
+  // The player's nemeses (N44): the record, what they know of the player, what they've done and mean to do.
+  if (world.realm) {
+    for (const n of (world.realm.nemeses as ReturnType<typeof nemesesOf> | undefined)?.list ?? [])
+      out.push({
+        title: `Nemesis: ${n.name} (${n.stage})`,
+        rows: [
+          ["since", `day ${n.since}${n.rank ? `; ${n.rank}` : ""}`],
+          ["meetings", ((world.realm.nemeses as ReturnType<typeof nemesesOf>).meetings?.[n.who] ?? []).map((m) => `day ${m.day} ${m.kind} (${m.outcome}, you used ${m.playerUsed.weapon ?? "?"})`).join("; ")],
+          ["knows", `weapons ${JSON.stringify(n.knows.weapons)}, companions ${n.knows.companions}, sneaks ${n.knows.sneaks}`],
+          ["prepared", n.prepared.join(", ") || "nothing yet"],
+          ["men", n.men.map((id) => world.realm!.figures[id]?.name ?? id).join(", ") || "none"],
+          ["struck", n.struck.map((s) => `day ${s.day}: ${s.what}`).join("; ") || "not yet"],
+          ["plan", `${n.step}${n.taunt ? `; will say: "${n.taunt}"` : ""}`],
+        ],
+      });
+  }
+  // The player's grade on the market (N42), by the same rule as any adventurer's.
+  const realm = world.realm;
+  if (realm) {
+    const g = gradeRecord(realm, "player", { player: world.player, peek: true });
+    out.push({ title: "Adventurer grade", rows: [["grade", `${g.g}${g.trial ? ` (trial for ${g.trial} set)` : ""}`], ["jobs", `${g.total.done} done, ${g.total.failed} failed`], ["holds", (ctx.town().store?.jobs.list((j) => j.holder === "player" && j.status === "held") ?? []).map((j) => j.title).join(", ") || "nothing"]] });
+  }
+  return out;
 }
 
 /** The player's own card: where they are and the headline numbers. */

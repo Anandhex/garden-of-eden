@@ -1,0 +1,110 @@
+{
+ "id": "runaway_servant",
+ "title": "Someone running for the gate",
+ "weight": 4,
+ "touches": [
+  "grievance",
+  "friendship",
+  "debt"
+ ],
+ "needs": [
+  {
+   "kind": "runaway"
+  }
+ ],
+ "stage": {
+  "where": "gate",
+  "nudge": "Running feet and a shout behind you at the gate.",
+  "bring": "a bound one makes their run this morning"
+ },
+ "actors": [
+  "runaway",
+  "master"
+ ],
+ "text": "{runaway}, a {bond}, is running for the gate with a bundle under one arm. Behind them {master} is shouting at you to stop them.",
+ "choices": [
+  {
+   "id": "let_pass",
+   "label": "Step aside",
+   "deed": "let {runaway} past at the gate",
+   "effects": [
+    {
+     "type": "rel",
+     "who": "runaway",
+     "toward": "player",
+     "trust": 30,
+     "affection": 15
+    },
+    {
+     "type": "favour",
+     "who": "runaway",
+     "owes": "them"
+    },
+    {
+     "type": "grievance",
+     "who": "master",
+     "toward": "player",
+     "weight": 0.5
+    },
+    {
+     "type": "rel",
+     "who": "master",
+     "toward": "player",
+     "trust": -15
+    },
+    {
+     "type": "say",
+     "text": "{runaway} is through and gone up the road. {master} reaches you, purple, and remembers your face."
+    }
+   ]
+  },
+  {
+   "id": "stop_them",
+   "label": "Catch them",
+   "deed": "caught {runaway} for {master} at the gate",
+   "effects": [
+    {
+     "type": "rel",
+     "who": "master",
+     "toward": "player",
+     "trust": 15,
+     "respect": 5
+    },
+    {
+     "type": "grievance",
+     "who": "runaway",
+     "toward": "player",
+     "weight": 0.6
+    },
+    {
+     "type": "rel",
+     "who": "runaway",
+     "toward": "player",
+     "trust": -25,
+     "fear": 10
+    },
+    {
+     "type": "say",
+     "text": "You catch {runaway} by the arm. {master} drags them back. They don't look at you again."
+    }
+   ]
+  },
+  {
+   "id": "look_away",
+   "label": "Look away",
+   "deed": "looked away as {runaway} ran",
+   "effects": [
+    {
+     "type": "rel",
+     "who": "runaway",
+     "toward": "player",
+     "trust": 4
+    },
+    {
+     "type": "say",
+     "text": "{runaway} slips past. Behind them {master} curses everyone at the gate."
+    }
+   ]
+  }
+ ]
+}

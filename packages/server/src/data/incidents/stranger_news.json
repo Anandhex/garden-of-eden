@@ -1,0 +1,92 @@
+{
+ "id": "stranger_news",
+ "title": "A stranger at the gate",
+ "weight": 1,
+ "touches": [
+  "friendship",
+  "debt"
+ ],
+ "needs": [],
+ "stage": {
+  "where": "gate",
+  "nudge": "Someone footsore is coming up the road behind you.",
+  "bring": ""
+ },
+ "actors": [
+  "stranger"
+ ],
+ "text": "{stranger}, come up from {from}, reaches the gate footsore and penniless. They have news, they say: {news}. They'd tell it all for a bite to eat.",
+ "choices": [
+  {
+   "id": "buy_meal",
+   "label": "Buy them a meal (10 copper)",
+   "requires": {
+    "money": 10
+   },
+   "deed": "fed {stranger} from {from} at the gate",
+   "effects": [
+    {
+     "type": "money",
+     "amount": -10
+    },
+    {
+     "type": "rel",
+     "who": "stranger",
+     "toward": "player",
+     "trust": 20,
+     "affection": 10
+    },
+    {
+     "type": "favour",
+     "who": "stranger",
+     "owes": "them"
+    },
+    {
+     "type": "say",
+     "text": "Over bread and broth {stranger} tells you everything: {news}. \"If you're ever in {from}, ask for me.\""
+    }
+   ]
+  },
+  {
+   "id": "point_inn",
+   "label": "Point them to the inn",
+   "deed": "pointed {stranger} from {from} to the inn",
+   "effects": [
+    {
+     "type": "rel",
+     "who": "stranger",
+     "toward": "player",
+     "trust": 5
+    },
+    {
+     "type": "say",
+     "text": "{stranger} nods and limps on toward the inn, still talking: {news}."
+    }
+   ]
+  },
+  {
+   "id": "turn_away",
+   "label": "Tell them to move along",
+   "deed": "turned {stranger} from {from} away at the gate",
+   "effects": [
+    {
+     "type": "rel",
+     "who": "stranger",
+     "toward": "player",
+     "trust": -10,
+     "respect": -3
+    },
+    {
+     "type": "grievance",
+     "who": "stranger",
+     "toward": "player",
+     "weight": 0.15
+    },
+    {
+     "type": "say",
+     "text": "{stranger} spits in the dust and goes in without you."
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,139 @@
+{
+ "id": "grudge_breaks",
+ "title": "A grudge breaks",
+ "weight": 4,
+ "touches": [
+  "grievance",
+  "friendship"
+ ],
+ "needs": [
+  {
+   "kind": "grievance",
+   "minWeight": 0.5
+  }
+ ],
+ "stage": {
+  "where": "square",
+  "nudge": "Shouting from the square.",
+  "bring": "a grudge long nursed comes to blows this morning"
+ },
+ "actors": [
+  "avenger",
+  "victim"
+ ],
+ "text": "{avenger} has {victim} up against a wall in the square, fist raised, shouting about an old wrong. People are stopping to watch; nobody steps in.",
+ "choices": [
+  {
+   "id": "step_in",
+   "label": "Step in between them",
+   "deed": "stepped in between {avenger} and {victim}",
+   "effects": [
+    {
+     "type": "check",
+     "attr": "strength",
+     "target": 11,
+     "success": [
+      {
+       "type": "say",
+       "text": "You shove between them and hold {avenger} off until the heat goes out of it."
+      },
+      {
+       "type": "rel",
+       "who": "victim",
+       "toward": "player",
+       "trust": 20,
+       "affection": 10
+      },
+      {
+       "type": "rel",
+       "who": "avenger",
+       "toward": "player",
+       "respect": 6,
+       "trust": -8
+      },
+      {
+       "type": "grievance",
+       "who": "avenger",
+       "toward": "player",
+       "weight": 0.4
+      },
+      {
+       "type": "settle",
+       "who": "avenger",
+       "toward": "victim",
+       "amount": 0.3
+      }
+     ],
+     "fail": [
+      {
+       "type": "fight",
+       "who": "avenger",
+       "power": 9
+      },
+      {
+       "type": "rel",
+       "who": "victim",
+       "toward": "player",
+       "trust": 15,
+       "affection": 8
+      },
+      {
+       "type": "grievance",
+       "who": "avenger",
+       "toward": "player",
+       "weight": 0.45
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "watch",
+   "label": "Watch",
+   "deed": "stood and watched {avenger} beat {victim}",
+   "effects": [
+    {
+     "type": "rel",
+     "who": "victim",
+     "toward": "player",
+     "trust": -6
+    },
+    {
+     "type": "say",
+     "text": "{avenger} lands two blows before the others drag them apart. {victim} looks at you on the way past."
+    }
+   ]
+  },
+  {
+   "id": "help_avenger",
+   "label": "Help {avenger}",
+   "deed": "helped {avenger} against {victim}",
+   "effects": [
+    {
+     "type": "rel",
+     "who": "avenger",
+     "toward": "player",
+     "trust": 15,
+     "affection": 8
+    },
+    {
+     "type": "grievance",
+     "who": "victim",
+     "toward": "player",
+     "weight": 0.6
+    },
+    {
+     "type": "rel",
+     "who": "victim",
+     "toward": "player",
+     "trust": -20,
+     "fear": 10
+    },
+    {
+     "type": "say",
+     "text": "You hold {victim}'s arms. {avenger} has their say, with their fists. It will be remembered."
+    }
+   ]
+  }
+ ]
+}

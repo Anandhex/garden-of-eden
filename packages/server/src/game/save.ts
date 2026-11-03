@@ -62,8 +62,11 @@ import { registerTalker, type Talker } from "./talkers.js";
  *    row of `people` (the database gains `away`, schema 5); `world.journeys` is gone.
  * 15: N33 gossip for everyone. The player keeps what they know of the wider world (`player.known`, by ref: when, how, from whom, in
  *    whose version) and the database gains `knowledge.variant` (schema 6). A v14 save loads as it is: the player knows nothing yet.
+ * 16: Stage 3, NPCs choose (N39, N41-N44): the first hour's incident (`firstHour`), leisure events (`leisure`: fairs, contest days,
+ *    tournaments), the shared quest market's parties and the player's grade, items with a history, and nemeses (`nemeses`). Every new
+ *    field is optional: a v15 save loads as it is (no opening incident, no nemesis yet); the database's new tables come by migration.
  */
-export const SAVE_VERSION = 15;
+export const SAVE_VERSION = 16;
 /** The oldest save this build can still read (older ones are set aside: N18's clean break). */
 export const MIN_SAVE_VERSION = 14;
 
@@ -114,6 +117,8 @@ export const SaveSchema = z.object({
   realm: z.unknown().optional(),
   roadLater: z.array(z.record(z.string(), z.unknown())).optional(),
   deathNotes: z.record(z.string(), z.unknown()).optional(),
+  firstHour: z.record(z.string(), z.unknown()).optional(),
+  itemClaims: z.array(z.record(z.string(), z.unknown())).optional(),
 });
 
 /** Keep the valid entries of a list (a bad one is dropped, not trusted). */
@@ -136,12 +141,15 @@ export function newWorld(
   _creatureTemplates: Record<string, CreatureTemplate> = {},
   rng: Rng = Math.random, // real time, not simulation: it picks the seed, and the seed does the rest
   seed?: number,
+  opts: { start?: string } = {},
 ): SavedWorld {
   setDynamicLore([]);
   const worldSeed = seed ?? config.realmSeed ?? Math.floor(rng() * 1_000_000_000);
   const day = 1;
   const realm = config.realm ? generateRealm(worldSeed, day) : undefined;
-  const startSite = realm ? pickStartSite(realm, worldSeed) : "start";
+  // The player may choose where to begin (N39 decision 1): a place's id or name; otherwise the seed's pick.
+  const chosen = realm && opts.start ? findSettlement(realm, opts.start) : null;
+  const startSite = realm ? (chosen ?? pickStartSite(realm, worldSeed)) : "start";
   const place = realm?.settlements[startSite]?.name ?? "the village";
   const family = freshFamily();
   family.marriages = authoredMarriages(personas);
@@ -344,12 +352,21 @@ function upgradeSave(
     talkers,
     ...(raw.roadLater ? { roadLater: raw.roadLater as unknown as SavedWorld["roadLater"] } : {}),
     ...(raw.deathNotes ? { deathNotes: raw.deathNotes as SavedWorld["deathNotes"] } : {}),
+    ...(raw.firstHour ? { firstHour: raw.firstHour as unknown as SavedWorld["firstHour"] } : {}),
+    ...(raw.itemClaims ? { itemClaims: raw.itemClaims as unknown as SavedWorld["itemClaims"] } : {}),
     ...loadRealm(raw.realm, raw.day, raw.seed),
   } as unknown as SavedWorld;
   return bindActiveSite(world) as SavedWorld;
 }
 
 const worldHas = (id: string) => worldLore().byId.has(id);
+
+/** A living settlement by id or name (any case), or null. */
+export function findSettlement(realm: Realm, idOrName: string): string | null {
+  const want = idOrName.trim().toLowerCase();
+  const s = Object.values(realm.settlements).find((x) => !x.abandoned && !x.fallen && (x.id === want || x.name.toLowerCase() === want));
+  return s?.id ?? null;
+}
 
 /** The saved realm if it's sound; otherwise (an older save, or a bad one) a new one. Off: none. */
 function loadRealm(raw: unknown, day: number, seed: number): { realm?: Realm } {

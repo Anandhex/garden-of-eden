@@ -140,6 +140,9 @@ export function killFigure(realm: Realm, f: Figure, day: number, cause: string, 
   for (const p of Object.values(realm.packs)) if (p.alpha === f.id) p.alpha = null;
   for (const o of Object.values(realm.figures)) if (o.superior === f.id) o.superior = null;
   realm.stats.deaths = (realm.stats.deaths ?? 0) + 1;
+  // What they carried (N43): to their killer when it was a figure, else it lies where they fell. Handed on in the people's day.
+  for (const item of f.items ?? []) (realm.drops ??= []).push({ item, from: f.id, to: record.killer && realm.figures[record.killer]?.alive ? record.killer : null, day, how: cause, site: f.home });
+  f.items = [];
   return true;
 }
 

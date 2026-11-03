@@ -171,6 +171,8 @@ export const FigureSchema = z.object({
   ventures: z.array(VentureSchema).optional(),
   /** What their name rests on (N69): the facts epithets are awarded from (game/office/epithets.ts). */
   repute: ReputeSchema.optional(),
+  /** The notable items they carry (N43: ids in the `notable_items` table), not their whole kit. */
+  items: z.array(z.string()).optional(),
 });
 export type Figure = z.infer<typeof FigureSchema>;
 
@@ -540,6 +542,14 @@ export const RealmSchema = z.object({
     .default({ minted: 0, sunk: 0, lines: [] }),
   /** Letters on their way, carried by travellers (N34, game/follow/letters.ts). */
   letters: z.array(z.any()).optional(),
+  /** Fairs, contest days and tournaments announced and held (N41, game/leisure/events.ts): what is coming, and what came of it. */
+  leisure: z.any().optional(),
+  /** The shared quest market's parties and adventurer grades of realm figures (N42, game/market/). */
+  market: z.any().optional(),
+  /** Notable items dropped by the dead of the realm's own day, for the people's day to hand on (N43, game/items/notable.ts). */
+  drops: z.array(z.object({ item: z.string(), from: z.string(), to: z.string().nullable(), day: z.number().int(), how: z.string(), site: z.string().nullable() })).optional(),
+  /** Nemeses of the player (N44, game/nemesis/): who, why, what they know of the player and what they plan. */
+  nemeses: z.any().optional(),
   /** Finds in the wilds the player reported to a place's head (N27, game/road/wildPlaces.ts): N63 turns them into mines and expeditions. */
   finds: z.array(z.object({ poi: z.string(), kind: z.string(), name: z.string(), reportedTo: z.string(), day: z.number().int(), paid: z.number().int() })).optional(),
   /** Every post and who holds it (N69, game/office/): `<inst>|<post>` → the office. Heads of places and factions are their `leader`. */

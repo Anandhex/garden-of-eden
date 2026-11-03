@@ -1,0 +1,34 @@
+{
+ "id": "melee",
+ "name": "the melee",
+ "kind": "joust",
+ "where": [
+  "lists"
+ ],
+ "players": [
+  4,
+  16
+ ],
+ "resolve": {
+  "skill": "one_handed",
+  "attribute": "strength",
+  "dice": "d20",
+  "rounds": 2
+ },
+ "risk": {
+  "injury": 0.12,
+  "death": 0.02
+ },
+ "renown": [
+  8,
+  2
+ ],
+ "who": {
+  "classes": [
+   "gentry",
+   "noble",
+   "royal"
+  ],
+  "minAge": 16
+ }
+}

@@ -1,0 +1,117 @@
+{
+ "id": "overturned_cart",
+ "title": "A cart over at the gate",
+ "weight": 1.5,
+ "touches": [
+  "friendship",
+  "grievance"
+ ],
+ "needs": [
+  {
+   "kind": "carter"
+  }
+ ],
+ "stage": {
+  "where": "gate",
+  "nudge": "A crash and a curse at the gate.",
+  "bring": ""
+ },
+ "actors": [
+  "carter"
+ ],
+ "text": "{carter}'s cart has gone over in the rut by the gate: a wheel off, sacks split in the mud, and the beast stamping in its traces.",
+ "choices": [
+  {
+   "id": "lift",
+   "label": "Help right it",
+   "deed": "helped {carter} right their cart at the gate",
+   "effects": [
+    {
+     "type": "check",
+     "attr": "strength",
+     "target": 11,
+     "success": [
+      {
+       "type": "say",
+       "text": "You get a shoulder under it and heave; the cart rocks back onto three wheels. {carter} grins: \"Drinks are on me, tonight.\""
+      },
+      {
+       "type": "rel",
+       "who": "carter",
+       "toward": "player",
+       "trust": 15,
+       "affection": 8
+      },
+      {
+       "type": "favour",
+       "who": "carter",
+       "owes": "them"
+      }
+     ],
+     "fail": [
+      {
+       "type": "say",
+       "text": "It slips and bangs your shin, but between you it goes back up at last."
+      },
+      {
+       "type": "hp",
+       "amount": -2
+      },
+      {
+       "type": "rel",
+       "who": "carter",
+       "toward": "player",
+       "trust": 10,
+       "affection": 5
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pocket",
+   "label": "Pocket what spilled while they swear",
+   "deed": "stole from {carter}'s spilled cart",
+   "effects": [
+    {
+     "type": "money",
+     "amount": 8
+    },
+    {
+     "type": "rel",
+     "who": "carter",
+     "toward": "player",
+     "trust": -25,
+     "respect": -10
+    },
+    {
+     "type": "grievance",
+     "who": "carter",
+     "toward": "player",
+     "weight": 0.5
+    },
+    {
+     "type": "reputation",
+     "trust": -3
+    },
+    {
+     "type": "say",
+     "text": "You scoop up a few spilled coins. {carter} sees you do it."
+    }
+   ]
+  },
+  {
+   "id": "walk_on",
+   "label": "Walk round it",
+   "deed": "walked round {carter}'s cart",
+   "effects": [
+    {
+     "type": "rel",
+     "who": "carter",
+     "toward": "player",
+     "trust": -3
+    }
+   ]
+  }
+ ]
+}

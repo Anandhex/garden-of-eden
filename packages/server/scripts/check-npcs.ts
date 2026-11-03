@@ -9,6 +9,8 @@
  */
 import { lintCast } from "../src/npc/lint.js";
 import { loadSituations } from "../src/game/road/situations.js";
+import { loadIncidents } from "../src/game/firsthour/schema.js";
+import { loadGames } from "../src/game/leisure/games.js";
 import { loadTemplates } from "../src/npc/templates.js";
 import { checkSpecies, loadSpecies } from "../src/game/nature/species.js";
 import { loadCreatureTemplates } from "../src/game/creatures.js";
@@ -24,6 +26,8 @@ try {
 }
 try {
   console.log(`Road situations: ${loadSituations().map((s) => s.id).join(", ")}`);
+  console.log(`Opening incidents (N39): ${loadIncidents().map((s) => s.id).join(", ")}`);
+  console.log(`Games (N41): ${loadGames().map((s) => s.id).join(", ")}`);
 } catch (err) {
   failed = true;
   console.error((err as Error).message);

@@ -1,0 +1,25 @@
+{
+ "id": "storytelling",
+ "name": "storytelling",
+ "kind": "show",
+ "where": [
+  "inn"
+ ],
+ "players": [
+  1,
+  4
+ ],
+ "resolve": {
+  "skill": "speechcraft",
+  "attribute": "charisma",
+  "dice": "d20",
+  "rounds": 1
+ },
+ "renown": [
+  1,
+  0
+ ],
+ "who": {
+  "minAge": 16
+ }
+}

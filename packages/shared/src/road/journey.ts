@@ -12,7 +12,7 @@ import type { RoadData, RoadPoint } from "./types.js";
  * and the stops they make.
  */
 
-export const JOURNEY_KINDS = ["market", "caravan", "kin", "work", "pilgrims", "patrol", "officials", "courier", "adventurers", "migrants", "refugees", "coach"] as const;
+export const JOURNEY_KINDS = ["market", "caravan", "kin", "work", "pilgrims", "patrol", "officials", "courier", "adventurers", "migrants", "refugees", "coach", "tourney"] as const;
 export type JourneyKind = (typeof JOURNEY_KINDS)[number];
 
 /**

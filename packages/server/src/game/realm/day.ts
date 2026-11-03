@@ -15,6 +15,9 @@ import type { WorldStore } from "../db.js";
 import { officesDay, reputeDay } from "../office/day.js";
 import { fame } from "../office/repute.js";
 import { dungeonsDay, packsDay } from "./wilds.js";
+import { leisureRealmDay } from "../leisure/events.js";
+import { marketDay } from "../market/day.js";
+import { config } from "../../config.js";
 
 /**
  * One day of the realm (N13), in this order: people age (and some die); empty
@@ -51,6 +54,10 @@ export function realmDay(realm: Realm, day: number, only?: Rng, opts: RealmDayOp
     timed("realm.wars", () => warsDay(realm, day, rng("wars")));
     timed("realm.packs", () => packsDay(realm, day, rng("packs")));
     timed("realm.dungeons", () => dungeonsDay(realm, day, rng("dungeons")));
+    // Fairs and tournaments (N41): announced, travelled to, held.
+    if (config.leisure) timed("realm.leisure", () => leisureRealmDay(realm, day, rng("leisure"), opts.store));
+    // The shared quest market (N42): jobs posted, parties formed, jobs claimed and done.
+    if (config.market && opts.store) timed("realm.market", () => marketDay(realm, opts.store!, day));
     timed("realm.succession", () => successionDay(realm, day, rng("succession-end")));
     // Support, challenges, epithets, fading renown; what the realm owes townsfolk, and those whose name is known rising (N69).
     timed("realm.repute", () => reputeDay(realm, day, opts.store, opts.live));

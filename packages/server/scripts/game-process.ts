@@ -65,6 +65,8 @@ export async function startGame(o: { env?: Record<string, string>; port?: number
       PLANNING: "off",
       SUMMARIES: "off",
       COMBAT_TICK_SECONDS: "0",
+      // The protocol tests walk and click from the first minute: the opening incident (N39) would stop them. n39 turns it on.
+      FIRST_HOUR: "off",
       ...o.env,
     },
     stdio: ["ignore", "pipe", "pipe"],

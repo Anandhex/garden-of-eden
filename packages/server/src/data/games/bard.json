@@ -1,0 +1,26 @@
+{
+ "id": "bard",
+ "name": "a bard's songs",
+ "kind": "show",
+ "where": [
+  "inn",
+  "square"
+ ],
+ "players": [
+  1,
+  3
+ ],
+ "resolve": {
+  "skill": "speechcraft",
+  "attribute": "charisma",
+  "dice": "d20",
+  "rounds": 1
+ },
+ "renown": [
+  2,
+  0
+ ],
+ "who": {
+  "minAge": 16
+ }
+}

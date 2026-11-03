@@ -1,0 +1,35 @@
+{
+ "id": "horse_race",
+ "name": "the horse race",
+ "kind": "race",
+ "where": [
+  "field"
+ ],
+ "players": [
+  3,
+  8
+ ],
+ "resolve": {
+  "skill": "animal_handling",
+  "attribute": "agility",
+  "dice": "d20",
+  "rounds": 1
+ },
+ "risk": {
+  "injury": 0.05,
+  "death": 0.003
+ },
+ "renown": [
+  5,
+  1
+ ],
+ "who": {
+  "classes": [
+   "gentry",
+   "noble",
+   "royal",
+   "merchant"
+  ],
+  "minAge": 16
+ }
+}

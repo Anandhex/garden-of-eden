@@ -1,0 +1,34 @@
+{
+ "id": "cards",
+ "name": "cards",
+ "kind": "table",
+ "where": [
+  "inn"
+ ],
+ "players": [
+  2,
+  5
+ ],
+ "stake": [
+  5,
+  40
+ ],
+ "resolve": {
+  "skill": "gambling",
+  "attribute": "intelligence",
+  "dice": "cards",
+  "rounds": 4,
+  "cheat": {
+   "skill": "sleight",
+   "attribute": "agility",
+   "against": "perception"
+  }
+ },
+ "renown": [
+  0,
+  0
+ ],
+ "who": {
+  "minAge": 16
+ }
+}

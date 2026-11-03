@@ -25,6 +25,8 @@ export const ITEMS: Record<string, ItemDef> = {
   dagger: { value: 150, tier: "E", weapon: { die: 6, skill: "one_handed" }, durability: 30 },
   "iron sword": { value: 400, tier: "D", weapon: { die: 8, skill: "one_handed" }, durability: 50 },
   cudgel: { value: 80, tier: "F", weapon: { die: 6, skill: "blunt" }, durability: 25 },
+  // A long reach, two hands (N44: a nemesis learns to meet it with a shield).
+  spear: { value: 250, tier: "E", weapon: { die: 8, skill: "two_handed" }, durability: 45 },
   "miner's pick": { value: 150, tier: "F", weapon: { die: 5, skill: "blunt" }, durability: 60 },
   "forge hammer": { value: 600, tier: "C", weapon: { die: 8, skill: "blunt" }, durability: 80 },
   // What a child (or anyone with nothing better) swings: barely a weapon.
@@ -32,6 +34,8 @@ export const ITEMS: Record<string, ItemDef> = {
   // Armour
   "leather armor": { value: 300, tier: "F", armor: 1, durability: 40 },
   "chain mail": { value: 1500, tier: "D", armor: 3, durability: 80 },
+  // Worn in the armour slot: it turns a thrust (N44's counter to a spear).
+  "wooden shield": { value: 200, tier: "E", armor: 2, durability: 50 },
   // Smithing
   horseshoe: { value: 20, tier: "G" },
   "iron ore": { value: 60, tier: "F" },
@@ -147,6 +151,8 @@ export interface ParsedItem {
   /** Gear only: hits left, and the most it can have at this tier. */
   durability?: number;
   maxDurability?: number;
+  /** A notable item's id (N43, game/items/notable.ts): the stack of one this key is, with a history. */
+  id?: string;
 }
 
 /** Each tier above an item's base multiplies its value (and NPC prices) by this; each tier below divides. */
@@ -159,28 +165,33 @@ export function maxDurability(def: ItemDef, tier: ItemTier): number | undefined 
 
 /**
  * "iron sword" + "B" → "iron sword [B]". Defaults to the item's base tier.
- * With `durability` below the maximum: "iron sword [B] (12/112)".
+ * With `durability` below the maximum: "iron sword [B] (12/112)". A notable item (N43) carries its id: "iron sword [B] #i12".
  */
-export function itemKey(name: string, tier?: ItemTier, durability?: number): ItemKey {
+export function itemKey(name: string, tier?: ItemTier, durability?: number, id?: string): ItemKey {
   const t = tier ?? ITEMS[name]?.tier ?? "G";
   const def = ITEMS[name];
   const max = def ? maxDurability(def, t) : undefined;
   const worn = max !== undefined && durability !== undefined && durability < max;
-  return `${name} [${t}]${worn ? ` (${Math.max(0, durability)}/${max})` : ""}`;
+  return `${name} [${t}]${worn ? ` (${Math.max(0, durability)}/${max})` : ""}${id ? ` #${id}` : ""}`;
 }
 
-/** Parse "iron sword [B]", "iron sword [B] (12/112)" or "iron sword". Undefined if it isn't a known item or tier. */
+/** The notable id in a key ("iron sword [B] #i12" → "i12"), or undefined for an ordinary item. */
+export const notableIdOf = (key: string): string | undefined => /\s#(i\d+)$/.exec(key.trim())?.[1];
+
+/** Parse "iron sword [B]", "iron sword [B] (12/112)", "iron sword [B] #i12" or "iron sword". Undefined if it isn't a known item or tier. */
 export function parseItem(keyOrName: string): ParsedItem | undefined {
-  const m = keyOrName.trim().match(/^(.*?)\s*\[(\w+)\](?:\s*\((\d+)\/\d+\))?$/);
-  const name = (m ? m[1]! : keyOrName).trim();
+  const id = notableIdOf(keyOrName);
+  const bare = id ? keyOrName.trim().replace(/\s#i\d+$/, "") : keyOrName;
+  const m = bare.trim().match(/^(.*?)\s*\[(\w+)\](?:\s*\((\d+)\/\d+\))?$/);
+  const name = (m ? m[1]! : bare).trim();
   const def = ITEMS[name];
   if (!def) return undefined;
   const tier = (m ? m[2]! : def.tier) as ItemTier;
   if (!ITEM_TIERS.includes(tier)) return undefined;
   const max = maxDurability(def, tier);
-  if (max === undefined) return { key: itemKey(name, tier), name, tier, def };
+  if (max === undefined) return { key: itemKey(name, tier, undefined, id), name, tier, def, ...(id ? { id } : {}) };
   const durability = m?.[3] !== undefined ? Math.min(max, Number(m[3])) : max;
-  return { key: itemKey(name, tier, durability), name, tier, def, durability, maxDurability: max };
+  return { key: itemKey(name, tier, durability, id), name, tier, def, durability, maxDurability: max, ...(id ? { id } : {}) };
 }
 
 /** Weapons and armour: they're equipped, wear out, and each takes a whole pack slot. */

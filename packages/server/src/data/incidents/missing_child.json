@@ -1,0 +1,119 @@
+{
+ "id": "missing_child",
+ "title": "A child missing",
+ "weight": 4,
+ "touches": [
+  "friendship",
+  "debt"
+ ],
+ "needs": [
+  {
+   "kind": "child"
+  }
+ ],
+ "stage": {
+  "where": "square",
+  "nudge": "A woman is going door to door, calling a name.",
+  "bring": "a child wanders off at first light"
+ },
+ "actors": [
+  "child",
+  "mother"
+ ],
+ "text": "{mother} is going door to door, calling. {child} hasn't been seen since first light, and the woods come right down to the fields.",
+ "choices": [
+  {
+   "id": "search",
+   "label": "Go looking (most of an hour)",
+   "deed": "went looking for {mother}'s child {child}",
+   "effects": [
+    {
+     "type": "time",
+     "minutes": 45
+    },
+    {
+     "type": "check",
+     "attr": "perception",
+     "target": 10,
+     "success": [
+      {
+       "type": "say",
+       "text": "You find {child} asleep in a hay barn at the edge of the fields and carry them back. {mother} weeps into your coat."
+      },
+      {
+       "type": "rel",
+       "who": "mother",
+       "toward": "player",
+       "trust": 30,
+       "affection": 20
+      },
+      {
+       "type": "rel",
+       "who": "child",
+       "toward": "player",
+       "trust": 20,
+       "affection": 15
+      },
+      {
+       "type": "favour",
+       "who": "mother",
+       "owes": "them"
+      },
+      {
+       "type": "xp",
+       "amount": 10
+      }
+     ],
+     "fail": [
+      {
+       "type": "say",
+       "text": "You search the hedges and the woods' edge without luck. A neighbour finds {child} asleep in a barn. {mother} still thanks you for looking."
+      },
+      {
+       "type": "rel",
+       "who": "mother",
+       "toward": "player",
+       "trust": 10,
+       "affection": 6
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ask_about",
+   "label": "Ask about, then go on",
+   "deed": "asked about for {mother}'s child",
+   "effects": [
+    {
+     "type": "time",
+     "minutes": 10
+    },
+    {
+     "type": "rel",
+     "who": "mother",
+     "toward": "player",
+     "trust": 6
+    },
+    {
+     "type": "say",
+     "text": "Nobody has seen {child}. By noon a neighbour finds them asleep in a barn."
+    }
+   ]
+  },
+  {
+   "id": "not_mine",
+   "label": "Not your business",
+   "deed": "would not look for {mother}'s child",
+   "effects": [
+    {
+     "type": "rel",
+     "who": "mother",
+     "toward": "player",
+     "trust": -8,
+     "affection": -4
+    }
+   ]
+  }
+ ]
+}

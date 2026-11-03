@@ -1,0 +1,24 @@
+{
+ "id": "strongman",
+ "name": "the strongman's lift",
+ "kind": "contest",
+ "where": [
+  "square"
+ ],
+ "players": [
+  2,
+  8
+ ],
+ "resolve": {
+  "attribute": "strength",
+  "dice": "d20",
+  "rounds": 3
+ },
+ "renown": [
+  3,
+  1
+ ],
+ "who": {
+  "minAge": 16
+ }
+}

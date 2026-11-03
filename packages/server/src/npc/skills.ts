@@ -34,6 +34,9 @@ export const SKILLS = [
   // Stealth
   "sneak",
   "lockpicking",
+  // Games (N41): playing and reading a table, and quick hands (cheating at it; picking pockets later)
+  "gambling",
+  "sleight",
 ] as const;
 export type Skill = (typeof SKILLS)[number];
 
@@ -73,6 +76,8 @@ const LABELS: Record<Skill, string> = {
   animal_handling: "handling animals",
   sneak: "sneaking",
   lockpicking: "lockpicking",
+  gambling: "games of chance",
+  sleight: "sleight of hand",
 };
 
 /** "master at smithing, expert at blunt weapons, novice at foraging" - best first, untrained left out. */

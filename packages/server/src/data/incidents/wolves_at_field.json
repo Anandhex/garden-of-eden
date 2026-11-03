@@ -1,0 +1,116 @@
+{
+ "id": "wolves_at_field",
+ "title": "Beasts at the edge field",
+ "weight": 3,
+ "touches": [
+  "friendship",
+  "debt"
+ ],
+ "needs": [
+  {
+   "kind": "pack_near"
+  }
+ ],
+ "stage": {
+  "where": "gate",
+  "nudge": "Someone is running in from the fields toward the gate.",
+  "bring": "the pack that roams these fields comes down to the flock this morning"
+ },
+ "actors": [
+  "farmer"
+ ],
+ "text": "{farmer} comes running in at the gate, out of breath: {pack}s are at the beasts in the edge field. \"Help me, for pity's sake, they'll have the lot!\"",
+ "choices": [
+  {
+   "id": "drive_off",
+   "label": "Run out and drive them off",
+   "deed": "drove the {pack}s off {farmer}'s field",
+   "effects": [
+    {
+     "type": "check",
+     "attr": "strength",
+     "target": 12,
+     "success": [
+      {
+       "type": "say",
+       "text": "You charge with a stave, shouting, and the {pack}s break and slink off into the trees. {farmer} counts the flock twice: all there."
+      },
+      {
+       "type": "rel",
+       "who": "farmer",
+       "toward": "player",
+       "trust": 25,
+       "affection": 10
+      },
+      {
+       "type": "favour",
+       "who": "farmer",
+       "owes": "them"
+      },
+      {
+       "type": "xp",
+       "amount": 10
+      }
+     ],
+     "fail": [
+      {
+       "type": "fight",
+       "who": "farmer",
+       "power": 10
+      },
+      {
+       "type": "say",
+       "text": "The {pack}s go in the end, taking one beast with them. {farmer} still thanks you."
+      },
+      {
+       "type": "rel",
+       "who": "farmer",
+       "toward": "player",
+       "trust": 12,
+       "affection": 5
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "raise_alarm",
+   "label": "Raise the alarm in town",
+   "deed": "raised the alarm for {farmer}'s field",
+   "effects": [
+    {
+     "type": "rel",
+     "who": "farmer",
+     "toward": "player",
+     "trust": 10
+    },
+    {
+     "type": "standing",
+     "who": "head",
+     "amount": 3
+    },
+    {
+     "type": "say",
+     "text": "Men come out with staves and dogs. Two beasts are lost, but the rest are saved."
+    }
+   ]
+  },
+  {
+   "id": "stay_out",
+   "label": "It's not your flock",
+   "deed": "left {farmer} to the {pack}s",
+   "effects": [
+    {
+     "type": "rel",
+     "who": "farmer",
+     "toward": "player",
+     "trust": -8
+    },
+    {
+     "type": "say",
+     "text": "{farmer} runs back alone."
+    }
+   ]
+  }
+ ]
+}

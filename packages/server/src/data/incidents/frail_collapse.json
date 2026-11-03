@@ -1,0 +1,126 @@
+{
+ "id": "frail_collapse",
+ "title": "An old one falls",
+ "weight": 2,
+ "touches": [
+  "friendship",
+  "debt"
+ ],
+ "needs": [
+  {
+   "kind": "frail"
+  }
+ ],
+ "stage": {
+  "where": "square",
+  "nudge": "Someone is calling for help in the square.",
+  "bring": "an old body's last strength gives out this morning"
+ },
+ "actors": [
+  "elder",
+  "kin"
+ ],
+ "text": "{elder}, bent with years, has gone down on the stones of the square, grey-lipped and gasping. {kin} kneels beside them, calling for someone, anyone, to help.",
+ "choices": [
+  {
+   "id": "carry_home",
+   "label": "Carry {elder} home and sit with them (an hour)",
+   "deed": "carried {elder} home when they fell in the square",
+   "effects": [
+    {
+     "type": "time",
+     "minutes": 60
+    },
+    {
+     "type": "rel",
+     "who": "kin",
+     "toward": "player",
+     "trust": 18,
+     "affection": 12
+    },
+    {
+     "type": "rel",
+     "who": "elder",
+     "toward": "player",
+     "trust": 12,
+     "affection": 8
+    },
+    {
+     "type": "favour",
+     "who": "kin",
+     "owes": "them"
+    },
+    {
+     "type": "reputation",
+     "trust": 2,
+     "affection": 2
+    },
+    {
+     "type": "say",
+     "text": "You carry {elder} home between you. By the end of the hour their breathing has eased, and {kin} won't stop thanking you."
+    }
+   ]
+  },
+  {
+   "id": "fetch_healer",
+   "label": "Run for the healer",
+   "deed": "ran for the healer when {elder} fell in the square",
+   "effects": [
+    {
+     "type": "time",
+     "minutes": 20
+    },
+    {
+     "type": "rel",
+     "who": "kin",
+     "toward": "player",
+     "trust": 12,
+     "affection": 6
+    },
+    {
+     "type": "favour",
+     "who": "kin",
+     "owes": "them"
+    },
+    {
+     "type": "xp",
+     "amount": 5
+    },
+    {
+     "type": "say",
+     "text": "You find the healer and bring them at a run. {kin} grips your hand: \"I won't forget this.\""
+    }
+   ]
+  },
+  {
+   "id": "walk_on",
+   "label": "Walk on",
+   "deed": "walked past when {elder} fell in the square",
+   "effects": [
+    {
+     "type": "rel",
+     "who": "kin",
+     "toward": "player",
+     "trust": -12,
+     "respect": -6
+    },
+    {
+     "type": "grievance",
+     "who": "kin",
+     "toward": "player",
+     "weight": 0.25
+    },
+    {
+     "type": "death",
+     "who": "elder",
+     "chance": 0.4,
+     "cause": "old-age"
+    },
+    {
+     "type": "say",
+     "text": "You walk on. Behind you, {kin}'s voice cracks."
+    }
+   ]
+  }
+ ]
+}

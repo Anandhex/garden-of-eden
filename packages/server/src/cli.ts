@@ -86,12 +86,20 @@ import { ABILITIES, abilitiesFor, parseAbility } from "./game/abilities.js";
 import { dismiss } from "./game/party.js";
 import { creatureAmbush } from "./game/creatures.js";
 import { bornAge, bornKids, familyOf, propose } from "./game/family.js";
+import { boardView, playerClaim, playerGiveUp, playerJoinParty } from "./game/market/player.js";
+import { contestToday, playerContest, playerGamble, playerOrganise, playerRematch } from "./game/leisure/player.js";
 
 // The world is generated from a seed and begins at the gate of a start town; nobody is hand-written. `npm run chat -- <name>`
 // starts the conversation with someone of that name there (the head of the place by default).
 const newGame = argv.includes("--new");
+// The town a new game begins in (N39): `--start=<name>` or `--start <name>`; otherwise the seed's pick.
+const startAt = (() => {
+  const i = argv.findIndex((a) => a === "--start" || a.startsWith("--start="));
+  if (i < 0) return undefined;
+  return argv[i]!.includes("=") ? argv[i]!.slice(argv[i]!.indexOf("=") + 1) : argv[i + 1];
+})();
 const nameArg = argv.find((arg) => arg.startsWith("--name="))?.slice("--name=".length);
-const wanted = argv.find((arg) => !arg.startsWith("--") && arg !== argv[0] && arg !== argv[1]);
+const wanted = argv.find((arg, i) => !arg.startsWith("--") && arg !== argv[0] && arg !== argv[1] && argv[i - 1] !== "--start");
 /** Everyone who talks, by id: the town fills it as people are made or met. */
 const personas: Record<string, NpcPersona> = {};
 /** Display names by id, for the journal (people made in play are added as they come). */
@@ -107,7 +115,7 @@ const store = new WorldStore(config.dbFile, await pickEmbedder(new OllamaEmbedde
 // The world and its database come as a pair (N18); a new world starts from an empty database.
 let opened: ReturnType<typeof openWorld>;
 try {
-  opened = openWorld({ file: config.saveFile, deathsFile: config.deathsFile, templates: creatureTemplates, store, fresh: newGame });
+  opened = openWorld({ file: config.saveFile, deathsFile: config.deathsFile, templates: creatureTemplates, store, fresh: newGame, ...(startAt ? { start: startAt } : {}) });
 } catch (err) {
   if (!(err instanceof SaveMismatchError)) throw err;
   console.error(err.message);
@@ -221,7 +229,7 @@ console.log(
     `/commission <item>, /collect, /journal [npc], /quests, /turnin, /wait <hours>, /use <item>, /haggle <words>, /persuade <words>, /intimidate <words>, ` +
     `/attack, /flee, /train <skill> [hours], /skills, /gear, /equip <item>, /unequip <weapon|armor>, /repair <weapon|armor|item>, ` +
     `/creatures, /hunt <creature>, /escape <creature>, /state, /save, /trust <-100..100>, /quit\n` +
-    `  Social web: /steal <item>, /sneak, /loot <npc> [item], /choose <option>, /payfine, /surrender, /join <faction>, /factions, /reputation\n` +
+    `  Social web: /steal <item>, /sneak, /loot <npc> [item], /choose <option>, /incident <n> (the first hour), /gamble [game] [stake] [cheat], /contest [game] [bet n|watch], /organise, /rematch <name>, /board, /claim <n>, /joinparty <n>, /payfine, /surrender, /join <faction>, /factions, /reputation\n` +
     `  Fighting: /subdue, /ability <name>, /dismiss (a companion), /party. Work: /forage, /craft <item>, /raise <attribute>. The world: /chronicle, /family, /propose\n` +
     `  The realm: /realm [place], /factions all, /news, /joinguild, /delve [dungeon], /routes, /travel <place>\n` +
     `  The townsfolk: /people [class|job|name] (who lives here and who's out), /meet <name> (talk to one of them)\n`,
@@ -612,8 +620,16 @@ if (config.planning) town.queuePlans();
 await arrive();
 
 let frame: EventFrame | null = null;
+/** The opening incident (N39) is shown once when it breaks; `/incident <n>` chooses. */
+let incidentShown = false;
 while (!world.player.death) {
   if (frame) printEvents(frame);
+  const incident = town.incident();
+  if (incident && !incidentShown) {
+    incidentShown = true;
+    console.log(`\n  == ${incident.title} ==\n  ${incident.text}`);
+    incident.choices.forEach((c, i) => console.log(`    /incident ${i + 1}  ${c.label}${c.hint ? ` (${c.hint})` : ""}`));
+  }
   let line: string | null;
   try {
     line = await readLine();
@@ -647,6 +663,54 @@ while (!world.player.death) {
   }
   if (line === "/state") {
     console.log({ npc: npc.state, player: world.player });
+    continue;
+  }
+  // The jobs board (N42): /board, /claim <n>, /giveup <n>, /joinparty <n>.
+  if (line === "/board" || line.startsWith("/claim") || line.startsWith("/giveup") || line.startsWith("/joinparty")) {
+    const b = boardView(town);
+    const n = Number(line.split(/\s+/)[1]) - 1;
+    let r: { ok: boolean; lines: string[] };
+    if (!b) r = { ok: false, lines: ["There's no board here."] };
+    else if (line === "/board")
+      r = { ok: true, lines: [`Your grade: ${b.grade}${b.trial ? ` (a ${b.trial}-grade trial set)` : ""}.`, ...b.jobs.map((j, i) => `${i + 1}. [${j.tier}] ${j.title}, ${j.reward}c: ${j.status === "open" ? (j.byGiver ? "ask whoever posted it" : "open") : `held by ${j.holder}`}`), ...b.parties.map((p, i) => `party ${i + 1}: ${p.leader}'s [${p.grade}] ${p.members.join(", ")}${p.job ? ` on "${p.job}"` : ""}`)] };
+    else if (line.startsWith("/joinparty")) r = b.parties[n] ? playerJoinParty(town, b.parties[n]!.id) : { ok: false, lines: ["Which party? (/board lists them)"] };
+    else r = b.jobs[n] ? (line.startsWith("/claim") ? playerClaim(town, b.jobs[n]!.id) : playerGiveUp(town, b.jobs[n]!.id)) : { ok: false, lines: ["Which job? (/board lists them)"] };
+    for (const l of r.lines) console.log(`  ${l}`);
+    for (const l of town.consequences()) console.log(`  [${l}]`);
+    persist();
+    continue;
+  }
+  // Games and contests (N41): /gamble [game] [stake] [cheat], /contest <game> [bet <stake>] [watch], /organise, /rematch <name>.
+  if (line.startsWith("/gamble") || line.startsWith("/contest") || line === "/organise" || line.startsWith("/rematch")) {
+    const words = line.split(/\s+/).slice(1);
+    let r: { ok: boolean; lines: string[] };
+    if (line.startsWith("/gamble")) r = playerGamble(town, { game: words[0] ?? "dice", stake: Number(words[1]) || undefined, cheat: words.includes("cheat") });
+    else if (line.startsWith("/contest")) {
+      const today = contestToday(town);
+      if (!words[0]) r = { ok: true, lines: today.length > 0 ? today.map((c) => `${c.game}: ${c.name}${c.held ? " (held)" : ""}${c.favourite ? `, ${c.favourite.name} the favourite` : ""}`) : ["No contests here today."] };
+      else {
+        const fav = today.find((c) => c.game === words[0])?.favourite;
+        const bet = words.indexOf("bet");
+        r = playerContest(town, { game: words[0], enter: !words.includes("watch"), ...(bet >= 0 && fav ? { bet: { on: fav.id, stake: Number(words[bet + 1]) || 10 } } : {}) });
+      }
+    } else if (line === "/organise") r = playerOrganise(town);
+    else {
+      const rival = (world.player.leisure?.rivals ?? []).find((x) => !x.rematch && x.name.toLowerCase().includes((words[0] ?? "").toLowerCase()));
+      r = rival ? playerRematch(town, rival.who) : { ok: false, lines: ["Nobody by that name wants a rematch."] };
+    }
+    for (const l of r.lines) console.log(`  ${l}`);
+    for (const l of town.consequences()) console.log(`  [${l}]`);
+    persist();
+    continue;
+  }
+  if (line.startsWith("/incident")) {
+    const pend = town.incident();
+    const arg = line.slice("/incident".length).trim();
+    const pick = pend ? (pend.choices[Number(arg) - 1] ?? pend.choices.find((c) => c.id === arg)) : undefined;
+    const r = pick ? town.chooseIncident(pick.id) : { ok: false, lines: [pend ? `Choose 1 to ${pend.choices.length}.` : "There's nothing to decide."] };
+    for (const l of r.lines) console.log(`  ${l}`);
+    for (const l of town.consequences()) console.log(`  [${l}]`);
+    persist();
     continue;
   }
   const fighting = npc.state.inCombat || (cliEngaged !== null && !creatureHere(cliEngaged)?.outcome);

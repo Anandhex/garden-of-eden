@@ -16,7 +16,7 @@ export interface ParsedRef {
   id: string;
 }
 
-const PREFIX: Record<string, AdminCardKind> = { cast: "cast", figure: "figure", town: "townsperson", beast: "beast", place: "place" };
+const PREFIX: Record<string, AdminCardKind> = { cast: "cast", figure: "figure", town: "townsperson", beast: "beast", place: "place", item: "item" };
 
 export function parseRef(ref: string): ParsedRef | null {
   if (ref === "player") return { kind: "player", id: "player" };
@@ -49,6 +49,8 @@ export function siteOfRef(ctx: AdminContext, ref: string): string | null {
       return world.player.site ?? null;
     case "place":
       return p.id;
+    case "item":
+      return ctx.town().store?.notables.get(p.id)?.made_site ?? null;
     case "figure":
       return world.realm?.figures[p.id]?.home ?? null;
     case "townsperson":
@@ -87,5 +89,7 @@ export function nameOfRef(ctx: AdminContext, ref: string): string {
     }
     case "beast":
       return findCreature(world, p.id)?.creature.name ?? p.id;
+    case "item":
+      return ctx.town().store?.notables.get(p.id)?.name ?? p.id;
   }
 }

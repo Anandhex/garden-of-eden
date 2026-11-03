@@ -238,6 +238,39 @@ export interface RoadLeg {
 }
 
 /** Something to stop for on the road (N26): a situation waiting for a choice. */
+/** Games and contests where the player is (N41): the inn's tables in the evening, today's contests, rivals who want a rematch. */
+export interface LeisureView {
+  inn: boolean;
+  atInn: boolean;
+  evening: boolean;
+  tables: Array<{ id: string; name: string; stake: number; cheat: boolean }>;
+  contest: Array<{ game: string; name: string; held: boolean; favourite: { id: string; name: string } | null }>;
+  inSquare: boolean;
+  rivals: Array<{ id: string; name: string; game: string; here: boolean }>;
+  /** What putting on a contest day here costs, or null where nobody can. */
+  organise: number | null;
+}
+
+/** The jobs board where the player is (N42): every job and who holds it, the player's grade, the parties who take jobs. */
+export interface BoardView {
+  grade: string;
+  done: number;
+  trial: string | null;
+  jobs: Array<{ id: string; title: string; tier: string; reward: number; status: string; holder: string; mine: boolean; claimable: boolean; byGiver: boolean }>;
+  recent: Array<{ title: string; by: string }>;
+  parties: Array<{ id: string; leader: string; members: string[]; grade: string; job: string | null; here: boolean; record: { done: number; failed: number; deaths: number; earned: number } }>;
+}
+
+/** An item with a history the player carries (N43): what they know of it, and who has a claim on it. */
+export interface NotableView {
+  id: string;
+  name: string;
+  base: string;
+  tier: string;
+  history: string[];
+  claims: Array<{ who: string; name: string; line: string; wants: boolean }>;
+}
+
 export interface SituationView {
   id: string;
   title: string;
@@ -378,6 +411,14 @@ export interface Snapshot {
   inside?: InsideView | null;
   /** A building's door next to the player (N32), and whether it's locked to them now. */
   door?: { building: number; name: string; locked: boolean } | null;
+  /** A new game's opening incident waiting for the player's choice (N39): shown like a choice on the road. */
+  incident?: SituationView | null;
+  /** Games and contests where the player is (N41). */
+  leisure?: LeisureView | null;
+  /** The jobs board where the player is, and the parties about (N42). */
+  board?: BoardView | null;
+  /** The player's things with a history, as far as they know them (N43). */
+  items?: NotableView[];
   player: PlayerView;
   chronicle: { lore: string[]; log: Array<{ day: number; kind: string; ok: boolean; reason: string; proposal: string; event?: string }> };
   /** Marriages, courtships, children on the way and children born in play (N11.3), in words. */

@@ -80,8 +80,11 @@ export function learn(ctx: LifeCtx, who: string, ref: string, o: Learned): boole
   k.put({ who, ref, learned_day: had?.learned_day ?? o.day, source: had?.source ?? o.source, accuracy: Math.round(o.accuracy * 100) / 100, variant: o.variant ?? 0 });
   // Only what they knew by this day counts toward what they can hold: a place caught up late already has the rows of later days (news a
   // traveller brought on day 13 when day 11 is being worked out), and they must not decide what is forgotten on day 11.
-  const rows = [...k.rowsOf(who)].filter((r) => r.learned_day <= o.day);
-  if (!had && rows.length > KNOWLEDGE_CAP) {
+  const all = [...k.rowsOf(who)];
+  const rows = all.filter((r) => r.learned_day <= o.day);
+  // Over the cap by what they knew by this day, or over it at all (rows from later days that came in first): forget the least worth
+  // telling of what they knew by this day, so nobody ever holds more than the cap.
+  if (!had && (rows.length > KNOWLEDGE_CAP || all.length > KNOWLEDGE_CAP) && rows.length > 0) {
     let worst = rows[0]!;
     let low = Infinity;
     for (const r of rows) {

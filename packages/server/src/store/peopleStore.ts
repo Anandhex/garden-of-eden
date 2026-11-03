@@ -68,6 +68,8 @@ export interface PersonRow {
   renown?: number | null;
   /** A repute title earned in office (N69: a `TITLES` id of kind "repute"), or null. */
   epithet?: string | null;
+  /** JSON: their adventurer grade and record (N42, game/market/grades.ts), for townsfolk who take jobs; null for most. */
+  grade?: string | null;
   /** Bumped by every flush that writes the row. */
   rev: number;
 }
@@ -98,7 +100,7 @@ const COLUMNS = TABLES.people;
 const INSERT = `INSERT OR REPLACE INTO people (${COLUMNS.join(", ")}) VALUES (${COLUMNS.map(() => "?").join(", ")})`;
 
 /** Columns whose change leaves a place's roster as it was. */
-const QUIET = new Set(["persona", "traits", "expecting", "last_birth", "stepped_day", "spouse", "mother", "father", "figure", "outlook", "skill", "renown", "epithet"]);
+const QUIET = new Set(["persona", "traits", "expecting", "last_birth", "stepped_day", "spouse", "mother", "father", "figure", "outlook", "skill", "renown", "epithet", "grade"]);
 const values = (r: PersonRow) => COLUMNS.map((c) => r[c] ?? null) as Array<string | number | null>;
 const dayOfDeath = (cell: string): number => {
   try {
