@@ -1,4 +1,4 @@
-import { interiorOf, interiorWalkable, spotFor, type CrowdDay, type CrowdSim, type Furniture, type Household, type Interior } from "@millbrook/shared";
+import { interiorOf, interiorWalkable, ITILE, floorTiles, spotFor, type CrowdDay, type CrowdSim, type Furniture, type Household, type Interior } from "@millbrook/shared";
 import type { NpcPersona, NpcSecret, PlayerState } from "../../npc/types.js";
 import { learnSecret } from "../../npc/secrets.js";
 import { skillLevel } from "../../npc/skills.js";
@@ -28,6 +28,8 @@ export interface InsideState {
   building: number;
   x: number;
   y: number;
+  /** The floor (G7 Part B): absent on the ground floor. */
+  floor?: number;
   /** Came in uninvited: trespassing while here. */
   trespass?: boolean;
   /** Hidden slots found by searching. */
@@ -93,10 +95,10 @@ export function interiorAt(c: InsideCtx, building: number): Interior {
 }
 
 /** Who is inside a building now, and where: from the crowd (asleep in their beds, eating at the table, at work). */
-export function peopleInside(c: InsideCtx, building: number, int = interiorAt(c, building)): Array<{ id: string; name: string; doing: string; x: number; y: number; cls: string; job: string }> {
+export function peopleInside(c: InsideCtx, building: number, int = interiorAt(c, building)): Array<{ id: string; name: string; doing: string; x: number; y: number; floor: number; cls: string; job: string }> {
   if (!c.sim) return [];
   const at = c.sim.all(c.day, c.hour * 60 + c.minute, c.crowdDay);
-  const out: Array<{ id: string; name: string; doing: string; x: number; y: number; cls: string; job: string }> = [];
+  const out: Array<{ id: string; name: string; doing: string; x: number; y: number; floor: number; cls: string; job: string }> = [];
   at.forEach((p, i) => {
     if (p.inside !== building) return;
     const who = c.sim!.roster.people[i]!;
@@ -215,21 +217,31 @@ function alarm(c: InsideCtx, building: number, h: { owner: { id: string; name: s
   return [`${who.name} sees you ${what} and shouts for the guard!`];
 }
 
-/** One step inside; the door leads out. Returns `out: true` when the player walks out. */
+/**
+ * One step inside; the door (on the ground floor) leads out, the stairs to the other floor. Returns `out: true` when the
+ * player walks out.
+ */
 export function stepInside(c: InsideCtx, dx: number, dy: number): { ok: boolean; out?: boolean; lines: string[] } {
   const ins = c.player.inside;
   if (!ins) return { ok: false, lines: [] };
   const int = interiorAt(c, ins.building);
+  const floor = ins.floor ?? 0;
   const nx = ins.x + dx;
   const ny = ins.y + dy;
-  if (nx === int.door.x && ny === int.door.y) {
+  if (floor === 0 && nx === int.door.x && ny === int.door.y) {
     delete c.player.inside;
     return { ok: true, out: true, lines: [] };
   }
-  if (!interiorWalkable(int, nx, ny)) return { ok: false, lines: [] };
-  if (peopleInside(c, ins.building, int).some((p) => p.x === nx && p.y === ny)) return { ok: false, lines: [] };
+  if (!interiorWalkable(int, nx, ny, floor)) return { ok: false, lines: [] };
+  if (peopleInside(c, ins.building, int).some((p) => p.floor === floor && p.x === nx && p.y === ny)) return { ok: false, lines: [] };
   ins.x = nx;
   ins.y = ny;
+  // Onto the stairs: up or down to the same tile of the other floor.
+  if (int.floors > 1 && floorTiles(int, floor)[ny * int.w + nx] === ITILE.stairs) {
+    if (floor === 0) ins.floor = 1;
+    else delete ins.floor;
+    return { ok: true, lines: [floor === 0 ? "You go up the stairs." : "You go down the stairs."] };
+  }
   return { ok: true, lines: [] };
 }
 
@@ -273,7 +285,7 @@ export function goodsOf(c: InsideCtx, building: number): GoodsRow[] {
 /** The piece of furniture next to the player that keeps things. */
 function slotNear(c: InsideCtx, int: Interior): Furniture | undefined {
   const ins = c.player.inside!;
-  return int.furniture.find((f) => f.slot && Math.abs(f.x - ins.x) + Math.abs(f.y - ins.y) <= 1);
+  return int.furniture.find((f) => f.slot && (f.floor ?? 0) === (ins.floor ?? 0) && Math.abs(f.x - ins.x) + Math.abs(f.y - ins.y) <= 1);
 }
 
 const words = (r: GoodsRow) => (r.item === "coin" ? formatMoney(r.qty) : r.item === "letter" ? "a folded letter" : `${r.qty} ${r.item}`);

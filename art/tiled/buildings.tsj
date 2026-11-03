@@ -5,13 +5,13 @@
  "name": "buildings",
  "image": "buildings.png",
  "imagewidth": 1024,
- "imageheight": 256,
+ "imageheight": 320,
  "tilewidth": 64,
  "tileheight": 64,
  "margin": 0,
  "spacing": 0,
  "columns": 16,
- "tilecount": 59,
+ "tilecount": 66,
  "tiles": [
   {
    "id": 0,
@@ -670,6 +670,76 @@
      "name": "art",
      "type": "string",
      "value": "buildings/porch"
+    }
+   ]
+  },
+  {
+   "id": 59,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/plaster_side"
+    }
+   ]
+  },
+  {
+   "id": 60,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/plaster_gable"
+    }
+   ]
+  },
+  {
+   "id": 61,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/stone_side"
+    }
+   ]
+  },
+  {
+   "id": 62,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/stone_gable"
+    }
+   ]
+  },
+  {
+   "id": 63,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/plank_side"
+    }
+   ]
+  },
+  {
+   "id": 64,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/plank_gable"
+    }
+   ]
+  },
+  {
+   "id": 65,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/stairs"
     }
    ]
   }

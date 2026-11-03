@@ -362,7 +362,7 @@ export class WorldScene extends Phaser.Scene {
     if (!was || was.x !== t.x || was.y !== t.y) this.labels();
     const who = m.actorAt(t.x, t.y);
     const tile = m.tileAt(t.x, t.y);
-    const solid = !tile || tile.ground === "terrain/water" || (!!tile.object && tile.object !== "buildings/door" && tile.object !== "buildings/gate");
+    const solid = !tile || tile.ground === "terrain/water" || (!!tile.object && tile.object !== "buildings/door" && tile.object !== "buildings/gate" && tile.object !== "buildings/stairs");
     this.input.setDefaultCursor(who ? "pointer" : solid ? "default" : "crosshair");
     const tip = who?.tip ?? m.markAt(t.x, t.y)?.label ?? m.buildingAt(t.x, t.y)?.tip ?? "";
     if (tip && wx !== undefined && wy !== undefined) {

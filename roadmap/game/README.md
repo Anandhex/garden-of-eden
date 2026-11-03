@@ -1,6 +1,6 @@
 [← Roadmap](../../ROADMAP.md)
 
-# Game track (G1–G6)
+# Game track (G1–G7)
 
 The playable game around the NPCs. G1 can run in parallel with the NPC track once N2 exists. G5 and G6 have build guides in [plans/](plans/); build them in that order, then the [48-day year migration](../living-world/plans/migration-2026-10-23-one-year-ageless-player.md) (✅ part A built 2026-10-23), then N40.
 
@@ -116,6 +116,25 @@ Goal: crisp pixel art now, built so the 2.5D HD look (upright sprites in a lit s
 - [x] Four layers (ground, buildings, props, actors) and roofs that fade
 - [x] Light2D: ambient light by time and weather, lit windows, lamps and fires sent by the server as facts
 - [~] Depth and atmosphere: y-sorting, foreground parallax, blur, weather effects, at 60 fps (frame time measured by stepping the loop; the `?fps=1` check on the test laptop is still to do)
-- [x] Checkpoint: stay on Phaser, or prototype 2.5D HD in Three.js or Unity against G5 recordings (decided 2026-10-23: stay on Phaser; Three.js first when the HD look is wanted)
+- [x] Checkpoint: stay on Phaser, or prototype 2.5D HD in Three.js or Unity against G5 recordings (decided 2026-10-23: stay on Phaser; Three.js first when the HD look is wanted; taken up 2026-11-03 as [G7](#g7-isometric-hd-2d))
 
 **Done when:** the game looks like real pixel art with light at night, and the renderer checkpoint is decided and written down.
+
+---
+
+## G7: Isometric HD-2D
+
+**Status:** 🟡 Built 2026-11-03 (uncommitted), parts A and B. **Build guide:** [plans/g7-isometric-hd2d.md](plans/g7-isometric-hd2d.md) ([Built](plans/g7-isometric-hd2d.md#built-2026-11-03)).
+
+Goal: the world in 2.5D, "HD-2D and isometric mixed": a lit diorama seen from a corner, in Three.js beside Phaser.
+
+- [x] A second world view in Three.js (`adapter/web/iso/`), chosen in the header (🧊 2.5D / ▦ Flat) or `?view=`; 2.5D is the default
+- [x] Isometric camera turning in quarter turns (Q/E), wheel zoom, keys that follow the screen
+- [x] Buildings as boxes with gable roofs from their templates; billboards for people, beasts and trees; sun shadows, lamp light, lit windows
+- [x] Atmosphere: haze and fog, rain, snow, fireflies, dust, chimney smoke, bloom and tilt-shift blur
+- [x] Part B: the land's height sent by the server (hills, banks, levelled building pads) and the 2.5D ground following it
+- [x] Part B: upper floors with stairs in inns, halls, manors, palaces, guildhalls and bigger houses
+- [x] Part B: low-poly models for rocks, furniture, signposts, shrines, stairs, campfires and bridge decks
+- [x] Part B: new art: side walls and gables per material, earth banks, stairs
+
+**Done when:** the game opens in a lit isometric 2.5D world that plays exactly like the flat one, with height, upper floors and models.

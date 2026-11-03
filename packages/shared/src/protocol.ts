@@ -8,7 +8,7 @@ import type { CrowdDay, CrowdZone } from "./crowd.js";
 import type { GameEvent } from "./events.js";
 import type { NpcVoice } from "./voice.js";
 
-export type TileKind = "grass" | "path" | "water" | "tree" | "wall" | "door" | "floor";
+export type TileKind = "grass" | "path" | "water" | "tree" | "wall" | "door" | "floor" | "stairs";
 
 /** A way off the map's edge to the next area (N15): "To the mine road". */
 export interface MapExit {
@@ -312,11 +312,15 @@ export interface RoadNearby {
 /** Inside a building (N32). `map` is its interior while this is set; never a hidden slot's contents before they're found. */
 export interface InsideView {
   building: number;
+  /** The floor the player is on (0 the ground floor; G7 Part B), and how many there are. */
+  floor: number;
+  floors: number;
   /** The building's kind: house, inn, smithy, temple, hall... */
   kind: string;
   name: string;
   owner: string | null;
   trespass: boolean;
+  /** The people and furniture on the player's floor. */
   people: Array<{ id: string; name: string; doing: string; x: number; y: number }>;
   furniture: Array<{ id: string; kind: string; x: number; y: number; keeps: boolean }>;
   /** What's in the furniture beside the player that they can see. */

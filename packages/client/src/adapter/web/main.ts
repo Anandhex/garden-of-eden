@@ -10,19 +10,21 @@ import { Core, type ConnectionStatus, type EngineAdapter, type FrameChange } fro
 import { $ } from "../../dom";
 import { Panels } from "./panels";
 import { speaker } from "./voice/speaker";
-import { startWorld, VIEW_H, VIEW_W, type WorldScene } from "./world/WorldScene";
+import { saveViewPref, VIEW_BOX, viewPref, type StartView, type WorldView } from "./worldView";
 
 const KEYS: Record<string, [-1 | 0 | 1, -1 | 0 | 1]> = { ArrowUp: [0, -1], w: [0, -1], ArrowDown: [0, 1], s: [0, 1], ArrowLeft: [-1, 0], a: [-1, 0], ArrowRight: [1, 0], d: [1, 0] };
 
 class WebAdapter implements EngineAdapter {
   private core!: Core;
   private panels!: Panels;
-  private world!: WorldScene;
+  private world!: WorldView;
+
+  constructor(private readonly startView: StartView) {}
 
   start(core: Core): void {
     this.core = core;
     this.panels = new Panels(core);
-    this.world = startWorld($("map"), core);
+    this.world = this.startView($("map"), core);
     this.panels.setUpMic();
     this.wire();
   }
@@ -89,9 +91,12 @@ class WebAdapter implements EngineAdapter {
       if (typing || modalOpen) return;
       const dir = KEYS[e.key] ?? KEYS[e.key.toLowerCase()];
       const key = e.key.toLowerCase();
+      if (this.world.key?.(key)) return e.preventDefault();
       if (dir) {
         e.preventDefault();
-        send({ t: "step", dx: dir[0], dy: dir[1] });
+        // A view whose camera turns (G7) says which way on the grid "up the screen" is.
+        const step = this.world.stepFor ? this.world.stepFor(dir[0], dir[1]) : { dx: dir[0], dy: dir[1] };
+        send({ t: "step", dx: step.dx, dy: step.dy });
       } else if (key === "e") send({ t: "interact" });
       else if (key === "f") send({ t: "fight" });
       else if (key === "r") send({ t: "flee" });
@@ -131,6 +136,15 @@ class WebAdapter implements EngineAdapter {
       showLook();
     };
     showLook();
+    // The world view (G7): 2.5D or flat, this browser's setting; the other view is a reload away.
+    const viewBtn = $("view-btn");
+    viewBtn.textContent = VIEW === "iso" ? "🧊 2.5D" : "▦ Flat";
+    viewBtn.onclick = () => {
+      saveViewPref(VIEW === "iso" ? "flat" : "iso");
+      const url = new URL(location.href);
+      url.searchParams.delete("view");
+      location.href = url.toString();
+    };
     // The soundscape (N29): this browser's setting too, on and off and how loud.
     const snd = $("sound-btn");
     const vol = $<HTMLInputElement>("sound-volume");
@@ -158,5 +172,8 @@ class WebAdapter implements EngineAdapter {
 }
 
 const replay = new URLSearchParams(location.search).get("replay");
+const VIEW = viewPref();
+// Only the chosen view's renderer is loaded: the flat view never fetches Three.js, the 2.5D one never Phaser.
+const startView: StartView = VIEW === "iso" ? (await import("./iso/IsoWorld")).startIso : (await import("./world/WorldScene")).startWorld;
 await speaker.init({ server: !replay });
-new Core({ view: { w: VIEW_W, h: VIEW_H }, engine: "web", replay }).start(new WebAdapter());
+new Core({ view: VIEW_BOX[VIEW], engine: "web", replay }).start(new WebAdapter(startView));

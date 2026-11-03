@@ -367,3 +367,40 @@ PuPPPPPPPzPPPPPP
 == terrain/wang/road wang over=terrain/road_0 base=terrain/grass_0 edge=p rim=g seed=5
 == terrain/wang/water wang over=terrain/water_0 base=terrain/grass_0 edge=I rim=u seed=7
 == terrain/wang/sand wang over=terrain/sand_0 base=terrain/grass_0 edge=N seed=11
+
+# ---- banks (G7 Part B): bare earth where the land is steep, chosen by the 2.5D view, never sent by the server ----
+== terrain/bank_0 16x16
+PPpPPPPPuPPPPpPP
+PuPPPpPPPPPuPPPP
+PPPPPPPPpPPPPPPP
+pPPuPPPPPPPPPPuP
+PPPPPPQrPPPpPPPP
+PPPpPPQQPPPPPPPP
+PuPPPPPPPPPuPPPP
+PPPPPPPPpPPPPPPp
+PPPgPPPPPPPPPPPP
+PPgfgPPPuPPPPpPP
+PPPPPPPPPPPPPPPP
+pPPPPuPPPPPQrPPP
+PPPPPPPPPpPQQPPP
+PPuPPPPPPPPPPPuP
+PPPPPpPPPPgPPPPP
+PPPPPPPPPgfgPPPP
+
+== terrain/bank_1 16x16
+PPPPuPPPPPPPpPPP
+PpPPPPPPPuPPPPPP
+PPPPPPPPPPPPPPuP
+PPPPPQrPPPPPPPPP
+PPuPPQQPPPpPPPPP
+PPPPPPPPPPPPPPPP
+PPPPPPPPPPPPgPPP
+pPPPPPuPPPPgfgPP
+PPPPPPPPPPPPPPPP
+PPPpPPPPPPPPPPPP
+PPPPPPPPPPpPPPuP
+PPgPPPPPPPPPPPPP
+PgfgPPPPuPPPPPPP
+PPPPPPPPPPPPQrPP
+PuPPPPPpPPPPQQPP
+PPPPPPPPPPPPPPPp

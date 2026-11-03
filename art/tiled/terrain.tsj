@@ -11,7 +11,7 @@
  "margin": 0,
  "spacing": 0,
  "columns": 16,
- "tilecount": 84,
+ "tilecount": 86,
  "tiles": [
   {
    "id": 0,
@@ -1490,6 +1490,26 @@
      "name": "mask",
      "type": "string",
      "value": "15"
+    }
+   ]
+  },
+  {
+   "id": 84,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/bank_0"
+    }
+   ]
+  },
+  {
+   "id": 85,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "terrain/bank_1"
     }
    ]
   }
