@@ -18,6 +18,9 @@ export interface Bound {
   detail: string;
 }
 
+/** Journeys of many to one place at one time: counted once on a road. */
+const GATHERINGS = new Set<string>(["tourney", "pilgrims"]);
+
 /** Days after which news should have spread. */
 const SPREAD_DAYS = 15;
 
@@ -26,9 +29,13 @@ export function checkRoadBounds(realm: Realm, people?: PeopleStore, day = realm.
   const all = journeysOf(realm);
   const active = all.filter((j) => isOnTheRoad(j, now));
   // Roads are neither empty nor clogged: some are on them, none is crowded.
-  const perRoad = new Map<string, number>();
-  for (const j of active) for (const r of j.roads) perRoad.set(r.id, (perRoad.get(r.id) ?? 0) + 1);
-  const busiest = Math.max(0, ...perRoad.values());
+  // A gathering (knights riding to one tournament, N41; pilgrims to one festival, N48) is one stream on the road, however many ride in it.
+  const perRoad = new Map<string, Set<string>>();
+  for (const j of active) {
+    const key = GATHERINGS.has(j.kind) ? `${j.kind}>${j.turn?.site ?? j.path.at(-1)}` : j.id;
+    for (const r of j.roads) perRoad.set(r.id, (perRoad.get(r.id) ?? new Set()).add(key));
+  }
+  const busiest = Math.max(0, ...[...perRoad.values()].map((x) => x.size));
   const out: Bound[] = [
     { name: "roads-not-empty", ok: all.length < MAX_JOURNEYS && (day < 8 || active.length >= 3), detail: `${active.length} on the road now, ${all.length} kept` },
     { name: "roads-not-clogged", ok: busiest <= 40, detail: `busiest road has ${busiest} journeys on it` },
@@ -60,6 +67,8 @@ export function checkRoadBounds(realm: Realm, people?: PeopleStore, day = realm.
   let stuck = 0;
   if (people) for (const r of people.awayRows()) {
     const a = parseAway(r.away)!;
+    // A soldier is away with their army (N55), which is not a journey of the road: the war's own bounds keep them.
+    if (a.purpose === "war") continue;
     const j = all.find((x) => x.id === a.journey);
     if (!j || j.closed) stuck++;
   }

@@ -1,4 +1,5 @@
 import { config } from "../../config.js";
+import { mint } from "../realm/ledger.js";
 import { seededRng, unitFor } from "../dice.js";
 import { addFaction } from "../realm/generate.js";
 import { makeFigure } from "../realm/figures.js";
@@ -64,7 +65,9 @@ function place(realm: Realm, o: { id: string; name: string; kind: Settlement["ki
 }
 
 function crownFor(realm: Realm, k: Kingdom, ruler: Figure, day: number): void {
-  addFaction(realm, { id: k.crown, name: `the Crown of ${k.name}`, kind: "crown", creed: `the rule of ${k.name}`, leader: ruler.id, members: [ruler.id], seat: k.capital, branches: [k.capital], wealth: 3000, founded: day, kingdom: k.id, stances: {} });
+  addFaction(realm, { id: k.crown, name: `the Crown of ${k.name}`, kind: "crown", creed: `the rule of ${k.name}`, leader: ruler.id, members: [ruler.id], seat: k.capital, branches: [k.capital], wealth: 0, founded: day, kingdom: k.id, stances: {} });
+  // A new people's crown brings its own hoard into the realm: on the books, so every coin is accounted for.
+  mint(realm, `f:${k.crown}`, 3000, `the hoard of ${k.name}`, undefined, day);
   ruler.faction = k.crown;
 }
 

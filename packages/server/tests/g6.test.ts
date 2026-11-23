@@ -8,7 +8,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { ART_IDS, CREATURE_IDS, dress, FrameSchema, OBJECT_IDS, TEMPLATE_IDS, TEMPLATES, templateFor, TERRAIN_IDS, WINDOW_TILES, type Frame } from "@millbrook/shared/view";
+import { ART_IDS, CREATURE_IDS, dress, FrameSchema, OBJECT_IDS, TEMPLATE_IDS, TEMPLATES, templateById, templateFor, TERRAIN_IDS, WINDOW_TILES, type Frame } from "@millbrook/shared/view";
 import { decodePng } from "../../../art/png.js";
 import { packAll } from "../../../art/pack.js";
 import { Mirror } from "../../client/src/core/mirror.js";
@@ -189,7 +189,7 @@ describe("G6 a town at night, through the protocol", () => {
     let occupied = 0;
     let empty = 0;
     for (const b of f.buildings!) {
-      expect(TEMPLATES[b.template!], b.kind).toBeTruthy();
+      expect(templateById(b.template!), b.kind).toBeTruthy();
       const windows = f.lights!.filter((l) => l.kind === "window" && l.id.startsWith(`win:${b.id}:`));
       const home = !/nobody inside/.test(b.tip);
       expect(b.lit).toBe(home);
@@ -229,7 +229,7 @@ describe("G6 a recording replays with no art falling back", () => {
     expect(frames).toBeGreaterThan(10);
     expect(ids.size).toBeGreaterThan(5);
     expect(missingArt(ids)).toEqual([]);
-    expect([...templates].filter((t) => !TEMPLATES[t])).toEqual([]);
+    expect([...templates].filter((t) => !templateById(t))).toEqual([]);
     expect([...ids].some((id) => id.startsWith("terrain/road"))).toBe(true);
   });
 });
