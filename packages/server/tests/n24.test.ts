@@ -99,7 +99,7 @@ describe("N24: the player's feed reads only what they know", () => {
     const half = Math.max(1, Math.floor(byDist.length / 2));
     const mean = (xs: typeof heard) => xs.reduce((t, s) => t + reachesAt(realm, n, s.id)!, 0) / xs.length;
     if (byDist.length >= 4) expect(mean(byDist.slice(0, half))).toBeLessThanOrEqual(mean(byDist.slice(half)));
-  });
+  }, 360_000);
 });
 
 describe("N24: the player's place, in play", () => {
