@@ -30,7 +30,6 @@ beforeAll(async () => {
 }, 90_000);
 
 afterAll(() => {
-  console.log(game.output().split("\n").filter((l) => l.includes("DBG")).join("\n"));
   game?.stop();
   piper?.close();
 });
