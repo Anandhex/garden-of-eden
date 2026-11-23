@@ -538,12 +538,15 @@ export function buildFrame(f: FrameInput): Frame {
     prompt = { text: `E: talk to ${near.talker.name}`, target: near.talker.id, x: near.talker.x, y: near.talker.y, tone: "talk" };
   }
 
+  // ---- the place's locale (G8 locality): how its land, wealth and size change how its buildings are built ----
+  const locale = s.road || s.inside ? null : host.locale?.() ?? null;
+
   // ---- what there is to hear (N29): facts only; the adapter's soundscape() decides the mix ----
   const sound = soundOf(s, sim, pos, land);
 
   return {
     sound,
-    map: { id: mapId, name: s.road ? s.road.where : s.map.name, kind: s.road ? "road" : "place", w: s.road ? null : s.map.w, h: s.road ? null : s.map.h },
+    map: { id: mapId, name: s.road ? s.road.where : s.map.name, kind: s.road ? "road" : "place", w: s.road ? null : s.map.w, h: s.road ? null : s.map.h, ...(locale ? { locale } : {}) },
     box,
     patches,
     buildings,

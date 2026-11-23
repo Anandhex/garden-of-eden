@@ -31,6 +31,8 @@ namespace GardenOfEden.World
             public int floors = 1, chimneys = 1;
             public bool shutters, flowers, awning, porch, balcony, steps, jetty, cornice, quoins, pilasters, parapet, vigas, bargeboard, paintedBand, buttress, archDoor, surround;
             public bool bigDoor, hanging, crenel, turrets, dome, banner, crown, hut, upperTone;
+            /// <summary>G8 locality: floor on posts this high, and a stone footing raised this much above the ground (metres).</summary>
+            public float stilts, footing;
         }
 
         static readonly Color Cream = new Color(0.953f, 0.906f, 0.769f, 1f);
@@ -135,6 +137,7 @@ namespace GardenOfEden.World
             if (s.wm == WallMat.Ashlar && s.floors > 1) s.upperTone = true;
             if (s.wm == WallMat.Stone && s.floors > 1 && s.a.id != "highland") s.upperTone = F(h, 50) < 0.5f;
             if (s.wm == WallMat.Logs && s.floors > 1) s.upperTone = true;
+            ApplyLocale(s, b, h, w, d);
             s.winH = Mathf.Min(s.winH, s.floorH - s.winBottom - 0.35f);
             if (s.shutters && (s.ws == WinShape.Round || s.ws == WinShape.Slit)) s.shutters = false;
             // G8 art direction: chunky, slightly exaggerated forms - steeper roofs and deeper eaves than the tables say
@@ -145,6 +148,78 @@ namespace GardenOfEden.World
                 s.overhang += 0.16f;
             }
             return s;
+        }
+
+        /// <summary>The place's locale (G8: its land, wealth and size) changes the culture's way of building (LocaleArch).</summary>
+        void ApplyLocale(Style s, Building b, uint h, float w, float d)
+        {
+            var loc = world.Mirror != null && world.Mirror.map != null ? world.Mirror.map.locale : null;
+            if (loc == null) return;
+            float tile = WorldView.TileSize;
+            var m = LocaleArch.For(s.a.id, loc.terrain, loc.wealth, loc.size, b.kind, s.wm.ToString(), s.rf.ToString(), s.floors, w * d / (tile * tile), salt => F(h, 60 + salt));
+            s.stilts = m.stilts;
+            s.footing = m.footing;
+            s.pitch *= m.pitchMul;
+            s.overhang = Mathf.Max(0.1f, s.overhang + m.overhangAdd);
+            s.floorH *= m.floorHMul;
+            if (m.floors > 0 && !s.hut) s.floors = m.floors;
+            if (m.wall == "Logs") { s.wm = WallMat.Logs; s.upperTone = false; }
+            else if (m.wall == "Boards") { s.wm = WallMat.Boards; s.upperTone = false; }
+            else if (m.wall == "Stone") s.wm = WallMat.Stone;
+            if (m.wallColor != 0) s.wall = Jit(Pal.Rgb(m.wallColor), h, 0.06f);
+            if (m.whitewash > 0f) { s.wall = Pal.Lighten(s.wall, m.whitewash); s.wall2 = Pal.Lighten(s.wall2, m.whitewash); }
+            if (m.roof == "Thatch" && s.rf != RoofForm.Flat && s.rm != RoofMat.Turf) { s.rm = RoofMat.Thatch; s.roof = Jit(Pal.Rgb(m.roofColor), h >> 2, 0.05f); s.pitch = Mathf.Max(s.pitch, 0.95f); }
+            else if (m.roof == "Tile" && s.rf != RoofForm.Flat) { s.rm = RoofMat.Tile; s.roof = Jit(Pal.Rgb(m.roofColor), h >> 2, 0.05f); }
+            if (m.plain) { s.shutters = false; s.flowers = false; s.awning = false; s.balcony = false; s.cornice = false; s.surround = false; if (F(h, 70) < 0.4f) s.chimneys = 0; }
+            if (m.fine) { s.shutters = s.shutters || s.a.shuttersP > 0.3f; s.flowers = s.flowers || s.a.flowersP > 0.3f; }
+            if (s.stilts > 0f || s.footing > 0.3f) s.steps = false;   // the stoop below replaces the door's own steps
+        }
+
+        /// <summary>Posts under a floor raised over the marsh, with a deck along the door's side.</summary>
+        static void Stilts(MeshBuilder mb, float x0, float x1, float z0, float z1, float groundY, float floorY, int doorFace, Color wood)
+        {
+            const float pw = 0.18f, step = 1.6f;
+            int nx = Mathf.Max(2, Mathf.RoundToInt((x1 - x0) / step) + 1), nz = Mathf.Max(2, Mathf.RoundToInt((z1 - z0) / step) + 1);
+            for (int i = 0; i < nx; i++)
+                for (int j = 0; j < nz; j++)
+                {
+                    if (i != 0 && i != nx - 1 && j != 0 && j != nz - 1) continue;
+                    float px = Mathf.Lerp(x0 + 0.05f, x1 - pw - 0.05f, i / (float)(nx - 1)), pz = Mathf.Lerp(z0 + 0.05f, z1 - pw - 0.05f, j / (float)(nz - 1));
+                    mb.Box(new Vector3(px, groundY - 0.3f, pz), new Vector3(px + pw, floorY - 0.18f, pz + pw), Pal.Mul(wood, 0.85f + 0.1f * ((i + j) % 2)));
+                }
+            // Cross-braces on the long sides.
+            for (int i = 0; i < nx - 1; i++)
+            {
+                float a = Mathf.Lerp(x0, x1, i / (float)(nx - 1)), c = Mathf.Lerp(x0, x1, (i + 1) / (float)(nx - 1));
+                foreach (float z in new[] { z0 + 0.02f, z1 - 0.1f })
+                    mb.Box(new Vector3(a, groundY + (floorY - groundY) * 0.45f, z), new Vector3(c, groundY + (floorY - groundY) * 0.45f + 0.1f, z + 0.08f), Pal.Mul(wood, 0.8f));
+            }
+            // The deck (a platform the house sits on, reaching out on the door's side).
+            float ex = doorFace == 2 ? 0.9f : doorFace == 3 ? 0.9f : 0f, ez = doorFace <= 1 ? 0.9f : 0f;
+            float dx0 = x0 - (doorFace == 2 ? ex : 0.1f), dx1 = x1 + (doorFace == 3 ? ex : 0.1f), dz0 = z0 - (doorFace == 1 ? ez : 0.1f), dz1 = z1 + (doorFace == 0 ? ez : 0.1f);
+            mb.Box(new Vector3(dx0, floorY - 0.2f, dz0), new Vector3(dx1, floorY - 0.04f, dz1), Pal.Mul(wood, 0.95f), Pal.Lighten(wood, 0.1f));
+        }
+
+        /// <summary>A flight of steps from the ground up to a raised door, running out from the door's face.</summary>
+        static void Stoop(MeshBuilder mb, int doorFace, float dwx, float dwz, float x0, float x1, float z0, float z1, float groundY, float floorY, float out0, float width, Color top, Color side)
+        {
+            float rise = floorY - groundY;
+            if (rise < 0.25f) return;
+            int n = Mathf.Clamp(Mathf.CeilToInt(rise / 0.22f), 1, 8);
+            float tread = 0.32f, hw = width * 0.5f;
+            for (int k = 0; k < n; k++)
+            {
+                float yTop = floorY - (k + 1) * rise / n + 0.02f, o0 = out0 + k * tread, o1 = out0 + (k + 1) * tread;
+                Vector3 a, b;
+                switch (doorFace)
+                {
+                    case 0: a = new Vector3(dwx - hw, groundY - 0.2f, z1 + o0); b = new Vector3(dwx + hw, yTop, z1 + o1); break;
+                    case 1: a = new Vector3(dwx - hw, groundY - 0.2f, z0 - o1); b = new Vector3(dwx + hw, yTop, z0 - o0); break;
+                    case 2: a = new Vector3(x0 - o1, groundY - 0.2f, dwz - hw); b = new Vector3(x0 - o0, yTop, dwz + hw); break;
+                    default: a = new Vector3(x1 + o0, groundY - 0.2f, dwz - hw); b = new Vector3(x1 + o1, yTop, dwz + hw); break;
+                }
+                mb.Box(a, b, side, top);
+            }
         }
 
         // ------------------------------------------------------------------ the house
@@ -173,6 +248,22 @@ namespace GardenOfEden.World
             }
             bool alongX = (x1 - x0) >= (z1 - z0);
             bool gableRoof = st.rf == RoofForm.Gable || st.rf == RoofForm.Curved;
+
+            // G8 locality: a floor raised on posts (the marsh) or on a tall stone footing (the hills), with steps up to the door.
+            float groundY = baseY;
+            if (st.stilts > 0f)
+            {
+                baseY += st.stilts;
+                Stilts(body, x0, x1, z0, z1, groundY - drop + 0.45f, baseY, doorFace, Pal.Rgb(0x5a4330));
+                drop = 0.05f;
+                Stoop(body, doorFace, dwx, dwz, x0, x1, z0, z1, groundY - 0.1f, baseY, 0.9f, st.doorW + 0.3f, Pal.Rgb(0x8a6a48), Pal.Rgb(0x5a4330));
+            }
+            else if (st.footing > 0f)
+            {
+                baseY += st.footing;
+                drop += st.footing;
+                Stoop(body, doorFace, dwx, dwz, x0, x1, z0, z1, groundY, baseY, 0.05f, st.doorW + 0.5f, Pal.Lighten(st.plinth, 0.15f), st.plinth);
+            }
 
             for (int f = 0; f < st.floors; f++)
             {

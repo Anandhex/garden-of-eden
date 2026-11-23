@@ -36,6 +36,8 @@ export interface ViewHost {
   commuters?(radius: number): Array<{ id: string; x: number; y: number; name: string; role: string; kind: string; purpose: string; from: string; to: string; journey: string }>;
   /** The culture template id (highland, river, coastal...) of the place the player is in, for how its buildings are built; null when there is none. */
   cultureStyle?(): string | null;
+  /** The locale of the place the player is in (G8 locality): culture, land, wealth 0..1 and size; null when there is none. */
+  locale?(): import("./locale.js").Locale | null;
   /** The talking people (human, elf, dwarf, halfling, orc) of the place the player is in, for the bodies of its townsfolk; null: human. */
   townSpecies?(): string | null;
   /** A settlement's name by id. */
