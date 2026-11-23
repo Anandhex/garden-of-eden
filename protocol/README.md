@@ -73,6 +73,9 @@ Positions are **tiles** (world units), not pixels. Travellers on the road may st
   is a fact (someone is home after dark); how it glows is up to the adapter. A building names its `template`
   (G6: how it is dressed, from [`templates.json`](../packages/shared/src/view/templates.json); `dress()` in
   [`templates.ts`](../packages/shared/src/view/templates.ts) stretches it to the building) and its `door` tile.
+  A template may be styled, `<template>~<style>` (G8: the place's regional look, its people's way and its land's
+  walls); `templateById()` in [`styles.ts`](../packages/shared/src/view/styles.ts) gives the styled template, with
+  its roof and wall frames swapped for the region's materials. An adapter that knows no styles can drop the `~…` part.
   `lights` (G6) are facts too: one `window` per window of the template (`win:<building>:<n>`, on while someone is
   home after dark), the template's `lamp`s (on after dark), `fire`s (while someone is in; a camp's always) and
   `forge` (by day, or while the smith is in).

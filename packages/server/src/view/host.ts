@@ -34,6 +34,8 @@ export interface ViewHost {
   journeysNear(radius: number): Journey[];
   /** People walking to work along the road near the player (N26F decision 12): miners, hunters, the ore cart, the watch. */
   commuters?(radius: number): Array<{ id: string; x: number; y: number; name: string; role: string; kind: string; purpose: string; from: string; to: string; journey: string }>;
+  /** How the place the player is in is built (G8): its style id (shared styles.ts) and its culture's colours. */
+  buildLook?(): { style?: string; colours?: string[] } | null;
   /** A settlement's name by id. */
   placeName(id: string): string;
   realm(): RealmView | null;

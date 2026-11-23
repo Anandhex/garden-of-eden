@@ -21,7 +21,7 @@ import {
   type CrowdPos,
   type Snapshot,
 } from "@millbrook/shared";
-import { dress, OBJECT_IDS, TEMPLATES, templateFor, TERRAIN_IDS, type Actor, type Frame, type Patch, type ScapeInput } from "@millbrook/shared/view";
+import { dress, OBJECT_IDS, templateById, templateForStyle, TERRAIN_IDS, type Actor, type Frame, type Patch, type ScapeInput } from "@millbrook/shared/view";
 import { groundAt } from "../game/road/ground.js";
 import { heightSeed, patchHeights, type HeightCtx, type LandKind } from "./height.js";
 import type { Land, ViewHost } from "./host.js";
@@ -175,7 +175,7 @@ export function doorOf(tiles: string[][], b: { x: number; y: number; w: number; 
  * adapter's.
  */
 export function buildingLights(i: number, template: string, b: { x: number; y: number; w: number; h: number; door: { x: number; y: number } | null }, st: { lit: boolean; dark: boolean; occupied: boolean }): NonNullable<Frame["lights"]> {
-  const t = TEMPLATES[template];
+  const t = templateById(template);
   if (!t) return [];
   const d = dress(t, b);
   const on = (kind: string): boolean => {
@@ -407,6 +407,9 @@ export function buildFrame(f: FrameInput): Frame {
   const lights: NonNullable<Frame["lights"]> = [];
   const signs: NonNullable<Frame["signs"]> = [];
   if (!s.road) {
+    // G8: the place's building style (its people's way, its land's walls) and its culture's colours, for painted roofs and awnings.
+    const look = host.buildLook?.() ?? null;
+    const paint = (color: string, i: number, kind: string | undefined) => (kind && look?.colours?.length ? look.colours[(i * 7 + 3) % look.colours.length]! : color);
     const inside = new Map<number, number[]>();
     pos.forEach((p, i) => p.inside !== undefined && (inside.get(p.inside) ?? inside.set(p.inside, []).get(p.inside)!).push(i));
     // A house that is someone's own shop (N40) bears their sign: N31's reserved lots are not built, so a new shop is a house's new use.
@@ -422,10 +425,10 @@ export function buildFrame(f: FrameInput): Frame {
       // A window is lit after dark while someone is at home (G6: a fact, so the server says it).
       const lit = light < 0.6 && who.length > 0;
       const door = doorOf(s.map.tiles, b);
-      const template = templateFor(b.kind, b.name, `${s.map.id}:${i}`);
+      const template = templateForStyle(b.kind, b.name, `${s.map.id}:${i}`, look?.style);
       // Smoke from the chimney while someone is in with a fire lit: the cold months, or after dark (N31).
       const smoke = who.length > 0 && (light < 0.6 || s.time.season === "winter" || s.time.season === "autumn");
-      buildings.push({ id: i, x: b.x, y: b.y, w: b.w, h: b.h, kind: b.kind ?? "house", color: b.color, lit, label: sign ?? (b.name && b.name !== "Gate" ? b.name : ""), tip, template, door, ...(smoke ? { smoke: true } : {}) });
+      buildings.push({ id: i, x: b.x, y: b.y, w: b.w, h: b.h, kind: b.kind ?? "house", color: paint(b.color, i, b.kind), lit, label: sign ?? (b.name && b.name !== "Gate" ? b.name : ""), tip, template, door, ...(smoke ? { smoke: true } : {}) });
       lights.push(...buildingLights(i, template, { ...b, door }, { lit, dark: light < 0.6, occupied: who.length > 0 }));
     });
     for (const e of s.map.exits) {

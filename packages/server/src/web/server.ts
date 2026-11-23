@@ -1,4 +1,5 @@
 import { moodLine } from "../game/mood/model.js";
+import { buildLookOf } from "../game/culture/look.js";
 import { startCandidates } from "../game/realm/start.js";
 import { boardView, playerClaim, playerGiveUp, playerJoinParty } from "../game/market/player.js";
 import { giveBack, itemsView } from "../game/items/player.js";
@@ -2003,6 +2004,7 @@ const viewHost: ViewHost = {
     if (!realm || !road) return [];
     return journeysNear(realm, landOf(realm).data, road, radius + 10, town.road.minute()).map((x) => x.journey);
   },
+  buildLook: () => (world.realm ? buildLookOf(world.realm, town.site()) : null),
   placeName: (id) => world.realm?.settlements[id]?.name ?? id,
   realm: () => (world.realm ? realmView(world.realm, { here: town.site(), heard: (id) => town.siteHere().newsSeen.includes(id), sworn: store.people.swornByFaction() }) : null),
   quoteTraining: (id, skillName, hours) => {

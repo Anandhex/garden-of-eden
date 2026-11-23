@@ -6,7 +6,7 @@
  * unknown is a plain block in its colour, never nothing; a roofless one (a camp's fire) stands as sprites.
  */
 import * as THREE from "three";
-import { dress, TEMPLATES, templateFor, type Frame } from "@millbrook/shared/view";
+import { dress, templateById, templateFor, type Frame } from "@millbrook/shared/view";
 import { ART_TILE, warnMissing } from "../art";
 import { hexColor, lighten, pixelTexture, sheetMaterial, spriteGeometry } from "./atlas";
 import { Billboards, type Standing } from "./billboards";
@@ -117,7 +117,7 @@ export class IsoBuildings {
     const standing: Standing[] = [];
     for (const b of list) {
       const id = b.template ?? templateFor(b.kind, b.label, `${m.map?.id}:${b.id}`);
-      const t = TEMPLATES[id];
+      const t = templateById(id);
       if (!t) warnMissing(`template/${id}`);
       const door = b.door !== undefined ? b.door : findDoor(m, b);
       const dressed = t ? dress(t, { x: b.x, y: b.y, w: b.w, h: b.h, door }) : null;

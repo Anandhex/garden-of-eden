@@ -1,6 +1,6 @@
 [← Roadmap](../../ROADMAP.md)
 
-# Game track (G1–G7)
+# Game track (G1–G8)
 
 The playable game around the NPCs. G1 can run in parallel with the NPC track once N2 exists. G5 and G6 have build guides in [plans/](plans/); build them in that order, then the [48-day year migration](../living-world/plans/migration-2026-10-23-one-year-ageless-player.md) (✅ part A built 2026-10-23), then N40.
 
@@ -138,3 +138,23 @@ Goal: the world in 2.5D, "HD-2D and isometric mixed": a lit diorama seen from a 
 - [x] Part B: new art: side walls and gables per material, earth banks, stairs
 
 **Done when:** the game opens in a lit isometric 2.5D world that plays exactly like the flat one, with height, upper floors and models.
+
+## G8: Regional building styles
+
+**Status:** ✅ Built 2026-11-23 (`tests/g8.test.ts`). No save bump and no schema change: the style is worked out from the realm each frame.
+
+Goal: towns that look like where they are. Every place used to wear the same thirteen templates in the same straw, plaster and grey shingles; now a place is built the way its people build, with what its land gives them, so a coastal port, a highland village and a forest steading look nothing alike.
+
+- [x] **Culture picks the roofs** (the kingdom's culture, N53): heather thatch and slate in the highlands, straw thatch on the river plains, red tiles on the coast and in the imperial south, sod roofs and bark shingles in the northern forests, felt on the steppe
+- [x] **The land picks the walls** of ordinary houses: fieldstone in the hills, logs in the forest, whitewash on the coast, wattle and daub under reed thatch in the marsh, timber and plaster on the plains and in the valleys
+- [x] **Some peoples insist on their own walls** wherever they live: the coast folk whitewash, the imperial south builds ochre stucco houses and brick halls, the steppe lives in round felt tents and builds halls of sun-dried brick
+- [x] **Rich places** (cities and capitals) roof their cottages in the culture's fine roof (a river city in shingles, not straw)
+- [x] **Other peoples build their own way** (N54): a dwarf hold in dark dressed stone and slate, orc lodges of hide on rough logs, goblin mud huts under turf, elven living roofs on hewn logs, centaur felt tents
+- [x] **The culture's colours** paint the tinted roofs and market awnings of a human place
+- [x] New art: 16 materials made from the old ones by `recolor=` and `swap=` in the art sheets (`npm run art`), with their side walls, gables and doors for the 2.5D view
+- [x] One code path for every adapter: the server sends `<template>~<style>`, and `templateById()` (shared `view/styles.ts`) gives the styled template; an adapter that knows no styles drops the `~…`
+- [x] Tests, this roadmap
+
+**Done when:** in one realm at least four looks appear, each place's look names its kingdom's culture and its own land, another people's hold builds its own way, and every styled template wears only frames the packed art has.
+
+Later: building shapes per culture (round towers, stilt houses on the marsh, long halls), not only materials; the wilds' and roads' buildings (waystations, hermits' huts) in the local style.
