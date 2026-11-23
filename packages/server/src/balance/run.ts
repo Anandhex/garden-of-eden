@@ -113,7 +113,8 @@ function endBounds(realm: Realm, store: WorldStore, everyone: boolean): BoundRes
   const n25 = checkLifeBounds(realm, store).map((b) => ({ id: b.name, phase: "N25", ok: everyone ? b.ok : true, detail: everyone ? b.detail : `not judged in a slice run (${b.detail})` }));
   const n33 = checkGossipBounds(realm, store).map((b) => ({ id: b.name, phase: "N33", ok: b.ok, detail: b.detail }));
   const society = checkSocietyBounds(realm, store).map((b) => ({ id: b.name, phase: b.phase, ok: b.ok, detail: b.detail }));
-  const n20 = livenessBounds(store, config.daysPerYear);
+  // N20's liveness is the whole world's: in a slice run most people are rows that don't act, so (like N25) it is judged when everyone lives.
+  const n20 = livenessBounds(store, config.daysPerYear).map((b) => (everyone ? b : { ...b, ok: true, detail: `not judged in a slice run (${b.detail})` }));
   return [...n20, ...n25, ...n33, ...society, ...n26f, ...n26g, ...n26h, ...n26i, ...n27, ...n28, ...n30, ...n31, ...n32, ...n36, ...n41, ...n42, ...n43, ...n44, ...checkRoadBounds(realm, store.people)].map((b) =>
     // Traffic and news travel with people: where most places don't live as rows (a slice run), there's hardly anyone on the
     // roads to carry it, so don't judge them.
