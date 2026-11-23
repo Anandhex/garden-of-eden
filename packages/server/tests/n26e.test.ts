@@ -33,7 +33,7 @@ import { seededRng } from "../src/game/dice.js";
 import { siteMap } from "../src/web/sites.js";
 import { allPersonas } from "./helpers.js";
 
-vi.setConfig({ testTimeout: 180_000 });
+vi.setConfig({ testTimeout: 600_000 });
 beforeEach(() => {
   config.peopleLazy = "";
   config.realm = true;

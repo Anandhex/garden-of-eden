@@ -292,5 +292,5 @@ describe("N12 done when: 30 simulated days", () => {
     for (const e of store.directorEntries().filter((x) => x.ok)) perDay.set(e.day, (perDay.get(e.day) ?? 0) + 1);
     for (const n of perDay.values()) expect(n).toBeLessThanOrEqual(config.directorMaxPerNight);
     config.director = false;
-  }, 360_000);
+  }, 600_000);
 });

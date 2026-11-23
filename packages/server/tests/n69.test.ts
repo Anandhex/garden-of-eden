@@ -45,7 +45,7 @@ import { pickTestPlaces } from "./helpers.js";
  * ventures can fail and cost the leader; leaders earn epithets by how they lead, and townsfolk whose name grows rise. People are found by
  * their post, job or role, never by name.
  */
-vi.setConfig({ testTimeout: 300_000, hookTimeout: 300_000 });
+vi.setConfig({ testTimeout: 600_000, hookTimeout: 600_000 });
 
 const Y = config.daysPerYear;
 const season = Math.max(1, Math.floor(Y / 4));

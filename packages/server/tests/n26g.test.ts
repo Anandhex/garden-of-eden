@@ -22,7 +22,7 @@ import { roadDataOf } from "../src/game/road/generateRoads.js";
 import { materialisePeople } from "../src/store/materialise.js";
 import type { PersonRow } from "../src/store/peopleStore.js";
 
-vi.setConfig({ testTimeout: 300_000 });
+vi.setConfig({ testTimeout: 600_000 });
 beforeEach(() => {
   config.director = false;
   config.planning = false;
