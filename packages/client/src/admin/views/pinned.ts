@@ -1,4 +1,4 @@
-import type { AdminCard, AdminClock, AdminPlayerView } from "@millbrook/shared";
+import type { AdminCard, AdminClock, AdminPlayerView } from "@garden-of-eden/shared";
 import { el, emptyP } from "../../dom";
 import { api } from "../api";
 import { renderCard } from "../card";

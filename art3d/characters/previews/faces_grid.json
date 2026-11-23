@@ -1,0 +1,144 @@
+[
+ {
+  "name": "round_eyes_small_chin",
+  "shapes": {
+   "Sex": 0.6,
+   "Eye_Round": 1,
+   "Eye_Big": 0.6,
+   "Chin_Small": 0.7,
+   "Lips_Pout": 0.6,
+   "Cheeks_Full": 0.5
+  }
+ },
+ {
+  "name": "almond_tiltup_bow",
+  "shapes": {
+   "Sex": 1,
+   "Eye_Almond": 1,
+   "Eye_TiltUp": 0.8,
+   "Chin_Pointed": 0.6,
+   "Lips_CupidBow": 1,
+   "Lips_UpperFull": 0.5,
+   "Cheekbones": 0.7
+  }
+ },
+ {
+  "name": "hooded_deep_square",
+  "shapes": {
+   "Eye_Hooded": 1,
+   "Eye_Deep": 0.8,
+   "Brow_Ridge": 0.8,
+   "Chin_Big": 0.7,
+   "Jaw_Square": 0.8,
+   "Lips_Thin": 0.7,
+   "Mouth_CornersDown": 0.6
+  }
+ },
+ {
+  "name": "monolid_wide_chin",
+  "shapes": {
+   "Eye_Monolid": 1,
+   "Eye_Narrow": 0.5,
+   "Chin_Wide": 0.6,
+   "Chin_Back": 0.4,
+   "Lips_LowerFull": 0.6,
+   "Face_Short": 0.4
+  }
+ },
+ {
+  "name": "tiltdown_soft_full",
+  "shapes": {
+   "Sex": 1,
+   "Eye_TiltDown": 1,
+   "Eye_Big": 0.7,
+   "Lips_Full": 0.8,
+   "Mouth_CornersUp": 0.5,
+   "Chin_Narrow": 0.5,
+   "Face_Long": 0.3
+  }
+ },
+ {
+  "name": "protruding_forward_chin",
+  "shapes": {
+   "Eye_Protrude": 1,
+   "Eye_Spacing": 0.8,
+   "Chin_Forward": 1,
+   "Chin_Long": 0.5,
+   "Mouth_Wide": 0.6,
+   "Nose_Bridge": 0.6
+  }
+ },
+ {
+  "name": "narrow_thin_lips",
+  "shapes": {
+   "Eye_Narrow": 1,
+   "Eye_Height": 0.6,
+   "Lips_Thin": 1,
+   "Mouth_Narrow": 0.8,
+   "Face_Long": 0.8,
+   "Chin_Pointed": 0.4,
+   "Cheekbones": 0.8
+  }
+ },
+ {
+  "name": "full_lips_cleft",
+  "shapes": {
+   "Lips_UpperFull": 1,
+   "Lips_LowerFull": 1,
+   "Chin_Cleft": 1,
+   "Chin_Big": 0.4,
+   "Jaw_Wide": 0.5,
+   "Mouth_Wide": 0.5,
+   "Eye_Almond": 0.5
+  }
+ },
+ {
+  "name": "child_round",
+  "shapes": {
+   "Child": 1,
+   "Eye_Round": 1,
+   "Eye_Big": 1,
+   "Chin_Small": 1,
+   "Cheeks_Full": 1,
+   "Lips_Pout": 0.5
+  }
+ },
+ {
+  "name": "old_hooded_corners_down",
+  "shapes": {
+   "Age_Old": 1,
+   "Eye_Hooded": 1,
+   "Eye_Deep": 0.5,
+   "Chin_Cleft": 0.5,
+   "Mouth_CornersDown": 1,
+   "Lips_Thin": 0.6,
+   "Cheekbones": 0.5
+  }
+ },
+ {
+  "name": "heart_face_pout",
+  "shapes": {
+   "Sex": 1,
+   "Chin_Narrow": 1,
+   "Chin_Pointed": 0.6,
+   "Forehead_High": 0.6,
+   "Eye_Round": 0.6,
+   "Eye_Spacing": 0.6,
+   "Lips_Pout": 0.8,
+   "Mouth_CornersUp": 0.6
+  }
+ },
+ {
+  "name": "strong_square_brow",
+  "shapes": {
+   "Jaw_Square": 1,
+   "Chin_Wide": 0.8,
+   "Eye_Narrow": 0.4,
+   "Eye_TiltDown": 0.4,
+   "Brow_Ridge": 1,
+   "Lips_LowerFull": 0.3,
+   "Mouth_Wide": 0.7,
+   "Muscle": 0.5
+  }
+ }
+]

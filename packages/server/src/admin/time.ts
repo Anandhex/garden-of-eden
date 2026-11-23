@@ -1,4 +1,4 @@
-import type { AdminTimeRequest, AdminTimeResponse } from "@millbrook/shared";
+import type { AdminTimeRequest, AdminTimeResponse } from "@garden-of-eden/shared";
 import { logDecision } from "../director/validator.js";
 import type { AdminContext } from "./context.js";
 import { clockOf } from "./overview.js";

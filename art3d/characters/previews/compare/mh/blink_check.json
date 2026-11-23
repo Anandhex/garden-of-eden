@@ -1,0 +1,142 @@
+{
+ "F neutral": {
+  "open_cells": 865,
+  "blink_cells": 0,
+  "closed": true
+ },
+ "F Eye_Big": {
+  "open_cells": 1057,
+  "blink_cells": 0,
+  "closed": true
+ },
+ "F Eye_Round": {
+  "open_cells": 1289,
+  "blink_cells": 0,
+  "closed": true
+ },
+ "F Eye_Big+Round": {
+  "open_cells": 1519,
+  "blink_cells": 0,
+  "closed": true
+ },
+ "F Eye_Big+Round0.6": {
+  "open_cells": 1343,
+  "blink_cells": 0,
+  "closed": true
+ },
+ "F Eye_Big0.5+Round": {
+  "open_cells": 1415,
+  "blink_cells": 0,
+  "closed": true
+ },
+ "F Age_Old": {
+  "open_cells": 779,
+  "blink_cells": 0,
+  "closed": true
+ },
+ "F Eye_Protrude": {
+  "open_cells": 1045,
+  "blink_cells": 0,
+  "closed": true
+ },
+ "F Eye_TiltUp": {
+  "open_cells": 867,
+  "blink_cells": 0,
+  "closed": true
+ },
+ "F Eye_Big-1": {
+  "open_cells": 717,
+  "blink_cells": 0,
+  "closed": true
+ },
+ "F Species_Elf": {
+  "open_cells": 925,
+  "blink_cells": 0,
+  "closed": true
+ },
+ "F Species_Orc": {
+  "open_cells": 810,
+  "blink_cells": 0,
+  "closed": true
+ },
+ "F Heavy": {
+  "open_cells": 865,
+  "blink_cells": 0,
+  "closed": true
+ },
+ "F Cheeks_Full": {
+  "open_cells": 865,
+  "blink_cells": 0,
+  "closed": true
+ },
+ "M neutral": {
+  "open_cells": 814,
+  "blink_cells": 0,
+  "closed": true
+ },
+ "M Eye_Big": {
+  "open_cells": 1000,
+  "blink_cells": 0,
+  "closed": true
+ },
+ "M Eye_Round": {
+  "open_cells": 1260,
+  "blink_cells": 0,
+  "closed": true
+ },
+ "M Eye_Big+Round": {
+  "open_cells": 1470,
+  "blink_cells": 0,
+  "closed": true
+ },
+ "M Eye_Big+Round0.6": {
+  "open_cells": 1298,
+  "blink_cells": 0,
+  "closed": true
+ },
+ "M Eye_Big0.5+Round": {
+  "open_cells": 1376,
+  "blink_cells": 0,
+  "closed": true
+ },
+ "M Age_Old": {
+  "open_cells": 734,
+  "blink_cells": 0,
+  "closed": true
+ },
+ "M Eye_Protrude": {
+  "open_cells": 955,
+  "blink_cells": 0,
+  "closed": true
+ },
+ "M Eye_TiltUp": {
+  "open_cells": 822,
+  "blink_cells": 0,
+  "closed": true
+ },
+ "M Eye_Big-1": {
+  "open_cells": 707,
+  "blink_cells": 4,
+  "closed": true
+ },
+ "M Species_Elf": {
+  "open_cells": 886,
+  "blink_cells": 0,
+  "closed": true
+ },
+ "M Species_Orc": {
+  "open_cells": 772,
+  "blink_cells": 0,
+  "closed": true
+ },
+ "M Heavy": {
+  "open_cells": 814,
+  "blink_cells": 0,
+  "closed": true
+ },
+ "M Cheeks_Full": {
+  "open_cells": 814,
+  "blink_cells": 0,
+  "closed": true
+ }
+}

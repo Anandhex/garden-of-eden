@@ -4,8 +4,8 @@
  * calls. Nothing here is saved except the time-flow switch: a reconnect rebuilds the screen from the game and this.
  */
 import { readFileSync, writeFileSync } from "node:fs";
-import { cumulative, findPath, isSolidGround, project, resample, shortestWay, tileDistance, type GameEvent, type NpcVoice, type Snapshot, type StreamEvent, type Tile } from "@millbrook/shared";
-import { PROTOCOL_VERSION, type Frame, type Intent, type ServerMsg } from "@millbrook/shared/view";
+import { cumulative, findPath, isSolidGround, project, resample, shortestWay, tileDistance, type GameEvent, type NpcVoice, type Snapshot, type StreamEvent, type Tile } from "@garden-of-eden/shared";
+import { PROTOCOL_VERSION, type Frame, type Intent, type ServerMsg } from "@garden-of-eden/shared/view";
 import { groundAt } from "../game/road/ground.js";
 import { boxOf, buildFrame, CrowdClock, diffFrame, gossipBubble, nearOf, pickChatter, SentFrame, solidOf, travellersNow } from "./frame.js";
 import type { ViewHost } from "./host.js";
@@ -19,7 +19,7 @@ export interface Sock {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 /** Actions that start no reply from the NPC (no "…" bubble while they run). */
-const NO_REPLY = ["open", "look", "wait", "turnin", "loot"];
+const NO_REPLY = ["open", "look", "wait", "turnin", "loot", "society"];
 const STEP_MS = 100;
 const CHECK = process.env.VIEW_CHECK === "1";
 
@@ -603,9 +603,11 @@ export class ViewSession {
   }
 
   /** Walk up to someone and talk. They may walk on while the player comes: follow them a few times, then talk if in reach. */
-  private approach(id: string, tries = 12): void {
+  private approach(id: string, tries?: number): void {
     const s = this.host.snapshot();
     this.last = s;
+    // Enough legs to cross the whole map (the open-town maps are big), at least 12.
+    tries ??= Math.max(12, Math.ceil((s.map.w + s.map.h) / APPROACH_LEG) + 4);
     const at = this.whereIs(s, id);
     if (!at) return void (this.feed("They've gone from here."), this.push());
     const range = s.map.talkRange;

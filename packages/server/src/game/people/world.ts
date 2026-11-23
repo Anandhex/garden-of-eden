@@ -1,4 +1,11 @@
 import { lettersDay } from "../follow/letters.js";
+import type { KnownEntry } from "../../npc/types.js";
+import { storiesDay } from "../stories/detect.js";
+import { livenessFor, saveLiveness } from "../stories/liveness.js";
+import { dramaDay } from "../stories/drama.js";
+import { findCallbacks } from "../stories/callbacks.js";
+import { snapshotDue, takeSnapshot } from "../share/snapshots.js";
+import type { WorldStore } from "../db.js";
 import { marksRealmDay, marksSiteDay } from "../marks/rules.js";
 import { syncBeasts } from "../realm/beasts.js";
 import { fieldsDay } from "../farm/day.js";
@@ -54,6 +61,8 @@ export interface LifeOptions {
   lazy?: ReadonlySet<string>;
   /** Places the player is watching (or pins): worked out first, and their events keep their hour. */
   watched?: ReadonlySet<string>;
+  /** The player, where they are and what they know: the drama manager watches their place, the liveness metrics count what reached them (N20). */
+  player?: { site?: string; known?: Record<string, KnownEntry> };
 }
 
 export interface DayLife {
@@ -181,6 +190,15 @@ export function lifeDay(ctx: LifeCtx, day: number, opts: LifeOptions = {}): DayL
     const behind = Math.min(day, ...[...live].map((id) => store.people.seq(id).stepped));
     store.people.pruneSiteDays(Math.min(day - KEEP_DAYS, behind));
   });
+  // Stories, how alive the day was, and (when on) the drama manager's one nudge for the player's place (N20).
+  const here = opts.player?.site ?? [...watched][0];
+  if (config.stories) timed("stories.day", () => {
+    storiesDay(realm, store, day, (id) => store.people.get(id)?.name ?? realm.figures[id]?.name);
+    // What the player did, traced to what it led to (N21): found here, told when the player knows the outcome (town.ts).
+    findCallbacks(realm, store, day);
+    saveLiveness(store, livenessFor(realm, store, day, { ...(here ? { site: here } : {}), ...(opts.player?.known ? { known: opts.player.known } : {}) }));
+  });
+  dramaDay(ctx, here, day);
   return result;
 }
 
@@ -201,6 +219,8 @@ export function advanceWorld(realm: Realm, store: LifeCtx["store"], toDay: numbe
   const live = opts.live ?? liveSites(realm);
   const out: DayLife[] = [];
   for (let d = realm.day + 1; d <= toDay; d++) {
+    // The world as it stands at the start of the day, for replay (N23): every few days when SNAPSHOT_EVERY is set.
+    if (snapshotDue(d)) takeSnapshot(realm, store as WorldStore, d);
     realmDay(realm, d, undefined, { live, store });
     out.push(lifeDay(ctx, d, { ...opts, live }));
   }

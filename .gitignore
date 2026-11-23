@@ -5,3 +5,12 @@ saves/
 # Piper voice models (T14): downloaded, ~60 MB each
 voices/
 .venv-piper/
+# OS / editor clutter
+.DS_Store
+*.log
+# Unity: see unity/GardenOfEden/.gitignore
+# MakeHuman base: project-local Blender user dir with MPFB + system assets (re-create per art3d/characters/mh/README.md), caches
+art3d/characters/tools/blender_user/
+art3d/characters/mh/cache/
+art3d/characters/mh/base_mh.blend1
+art3d/characters/previews/compare/mh/_sheet_tmp/

@@ -1,4 +1,4 @@
-import { CLASS_RANK, type SocialClass } from "@millbrook/shared";
+import { CLASS_RANK, type SocialClass } from "@garden-of-eden/shared";
 import { config } from "../../config.js";
 import { joinedByRecruit } from "../office/recruit.js";
 import { timed } from "../../metrics/timing.js";

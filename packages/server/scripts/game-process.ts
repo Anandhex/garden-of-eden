@@ -9,7 +9,7 @@ import { createServer, type Server } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { PROTOCOL_VERSION, type Intent, type ServerMsg, type UiModel } from "@millbrook/shared/view";
+import { PROTOCOL_VERSION, type Intent, type ServerMsg, type UiModel } from "@garden-of-eden/shared/view";
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
 
@@ -50,7 +50,7 @@ export interface GameProcess {
 /** Start the game server (a new world on a temp save) and wait until it listens. */
 export async function startGame(o: { env?: Record<string, string>; port?: number } = {}): Promise<GameProcess> {
   const port = o.port ?? 42000 + Math.floor(Math.random() * 3000);
-  const saves = mkdtempSync(join(tmpdir(), "millbrook-view-"));
+  const saves = mkdtempSync(join(tmpdir(), "garden-of-eden-view-"));
   let out = "";
   const proc = spawn(join(root, "node_modules/.bin/tsx"), ["packages/server/src/web/server.ts", "--new"], {
     cwd: root,

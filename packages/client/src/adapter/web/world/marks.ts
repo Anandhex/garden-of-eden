@@ -4,7 +4,7 @@
  * someone home and a fire lit. The words are the frame's (shown on hover by the scene).
  */
 import * as Phaser from "phaser";
-import type { Frame } from "@millbrook/shared/view";
+import type { Frame } from "@garden-of-eden/shared/view";
 import { DEPTH } from "./depth";
 import { hexColor, TILE } from "./textures";
 

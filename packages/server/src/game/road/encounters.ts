@@ -2,7 +2,7 @@ import { fromTransit, mint } from "../realm/ledger.js";
 import { tookLife } from "../realm/beasts.js";
 import { watchStrength } from "./watch.js";
 import { killFigure } from "../realm/figures.js";
-import { type Journey, type RoadData } from "@millbrook/shared";
+import { type Journey, type RoadData } from "@garden-of-eden/shared";
 import type { WorldStore } from "../db.js";
 import { streamFor } from "../dice.js";
 import { killPerson } from "../people/index.js";

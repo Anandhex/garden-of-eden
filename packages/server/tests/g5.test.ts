@@ -8,7 +8,7 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import type { Snapshot } from "@millbrook/shared";
+import type { Snapshot } from "@garden-of-eden/shared";
 import { schemaFiles } from "../../shared/src/view/jsonSchema.js";
 import { fakeModel, ProtocolClient, sleep, startGame, type GameProcess } from "../scripts/game-process.js";
 import { heldBy } from "../src/view/session.js";
@@ -58,11 +58,11 @@ describe("G5 the line: the client code holds no game rules", () => {
   const files = (dir: string): string[] => readdirSync(dir).flatMap((f) => (statSync(join(dir, f)).isDirectory() ? files(join(dir, f)) : f.endsWith(".ts") ? [join(dir, f)] : []));
   const client = [...files(join(root, "packages/client/src/core")), ...files(join(root, "packages/client/src/adapter"))];
 
-  it("core/ and adapter/ import nothing from @millbrook/shared but its view", () => {
+  it("core/ and adapter/ import nothing from @garden-of-eden/shared but its view", () => {
     expect(client.length).toBeGreaterThan(8);
     for (const f of client) {
       const src = readFileSync(f, "utf8");
-      const bad = [...src.matchAll(/from\s+"(@millbrook\/shared[^"]*)"/g)].map((m) => m[1]).filter((m) => m !== "@millbrook/shared/view");
+      const bad = [...src.matchAll(/from\s+"(@garden-of-eden\/shared[^"]*)"/g)].map((m) => m[1]).filter((m) => m !== "@garden-of-eden/shared/view");
       expect(bad, f).toEqual([]);
       // Nor the server's code, nor the simulation's by another path.
       expect(src, f).not.toMatch(/from\s+"[^"]*(packages\/server|shared\/src\/(crowd|path|road|chatter))[^"]*"/);

@@ -15,6 +15,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { BOUNDS } from "../src/balance/bounds.js";
 import { runYears } from "../src/balance/run.js";
+import { livenessAverages, livenessDays } from "../src/game/stories/liveness.js";
 
 const args = process.argv.slice(2);
 if (args.includes("--list")) {
@@ -42,11 +43,13 @@ for (const seed of seeds) {
   console.log(`\nSeed ${seed}: ${r.days} days in ${(r.ms / 1000).toFixed(1)} s (${Math.round(r.ms / r.days)} ms a day), hash ${r.hash.slice(0, 12)}`);
   const last = r.series.at(-1)!;
   console.log(`  people ${last.population}, food ${last.food.mean.toFixed(0)}, prosperity ${last.prosperity.mean.toFixed(0)}, wars ${last.wars}, factions ${last.factions}, abandoned ${last.abandoned}, fallen ${last.fallen}, coin ${last.coin.total}`);
+  const alive = livenessAverages(livenessDays(r.store, 100000));
+  console.log(`  liveness a day: ${alive.distinctActions} distinct actions, ${alive.events} events, ${alive.storiesGrew} chains grew, ${alive.namedMoved} about named people, ${alive.quietHours} quiet hours`);
   for (const b of bounds) {
     console.log(`  ${b.ok ? "ok  " : "FAIL"} ${b.id.padEnd(24)} ${b.phase.padEnd(7)} ${b.detail}`);
     if (!b.ok) failed++;
   }
-  report.push({ seed, days: r.days, ms: Math.round(r.ms), hash: r.hash, last, bounds });
+  report.push({ seed, days: r.days, ms: Math.round(r.ms), hash: r.hash, last, liveness: alive, bounds });
 }
 const out = join(dirname(fileURLToPath(import.meta.url)), "../../../saves/balance-report.json");
 mkdirSync(dirname(out), { recursive: true });

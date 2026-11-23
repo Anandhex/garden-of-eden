@@ -14,7 +14,7 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { freemem, totalmem } from "node:os";
-import { DEFAULT_VOICE, SentenceSplitter, type NpcVoice } from "@millbrook/shared";
+import { DEFAULT_VOICE, SentenceSplitter, type NpcVoice } from "@garden-of-eden/shared";
 import { Ollama } from "ollama";
 import { config } from "../src/config.js";
 import { generatedCast } from "./generated.js";

@@ -135,7 +135,7 @@ describe("N26F step 0c: pack beasts are rows", () => {
 import { newWorld } from "../src/game/save.js";
 import { Town } from "../src/game/town.js";
 import { FakeProvider, always } from "./helpers.js";
-import { besideRoad, inTerritory } from "@millbrook/shared";
+import { besideRoad, inTerritory } from "@garden-of-eden/shared";
 import { roadDataOf } from "../src/game/road/generateRoads.js";
 import { territoriesNow } from "../src/game/road/territories.js";
 import { hostilesStep, strongEnough, UNSTOCK } from "../src/game/road/hostiles.js";
@@ -296,7 +296,7 @@ describe("N26F step 2: hostiles on the map", () => {
 
 // ---------- step 3: wildlife ----------
 
-import { wildlifeAt } from "@millbrook/shared";
+import { wildlifeAt } from "@garden-of-eden/shared";
 import { promoteWild, wildNear } from "../src/game/road/wild.js";
 
 describe("N26F step 3: wildlife", () => {
@@ -341,7 +341,7 @@ describe("N26F step 3: wildlife", () => {
 
 // ---------- step 4: roadside places ----------
 
-import { POI_EVERY } from "@millbrook/shared";
+import { POI_EVERY } from "@garden-of-eden/shared";
 import { wrecksNear } from "../src/game/road/roadside.js";
 
 describe("N26F step 4: places beside the road", () => {

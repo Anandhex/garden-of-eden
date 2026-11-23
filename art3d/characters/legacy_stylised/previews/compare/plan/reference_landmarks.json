@@ -1,0 +1,250 @@
+{
+ "_note": "Hand-picked pixel landmarks on the reference image (1140x1244, images/3.webp), read off ref_face_grid.png / ref_body_grid.png by the planner on 2026-11-16. Accuracy about +-2 px on the face, +-6 px on the body; clothed and occluded points are marked lowConfidence. Head is yawed about 35-40 degrees to her right, pitched back about 10-15 degrees, rolled about 10 degrees; camera is low (about hip height). Re-pick if in doubt, never tune the picks to make our score look better.",
+ "image": {
+  "w": 1140,
+  "h": 1244
+ },
+ "body": {
+  "crown_hair": [
+   600,
+   197
+  ],
+  "crown_skull_est": [
+   600,
+   203
+  ],
+  "chin": [
+   572,
+   306
+  ],
+  "sternal_notch": [
+   588,
+   342
+  ],
+  "neck_left": [
+   580,
+   322
+  ],
+  "neck_right": [
+   616,
+   322
+  ],
+  "shoulder_her_right": [
+   528,
+   372
+  ],
+  "shoulder_her_left": [
+   670,
+   374
+  ],
+  "waist_left": [
+   578,
+   505
+  ],
+  "waist_right": [
+   668,
+   505
+  ],
+  "hip_left_hidden": [
+   576,
+   650
+  ],
+  "hip_right": [
+   716,
+   650
+  ],
+  "crotch_hidden": [
+   628,
+   682
+  ],
+  "knee_front_leg": [
+   642,
+   852
+  ],
+  "knee_back_leg": [
+   520,
+   838
+  ],
+  "sole_front_leg": [
+   652,
+   1098
+  ],
+  "sole_back_leg": [
+   428,
+   1076
+  ],
+  "wrist_raised": [
+   437,
+   268
+  ],
+  "fingertip_raised": [
+   465,
+   214
+  ],
+  "lowConfidence": [
+   "shoulder_her_right",
+   "waist_left",
+   "hip_left_hidden",
+   "crotch_hidden",
+   "knee_back_leg",
+   "wrist_raised",
+   "fingertip_raised"
+  ]
+ },
+ "face": {
+  "near_eye_inner": [
+   578,
+   262
+  ],
+  "near_eye_outer": [
+   601,
+   251
+  ],
+  "near_eye_upper_lid": [
+   589,
+   250
+  ],
+  "near_eye_lower_lid": [
+   590,
+   260
+  ],
+  "near_iris_centre": [
+   589,
+   256
+  ],
+  "near_iris_radius_px": 5.5,
+  "far_eye_inner": [
+   566,
+   263
+  ],
+  "far_eye_outer": [
+   551,
+   262
+  ],
+  "brow_near_inner": [
+   574,
+   243
+  ],
+  "brow_near_peak": [
+   590,
+   238
+  ],
+  "brow_near_tail": [
+   606,
+   246
+  ],
+  "nasion": [
+   569,
+   254
+  ],
+  "nose_tip": [
+   553,
+   272
+  ],
+  "subnasale": [
+   560,
+   279
+  ],
+  "alar_near": [
+   564,
+   275
+  ],
+  "lip_upper_top": [
+   564,
+   282
+  ],
+  "lip_contact": [
+   566,
+   289
+  ],
+  "lip_lower_bottom": [
+   568,
+   298
+  ],
+  "mouth_corner_near": [
+   583,
+   287
+  ],
+  "chin_tip": [
+   572,
+   306
+  ],
+  "jaw_angle_near": [
+   622,
+   291
+  ],
+  "ear_top": [
+   632,
+   250
+  ],
+  "ear_bottom": [
+   630,
+   272
+  ],
+  "lowConfidence": [
+   "far_eye_inner",
+   "far_eye_outer",
+   "alar_near",
+   "jaw_angle_near"
+  ]
+ },
+ "derived_targets": {
+  "_units": "ratios; head_h = crown_skull_est to chin = 103 px (105 with hair)",
+  "heads_tall_in_image": 8.5,
+  "heads_tall_pose_corrected": 8.3,
+  "neck_w_over_head_h": 0.35,
+  "neck_len_chin_to_notch_over_head_h": 0.34,
+  "shoulder_w_over_head_h": 1.45,
+  "waist_w_over_head_h": 0.85,
+  "hip_w_over_head_h": 1.35,
+  "waist_over_hip": 0.63,
+  "crotch_over_height_pose_corrected": 0.47,
+  "knee_over_height": 0.27,
+  "hand_len_over_head_h": 0.75,
+  "eye_w_over_head_h": 0.22,
+  "eye_h_over_w": 0.38,
+  "eye_tilt_deg": 10,
+  "iris_d_over_eye_w": 0.45,
+  "inter_over_eye_w": 0.7,
+  "nose_w_over_face_w": 0.22,
+  "nose_len_over_head_h": 0.22,
+  "mouth_w_over_face_w": 0.45,
+  "lip_h_over_mouth_w": 0.5,
+  "ear_h_over_head_h": 0.21,
+  "ear_stickout_over_head_w": 0.03,
+  "chin_w_over_face_w": 0.3
+ },
+ "user_feedback_round7": {
+  "quote": "ears and lips are too big ... I need smaller ears and wider lips",
+  "round7_F": {
+   "ear_h_over_head_h": 0.289,
+   "ear_stickout_over_head_w": 0.188,
+   "mouth_w_over_face_w": 0.247,
+   "mouth_w_over_nose_w": 0.97,
+   "lip_h_over_mouth_w": 0.58,
+   "lip_h_over_head_h": 0.114
+  },
+  "round7_M": {
+   "ear_h_over_head_h": 0.336,
+   "ear_stickout_over_head_w": 0.173,
+   "mouth_w_over_face_w": 0.337
+  },
+  "targets_F": {
+   "ear_h_over_head_h": 0.2,
+   "ear_stickout_over_head_w": 0.03,
+   "mouth_w_over_face_w": 0.46,
+   "mouth_w_over_nose_w_min": 1.8,
+   "lip_h_over_mouth_w": 0.3,
+   "lip_h_over_head_h": 0.097
+  },
+  "targets_M": {
+   "ear_h_over_head_h": 0.21,
+   "ear_stickout_over_head_w": 0.04,
+   "mouth_w_over_face_w": 0.46,
+   "mouth_w_over_nose_w_min": 1.6,
+   "lip_h_over_mouth_w": 0.25,
+   "lip_h_over_head_h": 0.08
+  },
+  "note": "these override derived_targets for ears and lips"
+ }
+}

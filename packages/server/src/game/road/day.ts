@@ -1,5 +1,5 @@
 import { fromTransit } from "../realm/ledger.js";
-import type { Journey } from "@millbrook/shared";
+import type { Journey } from "@garden-of-eden/shared";
 import { timed } from "../../metrics/timing.js";
 import { arriveHouseholds, type Catcher } from "../people/migration.js";
 import type { LifeCtx } from "../people/step.js";

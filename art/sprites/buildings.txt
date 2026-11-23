@@ -888,7 +888,7 @@ kDOOOOOOOOOOOODk
 kDooooooooooooDk
 kkkkkkkkkkkkkkkk
 
-# ---- G8: regional materials ----
+# ---- G10: regional materials ----
 # A place is built the way its people build, with what its land gives (packages/shared/src/view/styles.ts). Each
 # material is an older one in other colours: `recolor=<family>_` copies every frame of the family (roof rows, walls,
 # windows, side walls, gables), `swap=` trades palette colours. A window stays a window (it is still lit after dark).

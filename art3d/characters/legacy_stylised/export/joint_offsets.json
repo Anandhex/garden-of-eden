@@ -1,0 +1,3769 @@
+{
+"space": "Blender armature space, metres, shape weight 1.0; Unity = (-x, z, -y)",
+"restHeads": {
+"Hips": [
+0.0,
+-0.0092,
+0.92816
+],
+"Spine": [
+0.0,
+-0.00918,
+1.00419
+],
+"Chest": [
+0.0,
+-0.00916,
+1.10871
+],
+"UpperChest": [
+0.0,
+-0.00913,
+1.25125
+],
+"Neck": [
+0.0,
+-0.00911,
+1.40329
+],
+"Head": [
+0.0,
+-0.07588,
+1.55173
+],
+"Jaw": [
+0.0,
+-0.00963,
+1.59172
+],
+"LeftEye": [
+0.02974,
+-0.09052,
+1.63247
+],
+"RightEye": [
+-0.02974,
+-0.09052,
+1.63247
+],
+"LeftShoulder": [
+0.03,
+-0.00911,
+1.40829
+],
+"LeftUpperArm": [
+0.17867,
+0.0091,
+1.39636
+],
+"LeftLowerArm": [
+0.32348,
+0.03927,
+1.17433
+],
+"LeftHand": [
+0.40572,
+0.00438,
+0.98275
+],
+"LeftIndexProximal": [
+0.4139,
+-0.03754,
+0.88842
+],
+"LeftIndexIntermediate": [
+0.40653,
+-0.04395,
+0.8536
+],
+"LeftIndexDistal": [
+0.39482,
+-0.04738,
+0.82479
+],
+"LeftMiddleProximal": [
+0.41869,
+-0.01558,
+0.88457
+],
+"LeftMiddleIntermediate": [
+0.4167,
+-0.01918,
+0.84369
+],
+"LeftMiddleDistal": [
+0.40553,
+-0.021,
+0.80977
+],
+"LeftRingProximal": [
+0.41909,
+0.00771,
+0.88702
+],
+"LeftRingIntermediate": [
+0.41831,
+0.00759,
+0.84778
+],
+"LeftRingDistal": [
+0.40837,
+0.00755,
+0.81514
+],
+"LeftLittleProximal": [
+0.4194,
+0.02879,
+0.89208
+],
+"LeftLittleIntermediate": [
+0.41406,
+0.03121,
+0.86251
+],
+"LeftLittleDistal": [
+0.40527,
+0.03149,
+0.83996
+],
+"LeftThumbProximal": [
+0.39565,
+-0.02852,
+0.95425
+],
+"LeftThumbIntermediate": [
+0.38269,
+-0.05059,
+0.94005
+],
+"LeftThumbDistal": [
+0.37002,
+-0.06457,
+0.909
+],
+"RightShoulder": [
+-0.03,
+-0.00911,
+1.40829
+],
+"RightUpperArm": [
+-0.17867,
+0.0091,
+1.39636
+],
+"RightLowerArm": [
+-0.32348,
+0.03927,
+1.17433
+],
+"RightHand": [
+-0.40572,
+0.00438,
+0.98275
+],
+"RightIndexProximal": [
+-0.4139,
+-0.03754,
+0.88842
+],
+"RightIndexIntermediate": [
+-0.40653,
+-0.04395,
+0.8536
+],
+"RightIndexDistal": [
+-0.39482,
+-0.04738,
+0.82479
+],
+"RightMiddleProximal": [
+-0.41869,
+-0.01558,
+0.88457
+],
+"RightMiddleIntermediate": [
+-0.4167,
+-0.01918,
+0.84369
+],
+"RightMiddleDistal": [
+-0.40553,
+-0.021,
+0.80977
+],
+"RightRingProximal": [
+-0.41909,
+0.00771,
+0.88702
+],
+"RightRingIntermediate": [
+-0.41831,
+0.00759,
+0.84778
+],
+"RightRingDistal": [
+-0.40837,
+0.00755,
+0.81514
+],
+"RightLittleProximal": [
+-0.4194,
+0.02879,
+0.89208
+],
+"RightLittleIntermediate": [
+-0.41406,
+0.03121,
+0.86251
+],
+"RightLittleDistal": [
+-0.40527,
+0.03149,
+0.83996
+],
+"RightThumbProximal": [
+-0.39565,
+-0.02852,
+0.95425
+],
+"RightThumbIntermediate": [
+-0.38269,
+-0.05059,
+0.94005
+],
+"RightThumbDistal": [
+-0.37002,
+-0.06457,
+0.909
+],
+"LeftUpperLeg": [
+0.06867,
+-0.0092,
+0.92816
+],
+"LeftLowerLeg": [
+0.0862,
+-0.01018,
+0.50091
+],
+"LeftFoot": [
+0.09865,
+0.01027,
+0.09079
+],
+"LeftToes": [
+0.13143,
+-0.09147,
+0.03096
+],
+"RightUpperLeg": [
+-0.06867,
+-0.0092,
+0.92816
+],
+"RightLowerLeg": [
+-0.0862,
+-0.01018,
+0.50091
+],
+"RightFoot": [
+-0.09865,
+0.01027,
+0.09079
+],
+"RightToes": [
+-0.13143,
+-0.09147,
+0.03096
+]
+},
+"offsets": {
+"Sex": {
+"Hips": [
+0.00617,
+0.01417,
+-0.0618
+],
+"Spine": [
+-0.0,
+-0.01558,
+-0.03551
+],
+"Chest": [
+6e-05,
+-0.02106,
+-0.03843
+],
+"UpperChest": [
+-2e-05,
+-0.04335,
+-0.05113
+],
+"Neck": [
+-0.0,
+0.00516,
+-0.08813
+],
+"Head": [
+-0.0,
+-0.00374,
+-0.08921
+],
+"Jaw": [
+-0.0,
+-0.00522,
+-0.09774
+],
+"LeftEye": [
+0.00389,
+0.00139,
+-0.09538
+],
+"RightEye": [
+-0.00389,
+0.00139,
+-0.09538
+],
+"LeftShoulder": [
+-0.0174,
+0.00385,
+-0.08794
+],
+"LeftUpperArm": [
+-0.04808,
+-0.00095,
+-0.09912
+],
+"LeftLowerArm": [
+-0.08024,
+-0.0217,
+-0.07546
+],
+"LeftHand": [
+-0.06396,
+-0.02243,
+-0.07637
+],
+"LeftIndexProximal": [
+-0.06476,
+-0.00069,
+-0.07298
+],
+"LeftIndexIntermediate": [
+-0.05246,
+-0.00293,
+-0.07041
+],
+"LeftIndexDistal": [
+-0.05201,
+0.00184,
+-0.05987
+],
+"LeftMiddleProximal": [
+-0.06328,
+-0.00592,
+-0.07229
+],
+"LeftMiddleIntermediate": [
+-0.05937,
+-0.00478,
+-0.06531
+],
+"LeftMiddleDistal": [
+-0.05577,
+-0.0025,
+-0.0566
+],
+"LeftRingProximal": [
+-0.06428,
+-0.01362,
+-0.07035
+],
+"LeftRingIntermediate": [
+-0.06046,
+-0.00864,
+-0.06292
+],
+"LeftRingDistal": [
+-0.05657,
+-0.00519,
+-0.0562
+],
+"LeftLittleProximal": [
+-0.06737,
+-0.01675,
+-0.06903
+],
+"LeftLittleIntermediate": [
+-0.06494,
+-0.01324,
+-0.05943
+],
+"LeftLittleDistal": [
+-0.05572,
+-0.00921,
+-0.05895
+],
+"LeftThumbProximal": [
+-0.05948,
+-0.0014,
+-0.08036
+],
+"LeftThumbIntermediate": [
+-0.05094,
+-0.0026,
+-0.08578
+],
+"LeftThumbDistal": [
+-0.04269,
+0.00237,
+-0.08183
+],
+"RightShoulder": [
+0.0174,
+0.00385,
+-0.08794
+],
+"RightUpperArm": [
+0.04812,
+-0.0009,
+-0.09905
+],
+"RightLowerArm": [
+0.08024,
+-0.0217,
+-0.07546
+],
+"RightHand": [
+0.06396,
+-0.02243,
+-0.07637
+],
+"RightIndexProximal": [
+0.06264,
+-0.0027,
+-0.07126
+],
+"RightIndexIntermediate": [
+0.05259,
+-0.00287,
+-0.07027
+],
+"RightIndexDistal": [
+0.05214,
+0.00172,
+-0.05989
+],
+"RightMiddleProximal": [
+0.06328,
+-0.00592,
+-0.07229
+],
+"RightMiddleIntermediate": [
+0.0593,
+-0.00482,
+-0.06544
+],
+"RightMiddleDistal": [
+0.05557,
+-0.00259,
+-0.0566
+],
+"RightRingProximal": [
+0.06428,
+-0.01362,
+-0.07035
+],
+"RightRingIntermediate": [
+0.06037,
+-0.00872,
+-0.06304
+],
+"RightRingDistal": [
+0.05669,
+-0.00257,
+-0.05488
+],
+"RightLittleProximal": [
+0.06737,
+-0.01675,
+-0.06903
+],
+"RightLittleIntermediate": [
+0.06493,
+-0.01324,
+-0.05937
+],
+"RightLittleDistal": [
+0.05643,
+-0.00971,
+-0.05953
+],
+"RightThumbProximal": [
+0.05948,
+-0.0014,
+-0.08036
+],
+"RightThumbIntermediate": [
+0.05094,
+-0.0026,
+-0.08578
+],
+"RightThumbDistal": [
+0.04269,
+0.00237,
+-0.08183
+],
+"LeftUpperLeg": [
+0.01643,
+-0.00337,
+-0.03759
+],
+"LeftLowerLeg": [
+-0.00568,
+-0.01361,
+-0.02864
+],
+"LeftFoot": [
+-0.03609,
+-0.01483,
+-0.00305
+],
+"LeftToes": [
+-0.03864,
+0.00204,
+-0.00107
+],
+"RightUpperLeg": [
+-0.0167,
+-0.0035,
+-0.03792
+],
+"RightLowerLeg": [
+0.00568,
+-0.01361,
+-0.02864
+],
+"RightFoot": [
+0.03623,
+-0.01475,
+-0.0029
+],
+"RightToes": [
+0.0388,
+0.00204,
+-0.00106
+]
+},
+"Height_Legs": {
+"Hips": [
+0.0,
+0.0,
+0.07047
+],
+"Spine": [
+0.0,
+0.0,
+0.07122
+],
+"Chest": [
+0.0,
+0.0,
+0.07168
+],
+"UpperChest": [
+0.0,
+0.0,
+0.07073
+],
+"Neck": [
+0.0,
+0.0,
+0.06797
+],
+"Head": [
+0.0,
+0.0,
+0.06826
+],
+"Jaw": [
+0.0,
+0.0,
+0.06865
+],
+"LeftEye": [
+0.0,
+0.0,
+0.06674
+],
+"RightEye": [
+0.0,
+0.0,
+0.06674
+],
+"LeftShoulder": [
+0.00031,
+0.0,
+0.06785
+],
+"LeftUpperArm": [
+0.00819,
+0.0,
+0.06755
+],
+"LeftLowerArm": [
+0.0,
+0.0,
+0.06826
+],
+"LeftHand": [
+0.0,
+0.0,
+0.06826
+],
+"LeftIndexProximal": [
+0.0,
+0.0,
+0.06826
+],
+"LeftIndexIntermediate": [
+0.0,
+0.0,
+0.06826
+],
+"LeftIndexDistal": [
+0.0,
+0.0,
+0.06826
+],
+"LeftMiddleProximal": [
+0.0,
+0.0,
+0.06826
+],
+"LeftMiddleIntermediate": [
+0.0,
+0.0,
+0.06826
+],
+"LeftMiddleDistal": [
+0.0,
+0.0,
+0.06826
+],
+"LeftRingProximal": [
+0.0,
+0.0,
+0.06826
+],
+"LeftRingIntermediate": [
+0.0,
+0.0,
+0.06826
+],
+"LeftRingDistal": [
+0.0,
+0.0,
+0.06826
+],
+"LeftLittleProximal": [
+0.0,
+0.0,
+0.06826
+],
+"LeftLittleIntermediate": [
+0.0,
+0.0,
+0.06826
+],
+"LeftLittleDistal": [
+0.0,
+0.0,
+0.06826
+],
+"LeftThumbProximal": [
+0.0,
+0.0,
+0.06826
+],
+"LeftThumbIntermediate": [
+0.0,
+0.0,
+0.06826
+],
+"LeftThumbDistal": [
+0.0,
+0.0,
+0.06826
+],
+"RightShoulder": [
+-0.00031,
+0.0,
+0.06785
+],
+"RightUpperArm": [
+-0.00866,
+0.0,
+0.06761
+],
+"RightLowerArm": [
+0.0,
+0.0,
+0.06826
+],
+"RightHand": [
+0.0,
+0.0,
+0.06826
+],
+"RightIndexProximal": [
+0.0,
+0.0,
+0.06826
+],
+"RightIndexIntermediate": [
+0.0,
+0.0,
+0.06826
+],
+"RightIndexDistal": [
+0.0,
+0.0,
+0.06826
+],
+"RightMiddleProximal": [
+0.0,
+0.0,
+0.06826
+],
+"RightMiddleIntermediate": [
+0.0,
+0.0,
+0.06826
+],
+"RightMiddleDistal": [
+0.0,
+0.0,
+0.06826
+],
+"RightRingProximal": [
+0.0,
+0.0,
+0.06826
+],
+"RightRingIntermediate": [
+0.0,
+0.0,
+0.06826
+],
+"RightRingDistal": [
+0.0,
+0.0,
+0.06826
+],
+"RightLittleProximal": [
+0.0,
+0.0,
+0.06826
+],
+"RightLittleIntermediate": [
+0.0,
+0.0,
+0.06826
+],
+"RightLittleDistal": [
+0.0,
+0.0,
+0.06826
+],
+"RightThumbProximal": [
+0.0,
+0.0,
+0.06826
+],
+"RightThumbIntermediate": [
+0.0,
+0.0,
+0.06826
+],
+"RightThumbDistal": [
+0.0,
+0.0,
+0.06826
+],
+"LeftUpperLeg": [
+0.0,
+0.0,
+0.07081
+],
+"LeftLowerLeg": [
+0.0,
+0.0,
+0.03509
+],
+"RightUpperLeg": [
+0.0,
+0.0,
+0.0708
+],
+"RightLowerLeg": [
+0.0,
+0.0,
+0.03509
+]
+},
+"Shoulders": {
+"LeftShoulder": [
+0.00558,
+0.0,
+-5e-05
+],
+"LeftUpperArm": [
+0.02962,
+0.0,
+-3e-05
+],
+"LeftLowerArm": [
+0.04601,
+0.0,
+-0.0025
+],
+"LeftHand": [
+0.04601,
+0.0,
+-0.0025
+],
+"LeftIndexProximal": [
+0.04601,
+0.0,
+-0.0025
+],
+"LeftIndexIntermediate": [
+0.04601,
+0.0,
+-0.0025
+],
+"LeftIndexDistal": [
+0.04601,
+0.0,
+-0.0025
+],
+"LeftMiddleProximal": [
+0.04601,
+0.0,
+-0.0025
+],
+"LeftMiddleIntermediate": [
+0.04601,
+0.0,
+-0.0025
+],
+"LeftMiddleDistal": [
+0.04601,
+0.0,
+-0.0025
+],
+"LeftRingProximal": [
+0.04601,
+0.0,
+-0.0025
+],
+"LeftRingIntermediate": [
+0.04601,
+0.0,
+-0.0025
+],
+"LeftRingDistal": [
+0.04601,
+0.0,
+-0.0025
+],
+"LeftLittleProximal": [
+0.04601,
+0.0,
+-0.0025
+],
+"LeftLittleIntermediate": [
+0.04601,
+0.0,
+-0.0025
+],
+"LeftLittleDistal": [
+0.04601,
+0.0,
+-0.0025
+],
+"LeftThumbProximal": [
+0.04601,
+0.0,
+-0.0025
+],
+"LeftThumbIntermediate": [
+0.04601,
+0.0,
+-0.0025
+],
+"LeftThumbDistal": [
+0.04601,
+0.0,
+-0.0025
+],
+"RightShoulder": [
+-0.00582,
+0.0,
+-5e-05
+],
+"RightUpperArm": [
+-0.0292,
+0.0,
+-0.00035
+],
+"RightLowerArm": [
+-0.04601,
+0.0,
+-0.0025
+],
+"RightHand": [
+-0.04601,
+0.0,
+-0.0025
+],
+"RightIndexProximal": [
+-0.04601,
+0.0,
+-0.0025
+],
+"RightIndexIntermediate": [
+-0.04601,
+0.0,
+-0.0025
+],
+"RightIndexDistal": [
+-0.04601,
+0.0,
+-0.0025
+],
+"RightMiddleProximal": [
+-0.04601,
+0.0,
+-0.0025
+],
+"RightMiddleIntermediate": [
+-0.04601,
+0.0,
+-0.0025
+],
+"RightMiddleDistal": [
+-0.04601,
+0.0,
+-0.0025
+],
+"RightRingProximal": [
+-0.04601,
+0.0,
+-0.0025
+],
+"RightRingIntermediate": [
+-0.04601,
+0.0,
+-0.0025
+],
+"RightRingDistal": [
+-0.04601,
+0.0,
+-0.0025
+],
+"RightLittleProximal": [
+-0.04601,
+0.0,
+-0.0025
+],
+"RightLittleIntermediate": [
+-0.04601,
+0.0,
+-0.0025
+],
+"RightLittleDistal": [
+-0.04601,
+0.0,
+-0.0025
+],
+"RightThumbProximal": [
+-0.04601,
+0.0,
+-0.0025
+],
+"RightThumbIntermediate": [
+-0.04601,
+0.0,
+-0.0025
+],
+"RightThumbDistal": [
+-0.04601,
+0.0,
+-0.0025
+]
+},
+"Chest_Muscle": {
+"UpperChest": [
+0.0,
+-0.00249,
+0.0
+],
+"Neck": [
+0.0,
+-0.00081,
+9e-05
+],
+"LeftShoulder": [
+8e-05,
+-0.00084,
+0.00011
+],
+"LeftUpperArm": [
+0.00277,
+-0.00015,
+0.00348
+],
+"LeftLowerArm": [
+0.00474,
+0.0,
+0.00657
+],
+"LeftHand": [
+0.00474,
+0.0,
+0.00657
+],
+"LeftIndexProximal": [
+0.00474,
+0.0,
+0.00657
+],
+"LeftIndexIntermediate": [
+0.00474,
+0.0,
+0.00657
+],
+"LeftIndexDistal": [
+0.00474,
+0.0,
+0.00657
+],
+"LeftMiddleProximal": [
+0.00474,
+0.0,
+0.00657
+],
+"LeftMiddleIntermediate": [
+0.00474,
+0.0,
+0.00657
+],
+"LeftMiddleDistal": [
+0.00474,
+0.0,
+0.00657
+],
+"LeftRingProximal": [
+0.00474,
+0.0,
+0.00657
+],
+"LeftRingIntermediate": [
+0.00474,
+0.0,
+0.00657
+],
+"LeftRingDistal": [
+0.00474,
+0.0,
+0.00657
+],
+"LeftLittleProximal": [
+0.00474,
+0.0,
+0.00657
+],
+"LeftLittleIntermediate": [
+0.00474,
+0.0,
+0.00657
+],
+"LeftLittleDistal": [
+0.00474,
+0.0,
+0.00657
+],
+"LeftThumbProximal": [
+0.00474,
+0.0,
+0.00657
+],
+"LeftThumbIntermediate": [
+0.00474,
+0.0,
+0.00657
+],
+"LeftThumbDistal": [
+0.00474,
+0.0,
+0.00657
+],
+"RightShoulder": [
+-8e-05,
+-0.00087,
+0.00011
+],
+"RightUpperArm": [
+-0.00271,
+-0.00023,
+0.00325
+],
+"RightLowerArm": [
+-0.00474,
+0.0,
+0.00657
+],
+"RightHand": [
+-0.00474,
+0.0,
+0.00657
+],
+"RightIndexProximal": [
+-0.00474,
+0.0,
+0.00657
+],
+"RightIndexIntermediate": [
+-0.00474,
+0.0,
+0.00657
+],
+"RightIndexDistal": [
+-0.00474,
+0.0,
+0.00657
+],
+"RightMiddleProximal": [
+-0.00474,
+0.0,
+0.00657
+],
+"RightMiddleIntermediate": [
+-0.00474,
+0.0,
+0.00657
+],
+"RightMiddleDistal": [
+-0.00474,
+0.0,
+0.00657
+],
+"RightRingProximal": [
+-0.00474,
+0.0,
+0.00657
+],
+"RightRingIntermediate": [
+-0.00474,
+0.0,
+0.00657
+],
+"RightRingDistal": [
+-0.00474,
+0.0,
+0.00657
+],
+"RightLittleProximal": [
+-0.00474,
+0.0,
+0.00657
+],
+"RightLittleIntermediate": [
+-0.00474,
+0.0,
+0.00657
+],
+"RightLittleDistal": [
+-0.00474,
+0.0,
+0.00657
+],
+"RightThumbProximal": [
+-0.00474,
+0.0,
+0.00657
+],
+"RightThumbIntermediate": [
+-0.00474,
+0.0,
+0.00657
+],
+"RightThumbDistal": [
+-0.00474,
+0.0,
+0.00657
+]
+},
+"Breast": {
+"Neck": [
+-0.0,
+-0.00012,
+1e-05
+],
+"LeftShoulder": [
+5e-05,
+-0.00029,
+2e-05
+],
+"LeftUpperArm": [
+1e-05,
+-7e-05,
+0.0
+],
+"RightShoulder": [
+-6e-05,
+-0.00032,
+3e-05
+],
+"RightUpperArm": [
+-2e-05,
+-0.00012,
+0.0
+]
+},
+"Waist_Slim": {
+"Spine": [
+0.0,
+-0.00354,
+0.0
+],
+"Chest": [
+1e-05,
+-0.00364,
+0.0
+]
+},
+"Waist_Wide": {
+"Spine": [
+-0.0,
+0.00354,
+0.0
+],
+"Chest": [
+-1e-05,
+0.00364,
+0.0
+]
+},
+"Belly": {
+"LeftUpperLeg": [
+0.0,
+-0.00119,
+-0.00013
+],
+"RightUpperLeg": [
+0.0,
+-0.00124,
+-0.00014
+]
+},
+"Hips": {
+"Hips": [
+0.02449,
+0.0,
+0.0
+],
+"LeftUpperLeg": [
+0.04463,
+0.0,
+0.0
+],
+"RightUpperLeg": [
+-0.04463,
+0.0,
+0.0
+]
+},
+"Butt": {
+"Hips": [
+0.0,
+0.01781,
+0.00214
+],
+"Spine": [
+0.0,
+0.00824,
+0.001
+],
+"Chest": [
+0.0,
+0.00023,
+3e-05
+]
+},
+"Arms_Thick": {
+"LeftUpperArm": [
+0.00012,
+2e-05,
+7e-05
+],
+"LeftLowerArm": [
+0.01441,
+0.0194,
+0.00791
+],
+"LeftHand": [
+-0.00306,
+0.00216,
+-0.00168
+],
+"RightUpperArm": [
+-0.00012,
+1e-05,
+7e-05
+],
+"RightLowerArm": [
+-0.01441,
+0.0194,
+0.00791
+],
+"RightHand": [
+0.00306,
+0.00216,
+-0.00168
+]
+},
+"Legs_Thick": {
+"Hips": [
+-0.02074,
+0.00811,
+0.0
+],
+"LeftUpperLeg": [
+2e-05,
+-0.00047,
+0.0
+],
+"LeftLowerLeg": [
+-0.00443,
+-0.00697,
+0.0
+],
+"RightUpperLeg": [
+-4e-05,
+-0.00061,
+0.0
+],
+"RightLowerLeg": [
+0.00443,
+-0.00697,
+0.0
+]
+},
+"Muscle": {
+"Hips": [
+-0.00275,
+0.00107,
+0.0
+],
+"Neck": [
+0.0,
+-0.00041,
+0.00045
+],
+"LeftShoulder": [
+0.00167,
+-0.00043,
+0.00144
+],
+"LeftUpperArm": [
+0.00653,
+-7e-05,
+0.004
+],
+"LeftLowerArm": [
+0.01029,
+0.00799,
+0.01008
+],
+"LeftHand": [
+0.00309,
+0.00089,
+0.00613
+],
+"LeftIndexProximal": [
+0.00435,
+0.0,
+0.00682
+],
+"LeftIndexIntermediate": [
+0.00435,
+0.0,
+0.00682
+],
+"LeftIndexDistal": [
+0.00435,
+0.0,
+0.00682
+],
+"LeftMiddleProximal": [
+0.00435,
+0.0,
+0.00682
+],
+"LeftMiddleIntermediate": [
+0.00435,
+0.0,
+0.00682
+],
+"LeftMiddleDistal": [
+0.00435,
+0.0,
+0.00682
+],
+"LeftRingProximal": [
+0.00435,
+0.0,
+0.00682
+],
+"LeftRingIntermediate": [
+0.00435,
+0.0,
+0.00682
+],
+"LeftRingDistal": [
+0.00435,
+0.0,
+0.00682
+],
+"LeftLittleProximal": [
+0.00435,
+0.0,
+0.00682
+],
+"LeftLittleIntermediate": [
+0.00435,
+0.0,
+0.00682
+],
+"LeftLittleDistal": [
+0.00435,
+0.0,
+0.00682
+],
+"LeftThumbProximal": [
+0.00435,
+-0.0,
+0.00682
+],
+"LeftThumbIntermediate": [
+0.00435,
+0.0,
+0.00682
+],
+"LeftThumbDistal": [
+0.00435,
+0.0,
+0.00682
+],
+"RightShoulder": [
+-0.00147,
+-0.00044,
+0.00144
+],
+"RightUpperArm": [
+-0.00639,
+-0.00011,
+0.0039
+],
+"RightLowerArm": [
+-0.01029,
+0.00799,
+0.01008
+],
+"RightHand": [
+-0.00309,
+0.00089,
+0.00613
+],
+"RightIndexProximal": [
+-0.00435,
+0.0,
+0.00682
+],
+"RightIndexIntermediate": [
+-0.00435,
+0.0,
+0.00682
+],
+"RightIndexDistal": [
+-0.00435,
+0.0,
+0.00682
+],
+"RightMiddleProximal": [
+-0.00435,
+0.0,
+0.00682
+],
+"RightMiddleIntermediate": [
+-0.00435,
+0.0,
+0.00682
+],
+"RightMiddleDistal": [
+-0.00435,
+0.0,
+0.00682
+],
+"RightRingProximal": [
+-0.00435,
+0.0,
+0.00682
+],
+"RightRingIntermediate": [
+-0.00435,
+0.0,
+0.00682
+],
+"RightRingDistal": [
+-0.00435,
+0.0,
+0.00682
+],
+"RightLittleProximal": [
+-0.00435,
+0.0,
+0.00682
+],
+"RightLittleIntermediate": [
+-0.00435,
+0.0,
+0.00682
+],
+"RightLittleDistal": [
+-0.00435,
+0.0,
+0.00682
+],
+"RightThumbProximal": [
+-0.00435,
+-0.0,
+0.00682
+],
+"RightThumbIntermediate": [
+-0.00435,
+0.0,
+0.00682
+],
+"RightThumbDistal": [
+-0.00435,
+0.0,
+0.00682
+],
+"LeftLowerLeg": [
+-0.00078,
+-0.00123,
+0.0
+],
+"RightLowerLeg": [
+0.00078,
+-0.00123,
+0.0
+]
+},
+"Thin": {
+"Hips": [
+0.01521,
+-0.00595,
+0.0
+],
+"Spine": [
+0.0,
+-0.00622,
+0.0
+],
+"Chest": [
+1e-05,
+-0.00397,
+0.0
+],
+"UpperChest": [
+-1e-05,
+-0.00883,
+0.0
+],
+"Neck": [
+0.0,
+0.00388,
+0.0
+],
+"LeftShoulder": [
+-0.00333,
+0.00202,
+3e-05
+],
+"LeftUpperArm": [
+-0.02061,
+-0.0001,
+-0.00647
+],
+"LeftLowerArm": [
+-0.02987,
+-0.01255,
+-0.03363
+],
+"LeftHand": [
+-0.01856,
+-0.0014,
+-0.02743
+],
+"LeftIndexProximal": [
+-0.02054,
+0.0,
+-0.02852
+],
+"LeftIndexIntermediate": [
+-0.02054,
+0.0,
+-0.02852
+],
+"LeftIndexDistal": [
+-0.02054,
+0.0,
+-0.02852
+],
+"LeftMiddleProximal": [
+-0.02054,
+0.0,
+-0.02852
+],
+"LeftMiddleIntermediate": [
+-0.02054,
+0.0,
+-0.02852
+],
+"LeftMiddleDistal": [
+-0.02054,
+0.0,
+-0.02852
+],
+"LeftRingProximal": [
+-0.02054,
+0.0,
+-0.02852
+],
+"LeftRingIntermediate": [
+-0.02054,
+0.0,
+-0.02852
+],
+"LeftRingDistal": [
+-0.02054,
+0.0,
+-0.02852
+],
+"LeftLittleProximal": [
+-0.02054,
+0.0,
+-0.02852
+],
+"LeftLittleIntermediate": [
+-0.02054,
+0.0,
+-0.02852
+],
+"LeftLittleDistal": [
+-0.02054,
+0.0,
+-0.02852
+],
+"LeftThumbProximal": [
+-0.02054,
+0.0,
+-0.02852
+],
+"LeftThumbIntermediate": [
+-0.02054,
+0.0,
+-0.02852
+],
+"LeftThumbDistal": [
+-0.02054,
+0.0,
+-0.02852
+],
+"RightShoulder": [
+0.00323,
+0.00209,
+3e-05
+],
+"RightUpperArm": [
+0.02029,
+0.00024,
+-0.00584
+],
+"RightLowerArm": [
+0.02987,
+-0.01255,
+-0.03363
+],
+"RightHand": [
+0.01856,
+-0.0014,
+-0.02743
+],
+"RightIndexProximal": [
+0.02054,
+0.0,
+-0.02852
+],
+"RightIndexIntermediate": [
+0.02054,
+0.0,
+-0.02852
+],
+"RightIndexDistal": [
+0.02054,
+0.0,
+-0.02852
+],
+"RightMiddleProximal": [
+0.02054,
+0.0,
+-0.02852
+],
+"RightMiddleIntermediate": [
+0.02054,
+0.0,
+-0.02852
+],
+"RightMiddleDistal": [
+0.02054,
+0.0,
+-0.02852
+],
+"RightRingProximal": [
+0.02054,
+0.0,
+-0.02852
+],
+"RightRingIntermediate": [
+0.02054,
+0.0,
+-0.02852
+],
+"RightRingDistal": [
+0.02054,
+0.0,
+-0.02852
+],
+"RightLittleProximal": [
+0.02054,
+0.0,
+-0.02852
+],
+"RightLittleIntermediate": [
+0.02054,
+0.0,
+-0.02852
+],
+"RightLittleDistal": [
+0.02054,
+0.0,
+-0.02852
+],
+"RightThumbProximal": [
+0.02054,
+0.0,
+-0.02852
+],
+"RightThumbIntermediate": [
+0.02054,
+0.0,
+-0.02852
+],
+"RightThumbDistal": [
+0.02054,
+0.0,
+-0.02852
+],
+"LeftUpperLeg": [
+-0.01413,
+0.00158,
+0.0
+],
+"LeftLowerLeg": [
+0.00325,
+0.00511,
+0.0
+],
+"RightUpperLeg": [
+0.01337,
+0.00167,
+0.0
+],
+"RightLowerLeg": [
+-0.00325,
+0.00511,
+0.0
+]
+},
+"Heavy": {
+"Hips": [
+-0.02212,
+0.00865,
+0.0
+],
+"Spine": [
+-0.0,
+0.01141,
+0.0
+],
+"Chest": [
+-1e-05,
+0.00727,
+0.0
+],
+"UpperChest": [
+2e-05,
+0.01618,
+0.0
+],
+"Neck": [
+-0.0,
+-0.00712,
+0.0
+],
+"LeftEye": [
+0.00293,
+0.0,
+0.0
+],
+"RightEye": [
+-0.00293,
+0.0,
+0.0
+],
+"LeftShoulder": [
+0.00527,
+-0.00371,
+-4e-05
+],
+"LeftUpperArm": [
+0.03176,
+0.00018,
+0.0094
+],
+"LeftLowerArm": [
+0.04432,
+0.01712,
+0.05085
+],
+"LeftHand": [
+0.0289,
+0.0019,
+0.04239
+],
+"LeftIndexProximal": [
+0.0316,
+0.0,
+0.04387
+],
+"LeftIndexIntermediate": [
+0.0316,
+0.0,
+0.04387
+],
+"LeftIndexDistal": [
+0.0316,
+0.0,
+0.04387
+],
+"LeftMiddleProximal": [
+0.0316,
+0.0,
+0.04387
+],
+"LeftMiddleIntermediate": [
+0.0316,
+0.0,
+0.04387
+],
+"LeftMiddleDistal": [
+0.0316,
+0.0,
+0.04387
+],
+"LeftRingProximal": [
+0.0316,
+0.0,
+0.04387
+],
+"LeftRingIntermediate": [
+0.0316,
+0.0,
+0.04387
+],
+"LeftRingDistal": [
+0.0316,
+0.0,
+0.04387
+],
+"LeftLittleProximal": [
+0.0316,
+0.0,
+0.04387
+],
+"LeftLittleIntermediate": [
+0.0316,
+0.0,
+0.04387
+],
+"LeftLittleDistal": [
+0.0316,
+0.0,
+0.04387
+],
+"LeftThumbProximal": [
+0.0316,
+-0.0,
+0.04387
+],
+"LeftThumbIntermediate": [
+0.0316,
+0.0,
+0.04387
+],
+"LeftThumbDistal": [
+0.0316,
+0.0,
+0.04387
+],
+"RightShoulder": [
+-0.00515,
+-0.00383,
+-4e-05
+],
+"RightUpperArm": [
+-0.0313,
+-0.00045,
+0.00841
+],
+"RightLowerArm": [
+-0.04432,
+0.01712,
+0.05085
+],
+"RightHand": [
+-0.0289,
+0.0019,
+0.04239
+],
+"RightIndexProximal": [
+-0.0316,
+0.0,
+0.04387
+],
+"RightIndexIntermediate": [
+-0.0316,
+0.0,
+0.04387
+],
+"RightIndexDistal": [
+-0.0316,
+0.0,
+0.04387
+],
+"RightMiddleProximal": [
+-0.0316,
+0.0,
+0.04387
+],
+"RightMiddleIntermediate": [
+-0.0316,
+0.0,
+0.04387
+],
+"RightMiddleDistal": [
+-0.0316,
+0.0,
+0.04387
+],
+"RightRingProximal": [
+-0.0316,
+0.0,
+0.04387
+],
+"RightRingIntermediate": [
+-0.0316,
+0.0,
+0.04387
+],
+"RightRingDistal": [
+-0.0316,
+0.0,
+0.04387
+],
+"RightLittleProximal": [
+-0.0316,
+0.0,
+0.04387
+],
+"RightLittleIntermediate": [
+-0.0316,
+0.0,
+0.04387
+],
+"RightLittleDistal": [
+-0.0316,
+0.0,
+0.04387
+],
+"RightThumbProximal": [
+-0.0316,
+-0.0,
+0.04387
+],
+"RightThumbIntermediate": [
+-0.0316,
+0.0,
+0.04387
+],
+"RightThumbDistal": [
+-0.0316,
+0.0,
+0.04387
+],
+"LeftUpperLeg": [
+0.02173,
+-0.00366,
+0.0
+],
+"LeftLowerLeg": [
+-0.00473,
+-0.00744,
+0.0
+],
+"RightUpperLeg": [
+-0.02056,
+-0.00382,
+0.0
+],
+"RightLowerLeg": [
+0.00473,
+-0.00744,
+0.0
+]
+},
+"Age_Old": {
+"Spine": [
+0.0,
+-2e-05,
+-6e-05
+],
+"Chest": [
+0.0,
+-0.00446,
+-0.00189
+],
+"UpperChest": [
+-0.0,
+-0.03766,
+-0.00775
+],
+"Neck": [
+0.0,
+-0.11607,
+-0.01579
+],
+"Head": [
+0.0,
+-0.13707,
+-0.02731
+],
+"Jaw": [
+0.0,
+-0.13707,
+-0.02746
+],
+"LeftEye": [
+0.0,
+-0.13707,
+-0.0267
+],
+"RightEye": [
+0.0,
+-0.13707,
+-0.0267
+],
+"LeftShoulder": [
+-0.00137,
+-0.11907,
+-0.01616
+],
+"LeftUpperArm": [
+-0.0112,
+-0.11507,
+-0.01855
+],
+"LeftLowerArm": [
+-0.01082,
+-0.11995,
+-0.02704
+],
+"LeftHand": [
+-0.00714,
+-0.09264,
+-0.02502
+],
+"LeftIndexProximal": [
+-0.0066,
+-0.08664,
+-0.02473
+],
+"LeftIndexIntermediate": [
+-0.00513,
+-0.07077,
+-0.02391
+],
+"LeftIndexDistal": [
+-0.00436,
+-0.06302,
+-0.0235
+],
+"LeftMiddleProximal": [
+-0.00602,
+-0.08025,
+-0.02441
+],
+"LeftMiddleIntermediate": [
+-0.00531,
+-0.07269,
+-0.02402
+],
+"LeftMiddleDistal": [
+-0.00408,
+-0.06017,
+-0.02334
+],
+"LeftRingProximal": [
+-0.00645,
+-0.08493,
+-0.02464
+],
+"LeftRingIntermediate": [
+-0.0054,
+-0.07358,
+-0.02406
+],
+"LeftRingDistal": [
+-0.00451,
+-0.0645,
+-0.02358
+],
+"LeftLittleProximal": [
+-0.00699,
+-0.09096,
+-0.02494
+],
+"LeftLittleIntermediate": [
+-0.00615,
+-0.08162,
+-0.02447
+],
+"LeftLittleDistal": [
+-0.00487,
+-0.06813,
+-0.02377
+],
+"LeftThumbProximal": [
+-0.00757,
+-0.09757,
+-0.02526
+],
+"LeftThumbIntermediate": [
+-0.00652,
+-0.08569,
+-0.02468
+],
+"LeftThumbDistal": [
+-0.00537,
+-0.07333,
+-0.02405
+],
+"RightShoulder": [
+0.00134,
+-0.11875,
+-0.01614
+],
+"RightUpperArm": [
+0.01118,
+-0.11469,
+-0.01836
+],
+"RightLowerArm": [
+0.01082,
+-0.11995,
+-0.02704
+],
+"RightHand": [
+0.00714,
+-0.09264,
+-0.02502
+],
+"RightIndexProximal": [
+0.00631,
+-0.08337,
+-0.02456
+],
+"RightIndexIntermediate": [
+0.00512,
+-0.07073,
+-0.02391
+],
+"RightIndexDistal": [
+0.00438,
+-0.06319,
+-0.02351
+],
+"RightMiddleProximal": [
+0.00602,
+-0.08025,
+-0.02441
+],
+"RightMiddleIntermediate": [
+0.00532,
+-0.07284,
+-0.02402
+],
+"RightMiddleDistal": [
+0.00407,
+-0.06009,
+-0.02333
+],
+"RightRingProximal": [
+0.00645,
+-0.08493,
+-0.02464
+],
+"RightRingIntermediate": [
+0.00541,
+-0.07369,
+-0.02407
+],
+"RightRingDistal": [
+0.00457,
+-0.06509,
+-0.02361
+],
+"RightLittleProximal": [
+0.00699,
+-0.09096,
+-0.02494
+],
+"RightLittleIntermediate": [
+0.00614,
+-0.08157,
+-0.02447
+],
+"RightLittleDistal": [
+0.00497,
+-0.06918,
+-0.02383
+],
+"RightThumbProximal": [
+0.00757,
+-0.09757,
+-0.02526
+],
+"RightThumbIntermediate": [
+0.00652,
+-0.08569,
+-0.02468
+],
+"RightThumbDistal": [
+0.00537,
+-0.07333,
+-0.02405
+],
+"LeftUpperLeg": [
+-0.00543,
+-0.00024,
+-0.0
+],
+"RightUpperLeg": [
+0.00513,
+-0.00025,
+-0.0
+]
+},
+"Child": {
+"Hips": [
+0.00346,
+0.0,
+-0.19469
+],
+"Spine": [
+0.0,
+0.0,
+-0.21567
+],
+"Chest": [
+1e-05,
+0.0,
+-0.22723
+],
+"UpperChest": [
+-1e-05,
+0.0,
+-0.23949
+],
+"Neck": [
+0.0,
+-5e-05,
+-0.25089
+],
+"Head": [
+-0.0,
+0.00046,
+-0.25698
+],
+"Jaw": [
+-0.0,
+0.00606,
+-0.25521
+],
+"LeftEye": [
+0.00388,
+-0.00088,
+-0.24096
+],
+"RightEye": [
+-0.00388,
+-0.00088,
+-0.24096
+],
+"LeftShoulder": [
+-0.00268,
+-3e-05,
+-0.25193
+],
+"LeftUpperArm": [
+-0.04803,
+1e-05,
+-0.25262
+],
+"LeftLowerArm": [
+-0.08457,
+-0.00571,
+-0.16648
+],
+"LeftHand": [
+-0.10536,
+-0.00063,
+-0.09961
+],
+"LeftIndexProximal": [
+-0.1222,
+0.0,
+-0.06783
+],
+"LeftIndexIntermediate": [
+-0.12007,
+0.0,
+-0.0633
+],
+"LeftIndexDistal": [
+-0.12384,
+0.0,
+-0.0523
+],
+"LeftMiddleProximal": [
+-0.12062,
+0.0,
+-0.06731
+],
+"LeftMiddleIntermediate": [
+-0.12287,
+0.0,
+-0.05922
+],
+"LeftMiddleDistal": [
+-0.12442,
+0.0,
+-0.0497
+],
+"LeftRingProximal": [
+-0.12098,
+0.0,
+-0.06913
+],
+"LeftRingIntermediate": [
+-0.12283,
+0.0,
+-0.05975
+],
+"LeftRingDistal": [
+-0.12429,
+0.0,
+-0.05228
+],
+"LeftLittleProximal": [
+-0.12254,
+0.0,
+-0.06952
+],
+"LeftLittleIntermediate": [
+-0.12448,
+0.0,
+-0.06099
+],
+"LeftLittleDistal": [
+-0.12318,
+0.0,
+-0.05623
+],
+"LeftThumbProximal": [
+-0.11214,
+0.0,
+-0.09211
+],
+"LeftThumbIntermediate": [
+-0.11279,
+0.0,
+-0.08446
+],
+"LeftThumbDistal": [
+-0.11118,
+0.0,
+-0.08084
+],
+"RightShoulder": [
+0.00275,
+-3e-05,
+-0.25181
+],
+"RightUpperArm": [
+0.0495,
+1e-05,
+-0.25211
+],
+"RightLowerArm": [
+0.08457,
+-0.00571,
+-0.16648
+],
+"RightHand": [
+0.10536,
+-0.00063,
+-0.09961
+],
+"RightIndexProximal": [
+0.12162,
+0.0,
+-0.06714
+],
+"RightIndexIntermediate": [
+0.12012,
+0.0,
+-0.06319
+],
+"RightIndexDistal": [
+0.12386,
+0.0,
+-0.05235
+],
+"RightMiddleProximal": [
+0.12062,
+0.0,
+-0.06731
+],
+"RightMiddleIntermediate": [
+0.12278,
+0.0,
+-0.05946
+],
+"RightMiddleDistal": [
+0.1244,
+0.0,
+-0.04969
+],
+"RightRingProximal": [
+0.12098,
+0.0,
+-0.06913
+],
+"RightRingIntermediate": [
+0.12279,
+0.0,
+-0.05989
+],
+"RightRingDistal": [
+0.12615,
+0.0,
+-0.04921
+],
+"RightLittleProximal": [
+0.12254,
+0.0,
+-0.06952
+],
+"RightLittleIntermediate": [
+0.12449,
+0.0,
+-0.06094
+],
+"RightLittleDistal": [
+0.12316,
+0.0,
+-0.05683
+],
+"RightThumbProximal": [
+0.11214,
+0.0,
+-0.09211
+],
+"RightThumbIntermediate": [
+0.11279,
+0.0,
+-0.08446
+],
+"RightThumbDistal": [
+0.11118,
+0.0,
+-0.08084
+],
+"LeftUpperLeg": [
+-0.01086,
+-0.00061,
+-0.20547
+],
+"LeftLowerLeg": [
+0.00074,
+-0.0,
+-0.10978
+],
+"LeftFoot": [
+0.0,
+0.0,
+-0.02115
+],
+"LeftToes": [
+0.0,
+-0.0,
+-0.00075
+],
+"RightUpperLeg": [
+0.01027,
+-0.00065,
+-0.20518
+],
+"RightLowerLeg": [
+-0.00074,
+-0.0,
+-0.10978
+],
+"RightFoot": [
+0.0,
+0.0,
+-0.02098
+],
+"RightToes": [
+0.0,
+-0.0,
+-0.00075
+]
+},
+"Neck_Long": {
+"Head": [
+0.0,
+0.0,
+0.03901
+],
+"Jaw": [
+0.0,
+0.0,
+0.03923
+],
+"LeftEye": [
+0.0,
+0.0,
+0.03814
+],
+"RightEye": [
+0.0,
+0.0,
+0.03814
+],
+"LeftShoulder": [
+-0.00139,
+0.0,
+0.00018
+],
+"LeftUpperArm": [
+-0.00187,
+0.0,
+0.00259
+],
+"RightShoulder": [
+0.00124,
+0.0,
+0.00023
+],
+"RightUpperArm": [
+0.00177,
+0.0,
+0.00254
+]
+},
+"Face_Long": {
+"Head": [
+0.0,
+0.0,
+-0.00343
+],
+"LeftEye": [
+0.0,
+0.0,
+-0.00041
+],
+"RightEye": [
+0.0,
+0.0,
+-0.00041
+]
+},
+"Face_Short": {
+"Head": [
+0.0,
+0.0,
+0.00378
+],
+"LeftEye": [
+0.0,
+0.0,
+0.00045
+],
+"RightEye": [
+0.0,
+0.0,
+0.00045
+]
+},
+"Jaw_Square": {
+"Head": [
+-0.0,
+0.0,
+0.00171
+]
+},
+"Cheekbones": {
+"Jaw": [
+-0.0,
+0.0,
+6e-05
+],
+"LeftEye": [
+0.00148,
+0.0,
+0.00064
+],
+"RightEye": [
+-0.00148,
+0.0,
+0.00064
+]
+},
+"Forehead_High": {
+"LeftEye": [
+0.0,
+0.0,
+0.00242
+],
+"RightEye": [
+0.0,
+0.0,
+0.00242
+]
+},
+"Species_Elf": {
+"Hips": [
+0.00836,
+-0.00327,
+0.03876
+],
+"Spine": [
+0.0,
+-0.00342,
+0.03917
+],
+"Chest": [
+0.0,
+-0.00218,
+0.03942
+],
+"UpperChest": [
+-1e-05,
+-0.00486,
+0.0389
+],
+"Neck": [
+0.0,
+0.00214,
+0.03738
+],
+"Head": [
+0.0,
+0.0,
+0.07146
+],
+"Jaw": [
+-0.0,
+0.0,
+0.07311
+],
+"LeftEye": [
+0.00118,
+0.0,
+0.0714
+],
+"RightEye": [
+-0.00118,
+0.0,
+0.0714
+],
+"LeftShoulder": [
+-0.00459,
+0.00111,
+0.03751
+],
+"LeftUpperArm": [
+-0.01743,
+-6e-05,
+0.03592
+],
+"LeftLowerArm": [
+-0.03383,
+-0.01175,
+0.01782
+],
+"LeftHand": [
+-0.02391,
+-0.00242,
+0.02483
+],
+"LeftIndexProximal": [
+-0.01636,
+0.0028,
+0.00669
+],
+"LeftIndexIntermediate": [
+-0.01559,
+0.00374,
+0.00528
+],
+"LeftIndexDistal": [
+-0.01258,
+0.00346,
+-0.0002
+],
+"LeftMiddleProximal": [
+-0.01644,
+0.00138,
+0.00684
+],
+"LeftMiddleIntermediate": [
+-0.01429,
+0.00153,
+0.00293
+],
+"LeftMiddleDistal": [
+-0.01191,
+0.00171,
+-0.00142
+],
+"LeftRingProximal": [
+-0.01681,
+-0.00207,
+0.00751
+],
+"LeftRingIntermediate": [
+-0.01442,
+-0.001,
+0.00316
+],
+"LeftRingDistal": [
+-0.01252,
+-0.0009,
+-0.00031
+],
+"LeftLittleProximal": [
+-0.01671,
+-0.00303,
+0.00732
+],
+"LeftLittleIntermediate": [
+-0.0145,
+-0.00322,
+0.0033
+],
+"LeftLittleDistal": [
+-0.01357,
+-0.00247,
+0.0016
+],
+"LeftThumbProximal": [
+-0.02322,
+0.00448,
+0.01918
+],
+"LeftThumbIntermediate": [
+-0.02137,
+0.00474,
+0.01583
+],
+"LeftThumbDistal": [
+-0.02075,
+0.00701,
+0.01468
+],
+"RightShoulder": [
+0.00447,
+0.00115,
+0.03756
+],
+"RightUpperArm": [
+0.01678,
+0.00013,
+0.03635
+],
+"RightLowerArm": [
+0.03383,
+-0.01175,
+0.01782
+],
+"RightHand": [
+0.02391,
+-0.00242,
+0.02483
+],
+"RightIndexProximal": [
+0.01627,
+0.00266,
+0.00653
+],
+"RightIndexIntermediate": [
+0.01555,
+0.00372,
+0.00522
+],
+"RightIndexDistal": [
+0.01259,
+0.00345,
+-0.00018
+],
+"RightMiddleProximal": [
+0.01644,
+0.00138,
+0.00684
+],
+"RightMiddleIntermediate": [
+0.01436,
+0.00155,
+0.00305
+],
+"RightMiddleDistal": [
+0.01191,
+0.00168,
+-0.00142
+],
+"RightRingProximal": [
+0.01681,
+-0.00207,
+0.00751
+],
+"RightRingIntermediate": [
+0.01446,
+-0.00102,
+0.00322
+],
+"RightRingDistal": [
+0.01158,
+0.0001,
+-0.00202
+],
+"RightLittleProximal": [
+0.01671,
+-0.00303,
+0.00732
+],
+"RightLittleIntermediate": [
+0.01449,
+-0.00322,
+0.00328
+],
+"RightLittleDistal": [
+0.01371,
+-0.00247,
+0.00186
+],
+"RightThumbProximal": [
+0.02322,
+0.00448,
+0.01918
+],
+"RightThumbIntermediate": [
+0.02137,
+0.00474,
+0.01583
+],
+"RightThumbDistal": [
+0.02075,
+0.00701,
+0.01468
+],
+"LeftUpperLeg": [
+-0.00777,
+0.00087,
+0.03895
+],
+"LeftLowerLeg": [
+0.00179,
+0.00281,
+0.0193
+],
+"RightUpperLeg": [
+0.00735,
+0.00092,
+0.03894
+],
+"RightLowerLeg": [
+-0.00179,
+0.00281,
+0.0193
+]
+},
+"Species_Dwarf": {
+"Hips": [
+-0.02695,
+0.01054,
+-0.05637
+],
+"Spine": [
+-0.0,
+0.00747,
+-0.05697
+],
+"Chest": [
+-1e-05,
+0.00545,
+-0.05734
+],
+"UpperChest": [
+1e-05,
+0.00685,
+-0.05658
+],
+"Neck": [
+-0.0,
+-0.00417,
+-0.05411
+],
+"Head": [
+-0.0,
+0.0,
+-0.07603
+],
+"Jaw": [
+-0.0,
+0.0,
+-0.07846
+],
+"LeftEye": [
+0.00147,
+0.0,
+-0.07614
+],
+"RightEye": [
+-0.00147,
+0.0,
+-0.07614
+],
+"LeftShoulder": [
+0.00689,
+-0.00249,
+-0.05366
+],
+"LeftUpperArm": [
+0.02996,
+-1e-05,
+-0.04714
+],
+"LeftLowerArm": [
+0.05916,
+0.02128,
+-0.01854
+],
+"LeftHand": [
+0.03401,
+0.0046,
+-0.02868
+],
+"LeftIndexProximal": [
+0.05586,
+-0.00559,
+-0.0687
+],
+"LeftIndexIntermediate": [
+0.04939,
+-0.00748,
+-0.07652
+],
+"LeftIndexDistal": [
+0.05234,
+-0.00692,
+-0.09154
+],
+"LeftMiddleProximal": [
+0.05233,
+-0.00275,
+-0.07019
+],
+"LeftMiddleIntermediate": [
+0.05341,
+-0.00306,
+-0.08147
+],
+"LeftMiddleDistal": [
+0.0524,
+-0.00343,
+-0.09522
+],
+"LeftRingProximal": [
+0.0539,
+0.00415,
+-0.06727
+],
+"LeftRingIntermediate": [
+0.05358,
+0.00201,
+-0.08068
+],
+"LeftRingDistal": [
+0.05327,
+0.0018,
+-0.09137
+],
+"LeftLittleProximal": [
+0.05734,
+0.00606,
+-0.06596
+],
+"LeftLittleIntermediate": [
+0.05758,
+0.00644,
+-0.07805
+],
+"LeftLittleDistal": [
+0.05272,
+0.00495,
+-0.08586
+],
+"LeftThumbProximal": [
+0.04573,
+-0.00896,
+-0.03633
+],
+"LeftThumbIntermediate": [
+0.04366,
+-0.00949,
+-0.04765
+],
+"LeftThumbDistal": [
+0.03869,
+-0.01402,
+-0.05386
+],
+"RightShoulder": [
+-0.00676,
+-0.00257,
+-0.0537
+],
+"RightUpperArm": [
+-0.02899,
+-0.00039,
+-0.04798
+],
+"RightLowerArm": [
+-0.05916,
+0.02128,
+-0.01854
+],
+"RightHand": [
+-0.03401,
+0.0046,
+-0.02868
+],
+"RightIndexProximal": [
+-0.05434,
+-0.00532,
+-0.07
+],
+"RightIndexIntermediate": [
+-0.04944,
+-0.00743,
+-0.07667
+],
+"RightIndexDistal": [
+-0.05241,
+-0.0069,
+-0.09145
+],
+"RightMiddleProximal": [
+-0.05233,
+-0.00275,
+-0.07019
+],
+"RightMiddleIntermediate": [
+-0.05333,
+-0.00311,
+-0.08114
+],
+"RightMiddleDistal": [
+-0.05236,
+-0.00335,
+-0.09524
+],
+"RightRingProximal": [
+-0.0539,
+0.00415,
+-0.06727
+],
+"RightRingIntermediate": [
+-0.05355,
+0.00204,
+-0.08048
+],
+"RightRingDistal": [
+-0.05578,
+-0.00021,
+-0.09519
+],
+"RightLittleProximal": [
+-0.05734,
+0.00606,
+-0.06596
+],
+"RightLittleIntermediate": [
+-0.05757,
+0.00645,
+-0.07812
+],
+"RightLittleDistal": [
+-0.05295,
+0.00495,
+-0.08496
+],
+"RightThumbProximal": [
+-0.04573,
+-0.00896,
+-0.03633
+],
+"RightThumbIntermediate": [
+-0.04366,
+-0.00949,
+-0.04765
+],
+"RightThumbDistal": [
+-0.03869,
+-0.01402,
+-0.05386
+],
+"LeftUpperLeg": [
+0.01088,
+-0.00217,
+-0.05665
+],
+"LeftLowerLeg": [
+-0.00586,
+-0.00921,
+-0.02807
+],
+"RightUpperLeg": [
+-0.01031,
+-0.00235,
+-0.05664
+],
+"RightLowerLeg": [
+0.00586,
+-0.00921,
+-0.02807
+]
+},
+"Species_Halfling": {
+"Hips": [
+-0.00543,
+0.0026,
+-0.08224
+],
+"Spine": [
+-0.0,
+0.00342,
+-0.08973
+],
+"Chest": [
+-0.0,
+0.00218,
+-0.09387
+],
+"UpperChest": [
+0.0,
+0.00486,
+-0.09797
+],
+"Neck": [
+-0.0,
+-0.00215,
+-0.10141
+],
+"Head": [
+-0.0,
+0.00016,
+-0.1192
+],
+"Jaw": [
+-0.0,
+0.00212,
+-0.11875
+],
+"LeftEye": [
+0.00224,
+-0.00031,
+-0.11294
+],
+"RightEye": [
+-0.00224,
+-0.00031,
+-0.11294
+],
+"LeftShoulder": [
+0.00114,
+-0.00112,
+-0.10183
+],
+"LeftUpperArm": [
+-0.00817,
+6e-05,
+-0.10014
+],
+"LeftLowerArm": [
+-0.0163,
+0.00314,
+-0.05667
+],
+"LeftHand": [
+-0.0282,
+0.00035,
+-0.0358
+],
+"LeftIndexProximal": [
+-0.03329,
+0.0,
+-0.02423
+],
+"LeftIndexIntermediate": [
+-0.03254,
+0.0,
+-0.02265
+],
+"LeftIndexDistal": [
+-0.03386,
+0.0,
+-0.01879
+],
+"LeftMiddleProximal": [
+-0.03274,
+0.0,
+-0.02405
+],
+"LeftMiddleIntermediate": [
+-0.03352,
+0.0,
+-0.02122
+],
+"LeftMiddleDistal": [
+-0.03407,
+0.0,
+-0.01789
+],
+"LeftRingProximal": [
+-0.03286,
+0.0,
+-0.02468
+],
+"LeftRingIntermediate": [
+-0.03351,
+0.0,
+-0.0214
+],
+"LeftRingDistal": [
+-0.03402,
+0.0,
+-0.01879
+],
+"LeftLittleProximal": [
+-0.03341,
+0.0,
+-0.02482
+],
+"LeftLittleIntermediate": [
+-0.03409,
+0.0,
+-0.02184
+],
+"LeftLittleDistal": [
+-0.03363,
+0.0,
+-0.02017
+],
+"LeftThumbProximal": [
+-0.02977,
+-0.0,
+-0.03273
+],
+"LeftThumbIntermediate": [
+-0.03,
+0.0,
+-0.03005
+],
+"LeftThumbDistal": [
+-0.02943,
+0.0,
+-0.02879
+],
+"RightShoulder": [
+-0.00102,
+-0.00116,
+-0.10181
+],
+"RightUpperArm": [
+0.00896,
+-0.00013,
+-0.10025
+],
+"RightLowerArm": [
+0.0163,
+0.00314,
+-0.05667
+],
+"RightHand": [
+0.0282,
+0.00035,
+-0.0358
+],
+"RightIndexProximal": [
+0.03309,
+0.0,
+-0.02399
+],
+"RightIndexIntermediate": [
+0.03256,
+0.0,
+-0.02261
+],
+"RightIndexDistal": [
+0.03387,
+0.0,
+-0.01881
+],
+"RightMiddleProximal": [
+0.03274,
+0.0,
+-0.02405
+],
+"RightMiddleIntermediate": [
+0.03349,
+0.0,
+-0.0213
+],
+"RightMiddleDistal": [
+0.03406,
+0.0,
+-0.01788
+],
+"RightRingProximal": [
+0.03286,
+0.0,
+-0.02468
+],
+"RightRingIntermediate": [
+0.0335,
+0.0,
+-0.02145
+],
+"RightRingDistal": [
+0.03467,
+0.0,
+-0.01771
+],
+"RightLittleProximal": [
+0.03341,
+0.0,
+-0.02482
+],
+"RightLittleIntermediate": [
+0.03409,
+0.0,
+-0.02182
+],
+"RightLittleDistal": [
+0.03363,
+0.0,
+-0.02038
+],
+"RightThumbProximal": [
+0.02977,
+-0.0,
+-0.03273
+],
+"RightThumbIntermediate": [
+0.03,
+0.0,
+-0.03005
+],
+"RightThumbDistal": [
+0.02943,
+0.0,
+-0.02879
+],
+"LeftUpperLeg": [
+0.00272,
+-0.00131,
+-0.08608
+],
+"LeftLowerLeg": [
+-0.00116,
+-0.00223,
+-0.04544
+],
+"LeftFoot": [
+-0.00071,
+0.00124,
+-0.0074
+],
+"LeftToes": [
+-0.00232,
+-0.02004,
+-0.00026
+],
+"RightUpperLeg": [
+-0.00258,
+-0.00137,
+-0.08597
+],
+"RightLowerLeg": [
+0.00116,
+-0.00223,
+-0.04544
+],
+"RightFoot": [
+0.00074,
+0.00126,
+-0.00734
+],
+"RightToes": [
+0.00223,
+-0.01998,
+-0.00026
+]
+},
+"Species_Orc": {
+"Hips": [
+-0.01872,
+0.00732,
+0.0
+],
+"Spine": [
+-0.0,
+0.00399,
+0.0
+],
+"Chest": [
+-0.0,
+0.00255,
+0.0
+],
+"UpperChest": [
+1e-05,
+0.00429,
+0.0
+],
+"Neck": [
+-0.0,
+-0.00318,
+0.00032
+],
+"Head": [
+-0.0,
+0.0,
+-0.02056
+],
+"Jaw": [
+-0.0,
+0.0,
+-0.02354
+],
+"LeftEye": [
+0.00103,
+0.0,
+-0.02371
+],
+"RightEye": [
+-0.00103,
+0.0,
+-0.02371
+],
+"LeftShoulder": [
+0.00652,
+-0.00202,
+0.00077
+],
+"LeftUpperArm": [
+0.03254,
+-5e-05,
+0.00606
+],
+"LeftLowerArm": [
+0.05305,
+0.01854,
+0.02938
+],
+"LeftHand": [
+0.03251,
+0.0034,
+0.02046
+],
+"LeftIndexProximal": [
+0.04732,
+-0.00335,
+-0.00485
+],
+"LeftIndexIntermediate": [
+0.04317,
+-0.00449,
+-0.00988
+],
+"LeftIndexDistal": [
+0.04506,
+-0.00415,
+-0.01953
+],
+"LeftMiddleProximal": [
+0.04505,
+-0.00165,
+-0.00581
+],
+"LeftMiddleIntermediate": [
+0.04575,
+-0.00184,
+-0.01306
+],
+"LeftMiddleDistal": [
+0.0451,
+-0.00206,
+-0.0219
+],
+"LeftRingProximal": [
+0.04606,
+0.00249,
+-0.00393
+],
+"LeftRingIntermediate": [
+0.04586,
+0.0012,
+-0.01255
+],
+"LeftRingDistal": [
+0.04566,
+0.00108,
+-0.01942
+],
+"LeftLittleProximal": [
+0.04827,
+0.00364,
+-0.00309
+],
+"LeftLittleIntermediate": [
+0.04843,
+0.00386,
+-0.01086
+],
+"LeftLittleDistal": [
+0.04531,
+0.00297,
+-0.01588
+],
+"LeftThumbProximal": [
+0.04081,
+-0.00537,
+0.01596
+],
+"LeftThumbIntermediate": [
+0.03948,
+-0.00569,
+0.00868
+],
+"LeftThumbDistal": [
+0.03628,
+-0.00841,
+0.00469
+],
+"RightShoulder": [
+-0.00638,
+-0.00208,
+0.00075
+],
+"RightUpperArm": [
+-0.03199,
+-0.00035,
+0.0054
+],
+"RightLowerArm": [
+-0.05305,
+0.01854,
+0.02938
+],
+"RightHand": [
+-0.03251,
+0.0034,
+0.02046
+],
+"RightIndexProximal": [
+-0.04635,
+-0.00319,
+-0.00569
+],
+"RightIndexIntermediate": [
+-0.0432,
+-0.00446,
+-0.00997
+],
+"RightIndexDistal": [
+-0.04511,
+-0.00414,
+-0.01947
+],
+"RightMiddleProximal": [
+-0.04505,
+-0.00165,
+-0.00581
+],
+"RightMiddleIntermediate": [
+-0.0457,
+-0.00186,
+-0.01285
+],
+"RightMiddleDistal": [
+-0.04507,
+-0.00201,
+-0.02191
+],
+"RightRingProximal": [
+-0.04606,
+0.00249,
+-0.00393
+],
+"RightRingIntermediate": [
+-0.04584,
+0.00122,
+-0.01243
+],
+"RightRingDistal": [
+-0.04727,
+-0.00012,
+-0.02188
+],
+"RightLittleProximal": [
+-0.04827,
+0.00364,
+-0.00309
+],
+"RightLittleIntermediate": [
+-0.04842,
+0.00387,
+-0.0109
+],
+"RightLittleDistal": [
+-0.04545,
+0.00297,
+-0.0153
+],
+"RightThumbProximal": [
+-0.04081,
+-0.00537,
+0.01596
+],
+"RightThumbIntermediate": [
+-0.03948,
+-0.00569,
+0.00868
+],
+"RightThumbDistal": [
+-0.03628,
+-0.00841,
+0.00469
+],
+"LeftUpperLeg": [
+0.00762,
+-0.00151,
+0.0
+],
+"LeftLowerLeg": [
+-0.00412,
+-0.00648,
+0.0
+],
+"RightUpperLeg": [
+-0.00722,
+-0.00163,
+0.0
+],
+"RightLowerLeg": [
+0.00412,
+-0.00648,
+0.0
+]
+},
+"Mouth_Smile": {
+"Head": [
+8e-05,
+5e-05,
+8e-05
+]
+},
+"Mouth_Frown": {
+"Head": [
+2e-05,
+1e-05,
+-8e-05
+]
+},
+"Mouth_O": {
+"Head": [
+-0.00012,
+-5e-05,
+1e-05
+]
+},
+"Mouth_E": {
+"Head": [
+8e-05,
+3e-05,
+2e-05
+]
+}
+}
+}

@@ -1,5 +1,5 @@
 /**
- * Regional building shapes (G8): how a place's buildings stand in 3D, from who lives there and where. styles.ts
+ * Regional building shapes (G10): how a place's buildings stand in 3D, from who lives there and where. styles.ts
  * gives a building its materials (slate, tiles, logs, whitewash...); this gives it its shape. The server sends a
  * place's `locale` with each frame (its culture's template, its land, how well it lives and how big it is); this works
  * out, for each building, the roof's form and pitch, the walls' height, the eaves, a footing or stilts. A building

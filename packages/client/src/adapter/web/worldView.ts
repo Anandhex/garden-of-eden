@@ -3,7 +3,7 @@
  * Both draw the same frames and turn clicks into the same intents; this is all `main.ts` knows of either. Which one
  * is this browser's setting (viewPref.ts).
  */
-import type { Frame, GameEvent } from "@millbrook/shared/view";
+import type { Frame, GameEvent } from "@garden-of-eden/shared/view";
 import type { Core, FrameChange } from "../../core";
 import type { LookPrefs } from "./world/look";
 

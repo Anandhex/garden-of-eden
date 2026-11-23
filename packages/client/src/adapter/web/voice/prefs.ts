@@ -10,7 +10,7 @@ export interface VoicePrefs {
   micAutoSend: boolean;
 }
 
-const KEY = "millbrook.voice";
+const KEY = "garden-of-eden.voice";
 const DEFAULTS: VoicePrefs = { voices: true, volume: 0.9, engine: "auto", micAutoSend: true };
 
 export function loadPrefs(): VoicePrefs {

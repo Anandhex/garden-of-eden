@@ -5,11 +5,11 @@
  * chimney stands on the roof. A building that stands between the camera and the player fades. One whose template is
  * unknown is a plain block in its colour, never nothing; a roofless one (a camp's fire) stands as sprites.
  *
- * G8: a place built in a regional style (the frame's `locale`, shared architecture.ts) gets its walls and roof tinted
+ * G10: a place built in a regional style (the frame's `locale`, shared shapes.ts) gets its walls and roof tinted
  * in the style's colours, a hipped, flat or round (yurt) roof as well as a gabled one, and a footing or stilts.
  */
 import * as THREE from "three";
-import { dress, isShingle, shapeFor, templateById, templateFor, type BuildShape, type Frame } from "@millbrook/shared/view";
+import { dress, isShingle, shapeFor, templateById, templateFor, type BuildShape, type Frame } from "@garden-of-eden/shared/view";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { ART_TILE, warnMissing } from "../art";
 import { hexColor, lighten, pixelTexture, sheetMaterial, spriteGeometry } from "./atlas";
@@ -212,7 +212,7 @@ export class IsoBuildings {
     }
   }
 
-  /** A yurt (G8, the steppe's homes): a felt drum under a low cone, the door on the front, a smoke ring on top. */
+  /** A yurt (G10, the steppe's homes): a felt drum under a low cone, the door on the front, a smoke ring on top. */
   private buildRound(d: Drawn, style: BuildShape): void {
     const { plan, box } = d;
     const roof = plan.roof!;

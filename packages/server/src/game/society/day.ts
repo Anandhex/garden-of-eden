@@ -34,7 +34,8 @@ export function societySiteDay(ctx: LifeCtx, step: SiteStep, day: number): void 
   timed("society.magic", () => magicSiteDay(ctx, step, day));
   timed("society.residents", () => residentsSiteDay(ctx, step.site, day));
   timed("society.soldiers", () => soldiersSiteDay(ctx, step, day));
-  if (ctx.store.records.count("fabrication") > 0) timed("society.rumours", () => rumoursDay(ctx, step.site, day));
+  // The player's name goes on a rumour traced to them in the place they're in (N70); elsewhere the case still opens against "a stranger".
+  if (ctx.store.records.count("fabrication") > 0) timed("society.rumours", () => rumoursDay(ctx, step.site, day, ctx.player?.site === step.site ? ctx.player : undefined));
 }
 
 export interface SocietyRealmOptions {

@@ -5,11 +5,11 @@
  * inset in the building's rectangle; a template with no roof (a camp's fire, a cart) stands its tiles up as sprites.
  * Also here: stepping someone in a doorway out of the box, and whether a building hides the player from the camera.
  *
- * With a regional style (G8, shared architecture.ts) the same template is built in the place's own way: its wall and
+ * With a regional style (G10, shared shapes.ts) the same template is built in the place's own way: its wall and
  * roof tiles swapped to the style's materials, the walls as tall as the style says, the roof hipped, flat or round
  * (a yurt) as well as gabled, at the style's pitch and with its eaves, and the whole raised on a footing or stilts.
  */
-import { restyleDoor, restyleFrame, sliceAxis, WINDOW_TILES, type BuildShape, type BuildingTemplate, type Dressed, type RoofForm } from "@millbrook/shared/view";
+import { restyleDoor, restyleFrame, sliceAxis, WINDOW_TILES, type BuildShape, type BuildingTemplate, type Dressed, type RoofForm } from "@garden-of-eden/shared/view";
 import { FRAMES } from "../art.js";
 import { PITCH } from "./camera.js";
 

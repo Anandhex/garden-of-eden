@@ -6,7 +6,7 @@
  * follows the camera's turn. Someone in a doorway is drawn just outside the building (massing.ts).
  */
 import * as THREE from "three";
-import type { Actor as ActorData } from "@millbrook/shared/view";
+import type { Actor as ActorData } from "@garden-of-eden/shared/view";
 import { ART_TILE, framesOf, lookOf, PERSON_LAYERS, PERSON_STEPS, warnMissing } from "../art";
 import { hexColor, pixelTexture, setUv, sheetMaterial, spriteGeometry, type Atlas } from "./atlas";
 import { bakeLayers, lookKey } from "./bake";

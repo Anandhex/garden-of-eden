@@ -88,7 +88,7 @@ See the world, keep it fast and stable, and know what the player knows. Everythi
 
 ## N20: Stories, drama and liveness metrics
 
-**Status:** ⬜ Planned
+**Status:** ✅ Built (2026-11-23), apart from stories told as rumours and model-worded titles (see the list)
 
 **Implementation plan:** [plans/n20-stories-drama-liveness.md](plans/n20-stories-drama-liveness.md)
 
@@ -96,18 +96,18 @@ See the world, keep it fast and stable, and know what the player knows. Everythi
 
 **The rules:** every event records what caused it (a parent event id, or the decision that made it), so chains are a graph walk in code. The drama manager never invents events: it only speeds up or moves nearer things already in motion (a grudge close to its threshold, a pack about to raid, a caravan on the road). The model writes only a story's title and summary, from the facts code gives it.
 
-- [ ] **Causes on every event:** a `causedBy` link on events from N12's log onward; the admin view (N17) can walk a chain both ways
-- [ ] **Story detector:** finds causal chains (insult → grudge → ambush → revolt), scores them by length, the renown of who's in them, deaths and how many places they touch, and keeps the best as stories
-- [ ] Stories in the admin view, in N68's chronicle, and as rumours NPCs tell ("did you hear how the miller's feud ended?")
-- [ ] **Drama manager** (switched on once N38 makes NPCs act; until then it stays off): when nothing of note has happened near the player for a while, nudge an existing thread forward or toward them; capped, logged with its reason, `DRAMA=off` turns it off
-- [ ] **Liveness metrics:** distinct actions per day, chains longer than three steps, named NPCs whose status changed, events that reached the player, quiet hours near the player; shown in the admin view and printed by `sim:realm`
-- [ ] Tests, README, this roadmap
+- [x] **Causes on every event:** a `causedBy` link on events from N12's log onward; the admin view (N17) can walk a chain both ways *(`game/stories/cause.ts`: explicit causes or a `withCause` scope, merged by `recordEvent`, `recordLifeEvent` and `realmNews`; a cause on a later day or the event itself is refused; `event_causes` indexes both ways; the admin card shows Caused by and Led to, `/api/admin/causes?ref=` the whole chain. Causes are wired where systems already knew them (grievances, revenge, chatter, secrets, choices); more as each system is touched)*
+- [x] **Story detector:** finds causal chains (insult → grudge → ambush → revolt), scores them by length, the renown of who's in them, deaths and how many places they touch, and keeps the best as stories
+- [~] Stories in the admin view, in N68's chronicle, and as rumours NPCs tell ("did you hear how the miller's feud ended?") *(admin `/api/admin/stories` and N23's chronicle: yes; told as rumours and worded by the model: not yet, the template words them)*
+- [x] **Drama manager** (switched on once N38 makes NPCs act; until then it stays off): when nothing of note has happened near the player for a while, nudge an existing thread forward or toward them; capped, logged with its reason, `DRAMA=off` turns it off
+- [x] **Liveness metrics:** distinct actions per day, chains longer than three steps, named NPCs whose status changed, events that reached the player, quiet hours near the player; shown in the admin view and printed by `sim:realm`
+- [x] Tests (`tests/n20.test.ts`), README, this roadmap
 
 - **Done when:** a 60-day run produces stories whose every step links to its cause; the admin view shows the chain behind a revolt back to the first insult; with the player idle in a quiet village, the drama manager brings an existing thread to them within a few days and logs why; the metrics differ between `DRAMA=off` and on.
 
 ## N21: Callbacks to the player's choices
 
-**Status:** ⬜ Planned
+**Status:** 🟨 Cut built (2026-11-23): callbacks found and told through the journal; told by a townsperson waits
 
 **Implementation plan:** [plans/n21-callbacks.md](plans/n21-callbacks.md)
 
@@ -115,16 +115,16 @@ See the world, keep it fast and stable, and know what the player knows. Everythi
 
 **The rules:** N20's cause links are walked back from notable events; if a chain reaches a player action within a few steps, the player is told, through a person who'd know or the journal (N65), never more than the player could learn.
 
-- [ ] Find chains that reach a player action (sparing, killing, stealing, a promise, a gift, a rumour spread)
-- [ ] Tell the player in the world: an NPC says it ("you spared Odo; he leads the revolt now"), a song names them (N68), or the journal links it
-- [ ] Rate-limited and only for chains that matter (renown, deaths, places touched)
-- [ ] Tests, README, this roadmap
+- [x] Find chains that reach a player action (sparing, killing, stealing, a promise, a gift, a rumour spread)
+- [~] Tell the player in the world: an NPC says it ("you spared Odo; he leads the revolt now"), a song names them (N68), or the journal links it *(the journal: yes, a `consequence` note once the player knows the outcome; the townsperson's line (`canTell` is built) and songs: not yet)*
+- [x] Rate-limited and only for chains that matter (renown, deaths, places touched)
+- [x] Tests (`tests/n21.test.ts`), README, this roadmap
 
 - **Done when:** the serf the player spared leads a revolt a season later and someone tells the player so; the bread the player stole is traced in the journal to the riot it helped start.
 
 ## N22: Long-run balance tests
 
-**Status:** ⬜ Planned
+**Status:** ✅ Built (2026-11-23; the cut 2026-10-24)
 
 **Implementation plan:** [plans/n22-long-run-balance.md](plans/n22-long-run-balance.md)
 
@@ -132,16 +132,16 @@ See the world, keep it fast and stable, and know what the player knows. Everythi
 
 **The rules:** seeded 5- and 10-year runs over several seeds, with no model calls, checked against bounds. Every new phase adds its own bounds (N13 had to be tuned down from 41 factions; this makes that automatic).
 
-- [ ] `sim:years` runs a realm for N years over K seeds and reports N20's liveness metrics and realm totals
-- [ ] Bounds: no species or kingdom dies out by default; kingdom count stays within the cap (N64); population, food and prosperity stay in bands; famine, plague and war aren't permanent; factions neither explode nor vanish; at least some long causal chains every year
-- [ ] Runs in CI on a few seeds, and nightly on more
-- [ ] Tests, README, this roadmap
+- [x] `sim:years` runs a realm for N years over K seeds and reports N20's liveness metrics and realm totals
+- [x] Bounds: no species or kingdom dies out by default; kingdom count stays within the cap (N64); population, food and prosperity stay in bands; famine, plague and war aren't permanent; factions neither explode nor vanish; at least some long causal chains every year
+- [x] Runs in CI on a few seeds, and nightly on more *(`.github/workflows/nightly.yml`: ten seeds for ten years, and the LONG tests)*
+- [x] Tests, README, this roadmap
 
 - **Done when:** ten years over ten seeds stay inside every bound, and a deliberately broken setting (no famine relief, no war fatigue) is caught by the check.
 
 ## N23: Sharing worlds
 
-**Status:** ⬜ Planned
+**Status:** 🟨 Cut built (2026-11-23): snapshots with checks, a replay that checks itself, the chronicle; the input journal waits
 
 **Implementation plan:** [plans/n23-sharing-worlds.md](plans/n23-sharing-worlds.md)
 
@@ -149,17 +149,17 @@ See the world, keep it fast and stable, and know what the player knows. Everythi
 
 **The rules:** built on N18's export and import. A world seed and its chronicle are enough to replay the world exactly; snapshots let a story be replayed from a chosen day.
 
-- [ ] Export a world: seed, settings, snapshots, chronicle (N68) and stories (N20)
-- [ ] Replay from a chosen day as an observer (admin view) or as a new player
-- [ ] A shareable chronicle (read-only, the truth or what one player knew)
+- [x] Export a world: seed, settings, snapshots, chronicle (N68) and stories (N20) *(`SNAPSHOT_EVERY=5`; the export carries the checks and the chronicle)*
+- [~] Replay from a chosen day as an observer (admin view) or as a new player *(`game/share/snapshots.ts` `replay`: exact while nobody plays; a played world needs the input journal, and the observer server mode waits for it)*
+- [x] A shareable chronicle (read-only, the truth or what one player knew) *(`npm run world:chronicle`)*
 - [ ] Used as playtest and bug-report material (the vertical slice, N22)
-- [ ] Tests, README, this roadmap
+- [x] Tests (`tests/n23.test.ts`), README, this roadmap
 
 - **Done when:** a world is exported, imported on another machine and replayed from day 40 identically; its chronicle reads the same in both.
 
 ## N24: Global reporting
 
-**Status:** ⬜ Planned
+**Status:** ✅ Built (2026-11-23)
 
 **Implementation plan:** [plans/n24-global-reporting.md](plans/n24-global-reporting.md)
 
@@ -169,10 +169,10 @@ See the world, keep it fast and stable, and know what the player knows. Everythi
 
 **The rules:** the player's feed shows what **the player** knows: events they saw, and news once it has reached them (N13.0's death news, carried as in N33). The admin view (N17) shows the truth. These two stay separate.
 
-- [ ] Feed scopes: **here**, **my kingdom**, **everywhere**, filtered by importance so it doesn't flood
-- [ ] Events about pinned NPCs always show (in the admin view at once; in the player's feed once known)
-- [ ] Fix: the feed reports Millbrook's daily trades while the player is in another place (from N16's "left as it is")
-- [ ] **Every place has its own news clock** (added 2026-10-13): news reaches each place after the days travellers take from where it happened, and the talking people of every place know only what has reached their place. Today they all go by Millbrook's clock: a visitor's file knows all realm news that has reached Millbrook, so people in the town where something happened hear of it late, and far-off people know Millbrook's news too early
-- [ ] Tests, README, this roadmap
+- [x] Feed scopes: **here**, **my kingdom**, **everywhere**, filtered by importance so it doesn't flood
+- [x] Events about pinned NPCs always show (in the admin view at once; in the player's feed once known)
+- [x] Fix: the feed reports Millbrook's daily trades while the player is in another place (from N16's "left as it is")
+- [x] **Every place has its own news clock** (added 2026-10-13): news reaches each place after the days travellers take from where it happened, and the talking people of every place know only what has reached their place. Today they all go by Millbrook's clock: a visitor's file knows all realm news that has reached Millbrook, so people in the town where something happened hear of it late, and far-off people know Millbrook's news too early
+- [x] Tests (`tests/n24.test.ts`), README, this roadmap
 
 - **Done when:** a war in a far kingdom appears in the player's "everywhere" feed only after its news reaches them, and in the admin view at once; standing in Highdale shows Highdale's trades, not Millbrook's; someone in the town where something happened knows it that day, and someone in a town farther away learns it only when it reaches them, not when it reaches Millbrook.

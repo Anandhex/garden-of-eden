@@ -1,4 +1,4 @@
-import { DAY_WALK_UNITS } from "@millbrook/shared";
+import { DAY_WALK_UNITS } from "@garden-of-eden/shared";
 import { seededRng, type Rng } from "../dice.js";
 import type { Tier } from "../life.js";
 import { leaderRole, makeFigure, takenNames } from "./figures.js";

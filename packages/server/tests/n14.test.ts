@@ -75,7 +75,7 @@ describe("N14 other places: a map and people", () => {
     expect(m.id).toBe(city.id);
     expect(m.tiles).not.toBe(PLAIN.tiles);
     expect(m.buildings.some((b) => /Palace|hall/i.test(b.name))).toBe(true);
-    if ((city.buildings.walls ?? 0) > 0) expect(m.tiles[2]!.includes("wall")).toBe(true);
+    if ((city.buildings.walls ?? 0) > 0) expect(m.tiles.some((row) => row.includes("wall"))).toBe(true); // walls stand inside open ground for the suburbs (organic layout), not on row 2
     for (const place of ["square", "gate", "inn", "forge"]) expect(m.spotAt(place, `someone_${place}`)).not.toBeNull();
     expect(m.isSolid(m.start.x, m.start.y)).toBe(false);
     expect(JSON.stringify(siteMap({ ...city }).tiles)).toBe(JSON.stringify(m.tiles));

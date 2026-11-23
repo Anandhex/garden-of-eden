@@ -19,7 +19,7 @@ import { RecordStore } from "../store/recordStore.js";
 import { GoodsStore } from "../store/goodsStore.js";
 import { CareerStore } from "../store/careerStore.js";
 import { PeopleStore } from "../store/peopleStore.js";
-import { applySchema, ORDER_BY, type TableName } from "../store/schema.js";
+import { applySchema, ORDER_BY, TABLES, type TableName } from "../store/schema.js";
 
 /**
  * The long-term store (SQLite, built into Node: node:sqlite). The world save
@@ -130,7 +130,7 @@ export class WorldStore {
     this.notables.dropCache();
     this.goods.dropCache();
     this.records.dropCache();
-    this.db.exec("DELETE FROM records; DELETE FROM notable_items; DELETE FROM jobs; DELETE FROM parties; DELETE FROM household_goods; DELETE FROM marks; DELETE FROM plots; DELETE FROM sowings; DELETE FROM field_events; DELETE FROM plot_years; DELETE FROM beasts; DELETE FROM events; DELETE FROM memories; DELETE FROM director_log; DELETE FROM relationships; DELETE FROM knowledge; DELETE FROM grievances; DELETE FROM ambitions; DELETE FROM jobs_held; DELETE FROM site_days; DELETE FROM site_seq; DELETE FROM model_calls; DELETE FROM meta;");
+    this.db.exec("DELETE FROM records; DELETE FROM event_causes; DELETE FROM stories; DELETE FROM metrics_daily; DELETE FROM drama_log; DELETE FROM callbacks; DELETE FROM snapshots; DELETE FROM notable_items; DELETE FROM jobs; DELETE FROM parties; DELETE FROM household_goods; DELETE FROM marks; DELETE FROM plots; DELETE FROM sowings; DELETE FROM field_events; DELETE FROM plot_years; DELETE FROM beasts; DELETE FROM events; DELETE FROM memories; DELETE FROM director_log; DELETE FROM relationships; DELETE FROM knowledge; DELETE FROM grievances; DELETE FROM ambitions; DELETE FROM jobs_held; DELETE FROM site_days; DELETE FROM site_seq; DELETE FROM model_calls; DELETE FROM meta;");
   }
 
   // ---- The save's commit point (N18) ----
@@ -152,7 +152,8 @@ export class WorldStore {
     if (table === "people" && this.people.pending > 0) {
       // People changed since the last flush are part of the world as it is.
       const now = new Map(rows.map((r) => [String(r.id), r]));
-      for (const r of this.people.pendingRows()) now.set(r.id, { ...r });
+      // As the database would hold them: exactly its columns, a missing cell null (an export must read back, a hash must match a restore).
+      for (const r of this.people.pendingRows()) now.set(r.id, Object.fromEntries(TABLES.people.map((c) => [c, (r as unknown as Record<string, unknown>)[c] ?? null])));
       return [...now.values()].sort((a, b) => (String(a.id) < String(b.id) ? -1 : 1));
     }
     if (table === "site_seq") {
@@ -202,6 +203,11 @@ export class WorldStore {
 
   /** Keep an event for good (insert, or update who knows it). */
   private archive: ReturnType<DatabaseSyncType["prepare"]> | null = null;
+  private causeRow: ReturnType<DatabaseSyncType["prepare"]> | null = null;
+  private causesQ: ReturnType<DatabaseSyncType["prepare"]> | null = null;
+  private effectsQ: ReturnType<DatabaseSyncType["prepare"]> | null = null;
+  private dayQ: ReturnType<DatabaseSyncType["prepare"]> | null = null;
+  private readonly adhoc = new Map<string, ReturnType<DatabaseSyncType["prepare"]>>();
 
   archiveEvent(e: GameEvent): void {
     this.archive ??= this.db.prepare(
@@ -210,6 +216,35 @@ export class WorldStore {
        ON CONFLICT(id) DO UPDATE SET known_by = excluded.known_by`,
     );
     this.archive.run(e.id, e.day, e.hour, e.kind, e.actor, e.target, e.details, e.importance, e.place ?? null, JSON.stringify(e.witnesses ?? []), JSON.stringify(e.knownBy ?? []), e.why ?? null, e.causedBy ? JSON.stringify(e.causedBy) : null, e.site ?? null, e.kingdom ?? null, seqOf(e.id));
+    // N20: each cause a row, so walking forward (what did this cause?) is one indexed query. Never an event its own cause.
+    if (e.causedBy?.length) {
+      this.causeRow ??= this.db.prepare("INSERT OR IGNORE INTO event_causes (ref, cause) VALUES (?, ?)");
+      for (const c of e.causedBy) if (c && c !== e.id) this.causeRow.run(e.id, c);
+    }
+  }
+
+  /** N20: what an event was caused by, and what it caused (event ids, or other refs a cause may be: a feud, a secret). */
+  causesOf(ref: string): string[] {
+    this.causesQ ??= this.db.prepare("SELECT cause FROM event_causes WHERE ref = ? ORDER BY cause");
+    return (this.causesQ.all(ref) as Array<{ cause: string }>).map((r) => r.cause);
+  }
+
+  effectsOf(ref: string): string[] {
+    this.effectsQ ??= this.db.prepare("SELECT ref FROM event_causes WHERE cause = ? ORDER BY ref");
+    return (this.effectsQ.all(ref) as Array<{ ref: string }>).map((r) => r.ref);
+  }
+
+  /** Events of one day (N20's story detector and liveness metrics), oldest first. */
+  eventsOfDay(day: number): GameEvent[] {
+    this.dayQ ??= this.db.prepare("SELECT * FROM events WHERE day = ? ORDER BY hour, seq, id");
+    return (this.dayQ.all(day) as Array<Record<string, unknown>>).map(rowToEvent);
+  }
+
+  /** N20: the database's own prepared statement for a table of its own (stories, metrics, the drama log). */
+  sql(text: string) {
+    let q = this.adhoc.get(text);
+    if (!q) this.adhoc.set(text, (q = this.db.prepare(text)));
+    return q;
   }
 
   /** Events newest first, optionally only those after a cursor, or involving someone or somewhere (the admin view: reads only). */

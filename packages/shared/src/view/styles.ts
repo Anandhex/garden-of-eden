@@ -1,5 +1,5 @@
 /**
- * Regional building styles (G8): a place is built the way its people build, with what its land gives them. The same
+ * Regional building styles (G10): a place is built the way its people build, with what its land gives them. The same
  * templates (templates.ts) dress every building; a style swaps their materials, frame by frame, and may give a kind
  * of building another template (the steppe's felt tents for houses, a goblin's hut).
  *
@@ -175,7 +175,7 @@ export function templateById(id: string): BuildingTemplate | undefined {
 }
 
 /**
- * The template a building wears in a place of `styleId` (G8): `templateFor`'s pick (the style's own template for its
+ * The template a building wears in a place of `styleId` (G10): `templateFor`'s pick (the style's own template for its
  * kind where it has one), as `<template>~<style>` when the style is known. No style: exactly `templateFor`.
  */
 export function templateForStyle(kind: string | undefined, name: string, key: string, styleId: string | undefined): string {

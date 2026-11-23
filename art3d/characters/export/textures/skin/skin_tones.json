@@ -1,0 +1,102 @@
+{
+ "T1_pale": {
+  "base": [
+   0.96,
+   0.8,
+   0.72
+  ],
+  "bodyColour": [
+   0.96,
+   0.8,
+   0.72
+  ],
+  "albedo": "head_albedo_T1_pale.png"
+ },
+ "T2_fair": {
+  "base": [
+   0.92,
+   0.68,
+   0.55
+  ],
+  "bodyColour": [
+   0.92,
+   0.68,
+   0.55
+  ],
+  "albedo": "head_albedo_T2_fair.png"
+ },
+ "T3_medium": {
+  "base": [
+   0.84,
+   0.6,
+   0.45
+  ],
+  "bodyColour": [
+   0.84,
+   0.6,
+   0.45
+  ],
+  "albedo": "head_albedo_T3_medium.png"
+ },
+ "T4_olive": {
+  "base": [
+   0.72,
+   0.52,
+   0.36
+  ],
+  "bodyColour": [
+   0.72,
+   0.52,
+   0.36
+  ],
+  "albedo": "head_albedo_T4_olive.png"
+ },
+ "T5_brown": {
+  "base": [
+   0.55,
+   0.36,
+   0.24
+  ],
+  "bodyColour": [
+   0.55,
+   0.36,
+   0.24
+  ],
+  "albedo": "head_albedo_T5_brown.png"
+ },
+ "T6_deep": {
+  "base": [
+   0.36,
+   0.23,
+   0.16
+  ],
+  "bodyColour": [
+   0.36,
+   0.23,
+   0.16
+  ],
+  "albedo": "head_albedo_T6_deep.png"
+ },
+ "orc_green": {
+  "base": [
+   0.5,
+   0.62,
+   0.38
+  ],
+  "bodyColour": [
+   0.5,
+   0.62,
+   0.38
+  ],
+  "albedo": "head_albedo_orc_green.png"
+ },
+ "_shared": {
+  "normal": "head_normal.png (tangent space, OpenGL +Y)",
+  "roughness": "head_roughness.png (linear)",
+  "ao": "head_ao.png",
+  "cavity": "head_cavity.png",
+  "lipMask": "head_lipmask.png",
+  "uv": "UVMap of Mesh_Head, Part_Nose, Part_Ear_*",
+  "bodyMatch": "albedo fades to the flat tone colour below the jaw so the neck meets the Skin material of the body"
+ }
+}

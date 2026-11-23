@@ -34,8 +34,12 @@ export interface AdminEvent {
   factions: string[];
   /** The reason behind it: the director's reason, a war's cause, an NPC's choice (N38 later). */
   why: string | null;
-  /** The events that caused it (empty until N20). */
+  /** The events that caused it (N20). */
   causedBy: string[];
+  /** What it led to (N20), by ref: the other way along the same links. */
+  ledTo?: string[];
+  /** The day the player learned of it (N24: the gap between the truth and what they know), or null while they don't know it. */
+  playerKnows?: number | null;
   /** Where it sits in the stream, for the cursor: "day:hour:rank:n". */
   at: string;
 }
@@ -147,7 +151,7 @@ export interface AdminHealth {
   summary: string[];
 }
 
-export type AdminCardKind = "cast" | "figure" | "townsperson" | "beast" | "player" | "place" | "item";
+export type AdminCardKind = "cast" | "figure" | "townsperson" | "beast" | "player" | "place" | "item" | "society";
 
 /** A group of facts on a card. `rows` are [label, value, ref?]: a ref makes the value a link. */
 export type AdminSection = { title: string; rows: Array<[string, string, string?]> } | { title: string; unavailable: string };

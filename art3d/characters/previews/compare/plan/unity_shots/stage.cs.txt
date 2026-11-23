@@ -1,0 +1,16 @@
+var stage = UnityEngine.GameObject.Find("RefStage");
+if (stage == null) {
+  stage = new UnityEngine.GameObject("RefStage");
+  stage.transform.position = new UnityEngine.Vector3(0, 300, 0);
+  var bd = UnityEngine.GameObject.CreatePrimitive(UnityEngine.PrimitiveType.Quad);
+  bd.name="backdrop"; bd.transform.SetParent(stage.transform,false); bd.transform.localPosition=new UnityEngine.Vector3(0,1.5f,-4f); bd.transform.localScale=new UnityEngine.Vector3(30,20,1);
+  bd.transform.localRotation = UnityEngine.Quaternion.Euler(0,180,0);
+  var um = new UnityEngine.Material(UnityEngine.Shader.Find("Universal Render Pipeline/Unlit")); um.SetColor("_BaseColor", new UnityEngine.Color(0.11f,0.27f,0.31f)); bd.GetComponent<UnityEngine.Renderer>().sharedMaterial = um;
+  var fl = UnityEngine.GameObject.CreatePrimitive(UnityEngine.PrimitiveType.Quad);
+  fl.name="floor"; fl.transform.SetParent(stage.transform,false); fl.transform.localRotation=UnityEngine.Quaternion.Euler(90,0,0); fl.transform.localScale=new UnityEngine.Vector3(30,30,1);
+  var fm = new UnityEngine.Material(UnityEngine.Shader.Find("Universal Render Pipeline/Lit")); fm.SetColor("_BaseColor", new UnityEngine.Color(0.14f,0.30f,0.34f)); fm.SetFloat("_Smoothness",0.1f); fl.GetComponent<UnityEngine.Renderer>().sharedMaterial = fm;
+  var key = new UnityEngine.GameObject("key").AddComponent<UnityEngine.Light>(); key.transform.SetParent(stage.transform,false);
+  key.type = UnityEngine.LightType.Spot; key.spotAngle=60; key.range=20; key.intensity=18; key.color=new UnityEngine.Color(1f,0.85f,0.68f); key.transform.localPosition=new UnityEngine.Vector3(2.2f,3.2f,3.0f); key.transform.LookAt(stage.transform.position+UnityEngine.Vector3.up*1.2f); key.shadows=UnityEngine.LightShadows.Soft;
+  var rim = new UnityEngine.GameObject("rim").AddComponent<UnityEngine.Light>(); rim.transform.SetParent(stage.transform,false);
+  rim.type = UnityEngine.LightType.Spot; rim.spotAngle=70; rim.range=20; rim.intensity=40; rim.color=new UnityEngine.Color(0.35f,0.8f,0.95f); rim.transform.localPosition=new UnityEngine.Vector3(-2.5f,2.5f,-2.5f); rim.transform.LookAt(stage.transform.position+UnityEngine.Vector3.up*1.2f);
+}

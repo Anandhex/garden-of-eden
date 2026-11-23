@@ -3,7 +3,7 @@
  * frame after, and the difference as events (shared/events.ts). Working them out from
  * state means every path that changes the game reports the same way, model or not.
  */
-import { diffFrames, type EventFrame, type GameEvent } from "@millbrook/shared";
+import { diffFrames, type EventFrame, type GameEvent } from "@garden-of-eden/shared";
 import type { NpcAgent } from "../npc/NpcAgent.js";
 import type { AppliedAction, WorldSnapshot } from "../npc/types.js";
 import type { PlayerState } from "../npc/types.js";

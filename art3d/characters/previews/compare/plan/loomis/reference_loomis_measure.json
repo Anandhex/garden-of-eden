@@ -1,0 +1,16 @@
+{
+ "axis_px": 95.78777553946954,
+ "raw": {
+  "brow": 0.349,
+  "eye": 0.527,
+  "nose_base": 0.699,
+  "mouth": 0.814,
+  "ear_top": 0.545,
+  "ear_bottom": 0.767,
+  "hairline": 0.145,
+  "lip_top": 0.738,
+  "lip_bottom": 0.91,
+  "nose_tip": 0.614
+ },
+ "note": "fractions of crown-to-chin along the axis perpendicular to the eye line; head pitched back and seen from below, so cranium-side values are compressed and the ear reads low"
+}

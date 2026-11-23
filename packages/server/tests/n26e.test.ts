@@ -8,7 +8,7 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { isOnTheRoad, placeAt, stopsOf, type Journey } from "@millbrook/shared";
+import { isOnTheRoad, placeAt, stopsOf, type Journey } from "@garden-of-eden/shared";
 import { config } from "../src/config.js";
 import { WorldStore } from "../src/game/db.js";
 import { parseAway, type PersonRow } from "../src/store/peopleStore.js";
@@ -70,7 +70,8 @@ describe("N26 Part E: every traveller is a person of the table", () => {
         }
       }
       // And the other way round: everyone away is on an open journey.
-      for (const r of store.people.awayRows()) expect(seen.get(r.id), `${r.name} is away`).toBe(parseAway(r.away)!.journey);
+      // (A soldier is away with their army, N55, which marches by its own rules, not on a journey.)
+      for (const r of store.people.awayRows()) if (parseAway(r.away)!.purpose !== "war") expect(seen.get(r.id), `${r.name} is away`).toBe(parseAway(r.away)!.journey);
     }
     const kinds = new Set(journeysOf(realm).map((j) => j.kind));
     for (const k of ["market", "caravan", "officials"]) expect(kinds.has(k as Journey["kind"]), k).toBe(true);

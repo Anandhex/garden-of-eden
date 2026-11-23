@@ -1,4 +1,4 @@
-import type { CrowdIntent } from "@millbrook/shared";
+import type { CrowdIntent } from "@garden-of-eden/shared";
 import type { WorldStore } from "../db.js";
 
 /**

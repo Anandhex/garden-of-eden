@@ -1,4 +1,4 @@
-import { stopsOf, type Carry } from "@millbrook/shared";
+import { stopsOf, type Carry } from "@garden-of-eden/shared";
 import { config } from "../../config.js";
 import { timed } from "../../metrics/timing.js";
 import type { LifeCtx } from "../people/step.js";

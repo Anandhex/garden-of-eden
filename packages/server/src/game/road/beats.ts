@@ -1,4 +1,4 @@
-import { shortestWay, wildlifeAt, WALK_PACE, type RoadData } from "@millbrook/shared";
+import { shortestWay, wildlifeAt, WALK_PACE, type RoadData } from "@garden-of-eden/shared";
 import type { PeopleStore } from "../../store/peopleStore.js";
 import type { Realm } from "../realm/types.js";
 import { rollSegment, STRETCH } from "./situations.js";

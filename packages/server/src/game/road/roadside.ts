@@ -1,4 +1,4 @@
-import { inTerritory, partyAt, type RoadPlace } from "@millbrook/shared";
+import { inTerritory, partyAt, type RoadPlace } from "@garden-of-eden/shared";
 import { journeysOf, lineOf } from "./journeys.js";
 import { check, streamFor } from "../dice.js";
 import { itemKey } from "../items.js";

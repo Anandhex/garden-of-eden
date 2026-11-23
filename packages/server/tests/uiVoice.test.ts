@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { PassThrough } from "node:stream";
 import { describe, expect, it } from "vitest";
-import { DEFAULT_VOICE, type NpcVoice } from "@millbrook/shared";
+import { DEFAULT_VOICE, type NpcVoice } from "@garden-of-eden/shared";
 import { captureFrame, turnEvents } from "../src/game/turnEvents.js";
 import { parsePersona } from "../src/npc/personaSchema.js";
 import { CachedTts, findProgram, listPiperModels, PiperCliTts, PiperHttpTts, setUpVoice, type TtsProvider } from "../src/voice/tts.js";

@@ -2,7 +2,7 @@
  * The engine-free core of a client (G5): connect, keep the latest frame and UI model, hand each message to the
  * adapter, and send intents back. This is the reference for adapters in other engines; it holds no game rules.
  */
-import { PROTOCOL_VERSION, type GameEvent, type Intent, type ServerMsg } from "@millbrook/shared/view";
+import { PROTOCOL_VERSION, type GameEvent, type Intent, type ServerMsg } from "@garden-of-eden/shared/view";
 import type { EngineAdapter } from "./adapter";
 import { ReplaySource, SocketSource, type Source } from "./connection";
 import { Mirror } from "./mirror";

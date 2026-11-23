@@ -1,4 +1,4 @@
-import { cumulative, pointAt, seedOf, WALK_PACE, type Plot, type RoadData, type RoadPlace, type RoadPoint } from "@millbrook/shared";
+import { cumulative, pointAt, seedOf, WALK_PACE, type Plot, type RoadData, type RoadPlace, type RoadPoint } from "@garden-of-eden/shared";
 import type { PeopleStore, PersonRow } from "../../store/peopleStore.js";
 import type { FarmStore } from "../../store/farmStore.js";
 import { plotsOf } from "../farm/fields.js";

@@ -1,4 +1,4 @@
-import { type ClassCounts, CrowdSim, type CrowdDay, type CrowdRoster, type Townsperson } from "@millbrook/shared";
+import { type ClassCounts, CrowdSim, type CrowdDay, type CrowdRoster, type Townsperson } from "@garden-of-eden/shared";
 import { crowdDayAt } from "../game/events-calendar.js";
 import { figureClass } from "../game/realm/townsfolk.js";
 import { siteMap, type SiteMap } from "../web/sites.js";

@@ -1,4 +1,4 @@
-import type { Journey, JourneyKind, RoadData, Traveller } from "@millbrook/shared";
+import type { Journey, JourneyKind, RoadData, Traveller } from "@garden-of-eden/shared";
 import type { PersonRow } from "../../../store/peopleStore.js";
 import { speciesOf } from "../../../world/species.js";
 import type { WorldStore } from "../../db.js";

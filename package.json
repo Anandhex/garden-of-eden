@@ -11,12 +11,12 @@
   ],
   "scripts": {
     "chat": "tsx --env-file-if-exists=.env packages/server/src/cli.ts",
-    "web": "npm run build -w @millbrook/client && tsx --env-file-if-exists=.env packages/server/src/web/server.ts",
+    "web": "npm run build -w @garden-of-eden/client && tsx --env-file-if-exists=.env packages/server/src/web/server.ts",
     "web:voices": "tsx packages/server/scripts/voices.ts web",
     "dev": "tsx packages/server/scripts/dev.ts",
     "voices:install": "tsx packages/server/scripts/voices.ts install",
     "voices": "tsx packages/server/scripts/voices.ts serve",
-    "build": "npm run build -w @millbrook/client",
+    "build": "npm run build -w @garden-of-eden/client",
     "typecheck": "tsc --noEmit -p packages/shared && tsc --noEmit -p packages/server && tsc --noEmit -p packages/client && tsc --noEmit -p art",
     "test": "vitest run",
     "test:live": "LIVE=1 vitest run packages/server/tests/live.test.ts",
@@ -29,6 +29,7 @@
     "replay": "tsx packages/server/scripts/replay.ts",
     "world:export": "tsx packages/server/scripts/world.ts export",
     "world:import": "tsx packages/server/scripts/world.ts import",
+    "world:chronicle": "tsx packages/server/scripts/world.ts chronicle",
     "bench:storage": "tsx packages/server/scripts/bench-storage.ts",
     "bench:busy": "tsx --env-file-if-exists=.env packages/server/scripts/bench-busy.ts",
     "bench:traits": "tsx packages/server/scripts/bench-traits.ts",
@@ -40,7 +41,7 @@
     "schema": "tsx packages/shared/scripts/schema.ts",
     "art": "tsx art/pack.ts",
     "frames:record": "tsx packages/server/scripts/record-frames.ts",
-    "frames:play": "npm run dev -w @millbrook/client"
+    "frames:play": "npm run dev -w @garden-of-eden/client"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",

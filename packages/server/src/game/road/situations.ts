@@ -1,5 +1,5 @@
 import { readdirSync, readFileSync } from "node:fs";
-import { cumulative, pointAt, Ground, type RoadData, type RoadPath, type SituationView, type Traveller } from "@millbrook/shared";
+import { cumulative, pointAt, Ground, type RoadData, type RoadPath, type SituationView, type Traveller } from "@garden-of-eden/shared";
 import { z } from "zod";
 import { check, streamFor, type Rng } from "../dice.js";
 import { recordEvent } from "../events.js";

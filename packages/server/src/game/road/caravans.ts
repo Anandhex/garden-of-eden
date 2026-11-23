@@ -1,4 +1,4 @@
-import { buildTimeline, cumulative, isOnTheRoad, partyAt, pointAt, positionAt, type Journey } from "@millbrook/shared";
+import { buildTimeline, cumulative, isOnTheRoad, partyAt, pointAt, positionAt, type Journey } from "@garden-of-eden/shared";
 import { recordEvent } from "../events.js";
 import { itemKey } from "../items.js";
 import { playerPower } from "../realm/wilds.js";

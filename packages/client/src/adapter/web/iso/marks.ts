@@ -4,7 +4,7 @@
  * colour, a box drawn round the rest. The words are the frame's (shown on hover).
  */
 import * as THREE from "three";
-import type { Frame } from "@millbrook/shared/view";
+import type { Frame } from "@garden-of-eden/shared/view";
 import { hexColor } from "./atlas";
 import type { IsoCtx } from "./ctx";
 

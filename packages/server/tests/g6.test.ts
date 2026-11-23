@@ -8,7 +8,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { ART_IDS, CREATURE_IDS, dress, FrameSchema, OBJECT_IDS, TEMPLATE_IDS, TEMPLATES, templateFor, TERRAIN_IDS, WINDOW_TILES, type Frame } from "@millbrook/shared/view";
+import { ART_IDS, CREATURE_IDS, dress, FrameSchema, OBJECT_IDS, TEMPLATE_IDS, TEMPLATES, templateById, templateFor, TERRAIN_IDS, WINDOW_TILES, type Frame } from "@garden-of-eden/shared/view";
 import { decodePng } from "../../../art/png.js";
 import { packAll } from "../../../art/pack.js";
 import { Mirror } from "../../client/src/core/mirror.js";
@@ -161,7 +161,8 @@ describe("G6 a town at night, through the protocol", () => {
   let model: Awaited<ReturnType<typeof fakeModel>>;
   beforeAll(async () => {
     model = await fakeModel();
-    game = await startGame({ env: { OLLAMA_HOST: model.url, TIME_FLOW_SECONDS: "0" } });
+    // A fixed world: a random one may start in a hamlet of two houses.
+    game = await startGame({ env: { OLLAMA_HOST: model.url, TIME_FLOW_SECONDS: "0", REALM_SEED: "1" } });
   }, 90_000);
   afterAll(() => {
     game?.stop();
@@ -189,12 +190,14 @@ describe("G6 a town at night, through the protocol", () => {
     let occupied = 0;
     let empty = 0;
     for (const b of f.buildings!) {
-      expect(TEMPLATES[b.template!], b.kind).toBeTruthy();
+      expect(templateById(b.template!), b.kind).toBeTruthy();
       const windows = f.lights!.filter((l) => l.kind === "window" && l.id.startsWith(`win:${b.id}:`));
       const home = !/nobody inside/.test(b.tip);
       expect(b.lit).toBe(home);
       if (b.kind !== "house") continue;
-      expect(windows.length, `house ${b.id} has windows`).toBeGreaterThan(0);
+      // A house shows every window its dressed walls have (a 2-wide cottage's only window gives way to the door; a felt tent, G10, has none).
+      const dressed = dress(templateById(b.template!)!, { x: b.x, y: b.y, w: b.w, h: b.h, ...(b.door ? { door: b.door } : {}) });
+      expect(windows.length, `house ${b.id} (${b.template} ${b.w}x${b.h})`).toBe(dressed.windows.length);
       for (const w of windows) expect(w.on, `${w.id}: ${b.tip}`).toBe(home);
       if (home) occupied++;
       else empty++;
@@ -229,7 +232,7 @@ describe("G6 a recording replays with no art falling back", () => {
     expect(frames).toBeGreaterThan(10);
     expect(ids.size).toBeGreaterThan(5);
     expect(missingArt(ids)).toEqual([]);
-    expect([...templates].filter((t) => !TEMPLATES[t])).toEqual([]);
+    expect([...templates].filter((t) => !templateById(t))).toEqual([]);
     expect([...ids].some((id) => id.startsWith("terrain/road"))).toBe(true);
   });
 });

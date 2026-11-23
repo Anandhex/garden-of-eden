@@ -1,0 +1,10267 @@
+{
+ "version": 1,
+ "generated": "build_parts.py",
+ "units": "metres, Blender axes at rest (Z up, face -Y); FBX export Y-up forward -Z like base_body.fbx",
+ "base": {
+  "fbx": "../export/base_body.fbx",
+  "speciesPresets": "../export/species_presets.json",
+  "meta": "../export/base_body_meta.json"
+ },
+ "unityImport": "Rig = Humanoid (copy avatar from base_body), Normals = Import, Blend Shape Normals = None, Read/Write on; every part FBX contains the base Armature (bone names identical) so renderers can be re-pointed at the character's bones",
+ "faceDecalRect": {
+  "u": [
+   0.0,
+   0.5
+  ],
+  "v": [
+   0.5,
+   1.0
+  ],
+  "worldX": [
+   -0.11,
+   0.11
+  ],
+  "worldZ": [
+   1.5,
+   1.72
+  ],
+  "texturePixels": 512
+ },
+ "textureConventions": {
+  "brow": "RGBA 512, RGB = shading, A = coverage; multiply by browColor (hair palette)",
+  "lids": "RGBA 512, RGB = final colour of liner/shadow/lashes, A = coverage; drawn on the eye aperture only (guard mask, never across the nose bridge)",
+  "lips": "RGBA 512, RGB = shading, A = coverage; multiply by lipTint",
+  "mouthInner": "RGBA 512, final colours (teeth, tongue, dark), composited over lips layer",
+  "stubble": "RGBA 512, A = hair dots; multiply by hair colour",
+  "iris": "RGBA 256 per eyeball (eyeball UV quadrant), RGB = shading, A = tint mask: out = rgb * lerp(1, irisColor, A); sclera/pupil/highlight A = 0",
+  "layerOrder": "skin -> blush -> stubble -> brow -> lids -> lips -> mouthInner",
+  "colourSpace": "PNGs hold display (sRGB) values: import as sRGB"
+ },
+ "palettes": {
+  "hair": {
+   "black": "#0e0c0d",
+   "blue_black": "#0a0c16",
+   "dark_brown": "#26170e",
+   "brown": "#472a16",
+   "chestnut": "#61331a",
+   "auburn": "#752b13",
+   "ginger": "#a34717",
+   "blonde": "#c79947",
+   "platinum": "#e0d1b2",
+   "grey": "#8c8c8f",
+   "silver": "#b8bdc7",
+   "white": "#e6e6e0",
+   "green_orc": "#1a2914",
+   "copper_red": "#8c1f14"
+  },
+  "iris": {
+   "brown": "#734521",
+   "dark_brown": "#381f12",
+   "hazel": "#8c6b2e",
+   "green": "#4c8c4c",
+   "blue": "#4c85cc",
+   "grey": "#8c99a6",
+   "amber": "#cc8c1f",
+   "violet": "#8c59bf",
+   "red": "#cc261f",
+   "gold": "#f2cc33",
+   "teal": "#2e9999",
+   "ice": "#80b8eb",
+   "orange": "#eb731a",
+   "black": "#1f1a1a",
+   "pale_blue": "#9ebddb"
+  },
+  "lips": {
+   "natural": "#cc6b66",
+   "rose": "#db7580",
+   "red": "#c22930",
+   "berry": "#802647",
+   "pale": "#d69485",
+   "dark": "#754240",
+   "plum": "#8c4761",
+   "orc": "#524c38",
+   "peach": "#eb8c75"
+  }
+ },
+ "counts": {
+  "eyes": 30,
+  "eyebrows": 30,
+  "mouths": 30,
+  "beards": 30,
+  "noses": 30,
+  "ears": 30,
+  "hair": 38,
+  "mouthParts": 8
+ },
+ "parts": [
+  {
+   "id": "eye_01_brown_classic",
+   "category": "eyes",
+   "name": "brown_classic",
+   "socket": [
+    "Socket_Eye_L",
+    "Socket_Eye_R"
+   ],
+   "meshObjects": [
+    "Part_Eye_L",
+    "Part_Eye_R"
+   ],
+   "file": "../export/base_body.fbx",
+   "textures": {
+    "iris": "export/textures/eyes/eye_01.png",
+    "lids": "export/textures/lids/lid_thin_liner.png"
+   },
+   "lidStyle": "thin_liner",
+   "irisPattern": "smooth",
+   "pupil": "round",
+   "highlight": "single",
+   "glow": false,
+   "tags": [
+    "common"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "irisColor",
+     "default": "brown",
+     "defaultHex": "#734521",
+     "palette": "iris",
+     "applies": "iris texture (alpha = tint mask), multiply"
+    }
+   ],
+   "blendShapes": "all 12 Eye_* shapes work: the decal rides the head UVs, the eyeballs follow the socket centre",
+   "hat": "n/a"
+  },
+  {
+   "id": "eye_02_dark_brown_deep",
+   "category": "eyes",
+   "name": "dark_brown_deep",
+   "socket": [
+    "Socket_Eye_L",
+    "Socket_Eye_R"
+   ],
+   "meshObjects": [
+    "Part_Eye_L",
+    "Part_Eye_R"
+   ],
+   "file": "../export/base_body.fbx",
+   "textures": {
+    "iris": "export/textures/eyes/eye_02.png",
+    "lids": "export/textures/lids/lid_lashes_soft.png"
+   },
+   "lidStyle": "lashes_soft",
+   "irisPattern": "ring",
+   "pupil": "round",
+   "highlight": "single",
+   "glow": false,
+   "tags": [
+    "common",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "irisColor",
+     "default": "dark_brown",
+     "defaultHex": "#381f12",
+     "palette": "iris",
+     "applies": "iris texture (alpha = tint mask), multiply"
+    }
+   ],
+   "blendShapes": "all 12 Eye_* shapes work: the decal rides the head UVs, the eyeballs follow the socket centre",
+   "hat": "n/a"
+  },
+  {
+   "id": "eye_03_hazel_streaks",
+   "category": "eyes",
+   "name": "hazel_streaks",
+   "socket": [
+    "Socket_Eye_L",
+    "Socket_Eye_R"
+   ],
+   "meshObjects": [
+    "Part_Eye_L",
+    "Part_Eye_R"
+   ],
+   "file": "../export/base_body.fbx",
+   "textures": {
+    "iris": "export/textures/eyes/eye_03.png",
+    "lids": "export/textures/lids/lid_lashes_soft.png"
+   },
+   "lidStyle": "lashes_soft",
+   "irisPattern": "streaks",
+   "pupil": "round",
+   "highlight": "double",
+   "glow": false,
+   "tags": [
+    "common"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "irisColor",
+     "default": "hazel",
+     "defaultHex": "#8c6b2e",
+     "palette": "iris",
+     "applies": "iris texture (alpha = tint mask), multiply"
+    }
+   ],
+   "blendShapes": "all 12 Eye_* shapes work: the decal rides the head UVs, the eyeballs follow the socket centre",
+   "hat": "n/a"
+  },
+  {
+   "id": "eye_04_green_flecks",
+   "category": "eyes",
+   "name": "green_flecks",
+   "socket": [
+    "Socket_Eye_L",
+    "Socket_Eye_R"
+   ],
+   "meshObjects": [
+    "Part_Eye_L",
+    "Part_Eye_R"
+   ],
+   "file": "../export/base_body.fbx",
+   "textures": {
+    "iris": "export/textures/eyes/eye_04.png",
+    "lids": "export/textures/lids/lid_thin_liner.png"
+   },
+   "lidStyle": "thin_liner",
+   "irisPattern": "flecks",
+   "pupil": "round",
+   "highlight": "single",
+   "glow": false,
+   "tags": [
+    "common"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "irisColor",
+     "default": "green",
+     "defaultHex": "#4c8c4c",
+     "palette": "iris",
+     "applies": "iris texture (alpha = tint mask), multiply"
+    }
+   ],
+   "blendShapes": "all 12 Eye_* shapes work: the decal rides the head UVs, the eyeballs follow the socket centre",
+   "hat": "n/a"
+  },
+  {
+   "id": "eye_05_blue_clear",
+   "category": "eyes",
+   "name": "blue_clear",
+   "socket": [
+    "Socket_Eye_L",
+    "Socket_Eye_R"
+   ],
+   "meshObjects": [
+    "Part_Eye_L",
+    "Part_Eye_R"
+   ],
+   "file": "../export/base_body.fbx",
+   "textures": {
+    "iris": "export/textures/eyes/eye_05.png",
+    "lids": "export/textures/lids/lid_lashes_heavy.png"
+   },
+   "lidStyle": "lashes_heavy",
+   "irisPattern": "smooth",
+   "pupil": "round",
+   "highlight": "big",
+   "glow": false,
+   "tags": [
+    "feminine",
+    "noble"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "irisColor",
+     "default": "blue",
+     "defaultHex": "#4c85cc",
+     "palette": "iris",
+     "applies": "iris texture (alpha = tint mask), multiply"
+    }
+   ],
+   "blendShapes": "all 12 Eye_* shapes work: the decal rides the head UVs, the eyeballs follow the socket centre",
+   "hat": "n/a"
+  },
+  {
+   "id": "eye_06_grey_steel",
+   "category": "eyes",
+   "name": "grey_steel",
+   "socket": [
+    "Socket_Eye_L",
+    "Socket_Eye_R"
+   ],
+   "meshObjects": [
+    "Part_Eye_L",
+    "Part_Eye_R"
+   ],
+   "file": "../export/base_body.fbx",
+   "textures": {
+    "iris": "export/textures/eyes/eye_06.png",
+    "lids": "export/textures/lids/lid_kohl.png"
+   },
+   "lidStyle": "kohl",
+   "irisPattern": "streaks",
+   "pupil": "round",
+   "highlight": "small",
+   "glow": false,
+   "tags": [
+    "stern",
+    "northern"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "irisColor",
+     "default": "grey",
+     "defaultHex": "#8c99a6",
+     "palette": "iris",
+     "applies": "iris texture (alpha = tint mask), multiply"
+    }
+   ],
+   "blendShapes": "all 12 Eye_* shapes work: the decal rides the head UVs, the eyeballs follow the socket centre",
+   "hat": "n/a"
+  },
+  {
+   "id": "eye_07_amber_warm",
+   "category": "eyes",
+   "name": "amber_warm",
+   "socket": [
+    "Socket_Eye_L",
+    "Socket_Eye_R"
+   ],
+   "meshObjects": [
+    "Part_Eye_L",
+    "Part_Eye_R"
+   ],
+   "file": "../export/base_body.fbx",
+   "textures": {
+    "iris": "export/textures/eyes/eye_07.png",
+    "lids": "export/textures/lids/lid_none.png"
+   },
+   "lidStyle": "none",
+   "irisPattern": "streaks",
+   "pupil": "round",
+   "highlight": "single",
+   "glow": false,
+   "tags": [
+    "common"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "irisColor",
+     "default": "amber",
+     "defaultHex": "#cc8c1f",
+     "palette": "iris",
+     "applies": "iris texture (alpha = tint mask), multiply"
+    }
+   ],
+   "blendShapes": "all 12 Eye_* shapes work: the decal rides the head UVs, the eyeballs follow the socket centre",
+   "hat": "n/a"
+  },
+  {
+   "id": "eye_08_violet_elf",
+   "category": "eyes",
+   "name": "violet_elf",
+   "socket": [
+    "Socket_Eye_L",
+    "Socket_Eye_R"
+   ],
+   "meshObjects": [
+    "Part_Eye_L",
+    "Part_Eye_R"
+   ],
+   "file": "../export/base_body.fbx",
+   "textures": {
+    "iris": "export/textures/eyes/eye_08.png",
+    "lids": "export/textures/lids/lid_elf_flick.png"
+   },
+   "lidStyle": "elf_flick",
+   "irisPattern": "swirl",
+   "pupil": "round",
+   "highlight": "star",
+   "glow": false,
+   "tags": [
+    "elf"
+   ],
+   "species": [
+    "elf"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "irisColor",
+     "default": "violet",
+     "defaultHex": "#8c59bf",
+     "palette": "iris",
+     "applies": "iris texture (alpha = tint mask), multiply"
+    }
+   ],
+   "blendShapes": "all 12 Eye_* shapes work: the decal rides the head UVs, the eyeballs follow the socket centre",
+   "hat": "n/a"
+  },
+  {
+   "id": "eye_09_teal_ring",
+   "category": "eyes",
+   "name": "teal_ring",
+   "socket": [
+    "Socket_Eye_L",
+    "Socket_Eye_R"
+   ],
+   "meshObjects": [
+    "Part_Eye_L",
+    "Part_Eye_R"
+   ],
+   "file": "../export/base_body.fbx",
+   "textures": {
+    "iris": "export/textures/eyes/eye_09.png",
+    "lids": "export/textures/lids/lid_winged.png"
+   },
+   "lidStyle": "winged",
+   "irisPattern": "ring",
+   "pupil": "round",
+   "highlight": "double",
+   "glow": false,
+   "tags": [
+    "feminine",
+    "courtly"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "irisColor",
+     "default": "teal",
+     "defaultHex": "#2e9999",
+     "palette": "iris",
+     "applies": "iris texture (alpha = tint mask), multiply"
+    }
+   ],
+   "blendShapes": "all 12 Eye_* shapes work: the decal rides the head UVs, the eyeballs follow the socket centre",
+   "hat": "n/a"
+  },
+  {
+   "id": "eye_10_black_deep",
+   "category": "eyes",
+   "name": "black_deep",
+   "socket": [
+    "Socket_Eye_L",
+    "Socket_Eye_R"
+   ],
+   "meshObjects": [
+    "Part_Eye_L",
+    "Part_Eye_R"
+   ],
+   "file": "../export/base_body.fbx",
+   "textures": {
+    "iris": "export/textures/eyes/eye_10.png",
+    "lids": "export/textures/lids/lid_tired.png"
+   },
+   "lidStyle": "tired",
+   "irisPattern": "smooth",
+   "pupil": "small",
+   "highlight": "small",
+   "glow": false,
+   "tags": [
+    "common",
+    "weary"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "irisColor",
+     "default": "black",
+     "defaultHex": "#1f1a1a",
+     "palette": "iris",
+     "applies": "iris texture (alpha = tint mask), multiply"
+    }
+   ],
+   "blendShapes": "all 12 Eye_* shapes work: the decal rides the head UVs, the eyeballs follow the socket centre",
+   "hat": "n/a"
+  },
+  {
+   "id": "eye_11_cat_green",
+   "category": "eyes",
+   "name": "cat_green",
+   "socket": [
+    "Socket_Eye_L",
+    "Socket_Eye_R"
+   ],
+   "meshObjects": [
+    "Part_Eye_L",
+    "Part_Eye_R"
+   ],
+   "file": "../export/base_body.fbx",
+   "textures": {
+    "iris": "export/textures/eyes/eye_11.png",
+    "lids": "export/textures/lids/lid_winged.png"
+   },
+   "lidStyle": "winged",
+   "irisPattern": "streaks",
+   "pupil": "slit",
+   "highlight": "double",
+   "glow": false,
+   "tags": [
+    "elf",
+    "rogue"
+   ],
+   "species": [
+    "elf"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "irisColor",
+     "default": "green",
+     "defaultHex": "#4c8c4c",
+     "palette": "iris",
+     "applies": "iris texture (alpha = tint mask), multiply"
+    }
+   ],
+   "blendShapes": "all 12 Eye_* shapes work: the decal rides the head UVs, the eyeballs follow the socket centre",
+   "hat": "n/a"
+  },
+  {
+   "id": "eye_12_cat_amber",
+   "category": "eyes",
+   "name": "cat_amber",
+   "socket": [
+    "Socket_Eye_L",
+    "Socket_Eye_R"
+   ],
+   "meshObjects": [
+    "Part_Eye_L",
+    "Part_Eye_R"
+   ],
+   "file": "../export/base_body.fbx",
+   "textures": {
+    "iris": "export/textures/eyes/eye_12.png",
+    "lids": "export/textures/lids/lid_kohl.png"
+   },
+   "lidStyle": "kohl",
+   "irisPattern": "fire",
+   "pupil": "slit",
+   "highlight": "single",
+   "glow": false,
+   "tags": [
+    "rogue",
+    "beastkin"
+   ],
+   "species": [
+    "human",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "irisColor",
+     "default": "amber",
+     "defaultHex": "#cc8c1f",
+     "palette": "iris",
+     "applies": "iris texture (alpha = tint mask), multiply"
+    }
+   ],
+   "blendShapes": "all 12 Eye_* shapes work: the decal rides the head UVs, the eyeballs follow the socket centre",
+   "hat": "n/a"
+  },
+  {
+   "id": "eye_13_goat_gold",
+   "category": "eyes",
+   "name": "goat_gold",
+   "socket": [
+    "Socket_Eye_L",
+    "Socket_Eye_R"
+   ],
+   "meshObjects": [
+    "Part_Eye_L",
+    "Part_Eye_R"
+   ],
+   "file": "../export/base_body.fbx",
+   "textures": {
+    "iris": "export/textures/eyes/eye_13.png",
+    "lids": "export/textures/lids/lid_none.png"
+   },
+   "lidStyle": "none",
+   "irisPattern": "flecks",
+   "pupil": "hslit",
+   "highlight": "single",
+   "glow": false,
+   "tags": [
+    "wanderer",
+    "fey"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "irisColor",
+     "default": "gold",
+     "defaultHex": "#f2cc33",
+     "palette": "iris",
+     "applies": "iris texture (alpha = tint mask), multiply"
+    }
+   ],
+   "blendShapes": "all 12 Eye_* shapes work: the decal rides the head UVs, the eyeballs follow the socket centre",
+   "hat": "n/a"
+  },
+  {
+   "id": "eye_14_orc_red",
+   "category": "eyes",
+   "name": "orc_red",
+   "socket": [
+    "Socket_Eye_L",
+    "Socket_Eye_R"
+   ],
+   "meshObjects": [
+    "Part_Eye_L",
+    "Part_Eye_R"
+   ],
+   "file": "../export/base_body.fbx",
+   "textures": {
+    "iris": "export/textures/eyes/eye_14.png",
+    "lids": "export/textures/lids/lid_orc_rim.png"
+   },
+   "lidStyle": "orc_rim",
+   "irisPattern": "fire",
+   "pupil": "small",
+   "highlight": "small",
+   "glow": false,
+   "tags": [
+    "orc"
+   ],
+   "species": [
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "irisColor",
+     "default": "red",
+     "defaultHex": "#cc261f",
+     "palette": "iris",
+     "applies": "iris texture (alpha = tint mask), multiply"
+    }
+   ],
+   "blendShapes": "all 12 Eye_* shapes work: the decal rides the head UVs, the eyeballs follow the socket centre",
+   "hat": "n/a"
+  },
+  {
+   "id": "eye_15_orc_yellow",
+   "category": "eyes",
+   "name": "orc_yellow",
+   "socket": [
+    "Socket_Eye_L",
+    "Socket_Eye_R"
+   ],
+   "meshObjects": [
+    "Part_Eye_L",
+    "Part_Eye_R"
+   ],
+   "file": "../export/base_body.fbx",
+   "textures": {
+    "iris": "export/textures/eyes/eye_15.png",
+    "lids": "export/textures/lids/lid_orc_rim.png"
+   },
+   "lidStyle": "orc_rim",
+   "irisPattern": "smooth",
+   "pupil": "round",
+   "highlight": "small",
+   "glow": true,
+   "tags": [
+    "orc"
+   ],
+   "species": [
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "irisColor",
+     "default": "gold",
+     "defaultHex": "#f2cc33",
+     "palette": "iris",
+     "applies": "iris texture (alpha = tint mask), multiply"
+    }
+   ],
+   "blendShapes": "all 12 Eye_* shapes work: the decal rides the head UVs, the eyeballs follow the socket centre",
+   "hat": "n/a"
+  },
+  {
+   "id": "eye_16_elder_milky",
+   "category": "eyes",
+   "name": "elder_milky",
+   "socket": [
+    "Socket_Eye_L",
+    "Socket_Eye_R"
+   ],
+   "meshObjects": [
+    "Part_Eye_L",
+    "Part_Eye_R"
+   ],
+   "file": "../export/base_body.fbx",
+   "textures": {
+    "iris": "export/textures/eyes/eye_16.png",
+    "lids": "export/textures/lids/lid_elder.png"
+   },
+   "lidStyle": "elder",
+   "irisPattern": "milky",
+   "pupil": "round",
+   "highlight": "low",
+   "glow": false,
+   "tags": [
+    "elder"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "irisColor",
+     "default": "pale_blue",
+     "defaultHex": "#9ebddb",
+     "palette": "iris",
+     "applies": "iris texture (alpha = tint mask), multiply"
+    }
+   ],
+   "blendShapes": "all 12 Eye_* shapes work: the decal rides the head UVs, the eyeballs follow the socket centre",
+   "hat": "n/a"
+  },
+  {
+   "id": "eye_17_elder_brown_tired",
+   "category": "eyes",
+   "name": "elder_brown_tired",
+   "socket": [
+    "Socket_Eye_L",
+    "Socket_Eye_R"
+   ],
+   "meshObjects": [
+    "Part_Eye_L",
+    "Part_Eye_R"
+   ],
+   "file": "../export/base_body.fbx",
+   "textures": {
+    "iris": "export/textures/eyes/eye_17.png",
+    "lids": "export/textures/lids/lid_elder.png"
+   },
+   "lidStyle": "elder",
+   "irisPattern": "smooth",
+   "pupil": "small",
+   "highlight": "low",
+   "glow": false,
+   "tags": [
+    "elder"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "irisColor",
+     "default": "brown",
+     "defaultHex": "#734521",
+     "palette": "iris",
+     "applies": "iris texture (alpha = tint mask), multiply"
+    }
+   ],
+   "blendShapes": "all 12 Eye_* shapes work: the decal rides the head UVs, the eyeballs follow the socket centre",
+   "hat": "n/a"
+  },
+  {
+   "id": "eye_18_child_wide_blue",
+   "category": "eyes",
+   "name": "child_wide_blue",
+   "socket": [
+    "Socket_Eye_L",
+    "Socket_Eye_R"
+   ],
+   "meshObjects": [
+    "Part_Eye_L",
+    "Part_Eye_R"
+   ],
+   "file": "../export/base_body.fbx",
+   "textures": {
+    "iris": "export/textures/eyes/eye_18.png",
+    "lids": "export/textures/lids/lid_child.png"
+   },
+   "lidStyle": "child",
+   "irisPattern": "smooth",
+   "pupil": "round",
+   "highlight": "big",
+   "glow": false,
+   "tags": [
+    "child"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child"
+   ],
+   "colourSlots": [
+    {
+     "slot": "irisColor",
+     "default": "blue",
+     "defaultHex": "#4c85cc",
+     "palette": "iris",
+     "applies": "iris texture (alpha = tint mask), multiply"
+    }
+   ],
+   "blendShapes": "all 12 Eye_* shapes work: the decal rides the head UVs, the eyeballs follow the socket centre",
+   "hat": "n/a"
+  },
+  {
+   "id": "eye_19_child_big_brown",
+   "category": "eyes",
+   "name": "child_big_brown",
+   "socket": [
+    "Socket_Eye_L",
+    "Socket_Eye_R"
+   ],
+   "meshObjects": [
+    "Part_Eye_L",
+    "Part_Eye_R"
+   ],
+   "file": "../export/base_body.fbx",
+   "textures": {
+    "iris": "export/textures/eyes/eye_19.png",
+    "lids": "export/textures/lids/lid_child.png"
+   },
+   "lidStyle": "child",
+   "irisPattern": "ring",
+   "pupil": "round",
+   "highlight": "big",
+   "glow": false,
+   "tags": [
+    "child"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child"
+   ],
+   "colourSlots": [
+    {
+     "slot": "irisColor",
+     "default": "brown",
+     "defaultHex": "#734521",
+     "palette": "iris",
+     "applies": "iris texture (alpha = tint mask), multiply"
+    }
+   ],
+   "blendShapes": "all 12 Eye_* shapes work: the decal rides the head UVs, the eyeballs follow the socket centre",
+   "hat": "n/a"
+  },
+  {
+   "id": "eye_20_smoky_hazel",
+   "category": "eyes",
+   "name": "smoky_hazel",
+   "socket": [
+    "Socket_Eye_L",
+    "Socket_Eye_R"
+   ],
+   "meshObjects": [
+    "Part_Eye_L",
+    "Part_Eye_R"
+   ],
+   "file": "../export/base_body.fbx",
+   "textures": {
+    "iris": "export/textures/eyes/eye_20.png",
+    "lids": "export/textures/lids/lid_smoky.png"
+   },
+   "lidStyle": "smoky",
+   "irisPattern": "ring",
+   "pupil": "round",
+   "highlight": "double",
+   "glow": false,
+   "tags": [
+    "feminine",
+    "courtly"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "irisColor",
+     "default": "hazel",
+     "defaultHex": "#8c6b2e",
+     "palette": "iris",
+     "applies": "iris texture (alpha = tint mask), multiply"
+    }
+   ],
+   "blendShapes": "all 12 Eye_* shapes work: the decal rides the head UVs, the eyeballs follow the socket centre",
+   "hat": "n/a"
+  },
+  {
+   "id": "eye_21_plum_shadow_green",
+   "category": "eyes",
+   "name": "plum_shadow_green",
+   "socket": [
+    "Socket_Eye_L",
+    "Socket_Eye_R"
+   ],
+   "meshObjects": [
+    "Part_Eye_L",
+    "Part_Eye_R"
+   ],
+   "file": "../export/base_body.fbx",
+   "textures": {
+    "iris": "export/textures/eyes/eye_21.png",
+    "lids": "export/textures/lids/lid_smoky_plum.png"
+   },
+   "lidStyle": "smoky_plum",
+   "irisPattern": "swirl",
+   "pupil": "round",
+   "highlight": "double",
+   "glow": false,
+   "tags": [
+    "feminine",
+    "courtly"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "irisColor",
+     "default": "green",
+     "defaultHex": "#4c8c4c",
+     "palette": "iris",
+     "applies": "iris texture (alpha = tint mask), multiply"
+    }
+   ],
+   "blendShapes": "all 12 Eye_* shapes work: the decal rides the head UVs, the eyeballs follow the socket centre",
+   "hat": "n/a"
+  },
+  {
+   "id": "eye_22_star_blue",
+   "category": "eyes",
+   "name": "star_blue",
+   "socket": [
+    "Socket_Eye_L",
+    "Socket_Eye_R"
+   ],
+   "meshObjects": [
+    "Part_Eye_L",
+    "Part_Eye_R"
+   ],
+   "file": "../export/base_body.fbx",
+   "textures": {
+    "iris": "export/textures/eyes/eye_22.png",
+    "lids": "export/textures/lids/lid_lashes_heavy.png"
+   },
+   "lidStyle": "lashes_heavy",
+   "irisPattern": "sectors",
+   "pupil": "round",
+   "highlight": "star",
+   "glow": false,
+   "tags": [
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "irisColor",
+     "default": "blue",
+     "defaultHex": "#4c85cc",
+     "palette": "iris",
+     "applies": "iris texture (alpha = tint mask), multiply"
+    }
+   ],
+   "blendShapes": "all 12 Eye_* shapes work: the decal rides the head UVs, the eyeballs follow the socket centre",
+   "hat": "n/a"
+  },
+  {
+   "id": "eye_23_pale_ice",
+   "category": "eyes",
+   "name": "pale_ice",
+   "socket": [
+    "Socket_Eye_L",
+    "Socket_Eye_R"
+   ],
+   "meshObjects": [
+    "Part_Eye_L",
+    "Part_Eye_R"
+   ],
+   "file": "../export/base_body.fbx",
+   "textures": {
+    "iris": "export/textures/eyes/eye_23.png",
+    "lids": "export/textures/lids/lid_thin_liner.png"
+   },
+   "lidStyle": "thin_liner",
+   "irisPattern": "smooth",
+   "pupil": "small",
+   "highlight": "single",
+   "glow": false,
+   "tags": [
+    "northern",
+    "elf"
+   ],
+   "species": [
+    "elf"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "irisColor",
+     "default": "ice",
+     "defaultHex": "#80b8eb",
+     "palette": "iris",
+     "applies": "iris texture (alpha = tint mask), multiply"
+    }
+   ],
+   "blendShapes": "all 12 Eye_* shapes work: the decal rides the head UVs, the eyeballs follow the socket centre",
+   "hat": "n/a"
+  },
+  {
+   "id": "eye_24_brown_sleepy",
+   "category": "eyes",
+   "name": "brown_sleepy",
+   "socket": [
+    "Socket_Eye_L",
+    "Socket_Eye_R"
+   ],
+   "meshObjects": [
+    "Part_Eye_L",
+    "Part_Eye_R"
+   ],
+   "file": "../export/base_body.fbx",
+   "textures": {
+    "iris": "export/textures/eyes/eye_24.png",
+    "lids": "export/textures/lids/lid_tired.png"
+   },
+   "lidStyle": "tired",
+   "irisPattern": "smooth",
+   "pupil": "round",
+   "highlight": "low",
+   "glow": false,
+   "tags": [
+    "weary",
+    "common"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "irisColor",
+     "default": "dark_brown",
+     "defaultHex": "#381f12",
+     "palette": "iris",
+     "applies": "iris texture (alpha = tint mask), multiply"
+    }
+   ],
+   "blendShapes": "all 12 Eye_* shapes work: the decal rides the head UVs, the eyeballs follow the socket centre",
+   "hat": "n/a"
+  },
+  {
+   "id": "eye_25_fire_orange",
+   "category": "eyes",
+   "name": "fire_orange",
+   "socket": [
+    "Socket_Eye_L",
+    "Socket_Eye_R"
+   ],
+   "meshObjects": [
+    "Part_Eye_L",
+    "Part_Eye_R"
+   ],
+   "file": "../export/base_body.fbx",
+   "textures": {
+    "iris": "export/textures/eyes/eye_25.png",
+    "lids": "export/textures/lids/lid_kohl.png"
+   },
+   "lidStyle": "kohl",
+   "irisPattern": "fire",
+   "pupil": "round",
+   "highlight": "small",
+   "glow": false,
+   "tags": [
+    "fey",
+    "wanderer"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "irisColor",
+     "default": "orange",
+     "defaultHex": "#eb731a",
+     "palette": "iris",
+     "applies": "iris texture (alpha = tint mask), multiply"
+    }
+   ],
+   "blendShapes": "all 12 Eye_* shapes work: the decal rides the head UVs, the eyeballs follow the socket centre",
+   "hat": "n/a"
+  },
+  {
+   "id": "eye_26_green_gold_crease",
+   "category": "eyes",
+   "name": "green_gold_crease",
+   "socket": [
+    "Socket_Eye_L",
+    "Socket_Eye_R"
+   ],
+   "meshObjects": [
+    "Part_Eye_L",
+    "Part_Eye_R"
+   ],
+   "file": "../export/base_body.fbx",
+   "textures": {
+    "iris": "export/textures/eyes/eye_26.png",
+    "lids": "export/textures/lids/lid_crease.png"
+   },
+   "lidStyle": "crease",
+   "irisPattern": "sectors",
+   "pupil": "round",
+   "highlight": "single",
+   "glow": false,
+   "tags": [
+    "common"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "irisColor",
+     "default": "green",
+     "defaultHex": "#4c8c4c",
+     "palette": "iris",
+     "applies": "iris texture (alpha = tint mask), multiply"
+    }
+   ],
+   "blendShapes": "all 12 Eye_* shapes work: the decal rides the head UVs, the eyeballs follow the socket centre",
+   "hat": "n/a"
+  },
+  {
+   "id": "eye_27_brown_flecks_wide",
+   "category": "eyes",
+   "name": "brown_flecks_wide",
+   "socket": [
+    "Socket_Eye_L",
+    "Socket_Eye_R"
+   ],
+   "meshObjects": [
+    "Part_Eye_L",
+    "Part_Eye_R"
+   ],
+   "file": "../export/base_body.fbx",
+   "textures": {
+    "iris": "export/textures/eyes/eye_27.png",
+    "lids": "export/textures/lids/lid_lashes_soft.png"
+   },
+   "lidStyle": "lashes_soft",
+   "irisPattern": "flecks",
+   "pupil": "round",
+   "highlight": "double",
+   "glow": false,
+   "tags": [
+    "common"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "irisColor",
+     "default": "brown",
+     "defaultHex": "#734521",
+     "palette": "iris",
+     "applies": "iris texture (alpha = tint mask), multiply"
+    }
+   ],
+   "blendShapes": "all 12 Eye_* shapes work: the decal rides the head UVs, the eyeballs follow the socket centre",
+   "hat": "n/a"
+  },
+  {
+   "id": "eye_28_hazel_sectors",
+   "category": "eyes",
+   "name": "hazel_sectors",
+   "socket": [
+    "Socket_Eye_L",
+    "Socket_Eye_R"
+   ],
+   "meshObjects": [
+    "Part_Eye_L",
+    "Part_Eye_R"
+   ],
+   "file": "../export/base_body.fbx",
+   "textures": {
+    "iris": "export/textures/eyes/eye_28.png",
+    "lids": "export/textures/lids/lid_crease.png"
+   },
+   "lidStyle": "crease",
+   "irisPattern": "sectors",
+   "pupil": "round",
+   "highlight": "single",
+   "glow": false,
+   "tags": [
+    "common"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "irisColor",
+     "default": "hazel",
+     "defaultHex": "#8c6b2e",
+     "palette": "iris",
+     "applies": "iris texture (alpha = tint mask), multiply"
+    }
+   ],
+   "blendShapes": "all 12 Eye_* shapes work: the decal rides the head UVs, the eyeballs follow the socket centre",
+   "hat": "n/a"
+  },
+  {
+   "id": "eye_29_square_gold",
+   "category": "eyes",
+   "name": "square_gold",
+   "socket": [
+    "Socket_Eye_L",
+    "Socket_Eye_R"
+   ],
+   "meshObjects": [
+    "Part_Eye_L",
+    "Part_Eye_R"
+   ],
+   "file": "../export/base_body.fbx",
+   "textures": {
+    "iris": "export/textures/eyes/eye_29.png",
+    "lids": "export/textures/lids/lid_none.png"
+   },
+   "lidStyle": "none",
+   "irisPattern": "smooth",
+   "pupil": "square",
+   "highlight": "single",
+   "glow": false,
+   "tags": [
+    "dwarf",
+    "fey"
+   ],
+   "species": [
+    "dwarf"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "irisColor",
+     "default": "gold",
+     "defaultHex": "#f2cc33",
+     "palette": "iris",
+     "applies": "iris texture (alpha = tint mask), multiply"
+    }
+   ],
+   "blendShapes": "all 12 Eye_* shapes work: the decal rides the head UVs, the eyeballs follow the socket centre",
+   "hat": "n/a"
+  },
+  {
+   "id": "eye_30_keyhole_violet",
+   "category": "eyes",
+   "name": "keyhole_violet",
+   "socket": [
+    "Socket_Eye_L",
+    "Socket_Eye_R"
+   ],
+   "meshObjects": [
+    "Part_Eye_L",
+    "Part_Eye_R"
+   ],
+   "file": "../export/base_body.fbx",
+   "textures": {
+    "iris": "export/textures/eyes/eye_30.png",
+    "lids": "export/textures/lids/lid_elf_flick.png"
+   },
+   "lidStyle": "elf_flick",
+   "irisPattern": "swirl",
+   "pupil": "keyhole",
+   "highlight": "double",
+   "glow": false,
+   "tags": [
+    "fey",
+    "elf"
+   ],
+   "species": [
+    "elf"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "irisColor",
+     "default": "violet",
+     "defaultHex": "#8c59bf",
+     "palette": "iris",
+     "applies": "iris texture (alpha = tint mask), multiply"
+    }
+   ],
+   "blendShapes": "all 12 Eye_* shapes work: the decal rides the head UVs, the eyeballs follow the socket centre",
+   "hat": "n/a"
+  },
+  {
+   "id": "brow_01_soft_arch",
+   "category": "eyebrows",
+   "name": "soft_arch",
+   "socket": [
+    "Socket_Brow_L",
+    "Socket_Brow_R"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/brows/brow_01.png",
+   "tags": [
+    "common",
+    "any"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "browColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Brow_Ridge, Forehead_High (face-decal UVs)",
+   "hat": "always compatible"
+  },
+  {
+   "id": "brow_02_straight_thick",
+   "category": "eyebrows",
+   "name": "straight_thick",
+   "socket": [
+    "Socket_Brow_L",
+    "Socket_Brow_R"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/brows/brow_02.png",
+   "tags": [
+    "masculine",
+    "common"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "browColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Brow_Ridge, Forehead_High (face-decal UVs)",
+   "hat": "always compatible"
+  },
+  {
+   "id": "brow_03_thin_arched",
+   "category": "eyebrows",
+   "name": "thin_arched",
+   "socket": [
+    "Socket_Brow_L",
+    "Socket_Brow_R"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/brows/brow_03.png",
+   "tags": [
+    "feminine",
+    "gentle"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "browColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Brow_Ridge, Forehead_High (face-decal UVs)",
+   "hat": "always compatible"
+  },
+  {
+   "id": "brow_04_elf_high_swept",
+   "category": "eyebrows",
+   "name": "elf_high_swept",
+   "socket": [
+    "Socket_Brow_L",
+    "Socket_Brow_R"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/brows/brow_04.png",
+   "tags": [
+    "elf",
+    "feminine",
+    "noble"
+   ],
+   "species": [
+    "elf"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "browColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Brow_Ridge, Forehead_High (face-decal UVs)",
+   "hat": "always compatible"
+  },
+  {
+   "id": "brow_05_bushy_elder",
+   "category": "eyebrows",
+   "name": "bushy_elder",
+   "socket": [
+    "Socket_Brow_L",
+    "Socket_Brow_R"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/brows/brow_05.png",
+   "tags": [
+    "elder",
+    "rustic"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "browColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Brow_Ridge, Forehead_High (face-decal UVs)",
+   "hat": "always compatible"
+  },
+  {
+   "id": "brow_06_unibrow",
+   "category": "eyebrows",
+   "name": "unibrow",
+   "socket": [
+    "Socket_Brow_L",
+    "Socket_Brow_R"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/brows/brow_06.png",
+   "tags": [
+    "rustic",
+    "dwarf"
+   ],
+   "species": [
+    "dwarf"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "browColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Brow_Ridge, Forehead_High (face-decal UVs)",
+   "hat": "always compatible"
+  },
+  {
+   "id": "brow_07_heavy_orc",
+   "category": "eyebrows",
+   "name": "heavy_orc",
+   "socket": [
+    "Socket_Brow_L",
+    "Socket_Brow_R"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/brows/brow_07.png",
+   "tags": [
+    "orc",
+    "brute"
+   ],
+   "species": [
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "browColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Brow_Ridge, Forehead_High (face-decal UVs)",
+   "hat": "always compatible"
+  },
+  {
+   "id": "brow_08_sad_slant",
+   "category": "eyebrows",
+   "name": "sad_slant",
+   "socket": [
+    "Socket_Brow_L",
+    "Socket_Brow_R"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/brows/brow_08.png",
+   "tags": [
+    "gentle",
+    "worried"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "browColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Brow_Ridge, Forehead_High (face-decal UVs)",
+   "hat": "always compatible"
+  },
+  {
+   "id": "brow_09_angry_slant",
+   "category": "eyebrows",
+   "name": "angry_slant",
+   "socket": [
+    "Socket_Brow_L",
+    "Socket_Brow_R"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/brows/brow_09.png",
+   "tags": [
+    "stern",
+    "soldier"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "browColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Brow_Ridge, Forehead_High (face-decal UVs)",
+   "hat": "always compatible"
+  },
+  {
+   "id": "brow_10_short_stub",
+   "category": "eyebrows",
+   "name": "short_stub",
+   "socket": [
+    "Socket_Brow_L",
+    "Socket_Brow_R"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/brows/brow_10.png",
+   "tags": [
+    "child",
+    "common"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult"
+   ],
+   "colourSlots": [
+    {
+     "slot": "browColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Brow_Ridge, Forehead_High (face-decal UVs)",
+   "hat": "always compatible"
+  },
+  {
+   "id": "brow_11_long_flat",
+   "category": "eyebrows",
+   "name": "long_flat",
+   "socket": [
+    "Socket_Brow_L",
+    "Socket_Brow_R"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/brows/brow_11.png",
+   "tags": [
+    "feminine",
+    "elder"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "browColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Brow_Ridge, Forehead_High (face-decal UVs)",
+   "hat": "always compatible"
+  },
+  {
+   "id": "brow_12_tapered_fine",
+   "category": "eyebrows",
+   "name": "tapered_fine",
+   "socket": [
+    "Socket_Brow_L",
+    "Socket_Brow_R"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/brows/brow_12.png",
+   "tags": [
+    "feminine",
+    "noble"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "browColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Brow_Ridge, Forehead_High (face-decal UVs)",
+   "hat": "always compatible"
+  },
+  {
+   "id": "brow_13_scarred_left",
+   "category": "eyebrows",
+   "name": "scarred_left",
+   "socket": [
+    "Socket_Brow_L",
+    "Socket_Brow_R"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/brows/brow_13.png",
+   "tags": [
+    "fighter",
+    "rogue"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "browColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Brow_Ridge, Forehead_High (face-decal UVs)",
+   "hat": "always compatible"
+  },
+  {
+   "id": "brow_14_scarred_right",
+   "category": "eyebrows",
+   "name": "scarred_right",
+   "socket": [
+    "Socket_Brow_L",
+    "Socket_Brow_R"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/brows/brow_14.png",
+   "tags": [
+    "fighter",
+    "rogue"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "browColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Brow_Ridge, Forehead_High (face-decal UVs)",
+   "hat": "always compatible"
+  },
+  {
+   "id": "brow_15_sparse_thin_elder",
+   "category": "eyebrows",
+   "name": "sparse_thin_elder",
+   "socket": [
+    "Socket_Brow_L",
+    "Socket_Brow_R"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/brows/brow_15.png",
+   "tags": [
+    "elder",
+    "frail"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "browColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Brow_Ridge, Forehead_High (face-decal UVs)",
+   "hat": "always compatible"
+  },
+  {
+   "id": "brow_16_square_bold",
+   "category": "eyebrows",
+   "name": "square_bold",
+   "socket": [
+    "Socket_Brow_L",
+    "Socket_Brow_R"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/brows/brow_16.png",
+   "tags": [
+    "masculine",
+    "smith"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "browColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Brow_Ridge, Forehead_High (face-decal UVs)",
+   "hat": "always compatible"
+  },
+  {
+   "id": "brow_17_round_curved",
+   "category": "eyebrows",
+   "name": "round_curved",
+   "socket": [
+    "Socket_Brow_L",
+    "Socket_Brow_R"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/brows/brow_17.png",
+   "tags": [
+    "gentle",
+    "child"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child"
+   ],
+   "colourSlots": [
+    {
+     "slot": "browColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Brow_Ridge, Forehead_High (face-decal UVs)",
+   "hat": "always compatible"
+  },
+  {
+   "id": "brow_18_low_flat_heavy",
+   "category": "eyebrows",
+   "name": "low_flat_heavy",
+   "socket": [
+    "Socket_Brow_L",
+    "Socket_Brow_R"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/brows/brow_18.png",
+   "tags": [
+    "brute",
+    "stern"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "browColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Brow_Ridge, Forehead_High (face-decal UVs)",
+   "hat": "always compatible"
+  },
+  {
+   "id": "brow_19_raised_high",
+   "category": "eyebrows",
+   "name": "raised_high",
+   "socket": [
+    "Socket_Brow_L",
+    "Socket_Brow_R"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/brows/brow_19.png",
+   "tags": [
+    "noble",
+    "surprised"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "browColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Brow_Ridge, Forehead_High (face-decal UVs)",
+   "hat": "always compatible"
+  },
+  {
+   "id": "brow_20_broken_gap",
+   "category": "eyebrows",
+   "name": "broken_gap",
+   "socket": [
+    "Socket_Brow_L",
+    "Socket_Brow_R"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/brows/brow_20.png",
+   "tags": [
+    "fighter",
+    "rogue"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "browColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Brow_Ridge, Forehead_High (face-decal UVs)",
+   "hat": "always compatible"
+  },
+  {
+   "id": "brow_21_wild_feathered",
+   "category": "eyebrows",
+   "name": "wild_feathered",
+   "socket": [
+    "Socket_Brow_L",
+    "Socket_Brow_R"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/brows/brow_21.png",
+   "tags": [
+    "rustic",
+    "wanderer"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "browColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Brow_Ridge, Forehead_High (face-decal UVs)",
+   "hat": "always compatible"
+  },
+  {
+   "id": "brow_22_pencil_thin_long",
+   "category": "eyebrows",
+   "name": "pencil_thin_long",
+   "socket": [
+    "Socket_Brow_L",
+    "Socket_Brow_R"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/brows/brow_22.png",
+   "tags": [
+    "courtly",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "browColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Brow_Ridge, Forehead_High (face-decal UVs)",
+   "hat": "always compatible"
+  },
+  {
+   "id": "brow_23_comma_dwarf",
+   "category": "eyebrows",
+   "name": "comma_dwarf",
+   "socket": [
+    "Socket_Brow_L",
+    "Socket_Brow_R"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/brows/brow_23.png",
+   "tags": [
+    "dwarf",
+    "heavy"
+   ],
+   "species": [
+    "dwarf"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "browColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Brow_Ridge, Forehead_High (face-decal UVs)",
+   "hat": "always compatible"
+  },
+  {
+   "id": "brow_24_dramatic_arch",
+   "category": "eyebrows",
+   "name": "dramatic_arch",
+   "socket": [
+    "Socket_Brow_L",
+    "Socket_Brow_R"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/brows/brow_24.png",
+   "tags": [
+    "courtly",
+    "performer"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "browColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Brow_Ridge, Forehead_High (face-decal UVs)",
+   "hat": "always compatible"
+  },
+  {
+   "id": "brow_25_child_light",
+   "category": "eyebrows",
+   "name": "child_light",
+   "socket": [
+    "Socket_Brow_L",
+    "Socket_Brow_R"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/brows/brow_25.png",
+   "tags": [
+    "child"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child"
+   ],
+   "colourSlots": [
+    {
+     "slot": "browColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Brow_Ridge, Forehead_High (face-decal UVs)",
+   "hat": "always compatible"
+  },
+  {
+   "id": "brow_26_thick_natural",
+   "category": "eyebrows",
+   "name": "thick_natural",
+   "socket": [
+    "Socket_Brow_L",
+    "Socket_Brow_R"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/brows/brow_26.png",
+   "tags": [
+    "common",
+    "masculine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "browColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Brow_Ridge, Forehead_High (face-decal UVs)",
+   "hat": "always compatible"
+  },
+  {
+   "id": "brow_27_wide_set",
+   "category": "eyebrows",
+   "name": "wide_set",
+   "socket": [
+    "Socket_Brow_L",
+    "Socket_Brow_R"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/brows/brow_27.png",
+   "tags": [
+    "gentle",
+    "common"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "browColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Brow_Ridge, Forehead_High (face-decal UVs)",
+   "hat": "always compatible"
+  },
+  {
+   "id": "brow_28_tail_up",
+   "category": "eyebrows",
+   "name": "tail_up",
+   "socket": [
+    "Socket_Brow_L",
+    "Socket_Brow_R"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/brows/brow_28.png",
+   "tags": [
+    "rogue",
+    "elf"
+   ],
+   "species": [
+    "elf"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "browColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Brow_Ridge, Forehead_High (face-decal UVs)",
+   "hat": "always compatible"
+  },
+  {
+   "id": "brow_29_gnarled_elder",
+   "category": "eyebrows",
+   "name": "gnarled_elder",
+   "socket": [
+    "Socket_Brow_L",
+    "Socket_Brow_R"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/brows/brow_29.png",
+   "tags": [
+    "elder",
+    "hermit"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "browColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Brow_Ridge, Forehead_High (face-decal UVs)",
+   "hat": "always compatible"
+  },
+  {
+   "id": "brow_30_soft_square",
+   "category": "eyebrows",
+   "name": "soft_square",
+   "socket": [
+    "Socket_Brow_L",
+    "Socket_Brow_R"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/brows/brow_30.png",
+   "tags": [
+    "common",
+    "gentle"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "browColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Brow_Ridge, Forehead_High (face-decal UVs)",
+   "hat": "always compatible"
+  },
+  {
+   "id": "mouth_01_neutral_soft",
+   "category": "mouths",
+   "name": "neutral_soft",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [],
+   "textures": {
+    "lips": "export/textures/mouths/mouth_01.png"
+   },
+   "tags": [
+    "common"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "teethMesh": "Teeth_01_even",
+   "colourSlots": [
+    {
+     "slot": "lipTint",
+     "default": "natural",
+     "defaultHex": "#cc6b66",
+     "palette": "lips",
+     "applies": "lips decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Lips_*, Mouth_* (face-decal UVs); inner mouth, teeth and tongue meshes are skinned to Jaw",
+   "hat": "always compatible"
+  },
+  {
+   "id": "mouth_02_thin_stern",
+   "category": "mouths",
+   "name": "thin_stern",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [],
+   "textures": {
+    "lips": "export/textures/mouths/mouth_02.png"
+   },
+   "tags": [
+    "stern",
+    "masculine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "teethMesh": "Teeth_01_even",
+   "colourSlots": [
+    {
+     "slot": "lipTint",
+     "default": "pale",
+     "defaultHex": "#d69485",
+     "palette": "lips",
+     "applies": "lips decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Lips_*, Mouth_* (face-decal UVs); inner mouth, teeth and tongue meshes are skinned to Jaw",
+   "hat": "always compatible"
+  },
+  {
+   "id": "mouth_03_full_pout",
+   "category": "mouths",
+   "name": "full_pout",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [],
+   "textures": {
+    "lips": "export/textures/mouths/mouth_03.png"
+   },
+   "tags": [
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "teethMesh": "Teeth_01_even",
+   "colourSlots": [
+    {
+     "slot": "lipTint",
+     "default": "rose",
+     "defaultHex": "#db7580",
+     "palette": "lips",
+     "applies": "lips decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Lips_*, Mouth_* (face-decal UVs); inner mouth, teeth and tongue meshes are skinned to Jaw",
+   "hat": "always compatible"
+  },
+  {
+   "id": "mouth_04_cupid_bow",
+   "category": "mouths",
+   "name": "cupid_bow",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [],
+   "textures": {
+    "lips": "export/textures/mouths/mouth_04.png"
+   },
+   "tags": [
+    "feminine",
+    "courtly"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "teethMesh": "Teeth_01_even",
+   "colourSlots": [
+    {
+     "slot": "lipTint",
+     "default": "red",
+     "defaultHex": "#c22930",
+     "palette": "lips",
+     "applies": "lips decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Lips_*, Mouth_* (face-decal UVs); inner mouth, teeth and tongue meshes are skinned to Jaw",
+   "hat": "always compatible"
+  },
+  {
+   "id": "mouth_05_wide_smile_closed",
+   "category": "mouths",
+   "name": "wide_smile_closed",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [],
+   "textures": {
+    "lips": "export/textures/mouths/mouth_05.png"
+   },
+   "tags": [
+    "friendly"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "teethMesh": "Teeth_01_even",
+   "colourSlots": [
+    {
+     "slot": "lipTint",
+     "default": "natural",
+     "defaultHex": "#cc6b66",
+     "palette": "lips",
+     "applies": "lips decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Lips_*, Mouth_* (face-decal UVs); inner mouth, teeth and tongue meshes are skinned to Jaw",
+   "hat": "always compatible"
+  },
+  {
+   "id": "mouth_06_small_prim",
+   "category": "mouths",
+   "name": "small_prim",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [],
+   "textures": {
+    "lips": "export/textures/mouths/mouth_06.png"
+   },
+   "tags": [
+    "feminine",
+    "prim"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "teethMesh": "Teeth_01_even",
+   "colourSlots": [
+    {
+     "slot": "lipTint",
+     "default": "peach",
+     "defaultHex": "#eb8c75",
+     "palette": "lips",
+     "applies": "lips decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Lips_*, Mouth_* (face-decal UVs); inner mouth, teeth and tongue meshes are skinned to Jaw",
+   "hat": "always compatible"
+  },
+  {
+   "id": "mouth_07_downturned_grim",
+   "category": "mouths",
+   "name": "downturned_grim",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [],
+   "textures": {
+    "lips": "export/textures/mouths/mouth_07.png"
+   },
+   "tags": [
+    "stern",
+    "grim"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "teethMesh": "Teeth_01_even",
+   "colourSlots": [
+    {
+     "slot": "lipTint",
+     "default": "dark",
+     "defaultHex": "#754240",
+     "palette": "lips",
+     "applies": "lips decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Lips_*, Mouth_* (face-decal UVs); inner mouth, teeth and tongue meshes are skinned to Jaw",
+   "hat": "always compatible"
+  },
+  {
+   "id": "mouth_08_smirk",
+   "category": "mouths",
+   "name": "smirk",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [],
+   "textures": {
+    "lips": "export/textures/mouths/mouth_08.png"
+   },
+   "tags": [
+    "rogue"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "teethMesh": "Teeth_01_even",
+   "colourSlots": [
+    {
+     "slot": "lipTint",
+     "default": "natural",
+     "defaultHex": "#cc6b66",
+     "palette": "lips",
+     "applies": "lips decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Lips_*, Mouth_* (face-decal UVs); inner mouth, teeth and tongue meshes are skinned to Jaw",
+   "hat": "always compatible"
+  },
+  {
+   "id": "mouth_09_full_wide",
+   "category": "mouths",
+   "name": "full_wide",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [],
+   "textures": {
+    "lips": "export/textures/mouths/mouth_09.png"
+   },
+   "tags": [
+    "feminine",
+    "friendly"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "teethMesh": "Teeth_01_even",
+   "colourSlots": [
+    {
+     "slot": "lipTint",
+     "default": "rose",
+     "defaultHex": "#db7580",
+     "palette": "lips",
+     "applies": "lips decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Lips_*, Mouth_* (face-decal UVs); inner mouth, teeth and tongue meshes are skinned to Jaw",
+   "hat": "always compatible"
+  },
+  {
+   "id": "mouth_10_thin_wide",
+   "category": "mouths",
+   "name": "thin_wide",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [],
+   "textures": {
+    "lips": "export/textures/mouths/mouth_10.png"
+   },
+   "tags": [
+    "masculine",
+    "stern"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "teethMesh": "Teeth_01_even",
+   "colourSlots": [
+    {
+     "slot": "lipTint",
+     "default": "pale",
+     "defaultHex": "#d69485",
+     "palette": "lips",
+     "applies": "lips decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Lips_*, Mouth_* (face-decal UVs); inner mouth, teeth and tongue meshes are skinned to Jaw",
+   "hat": "always compatible"
+  },
+  {
+   "id": "mouth_11_upper_full",
+   "category": "mouths",
+   "name": "upper_full",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [],
+   "textures": {
+    "lips": "export/textures/mouths/mouth_11.png"
+   },
+   "tags": [
+    "common"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "teethMesh": "Teeth_01_even",
+   "colourSlots": [
+    {
+     "slot": "lipTint",
+     "default": "natural",
+     "defaultHex": "#cc6b66",
+     "palette": "lips",
+     "applies": "lips decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Lips_*, Mouth_* (face-decal UVs); inner mouth, teeth and tongue meshes are skinned to Jaw",
+   "hat": "always compatible"
+  },
+  {
+   "id": "mouth_12_lower_full",
+   "category": "mouths",
+   "name": "lower_full",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [],
+   "textures": {
+    "lips": "export/textures/mouths/mouth_12.png"
+   },
+   "tags": [
+    "common",
+    "sulky"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "teethMesh": "Teeth_01_even",
+   "colourSlots": [
+    {
+     "slot": "lipTint",
+     "default": "natural",
+     "defaultHex": "#cc6b66",
+     "palette": "lips",
+     "applies": "lips decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Lips_*, Mouth_* (face-decal UVs); inner mouth, teeth and tongue meshes are skinned to Jaw",
+   "hat": "always compatible"
+  },
+  {
+   "id": "mouth_13_smile_teeth",
+   "category": "mouths",
+   "name": "smile_teeth",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [],
+   "textures": {
+    "lips": "export/textures/mouths/mouth_13.png",
+    "inner": "export/textures/mouths_inner/mouthin_13.png"
+   },
+   "tags": [
+    "friendly",
+    "joyful"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "teethMesh": "Teeth_01_even",
+   "colourSlots": [
+    {
+     "slot": "lipTint",
+     "default": "natural",
+     "defaultHex": "#cc6b66",
+     "palette": "lips",
+     "applies": "lips decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Lips_*, Mouth_* (face-decal UVs); inner mouth, teeth and tongue meshes are skinned to Jaw",
+   "hat": "always compatible",
+   "opensTeeth": true
+  },
+  {
+   "id": "mouth_14_broad_grin",
+   "category": "mouths",
+   "name": "broad_grin",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [],
+   "textures": {
+    "lips": "export/textures/mouths/mouth_14.png",
+    "inner": "export/textures/mouths_inner/mouthin_14.png"
+   },
+   "tags": [
+    "joyful",
+    "performer"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "teethMesh": "Teeth_01_even",
+   "colourSlots": [
+    {
+     "slot": "lipTint",
+     "default": "rose",
+     "defaultHex": "#db7580",
+     "palette": "lips",
+     "applies": "lips decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Lips_*, Mouth_* (face-decal UVs); inner mouth, teeth and tongue meshes are skinned to Jaw",
+   "hat": "always compatible",
+   "opensTeeth": true
+  },
+  {
+   "id": "mouth_15_gap_tooth_grin",
+   "category": "mouths",
+   "name": "gap_tooth_grin",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [],
+   "textures": {
+    "lips": "export/textures/mouths/mouth_15.png",
+    "inner": "export/textures/mouths_inner/mouthin_15.png"
+   },
+   "tags": [
+    "rustic",
+    "joyful"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "teethMesh": "Teeth_02_gap",
+   "colourSlots": [
+    {
+     "slot": "lipTint",
+     "default": "natural",
+     "defaultHex": "#cc6b66",
+     "palette": "lips",
+     "applies": "lips decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Lips_*, Mouth_* (face-decal UVs); inner mouth, teeth and tongue meshes are skinned to Jaw",
+   "hat": "always compatible",
+   "opensTeeth": true
+  },
+  {
+   "id": "mouth_16_open_laugh",
+   "category": "mouths",
+   "name": "open_laugh",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [],
+   "textures": {
+    "lips": "export/textures/mouths/mouth_16.png",
+    "inner": "export/textures/mouths_inner/mouthin_16.png"
+   },
+   "tags": [
+    "joyful",
+    "performer"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "teethMesh": "Teeth_01_even",
+   "colourSlots": [
+    {
+     "slot": "lipTint",
+     "default": "red",
+     "defaultHex": "#c22930",
+     "palette": "lips",
+     "applies": "lips decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Lips_*, Mouth_* (face-decal UVs); inner mouth, teeth and tongue meshes are skinned to Jaw",
+   "hat": "always compatible",
+   "opensTeeth": true
+  },
+  {
+   "id": "mouth_17_snarl_fangs",
+   "category": "mouths",
+   "name": "snarl_fangs",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [],
+   "textures": {
+    "lips": "export/textures/mouths/mouth_17.png",
+    "inner": "export/textures/mouths_inner/mouthin_17.png"
+   },
+   "tags": [
+    "orc",
+    "brute",
+    "feral"
+   ],
+   "species": [
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "teethMesh": "Teeth_03_fangs",
+   "colourSlots": [
+    {
+     "slot": "lipTint",
+     "default": "dark",
+     "defaultHex": "#754240",
+     "palette": "lips",
+     "applies": "lips decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Lips_*, Mouth_* (face-decal UVs); inner mouth, teeth and tongue meshes are skinned to Jaw",
+   "hat": "always compatible",
+   "opensTeeth": true
+  },
+  {
+   "id": "mouth_18_gritted_teeth",
+   "category": "mouths",
+   "name": "gritted_teeth",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [],
+   "textures": {
+    "lips": "export/textures/mouths/mouth_18.png",
+    "inner": "export/textures/mouths_inner/mouthin_18.png"
+   },
+   "tags": [
+    "angry",
+    "soldier"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "teethMesh": "Teeth_01_even",
+   "colourSlots": [
+    {
+     "slot": "lipTint",
+     "default": "pale",
+     "defaultHex": "#d69485",
+     "palette": "lips",
+     "applies": "lips decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Lips_*, Mouth_* (face-decal UVs); inner mouth, teeth and tongue meshes are skinned to Jaw",
+   "hat": "always compatible",
+   "opensTeeth": true
+  },
+  {
+   "id": "mouth_19_slightly_open",
+   "category": "mouths",
+   "name": "slightly_open",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [],
+   "textures": {
+    "lips": "export/textures/mouths/mouth_19.png",
+    "inner": "export/textures/mouths_inner/mouthin_19.png"
+   },
+   "tags": [
+    "common",
+    "gentle"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "teethMesh": "Teeth_01_even",
+   "colourSlots": [
+    {
+     "slot": "lipTint",
+     "default": "natural",
+     "defaultHex": "#cc6b66",
+     "palette": "lips",
+     "applies": "lips decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Lips_*, Mouth_* (face-decal UVs); inner mouth, teeth and tongue meshes are skinned to Jaw",
+   "hat": "always compatible",
+   "opensTeeth": true
+  },
+  {
+   "id": "mouth_20_scarred_lip",
+   "category": "mouths",
+   "name": "scarred_lip",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [],
+   "textures": {
+    "lips": "export/textures/mouths/mouth_20.png"
+   },
+   "tags": [
+    "fighter",
+    "rogue"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "teethMesh": "Teeth_01_even",
+   "colourSlots": [
+    {
+     "slot": "lipTint",
+     "default": "natural",
+     "defaultHex": "#cc6b66",
+     "palette": "lips",
+     "applies": "lips decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Lips_*, Mouth_* (face-decal UVs); inner mouth, teeth and tongue meshes are skinned to Jaw",
+   "hat": "always compatible"
+  },
+  {
+   "id": "mouth_21_elder_lines",
+   "category": "mouths",
+   "name": "elder_lines",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [],
+   "textures": {
+    "lips": "export/textures/mouths/mouth_21.png"
+   },
+   "tags": [
+    "elder"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "teethMesh": "Teeth_01_even",
+   "colourSlots": [
+    {
+     "slot": "lipTint",
+     "default": "pale",
+     "defaultHex": "#d69485",
+     "palette": "lips",
+     "applies": "lips decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Lips_*, Mouth_* (face-decal UVs); inner mouth, teeth and tongue meshes are skinned to Jaw",
+   "hat": "always compatible"
+  },
+  {
+   "id": "mouth_22_elder_sunken",
+   "category": "mouths",
+   "name": "elder_sunken",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [],
+   "textures": {
+    "lips": "export/textures/mouths/mouth_22.png"
+   },
+   "tags": [
+    "elder",
+    "toothless"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "teethMesh": null,
+   "colourSlots": [
+    {
+     "slot": "lipTint",
+     "default": "dark",
+     "defaultHex": "#754240",
+     "palette": "lips",
+     "applies": "lips decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Lips_*, Mouth_* (face-decal UVs); inner mouth, teeth and tongue meshes are skinned to Jaw",
+   "hat": "always compatible"
+  },
+  {
+   "id": "mouth_23_child_small",
+   "category": "mouths",
+   "name": "child_small",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [],
+   "textures": {
+    "lips": "export/textures/mouths/mouth_23.png"
+   },
+   "tags": [
+    "child"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child"
+   ],
+   "teethMesh": "Teeth_01_even",
+   "colourSlots": [
+    {
+     "slot": "lipTint",
+     "default": "peach",
+     "defaultHex": "#eb8c75",
+     "palette": "lips",
+     "applies": "lips decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Lips_*, Mouth_* (face-decal UVs); inner mouth, teeth and tongue meshes are skinned to Jaw",
+   "hat": "always compatible"
+  },
+  {
+   "id": "mouth_24_rouge_red",
+   "category": "mouths",
+   "name": "rouge_red",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [],
+   "textures": {
+    "lips": "export/textures/mouths/mouth_24.png"
+   },
+   "tags": [
+    "courtly",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "teethMesh": "Teeth_01_even",
+   "colourSlots": [
+    {
+     "slot": "lipTint",
+     "default": "red",
+     "defaultHex": "#c22930",
+     "palette": "lips",
+     "applies": "lips decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Lips_*, Mouth_* (face-decal UVs); inner mouth, teeth and tongue meshes are skinned to Jaw",
+   "hat": "always compatible"
+  },
+  {
+   "id": "mouth_25_dark_berry",
+   "category": "mouths",
+   "name": "dark_berry",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [],
+   "textures": {
+    "lips": "export/textures/mouths/mouth_25.png"
+   },
+   "tags": [
+    "courtly",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "teethMesh": "Teeth_01_even",
+   "colourSlots": [
+    {
+     "slot": "lipTint",
+     "default": "berry",
+     "defaultHex": "#802647",
+     "palette": "lips",
+     "applies": "lips decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Lips_*, Mouth_* (face-decal UVs); inner mouth, teeth and tongue meshes are skinned to Jaw",
+   "hat": "always compatible"
+  },
+  {
+   "id": "mouth_26_pale_nude",
+   "category": "mouths",
+   "name": "pale_nude",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [],
+   "textures": {
+    "lips": "export/textures/mouths/mouth_26.png"
+   },
+   "tags": [
+    "feminine",
+    "gentle"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "teethMesh": "Teeth_01_even",
+   "colourSlots": [
+    {
+     "slot": "lipTint",
+     "default": "pale",
+     "defaultHex": "#d69485",
+     "palette": "lips",
+     "applies": "lips decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Lips_*, Mouth_* (face-decal UVs); inner mouth, teeth and tongue meshes are skinned to Jaw",
+   "hat": "always compatible"
+  },
+  {
+   "id": "mouth_27_harelip_scar",
+   "category": "mouths",
+   "name": "harelip_scar",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [],
+   "textures": {
+    "lips": "export/textures/mouths/mouth_27.png"
+   },
+   "tags": [
+    "rustic",
+    "outcast"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "teethMesh": "Teeth_01_even",
+   "colourSlots": [
+    {
+     "slot": "lipTint",
+     "default": "natural",
+     "defaultHex": "#cc6b66",
+     "palette": "lips",
+     "applies": "lips decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Lips_*, Mouth_* (face-decal UVs); inner mouth, teeth and tongue meshes are skinned to Jaw",
+   "hat": "always compatible"
+  },
+  {
+   "id": "mouth_28_orc_wide_dark",
+   "category": "mouths",
+   "name": "orc_wide_dark",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [],
+   "textures": {
+    "lips": "export/textures/mouths/mouth_28.png"
+   },
+   "tags": [
+    "orc"
+   ],
+   "species": [
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "teethMesh": "Teeth_03_fangs",
+   "colourSlots": [
+    {
+     "slot": "lipTint",
+     "default": "orc",
+     "defaultHex": "#524c38",
+     "palette": "lips",
+     "applies": "lips decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Lips_*, Mouth_* (face-decal UVs); inner mouth, teeth and tongue meshes are skinned to Jaw",
+   "hat": "always compatible"
+  },
+  {
+   "id": "mouth_29_elf_fine",
+   "category": "mouths",
+   "name": "elf_fine",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [],
+   "textures": {
+    "lips": "export/textures/mouths/mouth_29.png"
+   },
+   "tags": [
+    "elf",
+    "feminine"
+   ],
+   "species": [
+    "elf"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "teethMesh": "Teeth_01_even",
+   "colourSlots": [
+    {
+     "slot": "lipTint",
+     "default": "plum",
+     "defaultHex": "#8c4761",
+     "palette": "lips",
+     "applies": "lips decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Lips_*, Mouth_* (face-decal UVs); inner mouth, teeth and tongue meshes are skinned to Jaw",
+   "hat": "always compatible"
+  },
+  {
+   "id": "mouth_30_dwarf_firm_wide",
+   "category": "mouths",
+   "name": "dwarf_firm_wide",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [],
+   "textures": {
+    "lips": "export/textures/mouths/mouth_30.png"
+   },
+   "tags": [
+    "dwarf",
+    "masculine"
+   ],
+   "species": [
+    "dwarf"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "teethMesh": "Teeth_01_even",
+   "colourSlots": [
+    {
+     "slot": "lipTint",
+     "default": "dark",
+     "defaultHex": "#754240",
+     "palette": "lips",
+     "applies": "lips decal RGB x colour, A = coverage"
+    }
+   ],
+   "blendShapes": "follows Lips_*, Mouth_* (face-decal UVs); inner mouth, teeth and tongue meshes are skinned to Jaw",
+   "hat": "always compatible"
+  },
+  {
+   "id": "beard_stubble_01_light",
+   "category": "beards",
+   "name": "stubble_light",
+   "socket": [
+    "Socket_Beard"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/stubble/stubble_01.png",
+   "decal": true,
+   "tags": [
+    "masculine",
+    "common"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "beard_stubble_02_full",
+   "category": "beards",
+   "name": "stubble_full",
+   "socket": [
+    "Socket_Beard"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/stubble/stubble_02.png",
+   "decal": true,
+   "tags": [
+    "masculine",
+    "common"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "beard_stubble_03_heavy",
+   "category": "beards",
+   "name": "stubble_heavy",
+   "socket": [
+    "Socket_Beard"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/stubble/stubble_03.png",
+   "decal": true,
+   "tags": [
+    "masculine",
+    "rustic",
+    "brute"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "beard_stubble_04_chinstrap",
+   "category": "beards",
+   "name": "stubble_chinstrap",
+   "socket": [
+    "Socket_Beard"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/stubble/stubble_04.png",
+   "decal": true,
+   "tags": [
+    "masculine",
+    "rogue"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "beard_stubble_05_goatee",
+   "category": "beards",
+   "name": "stubble_goatee",
+   "socket": [
+    "Socket_Beard"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/stubble/stubble_05.png",
+   "decal": true,
+   "tags": [
+    "masculine",
+    "rogue"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "beard_stubble_06_moustache",
+   "category": "beards",
+   "name": "stubble_moustache",
+   "socket": [
+    "Socket_Beard"
+   ],
+   "meshObjects": [],
+   "texture": "export/textures/stubble/stubble_06.png",
+   "decal": true,
+   "tags": [
+    "masculine",
+    "common"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "hair",
+     "palette": "hair",
+     "applies": "decal RGB x colour, A = coverage"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "nose_01_average",
+   "category": "noses",
+   "name": "average",
+   "socket": [
+    "Socket_Nose"
+   ],
+   "meshObjects": [
+    "Nose_01_average"
+   ],
+   "file": "export/parts_noses.fbx",
+   "tags": [],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 30 verts as Part_Nose, welds seamlessly",
+   "shapeKeys": 41,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin/Face materials of the head"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "nose_02_button",
+   "category": "noses",
+   "name": "button",
+   "socket": [
+    "Socket_Nose"
+   ],
+   "meshObjects": [
+    "Nose_02_button"
+   ],
+   "file": "export/parts_noses.fbx",
+   "tags": [
+    "child",
+    "feminine",
+    "halfling"
+   ],
+   "species": [
+    "halfling"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child"
+   ],
+   "boundary": "identical loop of 30 verts as Part_Nose, welds seamlessly",
+   "shapeKeys": 41,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin/Face materials of the head"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "nose_03_hooked",
+   "category": "noses",
+   "name": "hooked",
+   "socket": [
+    "Socket_Nose"
+   ],
+   "meshObjects": [
+    "Nose_03_hooked"
+   ],
+   "file": "export/parts_noses.fbx",
+   "tags": [
+    "elder",
+    "witch",
+    "rogue"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 30 verts as Part_Nose, welds seamlessly",
+   "shapeKeys": 41,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin/Face materials of the head"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "nose_04_broad",
+   "category": "noses",
+   "name": "broad",
+   "socket": [
+    "Socket_Nose"
+   ],
+   "meshObjects": [
+    "Nose_04_broad"
+   ],
+   "file": "export/parts_noses.fbx",
+   "tags": [
+    "common",
+    "worker"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 30 verts as Part_Nose, welds seamlessly",
+   "shapeKeys": 41,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin/Face materials of the head"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "nose_05_narrow",
+   "category": "noses",
+   "name": "narrow",
+   "socket": [
+    "Socket_Nose"
+   ],
+   "meshObjects": [
+    "Nose_05_narrow"
+   ],
+   "file": "export/parts_noses.fbx",
+   "tags": [
+    "noble",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 30 verts as Part_Nose, welds seamlessly",
+   "shapeKeys": 41,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin/Face materials of the head"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "nose_06_upturned",
+   "category": "noses",
+   "name": "upturned",
+   "socket": [
+    "Socket_Nose"
+   ],
+   "meshObjects": [
+    "Nose_06_upturned"
+   ],
+   "file": "export/parts_noses.fbx",
+   "tags": [
+    "feminine",
+    "child"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child"
+   ],
+   "boundary": "identical loop of 30 verts as Part_Nose, welds seamlessly",
+   "shapeKeys": 41,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin/Face materials of the head"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "nose_07_roman",
+   "category": "noses",
+   "name": "roman",
+   "socket": [
+    "Socket_Nose"
+   ],
+   "meshObjects": [
+    "Nose_07_roman"
+   ],
+   "file": "export/parts_noses.fbx",
+   "tags": [
+    "noble",
+    "masculine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 30 verts as Part_Nose, welds seamlessly",
+   "shapeKeys": 41,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin/Face materials of the head"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "nose_08_flat",
+   "category": "noses",
+   "name": "flat",
+   "socket": [
+    "Socket_Nose"
+   ],
+   "meshObjects": [
+    "Nose_08_flat"
+   ],
+   "file": "export/parts_noses.fbx",
+   "tags": [
+    "common",
+    "brawler"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 30 verts as Part_Nose, welds seamlessly",
+   "shapeKeys": 41,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin/Face materials of the head"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "nose_09_long",
+   "category": "noses",
+   "name": "long",
+   "socket": [
+    "Socket_Nose"
+   ],
+   "meshObjects": [
+    "Nose_09_long"
+   ],
+   "file": "export/parts_noses.fbx",
+   "tags": [
+    "elder",
+    "noble"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 30 verts as Part_Nose, welds seamlessly",
+   "shapeKeys": 41,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin/Face materials of the head"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "nose_10_crooked",
+   "category": "noses",
+   "name": "crooked",
+   "socket": [
+    "Socket_Nose"
+   ],
+   "meshObjects": [
+    "Nose_10_crooked"
+   ],
+   "file": "export/parts_noses.fbx",
+   "tags": [
+    "fighter",
+    "rustic"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 30 verts as Part_Nose, welds seamlessly",
+   "shapeKeys": 41,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin/Face materials of the head"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "nose_11_snub",
+   "category": "noses",
+   "name": "snub",
+   "socket": [
+    "Socket_Nose"
+   ],
+   "meshObjects": [
+    "Nose_11_snub"
+   ],
+   "file": "export/parts_noses.fbx",
+   "tags": [
+    "child",
+    "common"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult"
+   ],
+   "boundary": "identical loop of 30 verts as Part_Nose, welds seamlessly",
+   "shapeKeys": 41,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin/Face materials of the head"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "nose_12_aquiline",
+   "category": "noses",
+   "name": "aquiline",
+   "socket": [
+    "Socket_Nose"
+   ],
+   "meshObjects": [
+    "Nose_12_aquiline"
+   ],
+   "file": "export/parts_noses.fbx",
+   "tags": [
+    "noble",
+    "masculine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 30 verts as Part_Nose, welds seamlessly",
+   "shapeKeys": 41,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin/Face materials of the head"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "nose_13_bulbous",
+   "category": "noses",
+   "name": "bulbous",
+   "socket": [
+    "Socket_Nose"
+   ],
+   "meshObjects": [
+    "Nose_13_bulbous"
+   ],
+   "file": "export/parts_noses.fbx",
+   "tags": [
+    "drinker",
+    "rustic"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 30 verts as Part_Nose, welds seamlessly",
+   "shapeKeys": 41,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin/Face materials of the head"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "nose_14_wide_bridge",
+   "category": "noses",
+   "name": "wide_bridge",
+   "socket": [
+    "Socket_Nose"
+   ],
+   "meshObjects": [
+    "Nose_14_wide_bridge"
+   ],
+   "file": "export/parts_noses.fbx",
+   "tags": [
+    "common"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 30 verts as Part_Nose, welds seamlessly",
+   "shapeKeys": 41,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin/Face materials of the head"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "nose_15_pointed_tip",
+   "category": "noses",
+   "name": "pointed_tip",
+   "socket": [
+    "Socket_Nose"
+   ],
+   "meshObjects": [
+    "Nose_15_pointed_tip"
+   ],
+   "file": "export/parts_noses.fbx",
+   "tags": [
+    "feminine",
+    "sly"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 30 verts as Part_Nose, welds seamlessly",
+   "shapeKeys": 41,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin/Face materials of the head"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "nose_16_pug",
+   "category": "noses",
+   "name": "pug",
+   "socket": [
+    "Socket_Nose"
+   ],
+   "meshObjects": [
+    "Nose_16_pug"
+   ],
+   "file": "export/parts_noses.fbx",
+   "tags": [
+    "child",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child"
+   ],
+   "boundary": "identical loop of 30 verts as Part_Nose, welds seamlessly",
+   "shapeKeys": 41,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin/Face materials of the head"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "nose_17_big_straight",
+   "category": "noses",
+   "name": "big_straight",
+   "socket": [
+    "Socket_Nose"
+   ],
+   "meshObjects": [
+    "Nose_17_big_straight"
+   ],
+   "file": "export/parts_noses.fbx",
+   "tags": [
+    "masculine",
+    "heavy"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 30 verts as Part_Nose, welds seamlessly",
+   "shapeKeys": 41,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin/Face materials of the head"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "nose_18_small_straight",
+   "category": "noses",
+   "name": "small_straight",
+   "socket": [
+    "Socket_Nose"
+   ],
+   "meshObjects": [
+    "Nose_18_small_straight"
+   ],
+   "file": "export/parts_noses.fbx",
+   "tags": [
+    "feminine",
+    "child"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child"
+   ],
+   "boundary": "identical loop of 30 verts as Part_Nose, welds seamlessly",
+   "shapeKeys": 41,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin/Face materials of the head"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "nose_19_drooping",
+   "category": "noses",
+   "name": "drooping",
+   "socket": [
+    "Socket_Nose"
+   ],
+   "meshObjects": [
+    "Nose_19_drooping"
+   ],
+   "file": "export/parts_noses.fbx",
+   "tags": [
+    "elder",
+    "weary"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 30 verts as Part_Nose, welds seamlessly",
+   "shapeKeys": 41,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin/Face materials of the head"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "nose_20_broken",
+   "category": "noses",
+   "name": "broken",
+   "socket": [
+    "Socket_Nose"
+   ],
+   "meshObjects": [
+    "Nose_20_broken"
+   ],
+   "file": "export/parts_noses.fbx",
+   "tags": [
+    "fighter",
+    "rogue"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 30 verts as Part_Nose, welds seamlessly",
+   "shapeKeys": 41,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin/Face materials of the head"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "nose_21_nubby",
+   "category": "noses",
+   "name": "nubby",
+   "socket": [
+    "Socket_Nose"
+   ],
+   "meshObjects": [
+    "Nose_21_nubby"
+   ],
+   "file": "export/parts_noses.fbx",
+   "tags": [
+    "child"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child"
+   ],
+   "boundary": "identical loop of 30 verts as Part_Nose, welds seamlessly",
+   "shapeKeys": 41,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin/Face materials of the head"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "nose_22_high_bridge",
+   "category": "noses",
+   "name": "high_bridge",
+   "socket": [
+    "Socket_Nose"
+   ],
+   "meshObjects": [
+    "Nose_22_high_bridge"
+   ],
+   "file": "export/parts_noses.fbx",
+   "tags": [
+    "noble"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 30 verts as Part_Nose, welds seamlessly",
+   "shapeKeys": 41,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin/Face materials of the head"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "nose_23_wide_nostrils",
+   "category": "noses",
+   "name": "wide_nostrils",
+   "socket": [
+    "Socket_Nose"
+   ],
+   "meshObjects": [
+    "Nose_23_wide_nostrils"
+   ],
+   "file": "export/parts_noses.fbx",
+   "tags": [
+    "common",
+    "worker"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 30 verts as Part_Nose, welds seamlessly",
+   "shapeKeys": 41,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin/Face materials of the head"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "nose_24_thin_pinched",
+   "category": "noses",
+   "name": "thin_pinched",
+   "socket": [
+    "Socket_Nose"
+   ],
+   "meshObjects": [
+    "Nose_24_thin_pinched"
+   ],
+   "file": "export/parts_noses.fbx",
+   "tags": [
+    "stern",
+    "elder"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 30 verts as Part_Nose, welds seamlessly",
+   "shapeKeys": 41,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin/Face materials of the head"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "nose_25_elf_fine",
+   "category": "noses",
+   "name": "elf_fine",
+   "socket": [
+    "Socket_Nose"
+   ],
+   "meshObjects": [
+    "Nose_25_elf_fine"
+   ],
+   "file": "export/parts_noses.fbx",
+   "tags": [
+    "elf"
+   ],
+   "species": [
+    "elf"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 30 verts as Part_Nose, welds seamlessly",
+   "shapeKeys": 41,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin/Face materials of the head"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "nose_26_elf_long",
+   "category": "noses",
+   "name": "elf_long",
+   "socket": [
+    "Socket_Nose"
+   ],
+   "meshObjects": [
+    "Nose_26_elf_long"
+   ],
+   "file": "export/parts_noses.fbx",
+   "tags": [
+    "elf"
+   ],
+   "species": [
+    "elf"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 30 verts as Part_Nose, welds seamlessly",
+   "shapeKeys": 41,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin/Face materials of the head"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "nose_27_dwarf_bulb",
+   "category": "noses",
+   "name": "dwarf_bulb",
+   "socket": [
+    "Socket_Nose"
+   ],
+   "meshObjects": [
+    "Nose_27_dwarf_bulb"
+   ],
+   "file": "export/parts_noses.fbx",
+   "tags": [
+    "dwarf"
+   ],
+   "species": [
+    "dwarf"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 30 verts as Part_Nose, welds seamlessly",
+   "shapeKeys": 41,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin/Face materials of the head"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "nose_28_dwarf_broad",
+   "category": "noses",
+   "name": "dwarf_broad",
+   "socket": [
+    "Socket_Nose"
+   ],
+   "meshObjects": [
+    "Nose_28_dwarf_broad"
+   ],
+   "file": "export/parts_noses.fbx",
+   "tags": [
+    "dwarf"
+   ],
+   "species": [
+    "dwarf"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 30 verts as Part_Nose, welds seamlessly",
+   "shapeKeys": 41,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin/Face materials of the head"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "nose_29_orc_flat",
+   "category": "noses",
+   "name": "orc_flat",
+   "socket": [
+    "Socket_Nose"
+   ],
+   "meshObjects": [
+    "Nose_29_orc_flat"
+   ],
+   "file": "export/parts_noses.fbx",
+   "tags": [
+    "orc"
+   ],
+   "species": [
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 30 verts as Part_Nose, welds seamlessly",
+   "shapeKeys": 41,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin/Face materials of the head"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "nose_30_orc_snout",
+   "category": "noses",
+   "name": "orc_snout",
+   "socket": [
+    "Socket_Nose"
+   ],
+   "meshObjects": [
+    "Nose_30_orc_snout"
+   ],
+   "file": "export/parts_noses.fbx",
+   "tags": [
+    "orc"
+   ],
+   "species": [
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 30 verts as Part_Nose, welds seamlessly",
+   "shapeKeys": 41,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin/Face materials of the head"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "ear_01_average",
+   "category": "ears",
+   "name": "average",
+   "socket": [
+    "Socket_Ear_L",
+    "Socket_Ear_R"
+   ],
+   "meshObjects": [
+    "Ear_01_average_L",
+    "Ear_01_average_R"
+   ],
+   "file": "export/parts_ears.fbx",
+   "tags": [],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 22 verts as Part_Ear_L/R",
+   "shapeKeys": 15,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "ear_02_small",
+   "category": "ears",
+   "name": "small",
+   "socket": [
+    "Socket_Ear_L",
+    "Socket_Ear_R"
+   ],
+   "meshObjects": [
+    "Ear_02_small_L",
+    "Ear_02_small_R"
+   ],
+   "file": "export/parts_ears.fbx",
+   "tags": [
+    "child",
+    "common"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult"
+   ],
+   "boundary": "identical loop of 22 verts as Part_Ear_L/R",
+   "shapeKeys": 15,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "ear_03_large",
+   "category": "ears",
+   "name": "large",
+   "socket": [
+    "Socket_Ear_L",
+    "Socket_Ear_R"
+   ],
+   "meshObjects": [
+    "Ear_03_large_L",
+    "Ear_03_large_R"
+   ],
+   "file": "export/parts_ears.fbx",
+   "tags": [
+    "common",
+    "elder"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 22 verts as Part_Ear_L/R",
+   "shapeKeys": 15,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "ear_04_big_lobes",
+   "category": "ears",
+   "name": "big_lobes",
+   "socket": [
+    "Socket_Ear_L",
+    "Socket_Ear_R"
+   ],
+   "meshObjects": [
+    "Ear_04_big_lobes_L",
+    "Ear_04_big_lobes_R"
+   ],
+   "file": "export/parts_ears.fbx",
+   "tags": [
+    "elder",
+    "common"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 22 verts as Part_Ear_L/R",
+   "shapeKeys": 15,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "ear_05_attached",
+   "category": "ears",
+   "name": "attached",
+   "socket": [
+    "Socket_Ear_L",
+    "Socket_Ear_R"
+   ],
+   "meshObjects": [
+    "Ear_05_attached_L",
+    "Ear_05_attached_R"
+   ],
+   "file": "export/parts_ears.fbx",
+   "tags": [
+    "common",
+    "gentle"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 22 verts as Part_Ear_L/R",
+   "shapeKeys": 15,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "ear_06_protruding",
+   "category": "ears",
+   "name": "protruding",
+   "socket": [
+    "Socket_Ear_L",
+    "Socket_Ear_R"
+   ],
+   "meshObjects": [
+    "Ear_06_protruding_L",
+    "Ear_06_protruding_R"
+   ],
+   "file": "export/parts_ears.fbx",
+   "tags": [
+    "child",
+    "rustic"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child"
+   ],
+   "boundary": "identical loop of 22 verts as Part_Ear_L/R",
+   "shapeKeys": 15,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "ear_07_flat_back",
+   "category": "ears",
+   "name": "flat_back",
+   "socket": [
+    "Socket_Ear_L",
+    "Socket_Ear_R"
+   ],
+   "meshObjects": [
+    "Ear_07_flat_back_L",
+    "Ear_07_flat_back_R"
+   ],
+   "file": "export/parts_ears.fbx",
+   "tags": [
+    "noble",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 22 verts as Part_Ear_L/R",
+   "shapeKeys": 15,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "ear_08_round_big",
+   "category": "ears",
+   "name": "round_big",
+   "socket": [
+    "Socket_Ear_L",
+    "Socket_Ear_R"
+   ],
+   "meshObjects": [
+    "Ear_08_round_big_L",
+    "Ear_08_round_big_R"
+   ],
+   "file": "export/parts_ears.fbx",
+   "tags": [
+    "child",
+    "gentle"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child"
+   ],
+   "boundary": "identical loop of 22 verts as Part_Ear_L/R",
+   "shapeKeys": 15,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "ear_09_tall_narrow",
+   "category": "ears",
+   "name": "tall_narrow",
+   "socket": [
+    "Socket_Ear_L",
+    "Socket_Ear_R"
+   ],
+   "meshObjects": [
+    "Ear_09_tall_narrow_L",
+    "Ear_09_tall_narrow_R"
+   ],
+   "file": "export/parts_ears.fbx",
+   "tags": [
+    "noble",
+    "elder"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 22 verts as Part_Ear_L/R",
+   "shapeKeys": 15,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "ear_10_pointed_small",
+   "category": "ears",
+   "name": "pointed_small",
+   "socket": [
+    "Socket_Ear_L",
+    "Socket_Ear_R"
+   ],
+   "meshObjects": [
+    "Ear_10_pointed_small_L",
+    "Ear_10_pointed_small_R"
+   ],
+   "file": "export/parts_ears.fbx",
+   "tags": [
+    "halfling",
+    "fey"
+   ],
+   "species": [
+    "halfling"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 22 verts as Part_Ear_L/R",
+   "shapeKeys": 15,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "ear_11_elf_short",
+   "category": "ears",
+   "name": "elf_short",
+   "socket": [
+    "Socket_Ear_L",
+    "Socket_Ear_R"
+   ],
+   "meshObjects": [
+    "Ear_11_elf_short_L",
+    "Ear_11_elf_short_R"
+   ],
+   "file": "export/parts_ears.fbx",
+   "tags": [
+    "elf"
+   ],
+   "species": [
+    "elf"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 22 verts as Part_Ear_L/R",
+   "shapeKeys": 15,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin material"
+    }
+   ],
+   "hat": "pointed elf/orc ears poke through hat brims: use hats with ear holes or hide ear"
+  },
+  {
+   "id": "ear_12_elf_long_swept",
+   "category": "ears",
+   "name": "elf_long_swept",
+   "socket": [
+    "Socket_Ear_L",
+    "Socket_Ear_R"
+   ],
+   "meshObjects": [
+    "Ear_12_elf_long_swept_L",
+    "Ear_12_elf_long_swept_R"
+   ],
+   "file": "export/parts_ears.fbx",
+   "tags": [
+    "elf",
+    "noble"
+   ],
+   "species": [
+    "elf"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 22 verts as Part_Ear_L/R",
+   "shapeKeys": 15,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin material"
+    }
+   ],
+   "hat": "pointed elf/orc ears poke through hat brims: use hats with ear holes or hide ear"
+  },
+  {
+   "id": "ear_13_elf_leaf",
+   "category": "ears",
+   "name": "elf_leaf",
+   "socket": [
+    "Socket_Ear_L",
+    "Socket_Ear_R"
+   ],
+   "meshObjects": [
+    "Ear_13_elf_leaf_L",
+    "Ear_13_elf_leaf_R"
+   ],
+   "file": "export/parts_ears.fbx",
+   "tags": [
+    "elf",
+    "fey"
+   ],
+   "species": [
+    "elf"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 22 verts as Part_Ear_L/R",
+   "shapeKeys": 15,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin material"
+    }
+   ],
+   "hat": "pointed elf/orc ears poke through hat brims: use hats with ear holes or hide ear"
+  },
+  {
+   "id": "ear_14_elf_drooping",
+   "category": "ears",
+   "name": "elf_drooping",
+   "socket": [
+    "Socket_Ear_L",
+    "Socket_Ear_R"
+   ],
+   "meshObjects": [
+    "Ear_14_elf_drooping_L",
+    "Ear_14_elf_drooping_R"
+   ],
+   "file": "export/parts_ears.fbx",
+   "tags": [
+    "elf",
+    "elder"
+   ],
+   "species": [
+    "elf"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 22 verts as Part_Ear_L/R",
+   "shapeKeys": 15,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin material"
+    }
+   ],
+   "hat": "pointed elf/orc ears poke through hat brims: use hats with ear holes or hide ear"
+  },
+  {
+   "id": "ear_15_half_elf",
+   "category": "ears",
+   "name": "half_elf",
+   "socket": [
+    "Socket_Ear_L",
+    "Socket_Ear_R"
+   ],
+   "meshObjects": [
+    "Ear_15_half_elf_L",
+    "Ear_15_half_elf_R"
+   ],
+   "file": "export/parts_ears.fbx",
+   "tags": [
+    "elf",
+    "common"
+   ],
+   "species": [
+    "elf"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 22 verts as Part_Ear_L/R",
+   "shapeKeys": 15,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin material"
+    }
+   ],
+   "hat": "pointed elf/orc ears poke through hat brims: use hats with ear holes or hide ear"
+  },
+  {
+   "id": "ear_16_orc_large_pointed",
+   "category": "ears",
+   "name": "orc_large_pointed",
+   "socket": [
+    "Socket_Ear_L",
+    "Socket_Ear_R"
+   ],
+   "meshObjects": [
+    "Ear_16_orc_large_pointed_L",
+    "Ear_16_orc_large_pointed_R"
+   ],
+   "file": "export/parts_ears.fbx",
+   "tags": [
+    "orc"
+   ],
+   "species": [
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 22 verts as Part_Ear_L/R",
+   "shapeKeys": 15,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin material"
+    }
+   ],
+   "hat": "pointed elf/orc ears poke through hat brims: use hats with ear holes or hide ear"
+  },
+  {
+   "id": "ear_17_orc_notched",
+   "category": "ears",
+   "name": "orc_notched",
+   "socket": [
+    "Socket_Ear_L",
+    "Socket_Ear_R"
+   ],
+   "meshObjects": [
+    "Ear_17_orc_notched_L",
+    "Ear_17_orc_notched_R"
+   ],
+   "file": "export/parts_ears.fbx",
+   "tags": [
+    "orc",
+    "fighter"
+   ],
+   "species": [
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 22 verts as Part_Ear_L/R",
+   "shapeKeys": 15,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin material"
+    }
+   ],
+   "hat": "pointed elf/orc ears poke through hat brims: use hats with ear holes or hide ear"
+  },
+  {
+   "id": "ear_18_orc_torn",
+   "category": "ears",
+   "name": "orc_torn",
+   "socket": [
+    "Socket_Ear_L",
+    "Socket_Ear_R"
+   ],
+   "meshObjects": [
+    "Ear_18_orc_torn_L",
+    "Ear_18_orc_torn_R"
+   ],
+   "file": "export/parts_ears.fbx",
+   "tags": [
+    "orc",
+    "fighter"
+   ],
+   "species": [
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 22 verts as Part_Ear_L/R",
+   "shapeKeys": 15,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin material"
+    }
+   ],
+   "hat": "pointed elf/orc ears poke through hat brims: use hats with ear holes or hide ear"
+  },
+  {
+   "id": "ear_19_notched_top",
+   "category": "ears",
+   "name": "notched_top",
+   "socket": [
+    "Socket_Ear_L",
+    "Socket_Ear_R"
+   ],
+   "meshObjects": [
+    "Ear_19_notched_top_L",
+    "Ear_19_notched_top_R"
+   ],
+   "file": "export/parts_ears.fbx",
+   "tags": [
+    "fighter",
+    "rogue"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 22 verts as Part_Ear_L/R",
+   "shapeKeys": 15,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "ear_20_notched_lobe",
+   "category": "ears",
+   "name": "notched_lobe",
+   "socket": [
+    "Socket_Ear_L",
+    "Socket_Ear_R"
+   ],
+   "meshObjects": [
+    "Ear_20_notched_lobe_L",
+    "Ear_20_notched_lobe_R"
+   ],
+   "file": "export/parts_ears.fbx",
+   "tags": [
+    "fighter",
+    "rogue"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 22 verts as Part_Ear_L/R",
+   "shapeKeys": 15,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "ear_21_cauliflower",
+   "category": "ears",
+   "name": "cauliflower",
+   "socket": [
+    "Socket_Ear_L",
+    "Socket_Ear_R"
+   ],
+   "meshObjects": [
+    "Ear_21_cauliflower_L",
+    "Ear_21_cauliflower_R"
+   ],
+   "file": "export/parts_ears.fbx",
+   "tags": [
+    "fighter",
+    "brawler"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 22 verts as Part_Ear_L/R",
+   "shapeKeys": 15,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "ear_22_stub_child",
+   "category": "ears",
+   "name": "stub_child",
+   "socket": [
+    "Socket_Ear_L",
+    "Socket_Ear_R"
+   ],
+   "meshObjects": [
+    "Ear_22_stub_child_L",
+    "Ear_22_stub_child_R"
+   ],
+   "file": "export/parts_ears.fbx",
+   "tags": [
+    "child"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child"
+   ],
+   "boundary": "identical loop of 22 verts as Part_Ear_L/R",
+   "shapeKeys": 15,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "ear_23_elder_long_lobe",
+   "category": "ears",
+   "name": "elder_long_lobe",
+   "socket": [
+    "Socket_Ear_L",
+    "Socket_Ear_R"
+   ],
+   "meshObjects": [
+    "Ear_23_elder_long_lobe_L",
+    "Ear_23_elder_long_lobe_R"
+   ],
+   "file": "export/parts_ears.fbx",
+   "tags": [
+    "elder"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 22 verts as Part_Ear_L/R",
+   "shapeKeys": 15,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "ear_24_pinned_back",
+   "category": "ears",
+   "name": "pinned_back",
+   "socket": [
+    "Socket_Ear_L",
+    "Socket_Ear_R"
+   ],
+   "meshObjects": [
+    "Ear_24_pinned_back_L",
+    "Ear_24_pinned_back_R"
+   ],
+   "file": "export/parts_ears.fbx",
+   "tags": [
+    "noble",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 22 verts as Part_Ear_L/R",
+   "shapeKeys": 15,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "ear_25_dwarf_thick",
+   "category": "ears",
+   "name": "dwarf_thick",
+   "socket": [
+    "Socket_Ear_L",
+    "Socket_Ear_R"
+   ],
+   "meshObjects": [
+    "Ear_25_dwarf_thick_L",
+    "Ear_25_dwarf_thick_R"
+   ],
+   "file": "export/parts_ears.fbx",
+   "tags": [
+    "dwarf"
+   ],
+   "species": [
+    "dwarf"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 22 verts as Part_Ear_L/R",
+   "shapeKeys": 15,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "ear_26_halfling_pointy",
+   "category": "ears",
+   "name": "halfling_pointy",
+   "socket": [
+    "Socket_Ear_L",
+    "Socket_Ear_R"
+   ],
+   "meshObjects": [
+    "Ear_26_halfling_pointy_L",
+    "Ear_26_halfling_pointy_R"
+   ],
+   "file": "export/parts_ears.fbx",
+   "tags": [
+    "halfling"
+   ],
+   "species": [
+    "halfling"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 22 verts as Part_Ear_L/R",
+   "shapeKeys": 15,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "ear_27_bat_ear",
+   "category": "ears",
+   "name": "bat_ear",
+   "socket": [
+    "Socket_Ear_L",
+    "Socket_Ear_R"
+   ],
+   "meshObjects": [
+    "Ear_27_bat_ear_L",
+    "Ear_27_bat_ear_R"
+   ],
+   "file": "export/parts_ears.fbx",
+   "tags": [
+    "goblin",
+    "fey"
+   ],
+   "species": [
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 22 verts as Part_Ear_L/R",
+   "shapeKeys": 15,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "ear_28_cupped",
+   "category": "ears",
+   "name": "cupped",
+   "socket": [
+    "Socket_Ear_L",
+    "Socket_Ear_R"
+   ],
+   "meshObjects": [
+    "Ear_28_cupped_L",
+    "Ear_28_cupped_R"
+   ],
+   "file": "export/parts_ears.fbx",
+   "tags": [
+    "gentle",
+    "child"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child"
+   ],
+   "boundary": "identical loop of 22 verts as Part_Ear_L/R",
+   "shapeKeys": 15,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "ear_29_elf_swept_back",
+   "category": "ears",
+   "name": "elf_swept_back",
+   "socket": [
+    "Socket_Ear_L",
+    "Socket_Ear_R"
+   ],
+   "meshObjects": [
+    "Ear_29_elf_swept_back_L",
+    "Ear_29_elf_swept_back_R"
+   ],
+   "file": "export/parts_ears.fbx",
+   "tags": [
+    "elf",
+    "feminine"
+   ],
+   "species": [
+    "elf"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 22 verts as Part_Ear_L/R",
+   "shapeKeys": 15,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin material"
+    }
+   ],
+   "hat": "pointed elf/orc ears poke through hat brims: use hats with ear holes or hide ear"
+  },
+  {
+   "id": "ear_30_elf_scarred",
+   "category": "ears",
+   "name": "elf_scarred",
+   "socket": [
+    "Socket_Ear_L",
+    "Socket_Ear_R"
+   ],
+   "meshObjects": [
+    "Ear_30_elf_scarred_L",
+    "Ear_30_elf_scarred_R"
+   ],
+   "file": "export/parts_ears.fbx",
+   "tags": [
+    "elf",
+    "fighter"
+   ],
+   "species": [
+    "elf"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "boundary": "identical loop of 22 verts as Part_Ear_L/R",
+   "shapeKeys": 15,
+   "colourSlots": [
+    {
+     "slot": "skin",
+     "default": "skin",
+     "applies": "Skin material"
+    }
+   ],
+   "hat": "pointed elf/orc ears poke through hat brims: use hats with ear holes or hide ear"
+  },
+  {
+   "id": "hair_01_buzz_crop",
+   "category": "hair",
+   "name": "buzz_crop",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_01_buzz_crop"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "soldier",
+    "common",
+    "masculine",
+    "child"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "child",
+    "adult"
+   ],
+   "bones": [
+    "Head",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 627,
+   "shapeKeys": 25,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material, vertex colour 'Shade' = per-chunk shading"
+    }
+   ],
+   "hat": {
+    "compatible": true,
+    "variant": null,
+    "note": "sits under a hat as is"
+   }
+  },
+  {
+   "id": "hair_02_short_crop",
+   "category": "hair",
+   "name": "short_crop",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_02_short_crop"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "common",
+    "masculine",
+    "worker"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 650,
+   "shapeKeys": 22,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material, vertex colour 'Shade' = per-chunk shading"
+    }
+   ],
+   "hat": {
+    "compatible": true,
+    "variant": null,
+    "note": "sits under a hat as is"
+   }
+  },
+  {
+   "id": "hair_03_side_part",
+   "category": "hair",
+   "name": "side_part",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_03_side_part"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "common",
+    "masculine",
+    "merchant"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 1130,
+   "shapeKeys": 29,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material, vertex colour 'Shade' = per-chunk shading"
+    }
+   ],
+   "hat": {
+    "compatible": true,
+    "variant": null,
+    "note": "sits under a hat as is"
+   }
+  },
+  {
+   "id": "hair_04_quiff",
+   "category": "hair",
+   "name": "quiff",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_04_quiff"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "noble",
+    "masculine",
+    "young"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 850,
+   "shapeKeys": 22,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material, vertex colour 'Shade' = per-chunk shading"
+    }
+   ],
+   "hat": {
+    "compatible": false,
+    "variant": "Hair_04_quiff_hat",
+    "note": "flat/low variant without the top volume (buns, quiff, spikes, curls)"
+   }
+  },
+  {
+   "id": "hair_05_slick_back",
+   "category": "hair",
+   "name": "slick_back",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_05_slick_back"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "noble",
+    "courtly",
+    "masculine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 1898,
+   "shapeKeys": 25,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material, vertex colour 'Shade' = per-chunk shading"
+    }
+   ],
+   "hat": {
+    "compatible": true,
+    "variant": null,
+    "note": "sits under a hat as is"
+   }
+  },
+  {
+   "id": "hair_06_undercut",
+   "category": "hair",
+   "name": "undercut",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_06_undercut"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "young",
+    "rogue",
+    "masculine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 445,
+   "shapeKeys": 20,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material, vertex colour 'Shade' = per-chunk shading"
+    }
+   ],
+   "hat": {
+    "compatible": true,
+    "variant": null,
+    "note": "sits under a hat as is"
+   }
+  },
+  {
+   "id": "hair_07_mohawk",
+   "category": "hair",
+   "name": "mohawk",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_07_mohawk"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "fighter",
+    "outcast",
+    "orc"
+   ],
+   "species": [
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 418,
+   "shapeKeys": 29,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material, vertex colour 'Shade' = per-chunk shading"
+    }
+   ],
+   "hat": {
+    "compatible": false,
+    "variant": "Hair_07_mohawk_hat",
+    "note": "flat/low variant without the top volume (buns, quiff, spikes, curls)"
+   }
+  },
+  {
+   "id": "hair_08_bowl_cut",
+   "category": "hair",
+   "name": "bowl_cut",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_08_bowl_cut"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "rustic",
+    "child",
+    "common"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult"
+   ],
+   "bones": [
+    "Head",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 2002,
+   "shapeKeys": 31,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material, vertex colour 'Shade' = per-chunk shading"
+    }
+   ],
+   "hat": {
+    "compatible": true,
+    "variant": null,
+    "note": "sits under a hat as is"
+   }
+  },
+  {
+   "id": "hair_09_bob_cut",
+   "category": "hair",
+   "name": "bob_cut",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_09_bob_cut"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "courtly",
+    "feminine",
+    "merchant"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 5892,
+   "shapeKeys": 49,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material, vertex colour 'Shade' = per-chunk shading"
+    }
+   ],
+   "hat": {
+    "compatible": true,
+    "variant": null,
+    "note": "sits under a hat as is"
+   }
+  },
+  {
+   "id": "hair_10_long_straight",
+   "category": "hair",
+   "name": "long_straight",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_10_long_straight"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "feminine",
+    "elf",
+    "noble"
+   ],
+   "species": [
+    "elf"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck",
+    "UpperChest",
+    "Chest",
+    "Spine"
+   ],
+   "physicsFriendly": true,
+   "tris": 6019,
+   "shapeKeys": 53,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material, vertex colour 'Shade' = per-chunk shading"
+    }
+   ],
+   "hat": {
+    "compatible": true,
+    "variant": null,
+    "note": "sits under a hat as is"
+   }
+  },
+  {
+   "id": "hair_11_long_wavy",
+   "category": "hair",
+   "name": "long_wavy",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_11_long_wavy"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "feminine",
+    "wanderer"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck",
+    "UpperChest",
+    "Chest",
+    "Spine"
+   ],
+   "physicsFriendly": true,
+   "tris": 6811,
+   "shapeKeys": 59,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material, vertex colour 'Shade' = per-chunk shading"
+    }
+   ],
+   "hat": {
+    "compatible": true,
+    "variant": null,
+    "note": "sits under a hat as is"
+   }
+  },
+  {
+   "id": "hair_12_shoulder_layered",
+   "category": "hair",
+   "name": "shoulder_layered",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_12_shoulder_layered"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "feminine",
+    "common",
+    "merchant"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck",
+    "UpperChest",
+    "Chest",
+    "Spine"
+   ],
+   "physicsFriendly": true,
+   "tris": 5665,
+   "shapeKeys": 51,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material, vertex colour 'Shade' = per-chunk shading"
+    }
+   ],
+   "hat": {
+    "compatible": true,
+    "variant": null,
+    "note": "sits under a hat as is"
+   }
+  },
+  {
+   "id": "hair_13_ponytail_high",
+   "category": "hair",
+   "name": "ponytail_high",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_13_ponytail_high"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "young",
+    "common",
+    "feminine",
+    "soldier"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck",
+    "UpperChest",
+    "Chest",
+    "Spine"
+   ],
+   "physicsFriendly": true,
+   "tris": 1344,
+   "shapeKeys": 26,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material, vertex colour 'Shade' = per-chunk shading"
+    }
+   ],
+   "hat": {
+    "compatible": true,
+    "variant": null,
+    "note": "sits under a hat as is"
+   }
+  },
+  {
+   "id": "hair_14_ponytail_low",
+   "category": "hair",
+   "name": "ponytail_low",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_14_ponytail_low"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "common",
+    "worker",
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck",
+    "UpperChest",
+    "Chest",
+    "Spine"
+   ],
+   "physicsFriendly": true,
+   "tris": 1311,
+   "shapeKeys": 26,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material, vertex colour 'Shade' = per-chunk shading"
+    }
+   ],
+   "hat": {
+    "compatible": true,
+    "variant": null,
+    "note": "sits under a hat as is"
+   }
+  },
+  {
+   "id": "hair_15_bun_top",
+   "category": "hair",
+   "name": "bun_top",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_15_bun_top"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "feminine",
+    "scholar",
+    "common"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 878,
+   "shapeKeys": 22,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material, vertex colour 'Shade' = per-chunk shading"
+    }
+   ],
+   "hat": {
+    "compatible": false,
+    "variant": "Hair_15_bun_top_hat",
+    "note": "flat/low variant without the top volume (buns, quiff, spikes, curls)"
+   }
+  },
+  {
+   "id": "hair_16_bun_low",
+   "category": "hair",
+   "name": "bun_low",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_16_bun_low"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "feminine",
+    "elder",
+    "noble"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 797,
+   "shapeKeys": 24,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material, vertex colour 'Shade' = per-chunk shading"
+    }
+   ],
+   "hat": {
+    "compatible": true,
+    "variant": null,
+    "note": "sits under a hat as is"
+   }
+  },
+  {
+   "id": "hair_17_braid_single",
+   "category": "hair",
+   "name": "braid_single",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_17_braid_single"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "feminine",
+    "rustic",
+    "young"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck",
+    "UpperChest",
+    "Chest",
+    "Spine"
+   ],
+   "physicsFriendly": true,
+   "tris": 1518,
+   "shapeKeys": 28,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material, vertex colour 'Shade' = per-chunk shading"
+    }
+   ],
+   "hat": {
+    "compatible": true,
+    "variant": null,
+    "note": "sits under a hat as is"
+   }
+  },
+  {
+   "id": "hair_18_braids_two",
+   "category": "hair",
+   "name": "braids_two",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_18_braids_two"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "feminine",
+    "child",
+    "rustic"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child"
+   ],
+   "bones": [
+    "Head",
+    "Neck",
+    "UpperChest",
+    "Chest",
+    "Spine"
+   ],
+   "physicsFriendly": true,
+   "tris": 2149,
+   "shapeKeys": 36,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material, vertex colour 'Shade' = per-chunk shading"
+    }
+   ],
+   "hat": {
+    "compatible": true,
+    "variant": null,
+    "note": "sits under a hat as is"
+   }
+  },
+  {
+   "id": "hair_19_crown_braid",
+   "category": "hair",
+   "name": "crown_braid",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_19_crown_braid"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "feminine",
+    "noble",
+    "elder"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 1838,
+   "shapeKeys": 28,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material, vertex colour 'Shade' = per-chunk shading"
+    }
+   ],
+   "hat": {
+    "compatible": true,
+    "variant": null,
+    "note": "sits under a hat as is"
+   }
+  },
+  {
+   "id": "hair_20_curly_short",
+   "category": "hair",
+   "name": "curly_short",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_20_curly_short"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "common",
+    "any"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 4570,
+   "shapeKeys": 27,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material, vertex colour 'Shade' = per-chunk shading"
+    }
+   ],
+   "hat": {
+    "compatible": false,
+    "variant": "Hair_20_curly_short_hat",
+    "note": "flat/low variant without the top volume (buns, quiff, spikes, curls)"
+   }
+  },
+  {
+   "id": "hair_21_curly_long",
+   "category": "hair",
+   "name": "curly_long",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_21_curly_long"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "feminine",
+    "wanderer"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck",
+    "UpperChest",
+    "Chest",
+    "Spine"
+   ],
+   "physicsFriendly": true,
+   "tris": 6643,
+   "shapeKeys": 58,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material, vertex colour 'Shade' = per-chunk shading"
+    }
+   ],
+   "hat": {
+    "compatible": false,
+    "variant": "Hair_21_curly_long_hat",
+    "note": "flat/low variant without the top volume (buns, quiff, spikes, curls)"
+   }
+  },
+  {
+   "id": "hair_22_afro",
+   "category": "hair",
+   "name": "afro",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_22_afro"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "any",
+    "performer"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 4025,
+   "shapeKeys": 31,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material, vertex colour 'Shade' = per-chunk shading"
+    }
+   ],
+   "hat": {
+    "compatible": false,
+    "variant": "Hair_22_afro_hat",
+    "note": "flat/low variant without the top volume (buns, quiff, spikes, curls)"
+   }
+  },
+  {
+   "id": "hair_23_receding",
+   "category": "hair",
+   "name": "receding",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_23_receding"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "elder",
+    "masculine",
+    "common"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 607,
+   "shapeKeys": 21,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material, vertex colour 'Shade' = per-chunk shading"
+    }
+   ],
+   "hat": {
+    "compatible": true,
+    "variant": null,
+    "note": "sits under a hat as is"
+   }
+  },
+  {
+   "id": "hair_24_elder_thin",
+   "category": "hair",
+   "name": "elder_thin",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_24_elder_thin"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "elder",
+    "frail",
+    "any"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck",
+    "UpperChest",
+    "Chest",
+    "Spine"
+   ],
+   "physicsFriendly": true,
+   "tris": 1648,
+   "shapeKeys": 35,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material, vertex colour 'Shade' = per-chunk shading"
+    }
+   ],
+   "hat": {
+    "compatible": true,
+    "variant": null,
+    "note": "sits under a hat as is"
+   }
+  },
+  {
+   "id": "hair_25_tonsure",
+   "category": "hair",
+   "name": "tonsure",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_25_tonsure"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "monk",
+    "scholar",
+    "elder"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 455,
+   "shapeKeys": 17,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material, vertex colour 'Shade' = per-chunk shading"
+    }
+   ],
+   "hat": {
+    "compatible": true,
+    "variant": null,
+    "note": "sits under a hat as is"
+   }
+  },
+  {
+   "id": "hair_26_top_knot",
+   "category": "hair",
+   "name": "top_knot",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_26_top_knot"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "warrior",
+    "masculine",
+    "noble"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 750,
+   "shapeKeys": 20,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material, vertex colour 'Shade' = per-chunk shading"
+    }
+   ],
+   "hat": {
+    "compatible": false,
+    "variant": "Hair_26_top_knot_hat",
+    "note": "flat/low variant without the top volume (buns, quiff, spikes, curls)"
+   }
+  },
+  {
+   "id": "hair_27_tied_back",
+   "category": "hair",
+   "name": "tied_back",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_27_tied_back"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "worker",
+    "rustic",
+    "any"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck",
+    "UpperChest",
+    "Chest",
+    "Spine"
+   ],
+   "physicsFriendly": true,
+   "tris": 1397,
+   "shapeKeys": 33,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material, vertex colour 'Shade' = per-chunk shading"
+    }
+   ],
+   "hat": {
+    "compatible": true,
+    "variant": null,
+    "note": "sits under a hat as is"
+   }
+  },
+  {
+   "id": "hair_28_dreadlocks",
+   "category": "hair",
+   "name": "dreadlocks",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_28_dreadlocks"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "wanderer",
+    "outcast",
+    "performer"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 4030,
+   "shapeKeys": 60,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material, vertex colour 'Shade' = per-chunk shading"
+    }
+   ],
+   "hat": {
+    "compatible": true,
+    "variant": null,
+    "note": "sits under a hat as is"
+   }
+  },
+  {
+   "id": "hair_29_messy_tousled",
+   "category": "hair",
+   "name": "messy_tousled",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_29_messy_tousled"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "young",
+    "rogue",
+    "common"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 1418,
+   "shapeKeys": 29,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material, vertex colour 'Shade' = per-chunk shading"
+    }
+   ],
+   "hat": {
+    "compatible": false,
+    "variant": "Hair_29_messy_tousled_hat",
+    "note": "flat/low variant without the top volume (buns, quiff, spikes, curls)"
+   }
+  },
+  {
+   "id": "hair_30_wild_long",
+   "category": "hair",
+   "name": "wild_long",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_30_wild_long"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "elder",
+    "wanderer",
+    "hermit",
+    "orc"
+   ],
+   "species": [
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck",
+    "UpperChest",
+    "Chest",
+    "Spine"
+   ],
+   "physicsFriendly": true,
+   "tris": 6523,
+   "shapeKeys": 45,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material, vertex colour 'Shade' = per-chunk shading"
+    }
+   ],
+   "hat": {
+    "compatible": true,
+    "variant": null,
+    "note": "sits under a hat as is"
+   }
+  },
+  {
+   "id": "hair_04_quiff_hat",
+   "category": "hair",
+   "name": "quiff_hat",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_04_quiff_hat"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "noble",
+    "masculine",
+    "young",
+    "hat-variant"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck"
+   ],
+   "tris": 650,
+   "shapeKeys": 22,
+   "variantOf": "hair_04_quiff",
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": {
+    "compatible": true,
+    "variant": null
+   }
+  },
+  {
+   "id": "hair_07_mohawk_hat",
+   "category": "hair",
+   "name": "mohawk_hat",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_07_mohawk_hat"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "fighter",
+    "outcast",
+    "orc",
+    "hat-variant"
+   ],
+   "species": [
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck"
+   ],
+   "tris": 310,
+   "shapeKeys": 15,
+   "variantOf": "hair_07_mohawk",
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": {
+    "compatible": true,
+    "variant": null
+   }
+  },
+  {
+   "id": "hair_15_bun_top_hat",
+   "category": "hair",
+   "name": "bun_top_hat",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_15_bun_top_hat"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "feminine",
+    "scholar",
+    "common",
+    "hat-variant"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck"
+   ],
+   "tris": 650,
+   "shapeKeys": 22,
+   "variantOf": "hair_15_bun_top",
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": {
+    "compatible": true,
+    "variant": null
+   }
+  },
+  {
+   "id": "hair_20_curly_short_hat",
+   "category": "hair",
+   "name": "curly_short_hat",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_20_curly_short_hat"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "common",
+    "any",
+    "hat-variant"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck"
+   ],
+   "tris": 650,
+   "shapeKeys": 22,
+   "variantOf": "hair_20_curly_short",
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": {
+    "compatible": true,
+    "variant": null
+   }
+  },
+  {
+   "id": "hair_21_curly_long_hat",
+   "category": "hair",
+   "name": "curly_long_hat",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_21_curly_long_hat"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "feminine",
+    "wanderer",
+    "hat-variant"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck",
+    "UpperChest",
+    "Chest",
+    "Spine"
+   ],
+   "tris": 3283,
+   "shapeKeys": 43,
+   "variantOf": "hair_21_curly_long",
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": {
+    "compatible": true,
+    "variant": null
+   }
+  },
+  {
+   "id": "hair_22_afro_hat",
+   "category": "hair",
+   "name": "afro_hat",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_22_afro_hat"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "any",
+    "performer",
+    "hat-variant"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck"
+   ],
+   "tris": 665,
+   "shapeKeys": 28,
+   "variantOf": "hair_22_afro",
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": {
+    "compatible": true,
+    "variant": null
+   }
+  },
+  {
+   "id": "hair_26_top_knot_hat",
+   "category": "hair",
+   "name": "top_knot_hat",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_26_top_knot_hat"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "warrior",
+    "masculine",
+    "noble",
+    "hat-variant"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck"
+   ],
+   "tris": 426,
+   "shapeKeys": 20,
+   "variantOf": "hair_26_top_knot",
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": {
+    "compatible": true,
+    "variant": null
+   }
+  },
+  {
+   "id": "hair_29_messy_tousled_hat",
+   "category": "hair",
+   "name": "messy_tousled_hat",
+   "socket": [
+    "Socket_Hair"
+   ],
+   "meshObjects": [
+    "Hair_29_messy_tousled_hat"
+   ],
+   "file": "export/parts_hair.fbx",
+   "tags": [
+    "young",
+    "rogue",
+    "common",
+    "hat-variant"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Neck"
+   ],
+   "tris": 1250,
+   "shapeKeys": 29,
+   "variantOf": "hair_29_messy_tousled",
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": {
+    "compatible": true,
+    "variant": null
+   }
+  },
+  {
+   "id": "beard_01_moustache_pencil",
+   "category": "beards",
+   "name": "moustache_pencil",
+   "socket": [
+    "Socket_Beard"
+   ],
+   "meshObjects": [
+    "Beard_01_moustache_pencil"
+   ],
+   "file": "export/parts_beards.fbx",
+   "tags": [
+    "courtly",
+    "rogue"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Jaw",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 374,
+   "shapeKeys": 45,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "beard_02_moustache_chevron",
+   "category": "beards",
+   "name": "moustache_chevron",
+   "socket": [
+    "Socket_Beard"
+   ],
+   "meshObjects": [
+    "Beard_02_moustache_chevron"
+   ],
+   "file": "export/parts_beards.fbx",
+   "tags": [
+    "common",
+    "soldier"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Jaw",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 397,
+   "shapeKeys": 47,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "beard_03_moustache_walrus",
+   "category": "beards",
+   "name": "moustache_walrus",
+   "socket": [
+    "Socket_Beard"
+   ],
+   "meshObjects": [
+    "Beard_03_moustache_walrus"
+   ],
+   "file": "export/parts_beards.fbx",
+   "tags": [
+    "rustic",
+    "elder"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Jaw",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 428,
+   "shapeKeys": 47,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "beard_04_moustache_handlebar",
+   "category": "beards",
+   "name": "moustache_handlebar",
+   "socket": [
+    "Socket_Beard"
+   ],
+   "meshObjects": [
+    "Beard_04_moustache_handlebar"
+   ],
+   "file": "export/parts_beards.fbx",
+   "tags": [
+    "courtly",
+    "performer"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Jaw",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 363,
+   "shapeKeys": 46,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "beard_05_fu_manchu",
+   "category": "beards",
+   "name": "fu_manchu",
+   "socket": [
+    "Socket_Beard"
+   ],
+   "meshObjects": [
+    "Beard_05_fu_manchu"
+   ],
+   "file": "export/parts_beards.fbx",
+   "tags": [
+    "scholar",
+    "elder",
+    "warrior"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Jaw",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 599,
+   "shapeKeys": 52,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "beard_06_goatee_small",
+   "category": "beards",
+   "name": "goatee_small",
+   "socket": [
+    "Socket_Beard"
+   ],
+   "meshObjects": [
+    "Beard_06_goatee_small"
+   ],
+   "file": "export/parts_beards.fbx",
+   "tags": [
+    "common",
+    "rogue"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Jaw",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 321,
+   "shapeKeys": 41,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "beard_07_goatee_long_pointed",
+   "category": "beards",
+   "name": "goatee_long_pointed",
+   "socket": [
+    "Socket_Beard"
+   ],
+   "meshObjects": [
+    "Beard_07_goatee_long_pointed"
+   ],
+   "file": "export/parts_beards.fbx",
+   "tags": [
+    "noble",
+    "elder",
+    "scholar"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Jaw",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 422,
+   "shapeKeys": 44,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "beard_08_soul_patch",
+   "category": "beards",
+   "name": "soul_patch",
+   "socket": [
+    "Socket_Beard"
+   ],
+   "meshObjects": [
+    "Beard_08_soul_patch"
+   ],
+   "file": "export/parts_beards.fbx",
+   "tags": [
+    "performer",
+    "rogue"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Jaw",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 178,
+   "shapeKeys": 38,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "beard_09_van_dyke",
+   "category": "beards",
+   "name": "van_dyke",
+   "socket": [
+    "Socket_Beard"
+   ],
+   "meshObjects": [
+    "Beard_09_van_dyke"
+   ],
+   "file": "export/parts_beards.fbx",
+   "tags": [
+    "noble",
+    "courtly"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Jaw",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 786,
+   "shapeKeys": 49,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "beard_10_chinstrap",
+   "category": "beards",
+   "name": "chinstrap",
+   "socket": [
+    "Socket_Beard"
+   ],
+   "meshObjects": [
+    "Beard_10_chinstrap"
+   ],
+   "file": "export/parts_beards.fbx",
+   "tags": [
+    "rogue",
+    "soldier"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Jaw",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 407,
+   "shapeKeys": 39,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "beard_11_mutton_chops",
+   "category": "beards",
+   "name": "mutton_chops",
+   "socket": [
+    "Socket_Beard"
+   ],
+   "meshObjects": [
+    "Beard_11_mutton_chops"
+   ],
+   "file": "export/parts_beards.fbx",
+   "tags": [
+    "soldier",
+    "elder",
+    "rustic"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Jaw",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 109,
+   "shapeKeys": 29,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "beard_12_sideburns",
+   "category": "beards",
+   "name": "sideburns",
+   "socket": [
+    "Socket_Beard"
+   ],
+   "meshObjects": [
+    "Beard_12_sideburns"
+   ],
+   "file": "export/parts_beards.fbx",
+   "tags": [
+    "common",
+    "masculine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Jaw",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 2,
+   "shapeKeys": 13,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "beard_13_beard_short_full",
+   "category": "beards",
+   "name": "beard_short_full",
+   "socket": [
+    "Socket_Beard"
+   ],
+   "meshObjects": [
+    "Beard_13_beard_short_full"
+   ],
+   "file": "export/parts_beards.fbx",
+   "tags": [
+    "common",
+    "worker",
+    "masculine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Jaw",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 907,
+   "shapeKeys": 50,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "beard_14_beard_trimmed_neat",
+   "category": "beards",
+   "name": "beard_trimmed_neat",
+   "socket": [
+    "Socket_Beard"
+   ],
+   "meshObjects": [
+    "Beard_14_beard_trimmed_neat"
+   ],
+   "file": "export/parts_beards.fbx",
+   "tags": [
+    "merchant",
+    "noble",
+    "masculine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Jaw",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 812,
+   "shapeKeys": 50,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "beard_15_beard_long_chest",
+   "category": "beards",
+   "name": "beard_long_chest",
+   "socket": [
+    "Socket_Beard"
+   ],
+   "meshObjects": [
+    "Beard_15_beard_long_chest"
+   ],
+   "file": "export/parts_beards.fbx",
+   "tags": [
+    "elder",
+    "wanderer",
+    "scholar"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Jaw",
+    "Neck",
+    "UpperChest",
+    "Chest"
+   ],
+   "physicsFriendly": true,
+   "tris": 1586,
+   "shapeKeys": 54,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "beard_16_beard_elder_white_long",
+   "category": "beards",
+   "name": "beard_elder_white_long",
+   "socket": [
+    "Socket_Beard"
+   ],
+   "meshObjects": [
+    "Beard_16_beard_elder_white_long"
+   ],
+   "file": "export/parts_beards.fbx",
+   "tags": [
+    "elder",
+    "wizard",
+    "sage"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Jaw",
+    "Neck",
+    "UpperChest",
+    "Chest"
+   ],
+   "physicsFriendly": true,
+   "tris": 1917,
+   "shapeKeys": 57,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "beard_17_beard_forked",
+   "category": "beards",
+   "name": "beard_forked",
+   "socket": [
+    "Socket_Beard"
+   ],
+   "meshObjects": [
+    "Beard_17_beard_forked"
+   ],
+   "file": "export/parts_beards.fbx",
+   "tags": [
+    "warrior",
+    "noble",
+    "wanderer"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Jaw",
+    "Neck",
+    "UpperChest",
+    "Chest"
+   ],
+   "physicsFriendly": true,
+   "tris": 1181,
+   "shapeKeys": 54,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "beard_18_beard_dwarf_two_braids",
+   "category": "beards",
+   "name": "beard_dwarf_two_braids",
+   "socket": [
+    "Socket_Beard"
+   ],
+   "meshObjects": [
+    "Beard_18_beard_dwarf_two_braids"
+   ],
+   "file": "export/parts_beards.fbx",
+   "tags": [
+    "dwarf",
+    "warrior"
+   ],
+   "species": [
+    "dwarf"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Jaw",
+    "Neck",
+    "UpperChest",
+    "Chest"
+   ],
+   "physicsFriendly": true,
+   "tris": 2333,
+   "shapeKeys": 56,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "beard_19_beard_dwarf_braid_single",
+   "category": "beards",
+   "name": "beard_dwarf_braid_single",
+   "socket": [
+    "Socket_Beard"
+   ],
+   "meshObjects": [
+    "Beard_19_beard_dwarf_braid_single"
+   ],
+   "file": "export/parts_beards.fbx",
+   "tags": [
+    "dwarf",
+    "smith"
+   ],
+   "species": [
+    "dwarf"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Jaw",
+    "Neck",
+    "UpperChest",
+    "Chest"
+   ],
+   "physicsFriendly": true,
+   "tris": 1942,
+   "shapeKeys": 56,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "beard_20_beard_viking",
+   "category": "beards",
+   "name": "beard_viking",
+   "socket": [
+    "Socket_Beard"
+   ],
+   "meshObjects": [
+    "Beard_20_beard_viking"
+   ],
+   "file": "export/parts_beards.fbx",
+   "tags": [
+    "warrior",
+    "northern",
+    "wanderer"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Jaw",
+    "Neck",
+    "UpperChest",
+    "Chest"
+   ],
+   "physicsFriendly": true,
+   "tris": 2593,
+   "shapeKeys": 54,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "beard_21_balbo",
+   "category": "beards",
+   "name": "balbo",
+   "socket": [
+    "Socket_Beard"
+   ],
+   "meshObjects": [
+    "Beard_21_balbo"
+   ],
+   "file": "export/parts_beards.fbx",
+   "tags": [
+    "merchant",
+    "performer",
+    "noble"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Jaw",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 792,
+   "shapeKeys": 49,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "beard_22_neckbeard",
+   "category": "beards",
+   "name": "neckbeard",
+   "socket": [
+    "Socket_Beard"
+   ],
+   "meshObjects": [
+    "Beard_22_neckbeard"
+   ],
+   "file": "export/parts_beards.fbx",
+   "tags": [
+    "common",
+    "worker"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Jaw",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 97,
+   "shapeKeys": 16,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "beard_23_beard_wild_unkempt",
+   "category": "beards",
+   "name": "beard_wild_unkempt",
+   "socket": [
+    "Socket_Beard"
+   ],
+   "meshObjects": [
+    "Beard_23_beard_wild_unkempt"
+   ],
+   "file": "export/parts_beards.fbx",
+   "tags": [
+    "hermit",
+    "wanderer",
+    "orc"
+   ],
+   "species": [
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Jaw",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 1196,
+   "shapeKeys": 51,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "beard_24_scraggly_chin",
+   "category": "beards",
+   "name": "scraggly_chin",
+   "socket": [
+    "Socket_Beard"
+   ],
+   "meshObjects": [
+    "Beard_24_scraggly_chin"
+   ],
+   "file": "export/parts_beards.fbx",
+   "tags": [
+    "elder",
+    "orc",
+    "frail"
+   ],
+   "species": [
+    "orc"
+   ],
+   "sexes": [
+    "M"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Jaw",
+    "Neck"
+   ],
+   "physicsFriendly": false,
+   "tris": 838,
+   "shapeKeys": 44,
+   "colourSlots": [
+    {
+     "slot": "hairColor",
+     "default": "brown",
+     "palette": "hair",
+     "applies": "Hair material"
+    }
+   ],
+   "hat": "always compatible"
+  },
+  {
+   "id": "mouthpart_MouthIn_01",
+   "category": "mouthParts",
+   "name": "MouthIn_01",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [
+    "MouthIn_01"
+   ],
+   "file": "export/parts_mouth.fbx",
+   "kind": "interior",
+   "style": null,
+   "tags": [],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Jaw"
+   ],
+   "tris": 168,
+   "shapeKeys": 41,
+   "colourSlots": [],
+   "hat": "always compatible"
+  },
+  {
+   "id": "mouthpart_Tongue_01",
+   "category": "mouthParts",
+   "name": "Tongue_01",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [
+    "Tongue_01"
+   ],
+   "file": "export/parts_mouth.fbx",
+   "kind": "tongue",
+   "style": null,
+   "tags": [],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Jaw"
+   ],
+   "tris": 100,
+   "shapeKeys": 36,
+   "colourSlots": [],
+   "hat": "always compatible"
+  },
+  {
+   "id": "mouthpart_Teeth_01_even",
+   "category": "mouthParts",
+   "name": "Teeth_01_even",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [
+    "Teeth_01_even"
+   ],
+   "file": "export/parts_mouth.fbx",
+   "kind": "teeth",
+   "style": "even",
+   "tags": [
+    "common"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Jaw"
+   ],
+   "tris": 1120,
+   "shapeKeys": 41,
+   "colourSlots": [],
+   "hat": "always compatible"
+  },
+  {
+   "id": "mouthpart_Teeth_02_gap",
+   "category": "mouthParts",
+   "name": "Teeth_02_gap",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [
+    "Teeth_02_gap"
+   ],
+   "file": "export/parts_mouth.fbx",
+   "kind": "teeth",
+   "style": "gap",
+   "tags": [
+    "rustic"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Jaw"
+   ],
+   "tris": 1120,
+   "shapeKeys": 41,
+   "colourSlots": [],
+   "hat": "always compatible"
+  },
+  {
+   "id": "mouthpart_Teeth_03_fangs",
+   "category": "mouthParts",
+   "name": "Teeth_03_fangs",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [
+    "Teeth_03_fangs"
+   ],
+   "file": "export/parts_mouth.fbx",
+   "kind": "teeth",
+   "style": "fangs",
+   "tags": [
+    "orc",
+    "feral",
+    "vampire"
+   ],
+   "species": [
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Jaw"
+   ],
+   "tris": 1120,
+   "shapeKeys": 41,
+   "colourSlots": [],
+   "hat": "always compatible"
+  },
+  {
+   "id": "mouthpart_Teeth_04_broken",
+   "category": "mouthParts",
+   "name": "Teeth_04_broken",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [
+    "Teeth_04_broken"
+   ],
+   "file": "export/parts_mouth.fbx",
+   "kind": "teeth",
+   "style": "broken",
+   "tags": [
+    "outcast",
+    "fighter",
+    "elder"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Jaw"
+   ],
+   "tris": 952,
+   "shapeKeys": 41,
+   "colourSlots": [],
+   "hat": "always compatible"
+  },
+  {
+   "id": "mouthpart_Teeth_05_small",
+   "category": "mouthParts",
+   "name": "Teeth_05_small",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [
+    "Teeth_05_small"
+   ],
+   "file": "export/parts_mouth.fbx",
+   "kind": "teeth",
+   "style": "small",
+   "tags": [
+    "child",
+    "elf"
+   ],
+   "species": [
+    "elf"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child"
+   ],
+   "bones": [
+    "Head",
+    "Jaw"
+   ],
+   "tris": 1120,
+   "shapeKeys": 41,
+   "colourSlots": [],
+   "hat": "always compatible"
+  },
+  {
+   "id": "mouthpart_Teeth_06_buck",
+   "category": "mouthParts",
+   "name": "Teeth_06_buck",
+   "socket": [
+    "Socket_Mouth"
+   ],
+   "meshObjects": [
+    "Teeth_06_buck"
+   ],
+   "file": "export/parts_mouth.fbx",
+   "kind": "teeth",
+   "style": "buck",
+   "tags": [
+    "rustic",
+    "comic"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "sexes": [
+    "M",
+    "F"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "bones": [
+    "Head",
+    "Jaw"
+   ],
+   "tris": 1120,
+   "shapeKeys": 41,
+   "colourSlots": [],
+   "hat": "always compatible"
+  }
+ ]
+}

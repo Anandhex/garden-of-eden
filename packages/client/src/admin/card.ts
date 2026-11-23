@@ -1,4 +1,4 @@
-import type { AdminCard, AdminEvent, AdminSection } from "@millbrook/shared";
+import type { AdminCard, AdminEvent, AdminSection } from "@garden-of-eden/shared";
 import { el } from "../dom";
 import { nav } from "./nav";
 import { pins } from "./pins";
@@ -131,7 +131,9 @@ export function renderEvent(e: AdminEvent, names: (ref: string) => string): HTML
     people.append(linkButton(names(p), () => nav.openCard(p), p));
   });
   row("People", e.people.length ? people : "none recorded");
-  row("Caused by", e.causedBy.length ? e.causedBy.join(", ") : "not tracked yet (N20)");
+  row("Caused by", e.causedBy.length ? e.causedBy.join(", ") : "nothing recorded");
+  row("Led to", e.ledTo?.length ? e.ledTo.join(", ") : "nothing yet");
+  row("Player knows", e.playerKnows === undefined || e.playerKnows === null ? "not yet" : `since day ${e.playerKnows}`);
   row("Ref", e.ref);
   root.append(t);
   return root;

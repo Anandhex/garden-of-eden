@@ -1,4 +1,4 @@
-import { describeWalk, shortestWay, type RoadPath } from "@millbrook/shared";
+import { describeWalk, shortestWay, type RoadPath } from "@garden-of-eden/shared";
 import type { PlayerState } from "../../npc/types.js";
 import type { Realm } from "../realm/types.js";
 import { landOf, nearestRoad } from "./ground.js";

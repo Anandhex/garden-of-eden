@@ -1,5 +1,5 @@
-import { seedOf } from "@millbrook/shared";
-import type { Mark } from "@millbrook/shared/view";
+import { seedOf } from "@garden-of-eden/shared";
+import type { Mark } from "@garden-of-eden/shared/view";
 import { config } from "../../config.js";
 import type { MarkRow } from "../../store/markStore.js";
 import { siteMap, type SiteMap } from "../../web/sites.js";

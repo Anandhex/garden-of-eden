@@ -7,7 +7,7 @@
  * server's to decide.
  */
 import * as THREE from "three";
-import type { Frame, GameEvent } from "@millbrook/shared/view";
+import type { Frame, GameEvent } from "@garden-of-eden/shared/view";
 import type { Core, FrameChange } from "../../../core";
 import { shortCoins } from "../../../dom";
 import type { WorldView } from "../worldView";

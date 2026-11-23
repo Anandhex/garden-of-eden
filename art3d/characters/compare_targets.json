@@ -1,0 +1,390 @@
+{
+ "_doc": "G9 plan 5.3 (body_face) and 11.4 (loomis). g = |ours - target| / tol; '>=' rows: 0 when met, else (limit - ours)/0.1. Never tune these to pass.",
+ "body_face": {
+  "heads_tall": {
+   "F": 8.2,
+   "tol": 0.2,
+   "M": 8.0,
+   "w": 3
+  },
+  "shoulder_w_over_head_h": {
+   "F": 1.62,
+   "tol": 0.08,
+   "M": 2.05,
+   "w": 2
+  },
+  "waist_w_over_head_h": {
+   "F": 1.0,
+   "tol": 0.06,
+   "M": 1.25,
+   "w": 2
+  },
+  "hip_w_over_head_h": {
+   "F": 1.5,
+   "tol": 0.08,
+   "M": 1.42,
+   "w": 2
+  },
+  "waist_over_hip": {
+   "F": 0.667,
+   "tol": 0.04,
+   "M": 0.88,
+   "w": 3
+  },
+  "crotch_over_height": {
+   "F": 0.485,
+   "tol": 0.012,
+   "M": 0.48,
+   "w": 2
+  },
+  "neck_w_over_head_h": {
+   "F": 0.35,
+   "tol": 0.03,
+   "M": 0.5,
+   "w": 1
+  },
+  "neck_len_over_head_h": {
+   "F": 0.36,
+   "tol": 0.04,
+   "M": 0.32,
+   "w": 1
+  },
+  "hand_len_over_head_h": {
+   "F": 0.76,
+   "tol": 0.05,
+   "M": 0.8,
+   "w": 2
+  },
+  "wrist_hang_vs_crotch": {
+   "F": 0.0,
+   "tol": 0.015,
+   "M": 0.0,
+   "w": 1
+  },
+  "eye_w_over_head_h": {
+   "F": 0.143,
+   "tol": 0.015,
+   "M": 0.135,
+   "w": 3
+  },
+  "eye_h_over_w": {
+   "F": 0.38,
+   "tol": 0.04,
+   "M": 0.36,
+   "w": 3
+  },
+  "eye_tilt_deg": {
+   "F": 9,
+   "tol": 3,
+   "M": 5,
+   "w": 2
+  },
+  "iris_d_over_eye_w": {
+   "F": 0.45,
+   "tol": 0.04,
+   "M": 0.45,
+   "w": 2
+  },
+  "inter_over_eye_w": {
+   "F": 1.0,
+   "tol": 0.08,
+   "M": 1.0,
+   "w": 1
+  },
+  "nose_w_over_face_w": {
+   "F": 0.22,
+   "tol": 0.025,
+   "M": 0.26,
+   "w": 2
+  },
+  "nose_len_over_head_h": {
+   "F": 0.22,
+   "tol": 0.025,
+   "M": 0.23,
+   "w": 1
+  },
+  "mouth_w_over_face_w": {
+   "F": 0.46,
+   "tol": 0.03,
+   "M": 0.46,
+   "w": 3
+  },
+  "mouth_w_over_nose_w": {
+   "F": ">=1.8",
+   "tol": null,
+   "M": ">=1.6",
+   "w": 2
+  },
+  "lip_h_over_mouth_w": {
+   "F": 0.3,
+   "tol": 0.04,
+   "M": 0.25,
+   "w": 3
+  },
+  "lip_h_over_head_h": {
+   "F": 0.097,
+   "tol": 0.012,
+   "M": 0.08,
+   "w": 2
+  },
+  "chin_w_over_face_w": {
+   "F": 0.3,
+   "tol": 0.05,
+   "M": 0.4,
+   "w": 2
+  },
+  "ear_h_over_head_h": {
+   "F": 0.2,
+   "tol": 0.02,
+   "M": 0.21,
+   "w": 3
+  },
+  "ear_stickout_over_head_w": {
+   "F": 0.03,
+   "tol": 0.02,
+   "M": 0.04,
+   "w": 3
+  },
+  "eye_line_from_top": {
+   "F": 0.52,
+   "tol": 0.03,
+   "M": 0.51,
+   "w": 1
+  },
+  "eyeball_d_over_eye_w": {
+   "F": 1.12,
+   "tol": 0.06,
+   "M": 1.12,
+   "w": 1
+  }
+ },
+ "loomisClassic": {
+  "hairline": 0.143,
+  "brow": 0.429,
+  "eye": 0.5,
+  "nose_base": 0.714,
+  "mouth": 0.81,
+  "ball_d": 0.857,
+  "side_plane_r": 0.667
+ },
+ "loomisTargetLines": {
+  "F": {
+   "brow": 0.39,
+   "eye": 0.53,
+   "nose_base": 0.7,
+   "mouth": 0.81,
+   "ear_top": 0.46,
+   "ear_bottom": 0.66
+  },
+  "M": {
+   "brow": 0.4,
+   "eye": 0.52,
+   "nose_base": 0.71,
+   "mouth": 0.81,
+   "ear_top": 0.45,
+   "ear_bottom": 0.66
+  }
+ },
+ "_gate1": "2026-11-16 user Gate 1: body widths F waist 1.00 / hips 1.50 / shoulders 1.62 head heights (about 20 / 30 / 33 cm), M waist 1.25 / hips 1.42; heights F 1.65 m, M 1.78 m",
+ "_gate1b": "2026-11-17 user: eyes too wide -> eye width 0.26 F / 0.24 M of head width (0.182 / 0.168 head heights), about one eye width between the eyes; Eye_Big / Eye_Spacing variants must stay within 0.22-0.30 of head width (WP5)",
+ "_gate2": "2026-11-17 user (MakeHuman checkpoint): eyes too wide, frog-like -> eye opening 0.20-0.21 (F) / 0.19-0.20 (M) of head width (0.143 / 0.135 head heights), one eye width between the eyes, eyes seated deeper, iris texture 1.1-1.15x; replaces _gate1b's 0.26 / 0.24",
+ "loomisGuideOnly": {
+  "brow_line": {
+   "F": 0.39,
+   "tol": 0.02,
+   "M": 0.4,
+   "w": 2
+  },
+  "eye_line": {
+   "F": 0.53,
+   "tol": 0.015,
+   "M": 0.52,
+   "w": 3
+  },
+  "eye_between_brow_and_nose": {
+   "F": 0.45,
+   "tol": 0.05,
+   "M": 0.39,
+   "w": 1
+  },
+  "nose_tip": {
+   "F": 0.64,
+   "tol": 0.02,
+   "M": 0.66,
+   "w": 1
+  },
+  "nose_base": {
+   "F": 0.7,
+   "tol": 0.015,
+   "M": 0.71,
+   "w": 3
+  },
+  "mouth_line": {
+   "F": 0.81,
+   "tol": 0.015,
+   "M": 0.81,
+   "w": 3
+  },
+  "lip_top": {
+   "F": 0.769,
+   "tol": 0.012,
+   "M": 0.776,
+   "w": 2
+  },
+  "lip_bottom": {
+   "F": 0.866,
+   "tol": 0.012,
+   "M": 0.856,
+   "w": 2
+  },
+  "lower_over_middle_third": {
+   "F": 0.97,
+   "tol": 0.06,
+   "M": 0.94,
+   "w": 3
+  },
+  "ear_top": {
+   "F": 0.46,
+   "tol": 0.02,
+   "M": 0.45,
+   "w": 2
+  },
+  "ear_bottom": {
+   "F": 0.66,
+   "tol": 0.02,
+   "M": 0.66,
+   "w": 2
+  },
+  "ear_h": {
+   "F": 0.2,
+   "tol": 0.02,
+   "M": 0.21,
+   "w": 3
+  },
+  "ear_front_depth": {
+   "F": 0.52,
+   "tol": 0.04,
+   "M": 0.52,
+   "w": 2
+  },
+  "ear_tilt_deg": {
+   "F": 12,
+   "tol": 5,
+   "M": 12,
+   "w": 1
+  },
+  "head_w_over_h": {
+   "F": 0.7,
+   "tol": 0.03,
+   "M": 0.7,
+   "w": 2
+  },
+  "head_depth_over_h": {
+   "F": 0.86,
+   "tol": 0.03,
+   "M": 0.88,
+   "w": 2
+  },
+  "eye_w_over_head_w": {
+   "F": 0.205,
+   "tol": 0.02,
+   "M": 0.195,
+   "w": 2
+  },
+  "gap_over_head_w": {
+   "F": 0.205,
+   "tol": 0.025,
+   "M": 0.195,
+   "w": 1
+  },
+  "nose_w_over_head_w": {
+   "F": 0.21,
+   "tol": 0.025,
+   "M": 0.25,
+   "w": 2
+  },
+  "mouth_w_over_head_w": {
+   "F": 0.44,
+   "tol": 0.03,
+   "M": 0.44,
+   "w": 3
+  },
+  "mouth_w_over_pupil": {
+   "F": 0.85,
+   "tol": 0.08,
+   "M": 0.85,
+   "w": 1
+  },
+  "_note": "2026-11-21: Loomis dropped as a target (drawing construction, not measured; user found it weird). Kept for history only, not scored."
+ },
+ "anthro": {
+  "_doc": "Measured adult anthropometry (Farkas 2005 North American norms, women / men; see g9 11 'Proportion system'). Ratios, tol ~1 SD. Stylise may push 10-20 % but these ratios stay near real.",
+  "lower_over_middle": {
+   "F": 1.27,
+   "M": 1.32,
+   "tol": 0.1,
+   "w": 3
+  },
+  "upper_over_middle": {
+   "F": 1.25,
+   "M": 1.22,
+   "tol": 0.12,
+   "w": 1
+  },
+  "eye_len_over_gap": {
+   "F": 0.97,
+   "M": 0.94,
+   "tol": 0.08,
+   "w": 2
+  },
+  "nose_w_over_gap": {
+   "F": 0.99,
+   "M": 1.05,
+   "tol": 0.1,
+   "w": 2
+  },
+  "mouth_over_nose_w": {
+   "F": 1.6,
+   "M": 1.55,
+   "tol": 0.15,
+   "w": 2
+  },
+  "mouth_over_pupil": {
+   "F": 0.85,
+   "M": 0.85,
+   "tol": 0.08,
+   "w": 2
+  },
+  "mouth_line_in_lower": {
+   "F": 0.33,
+   "M": 0.33,
+   "tol": 0.05,
+   "w": 2
+  },
+  "upper_lip_over_lower_lip": {
+   "F": 0.62,
+   "M": 0.62,
+   "tol": 0.12,
+   "w": 2
+  },
+  "head_h_over_w": {
+   "F": 1.45,
+   "M": 1.45,
+   "tol": 0.1,
+   "w": 2
+  },
+  "face_over_head_h": {
+   "F": 0.52,
+   "M": 0.53,
+   "tol": 0.04,
+   "w": 2
+  },
+  "eye_w_over_head_w": {
+   "F": 0.205,
+   "M": 0.195,
+   "tol": 0.02,
+   "w": 2
+  },
+  "_note_head": "head height = vertex to menton, head width = widest skull slice without ears; Farkas v-gn / eu-eu is about 1.5 (232/151 mm men), so 1.45 not the 1.3 first suggested; face = nasion to menton (Farkas n-gn 121 / 112 mm)"
+ }
+}

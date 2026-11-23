@@ -3,8 +3,8 @@
  * here was built in the browser before (ui/chat.ts, sheet.ts, roadbar.ts, realm.ts, modals.ts); an adapter now
  * only lays it out. It reads the snapshot and never changes the game.
  */
-import { CLASSES, CLASS_WORDS, DEFAULT_VOICE, type NpcView, type RealmView, type Snapshot } from "@millbrook/shared";
-import type { Intent, UiAction, UiModel } from "@millbrook/shared/view";
+import { CLASSES, CLASS_WORDS, DEFAULT_VOICE, type NpcView, type RealmView, type Snapshot, type SocietyAction } from "@garden-of-eden/shared";
+import type { Intent, UiAction, UiModel } from "@garden-of-eden/shared/view";
 import { formatMoney as coins } from "../game/money.js";
 import type { CrowdClock, Traveller } from "./frame.js";
 
@@ -42,6 +42,20 @@ const panel = (name: string, arg?: string): Intent => ({ t: "panel", panel: name
 
 function button(id: string, label: string, intent: Intent, o: { enabled?: boolean; why?: string; style?: UiAction["style"]; input?: UiAction["input"] } = {}): UiAction {
   return { id, label, enabled: o.enabled ?? true, intent, ...(o.why ? { why: o.why } : {}), ...(o.style ? { style: o.style } : {}), ...(o.input ? { input: o.input } : {}) };
+}
+
+/** A society button (N70): the server's `society` op with its arguments. */
+const societyButton = (a: SocietyAction, busy: boolean): UiAction =>
+  button(a.id, a.label, act("society", { op: a.op, ...(a.args ?? {}) }), { enabled: a.enabled && !busy, ...(a.why ? { why: a.why } : {}), ...(a.danger ? { style: "danger" as const } : {}), ...(a.input ? { input: a.input } : {}) });
+/** A society offer waiting for the player's word: confirm or cancel. */
+const societyOffer = (text: string, busy: boolean) => ({ text, actions: [button("society:confirm", "Do it", act("society", { op: "confirm" }), { style: "yes", enabled: !busy }), button("society:cancel", "Cancel", act("society", { op: "cancel" }), { enabled: !busy })] });
+
+/** The society panels (N70) as sheet sections: an offer waiting for the player's word, then the player's own state and the place's. */
+export function societySections(soc: NonNullable<Snapshot["society"]>, busy: boolean): Section[] {
+  const out: Section[] = [];
+  if (soc.offer) out.push({ title: "Waiting on your word", rows: [societyOffer(soc.offer.text, busy)] });
+  for (const sec of soc.sections) out.push({ title: sec.title, rows: sec.rows.map((r) => ({ text: r.text, ...(r.actions?.length ? { actions: r.actions.map((a) => societyButton(a, busy)) } : {}) })) });
+  return out;
 }
 
 /** Rows for a section, written as a list. */
@@ -146,6 +160,8 @@ function chat(s: Snapshot, st: UiState): UiModel["chat"] {
     npc.revenge ? `wants revenge (${npc.revenge})` : null,
     npc.plan ? `today: ${npc.plan.join("; ")}` : null,
     npc.family,
+    // What the player knows of them (N70): secrets, faith, the gift, their people.
+    ...(s.society?.people[npc.id]?.lines ?? []),
   ].filter((x): x is string => Boolean(x));
 
   // Offers waiting for an answer.
@@ -162,6 +178,7 @@ function chat(s: Snapshot, st: UiState): UiModel["chat"] {
   if (pend.service) yesNo("service", `${pend.service.kind === "lodging" ? "A room for the night" : "Tend your wounds"} for ${coins(pend.service.price)}?`);
   if (npc.pendingHire) yesNo("hire", `${npc.name} will come with you for ${coins(npc.pendingHire.wage)} a day (first day now).`);
   if (npc.pendingCommission) yesNo("commission", `Have ${npc.name} make you a ${npc.pendingCommission} to order (deposit now)?`);
+  if (s.society?.offer) offers.push(societyOffer(s.society.offer.text, busy));
   if (npc.dilemma) offers.push({ text: `${npc.name} asks you to choose: ${npc.dilemma.offer}.`, actions: npc.dilemma.options.map((o) => button(`choose:${o.id}`, o.label, act("choose", { npc: npc.id, option: o.id }), { enabled: !busy })) });
 
   // Quick lines.
@@ -199,6 +216,8 @@ function chat(s: Snapshot, st: UiState): UiModel["chat"] {
   }
   if (npc.companion) tool("dismiss", "Dismiss", on("dismiss"));
   if (npc.canPropose) tool("propose", "Ask to marry", on("propose"));
+  // Society (N70): pry, sell what you know, whisper a lie, pay a voice, buy a witness, ask to join the guild.
+  for (const a of s.society?.people[npc.id]?.tools ?? []) tools.push(societyButton(a, busy));
   // The N38 menu, done by the player: the same exchange NPCs choose.
   if (!npc.minor) {
     tool("insult", "Insult", on("insult"), "danger", "Say something cutting: they'll remember it");
@@ -310,6 +329,8 @@ function worldTab(s: Snapshot, st: UiState): Section[] {
     for (const x of r.people) if (x.factionName) facs.set(x.factionName, (facs.get(x.factionName) ?? 0) + 1);
     if (facs.size > 0) t.p(`Sworn to factions: ${[...facs].sort((a, b) => b[1] - a[1]).map(([n, c]) => `${n} (${c})`).join(", ")}.`);
   }
+  // Society (N70): an offer waiting for the player's word, then the player's own state and the place's.
+  if (s.society) t.sections.push(...societySections(s.society, st.busy));
   t.h("How the village sees you").p(p.reputation.words ? `As ${p.reputation.words}.` : "Nobody's made up their mind about you yet.");
   t.kv("trust · fear · respect · liking", `${p.reputation.trust} · ${p.reputation.fear} · ${p.reputation.respect} · ${p.reputation.affection}`);
   if (p.bounty) t.h("Wanted").p(`The guard wants you for ${p.crimes.join(", ")}. Fine: ${coins(p.bounty)}. Pay it or give yourself up to the guard.`);
@@ -367,6 +388,19 @@ function realmTab(s: Snapshot, st: UiState): Section[] {
     for (const f of s.player.follows) {
       t.row({ text: `${f.name} (${f.why}): ${f.last}`, actions: s.road ? [] : [button(`write:${f.id}`, "Write", act("write", { to: f.id }), { enabled: !busy, input: { arg: "text", placeholder: "A few lines…" }, why: "Leave a letter for the next traveller going their way" }), button(`waitfor:${f.id}`, "Wait for them", act("waituntil", { until: "arrives", who: f.id }), { enabled: !busy, why: "Wait here until they come to this place (a season at most)" }), button(`unfollow:${f.id}`, "Stop", act("unfollow", { npc: f.id }), { enabled: !busy, style: "ghost" })] });
       for (const n of f.news.slice(-2)) t.p(`· ${n}`);
+    }
+  }
+  // News the player has heard (N24): only what has reached them, here, in this kingdom, and from everywhere.
+  const feed = s.realm.feed;
+  if (feed) {
+    const ago = (d: number) => (d === s.realm!.day ? "today" : `day ${d}`);
+    for (const [scope, title] of [["here", `News of ${s.site.name}`], ["kingdom", "News of the kingdom"], ["everywhere", "News from everywhere"]] as const) {
+      // A wider scope holds the narrower ones: list only what the narrower lists didn't.
+      const shown = new Set(scope === "here" ? [] : [...feed.here, ...(scope === "everywhere" ? feed.kingdom : [])].map((x) => x.text));
+      const items = feed[scope].filter((x) => !shown.has(x.text)).slice(0, 6);
+      if (items.length === 0) continue;
+      t.h(title);
+      for (const x of items) t.kv(x.text, x.learned === x.day ? ago(x.day) : `${ago(x.day)}, heard ${ago(x.learned)}`);
     }
   }
   if (s.player.letters?.length) {

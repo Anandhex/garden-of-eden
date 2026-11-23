@@ -1,9 +1,9 @@
-import type { District, DistrictKind } from "@millbrook/shared";
+import type { District, DistrictKind } from "@garden-of-eden/shared";
 
 /**
  * Where a place's districts lie on its map (N26H decisions 1 and 2), as rectangles. Small places (a hamlet, a village) are
- * a green in the middle with the street along the road, farmsteads round about and the manor in a corner; towns and up are
- * a grid of quarters, each where it would be: the castle or palace ward on the high ground (the north-east), the noble
+ * a green in the middle with the built-up core round it, farmsteads round about and the manor in a corner; towns and up are
+ * a grid of quarters centred on the market square, each where it would be: the castle or palace ward on the high ground (the north-east), the noble
  * quarter next to it, the market at the crossroads, the gate where the road comes in (the west), the slums and the poor
  * end at the far, downwind side (the south), the docks on the water.
  */
@@ -18,7 +18,19 @@ export interface DistrictRect {
 /** Districts that are walled off, with a gate (a post) where a street comes in. */
 export const WALLED: ReadonlySet<DistrictKind> = new Set(["noble", "castle", "palace", "manor", "barracks"]);
 
-export function districtRects(districts: District[], o: { lo: number; hiX: number; hiY: number; mx: number; my: number; big: boolean }): DistrictRect[] {
+export interface RectOpts {
+  lo: number;
+  hiX: number;
+  hiY: number;
+  mx: number;
+  my: number;
+  big: boolean;
+  /** Small places: the green and its ring road, and the village's built-up core round it (both rectangles of tiles). */
+  green?: { x0: number; y0: number; x1: number; y1: number };
+  core?: { x0: number; y0: number; x1: number; y1: number };
+}
+
+export function districtRects(districts: District[], o: RectOpts): DistrictRect[] {
   const by = (k: DistrictKind) => districts.find((d) => d.kind === k);
   const out: DistrictRect[] = [];
   const add = (k: DistrictKind, x0: number, y0: number, x1: number, y1: number) => {
@@ -26,43 +38,63 @@ export function districtRects(districts: District[], o: { lo: number; hiX: numbe
     if (d && x1 > x0 && y1 > y0) out.push({ district: d, x0, y0, x1, y1 });
   };
   if (!o.big) {
-    // A manor in the north-east corner; the green round the middle; the street along the road; farmsteads all about.
+    // A manor in the north-east corner; the green with its ring road; the built-up core round it; farmsteads all about.
     if (by("manor")) add("manor", o.hiX - 11, o.lo, o.hiX, o.lo + 7);
-    add("green", o.mx - 6, o.my - 4, o.mx + 7, o.my + 4);
-    add("street", o.lo, o.my - 3, o.hiX, o.my + 3);
+    const g = o.green ?? { x0: o.mx - 10, y0: o.my - 4, x1: o.mx + 11, y1: o.my + 9 };
+    add("green", g.x0, g.y0, g.x1, g.y1);
+    const c = o.core ?? { x0: o.lo, y0: o.my - 4, x1: o.hiX, y1: o.my + 4 };
+    add("street", Math.max(o.lo, c.x0), Math.max(o.lo, c.y0), Math.min(o.hiX, c.x1), Math.min(o.hiY, c.y1));
     add("farmsteads", o.lo, o.lo, o.hiX, o.hiY);
     return out;
   }
-  const cols = districts.length > 12 ? 5 : districts.length > 9 ? 4 : 3;
+  // A grid of quarters centred on the crossroads: three columns (five in the big cities), three rows; the middle one is the
+  // market square's.
+  const cols = districts.length > 9 ? 5 : 3;
   const rows = 3;
-  const cw = Math.floor((o.hiX - o.lo + 1) / cols);
-  const ch = Math.floor((o.hiY - o.lo + 1) / rows);
-  const cell = (r: number, c: number) => ({ x0: o.lo + c * cw, y0: o.lo + r * ch, x1: c === cols - 1 ? o.hiX : o.lo + (c + 1) * cw - 1, y1: r === rows - 1 ? o.hiY : o.lo + (r + 1) * ch - 1 });
-  // Where each kind wants to be, best first: [row, col] with negative cols from the east.
-  const want: Array<[DistrictKind, Array<[number, number]>]> = [
-    ["palace", [[0, -1]]],
-    ["castle", [[0, -1]]],
-    ["noble", [[0, -2], [1, -1]]],
-    ["cathedral", [[0, 1], [0, 0]]],
-    ["market", [[1, 1]]],
-    ["gate", [[1, 0]]],
-    ["temple_close", [[0, 0], [0, 1]]],
-    ["high_street", [[1, 2], [1, -1], [0, 1]]],
-    ["guild", [[0, 1], [1, 2], [2, 1]]],
-    ["barracks", [[2, 0], [1, 0]]],
-    ["craft", [[2, 1], [2, 2]]],
-    ["docks", [[2, -1]]],
-    ["slums", [[2, -1], [2, -2]]],
-    ["poor_end", [[2, -1], [2, 2], [2, 0]]],
-    ["foreign", [[2, 2], [1, 2], [2, 1]]],
+  const split = (lo: number, hi: number, mid: number, n: number): number[] => {
+    // n cells with the middle one centred on `mid`.
+    const total = hi - lo + 1;
+    const cw = Math.floor(total / n);
+    const side = Math.floor((n - 1) / 2);
+    const m0 = Math.max(lo + side * 8, Math.min(hi - side * 8 - cw + 1, mid - Math.floor(cw / 2)));
+    const bounds: number[] = [];
+    for (let i = 0; i < side; i++) bounds.push(Math.round(lo + ((m0 - lo) * i) / side));
+    bounds.push(m0, m0 + cw);
+    for (let i = 1; i <= side; i++) bounds.push(Math.round(m0 + cw + ((hi + 1 - (m0 + cw)) * i) / side));
+    return bounds;
+  };
+  const bx = split(o.lo, o.hiX, o.mx, cols);
+  const by2 = split(o.lo, o.hiY, o.my, rows);
+  const cell = (r: number, c: number) => ({ x0: bx[c]!, y0: by2[r]!, x1: bx[c + 1]! - 1, y1: by2[r + 1]! - 1 });
+  // Where each kind wants to be, best first: [row, column] with columns named from the west: W, WM (west middle), C (centre), EM, E.
+  const col = (name: string): number => {
+    if (cols === 3) return { W: 0, WM: 0, C: 1, EM: 2, E: 2 }[name]!;
+    return { W: 0, WM: 1, C: 2, EM: 3, E: 4 }[name]!;
+  };
+  const want: Array<[DistrictKind, Array<[number, string]>]> = [
+    ["palace", [[0, "E"]]],
+    ["castle", [[0, "E"]]],
+    ["noble", [[0, "EM"], [1, "E"], [0, "C"]]],
+    ["cathedral", [[0, "C"]]],
+    ["market", [[1, "C"]]],
+    ["gate", [[1, "W"]]],
+    ["temple_close", [[0, "C"], [0, "WM"], [0, "W"]]],
+    ["high_street", [[1, "EM"], [1, "E"], [1, "WM"]]],
+    ["guild", [[0, "WM"], [2, "C"], [1, "EM"]]],
+    ["barracks", [[2, "W"], [1, "W"]]],
+    ["craft", [[2, "C"], [2, "WM"], [2, "EM"]]],
+    ["docks", [[2, "E"]]],
+    ["slums", [[2, "E"], [2, "EM"]]],
+    ["poor_end", [[2, "E"], [2, "EM"], [2, "WM"], [2, "W"]]],
+    ["foreign", [[2, "WM"], [1, "WM"], [2, "EM"]]],
   ];
   const used = new Set<string>();
   for (const [k, spots] of want) {
     if (!by(k)) continue;
-    for (const [r, c0] of spots) {
-      const c = c0 < 0 ? cols + c0 : c0;
+    for (const [r, name] of spots) {
+      const c = col(name);
       const key = `${r},${c}`;
-      if (c < 0 || c >= cols || used.has(key)) continue;
+      if (used.has(key)) continue;
       used.add(key);
       const b = cell(r, c);
       add(k, b.x0, b.y0, b.x1, b.y1);

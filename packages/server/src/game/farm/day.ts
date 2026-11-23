@@ -1,4 +1,4 @@
-import { dayOfYear, growthAt, isMarked, PER_HEAD, seedOf, STAGE, yearOf, type FieldEvent, type FieldEventKind, type Plot } from "@millbrook/shared";
+import { dayOfYear, growthAt, isMarked, PER_HEAD, seedOf, STAGE, yearOf, type FieldEvent, type FieldEventKind, type Plot } from "@garden-of-eden/shared";
 import { config } from "../../config.js";
 import type { PersonRow } from "../../store/peopleStore.js";
 import type { PlotRow } from "../../store/farmStore.js";

@@ -7,7 +7,7 @@ import { spawn as nodeSpawn } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { NpcVoice, VoiceInfo } from "@millbrook/shared";
+import type { NpcVoice, VoiceInfo } from "@garden-of-eden/shared";
 
 export interface TtsProvider {
   readonly name: string;
@@ -73,7 +73,7 @@ export class PiperCliTts implements TtsProvider {
     const model = voice.piper?.model ?? listPiperModels(this.voicesDir)[0];
     if (!model) return Promise.reject(new Error(`No Piper voice models in ${this.voicesDir}.`));
     // real time, not simulation: a temp file name
-    const out = join(tmpdir(), `millbrook-${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2)}.wav`);
+    const out = join(tmpdir(), `garden-of-eden-${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2)}.wav`);
     const args = ["--model", join(this.voicesDir, `${model}.onnx`), "--output_file", out];
     if (voice.piper?.speaker !== undefined) args.push("--speaker", String(voice.piper.speaker));
     if (voice.piper?.lengthScale !== undefined) args.push("--length_scale", String(voice.piper.lengthScale));

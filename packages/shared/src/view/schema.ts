@@ -48,7 +48,24 @@ export const ActorSchema = z.object({
   y: z.number(),
   facing: z.enum(["n", "e", "s", "w"]).optional(),
   /** `sprite` is an art id (art.ts); the adapter maps it to its own art. */
-  look: z.object({ sprite: z.string(), tint: z.string().optional(), trim: z.string().optional(), size: z.number().optional() }),
+  look: z.object({
+    sprite: z.string(),
+    tint: z.string().optional(),
+    trim: z.string().optional(),
+    size: z.number().optional(),
+    /** Who this is, for engines that build a body from parts (all optional; an adapter that does not need them ignores them). Species id: human, elf, dwarf, halfling, orc for people; wolf, deer, goblin... for creatures. */
+    species: z.string().optional(),
+    /** "f" or "m" (absent: the adapter picks from the id). */
+    sex: z.enum(["f", "m"]).optional(),
+    /** Age band: child, adult, elder, venerable. */
+    age: z.enum(["child", "adult", "elder", "venerable"]).optional(),
+    /** Social class (slave ... royal) for townsfolk. */
+    cls: z.string().optional(),
+    /** Job or role (smith, innkeeper, guard, farmer, child...). */
+    job: z.string().optional(),
+    /** Culture template of the place (highland, river, coastal, forest, steppe, imperial): sets the style of dress. */
+    culture: z.string().optional(),
+  }),
   label: z.string().nullable(),
   /** What to show when the actor is far (e.g. "[caravan]"), or null to show nothing. */
   shortLabel: z.string().nullable().optional(),
@@ -72,6 +89,8 @@ export const PatchSchema = z.object({
   objects: z.array(z.number().int()),
   /** The land's height (G7 Part B), eighths of a tile, row by row; drawing only. Absent: flat. */
   height: z.array(z.number().int().min(0).max(40)).optional(),
+  /** The land's relief for the 3D client: the same unit as `height` but up to 255 (valleys, hills of tens of metres). Absent: use `height`. */
+  relief: z.array(z.number().int().min(0).max(255)).optional(),
 });
 export type Patch = z.infer<typeof PatchSchema>;
 
@@ -92,6 +111,8 @@ export const BuildingSchema = z.object({
   door: Point.nullable().optional(),
   /** Smoke from its chimney (N31): someone home with a fire lit, in the cold months or after dark. */
   smoke: z.boolean().optional(),
+  /** How it is built (Unity client): the architecture of the town's culture (a culture template id: highland, river, coastal, forest, steppe, imperial). Absent: the client's default. */
+  style: z.string().optional(),
 });
 export const LightSchema = z.object({ id: z.string(), x: z.number(), y: z.number(), kind: z.enum(["window", "lamp", "fire", "torch", "forge", "magic"]), on: z.boolean() });
 export const SignSchema = z.object({ id: z.string(), x: z.number(), y: z.number(), text: z.string(), kind: z.enum(["exit", "place"]) });
@@ -102,7 +123,7 @@ export type Mark = z.infer<typeof MarkSchema>;
 export const ChatterSchema = z.object({ a: z.string(), b: z.string(), lines: z.tuple([z.string(), z.string()]), hot: z.boolean(), bow: z.boolean() });
 
 export const FrameSchema = z.object({
-  /** `locale` (G8): who built the place and where, so an adapter builds its buildings in the local style (architecture.ts). */
+  /** `locale` (G10): who built the place and where, so an adapter builds its buildings in the local style (shapes.ts). */
   map: z.object({ id: z.string(), name: z.string(), kind: z.enum(["place", "road"]), w: z.number().nullable(), h: z.number().nullable(), locale: LocaleSchema.optional() }),
   box: z.object({ x0: z.number(), y0: z.number(), x1: z.number(), y1: z.number() }),
   patches: z.array(PatchSchema).optional(),

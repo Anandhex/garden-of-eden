@@ -271,6 +271,35 @@ export interface NotableView {
   claims: Array<{ who: string; name: string; line: string; wants: boolean }>;
 }
 
+/** A button of the society panels (N70): a `society` op with its arguments, offered only where it can be done. */
+export interface SocietyAction {
+  id: string;
+  label: string;
+  op: string;
+  args?: Record<string, string | number>;
+  enabled: boolean;
+  /** Why it's offered, or why it's not (disabled). */
+  why?: string;
+  danger?: boolean;
+  /** A box beside the button whose value goes in as this argument. */
+  input?: { arg: string; placeholder: string };
+}
+export interface SocietyRow {
+  text: string;
+  actions?: SocietyAction[];
+}
+/**
+ * Stages 4–5 for the player (N70): what they know of the place (customs and taboos, its faith, the den if known, the court's cases, the
+ * war and its levy) and of themselves (tongues, spells, record, a chapter and its exits), what they know of each person about, and an
+ * offer waiting to be confirmed. Built by the server (game/society/player.ts); the panels only lay it out.
+ */
+export interface SocietyView {
+  offer: { text: string } | null;
+  sections: Array<{ title: string; rows: SocietyRow[] }>;
+  /** By talker id: lines for their sheet, and what can be done with them. */
+  people: Record<string, { lines: string[]; tools: SocietyAction[] }>;
+}
+
 export interface SituationView {
   id: string;
   title: string;
@@ -423,12 +452,20 @@ export interface Snapshot {
   board?: BoardView | null;
   /** The player's things with a history, as far as they know them (N43). */
   items?: NotableView[];
+  /** Society for the player (N70): the place, themselves, the people about. */
+  society?: SocietyView | null;
   player: PlayerView;
   chronicle: { lore: string[]; log: Array<{ day: number; kind: string; ok: boolean; reason: string; proposal: string; event?: string }> };
   /** Marriages, courtships, children on the way and children born in play (N11.3), in words. */
   family: string[];
   /** The wider realm (N13) in brief, or null in worlds without one; the whole of it goes to clients as `ui.realm` (RealmView). */
-  realm: { day: number; latest: string | null; wars: number } | null;
+  realm: {
+    day: number;
+    latest: string | null;
+    wars: number;
+    /** N24: the news the player knows, by scope (here, this place's kingdom, everywhere), newest first, each above its scope's floor. */
+    feed?: Record<"here" | "kingdom" | "everywhere", Array<{ day: number; learned: number; text: string; importance: number }>>;
+  } | null;
   /**
    * The player's guild membership and the dungeons in reach (N13.6). One is delved
    * from its mouth (N15): `here` when the player stands there, else `mouth` says where it is.

@@ -53,7 +53,7 @@ Counted on 2026-10-13: `HOME_ID` has **89 uses in 21 files**; "Millbrook" appear
 |---|---|---|
 | The cast's hourly day (schedules, needs, gossip, restocking, crafting, quest boards) | `Town.passHours` → `passVillage(this.members())`, `restock` | the talking people of the **active site** |
 | Creatures breeding, raids by night, the underworld (black market, raid planning; "someone in Millbrook is selling weapons to the bandits") | `breedCreatures`, `passCreatureTime(…, DEMO_SPAWNS)`, `passVillageNights` ([`underworld.ts`](../../../packages/server/src/game/underworld.ts)) | active site; the underworld wherever a gang and a smith exist |
-| Spawn rules and dens | [`data/spawns.json`](../../../packages/server/src/data/spawns.json) (Millbrook's dens), `DEN_KEYS`, `DEMO_SPAWNS` ([`world/world.ts`](../../../packages/server/src/world/world.ts)) | **generated** rules from what the realm says is at each site, by den **kind** (decision 9) |
+| Spawn rules and dens | [`data/spawns.json`](../../../packages/server/tests/fixtures/spawns.json) (Millbrook's dens), `DEN_KEYS`, `DEMO_SPAWNS` ([`world/world.ts`](../../../packages/server/src/world/world.ts)) | **generated** rules from what the realm says is at each site, by den **kind** (decision 9) |
 | Town events (market every 7th day, festival, raid days, mine road closed) | [`events-calendar.ts`](../../../packages/server/src/game/events-calendar.ts) `townEventsOn(world)` | `townEventsOn(site, day)`, market day offset seeded per site |
 | What the realm sends to the map, and the realm's needs as quests | [`realm/home.ts`](../../../packages/server/src/game/realm/home.ts) (`syncCast`, `applyHomeEvents`, `postNeedQuests`, Rook leads the gang), [`realm/director.ts`](../../../packages/server/src/game/realm/director.ts) `homeNeeds` | `syncTalkers(site)`, `applyArrivals(site)`, `needsOf(realm, site, day)` for any site |
 | Rising from the crowd | [`realm/rise.ts`](../../../packages/server/src/game/realm/rise.ts) (`f.home === HOME_ID`, "a farmer of Millbrook has made a name") | the active site's crowd |
@@ -65,15 +65,15 @@ Counted on 2026-10-13: `HOME_ID` has **89 uses in 21 files**; "Millbrook" appear
 | Place words | [`schedule.ts`](../../../packages/server/src/game/schedule.ts) `PLACE_NAMES` ("Millbrook forge") | from the site's map |
 
 ### D. Hand-written content (all removed from the game)
-- **NPC files:** [`data/npcs/`](../../../packages/server/src/data/npcs/) `brena`, `hale`, `pell`, `pip`, `rook`, `wren`. Loaded by `server.ts`, `cli.ts`, `bench-style.ts`, `bench-traits.ts`; `cli.ts` starts with Brena.
-- **Lore:** [`data/world.json`](../../../packages/server/src/data/world.json): Millbrook, its forge, the Goose, the gate, the mine road, the cart attack, facts about the cast.
+- **NPC files:** [`data/npcs/`](../../../packages/server/tests/fixtures/npcs/) `brena`, `hale`, `pell`, `pip`, `rook`, `wren`. Loaded by `server.ts`, `cli.ts`, `bench-style.ts`, `bench-traits.ts`; `cli.ts` starts with Brena.
+- **Lore:** [`data/world.json`](../../../packages/server/tests/fixtures/world.json): Millbrook, its forge, the Goose, the gate, the mine road, the cart attack, facts about the cast.
 - **Faction files:** [`data/factions/`](../../../packages/server/src/data/factions/) `bandits` ("Rook's gang", members `["rook"]`), `guard`, `merchants`: named, with members.
 - **Code that names cast members:** `NPC_LOOKS` (map.ts), `syncCast`'s "Rook leads the gang" (home.ts), "Corporal Hale" (cli, server, client sheet), the family code's "born in Millbrook", and cast ids in `actions.ts`, `quests.ts`, `social.ts`, `knowledge.ts`, `rumours.ts`, `crafting.ts`, `family.ts`, `village.ts`, `training.ts`, `scene.ts`, `gossip.ts`, `factions.ts`, `dilemmas.ts`, `journal.ts`, director modules (mostly comments and examples; some logic: check each).
 - **Story content tied to them:** the bandit leader (N3.2), Pip the errand girl (N11), the cart attack opening news, Brena's black-market weapons.
 - **Templates** ([`data/templates/`](../../../packages/server/src/data/templates/) farmer, merchant, guard, child, bandit) **stay**: they're generators, not people. Their text mentions Millbrook ("a farmer from the fields east of Millbrook"); that becomes `{place}`.
 - **Prompts:** [`npc/templates.ts`](../../../packages/server/src/npc/templates.ts) "a small fantasy village called Millbrook"; [`family.ts`](../../../packages/server/src/game/family.ts) "a young villager of Millbrook".
 - **Client:** "Home: Millbrook", "(not heard in Millbrook yet)", "Corporal Hale", the `home` ring on the realm map.
-- **Names only (leave):** `@millbrook/shared`, the `millbrook.timeFlows` storage key, temp file names. Those are the project's name. Renaming is out of scope.
+- **Names only (leave):** `@garden-of-eden/shared`, the `millbrook.timeFlows` storage key, temp file names. Those are the project's name. Renaming is out of scope.
 
 ### E. What the hand-written NPCs gave that generated ones don't (yet)
 Generated personas (`assemblePersona` in [`npc/templates.ts`](../../../packages/server/src/npc/templates.ts)) leave many fields the hand-written files fill: `secrets: []`, and no `fears`, `loves`, `dilemmas`, `arcs`, `relationships`, `reputationFacts`, `signature`, `services`, `hire`, `successor`/`successorOf`, `debts`, `quirks` (check), `injuries`. **Mechanics from N4–N9 read those fields**: cover stories and secrets (N4), fears and loves (N5), dilemmas and successors (N7), signature moves and services (N6), hired companions (N8), arcs (N9). With only generated people, those mechanics would go quiet. **Step 5 of this phase generates them in code**, so removing the hand-written NPCs doesn't remove features.
@@ -114,7 +114,7 @@ All answered on 2026-10-13: no scenarios, no authored NPCs, throw away saves, st
 Each step is a commit that leaves `npm run typecheck`, `npm test` and `npm run check-npcs` green. Steps 1–4 are refactors that shouldn't change how a world plays: compare a seed-1 golden run (N18's `worldHash` with a fixed input script) after each, through a projection that maps moved fields to their new places. From step 5 on, worlds change on purpose (Millbrook and the cast are gone), so take a new golden run and say so.
 
 ### Step 0: the centre lint
-- `tests/centre.test.ts`: scan `packages/{server,shared,client}/src/**/*.ts`, `packages/server/scripts/**/*.ts` and `packages/server/src/data/**/*.json` for: `HOME_ID`, `millbrook`/`Millbrook` (word), the cast's names (`Brena`, `Hale`, `Pell`, `Pip`, `Rook`, `Wren`, `Aldric Voss`, `Reyna Holt`, `Gilded Goose`, `Old Mine Deeps`), `atHome(`, `world.creatures`, `world.haunts`, `realm.home`, `s.home`, `tests/fixtures`. Allowed: the `@millbrook/` package scope and `millbrook.` storage keys.
+- `tests/centre.test.ts`: scan `packages/{server,shared,client}/src/**/*.ts`, `packages/server/scripts/**/*.ts` and `packages/server/src/data/**/*.json` for: `HOME_ID`, `millbrook`/`Millbrook` (word), the cast's names (`Brena`, `Hale`, `Pell`, `Pip`, `Rook`, `Wren`, `Aldric Voss`, `Reyna Holt`, `Gilded Goose`, `Old Mine Deeps`), `atHome(`, `world.creatures`, `world.haunts`, `realm.home`, `s.home`, `tests/fixtures`. Allowed: the `@garden-of-eden/` package scope and `millbrook.` storage keys.
 - Each pattern starts with today's count as a **ceiling**; each step lowers what it earned; the phase ends at 0. Progress is visible and no new centre code lands meanwhile.
 
 ### Step 1: the player always has a site; `startSite`
@@ -250,4 +250,4 @@ All of it, before N26. If time is short, steps 0–4 and 6–7 are the must-have
 
 ## 9. Out of scope
 
-Choosing the start town (N39). Renaming the project (`@millbrook/` packages). The player's own home (N66). Following several sites at full detail (N34). Per-kingdom cultures and names (N53).
+Choosing the start town (N39). Renaming the project (`@garden-of-eden/` packages). The player's own home (N66). Following several sites at full detail (N34). Per-kingdom cultures and names (N53).

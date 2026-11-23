@@ -1,4 +1,4 @@
-import type { InteractionKind } from "@millbrook/shared";
+import type { InteractionKind } from "@garden-of-eden/shared";
 import type { EventKind } from "../events.js";
 import type { Activity, PlaceId } from "../schedule.js";
 

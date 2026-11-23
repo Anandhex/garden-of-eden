@@ -5,7 +5,7 @@
  */
 import { createServer, type Server } from "node:http";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { findPath, type Snapshot } from "@millbrook/shared";
+import { findPath, type Snapshot } from "@garden-of-eden/shared";
 import { ProtocolClient, sleep, startGame, type GameProcess } from "../scripts/game-process.js";
 
 let game: GameProcess;
@@ -125,9 +125,16 @@ describe("game server (G1)", () => {
     const c = await play();
     // Whoever of the town's talkers is nearest, wherever on the map: the server walks the player there.
     const s = await state();
-    const npc = s.npcs.filter((n) => !n.dead && !n.away).sort((a, b) => Math.hypot(a.x - s.position.x, a.y - s.position.y) - Math.hypot(b.x - s.position.x, b.y - s.position.y))[0]!;
-    c.send({ t: "click", x: npc.x, y: npc.y });
-    await c.until(() => c.ui.chat?.open === true && c.ui.header?.busy === false, 60_000, "the chat");
+    const near = s.npcs.filter((n) => !n.dead && !n.away).sort((a, b) => Math.hypot(a.x - s.position.x, a.y - s.position.y) - Math.hypot(b.x - s.position.x, b.y - s.position.y));
+    // A crowd can stand in the way of the nearest (a random start town, a busy street): then the next nearest, as a player would.
+    for (const npc of near.slice(0, 4)) {
+      const from = c.msgs.length;
+      c.send({ t: "click", x: npc.x, y: npc.y });
+      const blocked = () => c.since(from).some((m) => m.t === "feed" && m.lines.some((l) => /in your way/.test(l.text)));
+      await c.until(() => (c.ui.chat?.open === true && c.ui.header?.busy === false) || blocked(), 60_000, "the chat");
+      if (c.ui.chat?.open === true) break;
+    }
+    await c.until(() => c.ui.chat?.open === true && c.ui.header?.busy === false, 1000, "the chat");
     c.send({ t: "say", mode: "say", text: "Hello." });
     await c.until(() => c.ui.chat?.open === true && c.ui.chat.log.some((l) => /Could not reach Ollama/.test(l.text)), 15_000, "the offline note");
     c.send({ t: "close" });

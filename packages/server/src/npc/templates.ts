@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { z } from "zod";
-import type { NpcVoice } from "@millbrook/shared";
+import type { NpcVoice } from "@garden-of-eden/shared";
 import { structured } from "../director/structured.js";
 import { type Rng } from "../game/dice.js";
 import { gearLimit } from "../game/gear.js";

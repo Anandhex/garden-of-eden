@@ -1,4 +1,4 @@
-import { tilesFrom, type Journey, type RoadData } from "@millbrook/shared";
+import { tilesFrom, type Journey, type RoadData } from "@garden-of-eden/shared";
 import type { PlayerState } from "../../npc/types.js";
 import type { WorldStore } from "../db.js";
 import { formatMoney } from "../money.js";

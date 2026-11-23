@@ -441,6 +441,8 @@ export const RealmNewsSchema = z.object({
   people: z.array(z.string()).optional(),
   /** The reason behind it, when a choice made it happen: a war's cause, a split's grievance, how a head was picked (N17). */
   why: z.string().optional(),
+  /** What led to it (N20): refs, `n:<news id>` or a game event's id. */
+  causedBy: z.array(z.string()).max(3).optional(),
 });
 export type RealmNews = z.infer<typeof RealmNewsSchema>;
 

@@ -78,6 +78,12 @@ export const config = {
   gossip: (process.env.GOSSIP ?? "on") !== "off",
   /** Townsfolk who meet greet, snub, insult and quarrel, and a wronged person may seek revenge (N37). CHATTER=off turns it off. */
   chatter: (process.env.CHATTER ?? "on") !== "off",
+  /** The drama manager (N20): a quiet spell near the player hurries a thread already in motion (a grudge near revenge). Off until N38; DRAMA=on turns it on. */
+  drama: process.env.DRAMA === "on",
+  /** Stories found in the cause links, and how alive each day was (N20). STORIES=off turns both off. */
+  stories: (process.env.STORIES ?? "on") !== "off",
+  /** A snapshot of the world (realm and tables, gzipped, with its hash) at the start of day 1 and every this-many days, for replay (N23). 0: none. SNAPSHOT_EVERY=5 turns it on. */
+  snapshotEvery: Number(process.env.SNAPSHOT_EVERY ?? 0),
   /** Everyone grown wants something from their life, and careers move: apprentices rise, shops open, seats are fought over (N40). AMBITIONS=off turns it off. */
   ambitions: (process.env.AMBITIONS ?? "on") !== "off",
   /** People play at the inn, hold contests, fairs and tournaments (N41, game/leisure/). LEISURE=off turns it off. */
@@ -90,6 +96,7 @@ export const config = {
    * Stages 4–6 (N45–N64): society, power and a changing world. Each system has its own switch (env `<NAME>=off`): FEUDS (estates, disputes,
    * feuds, affairs: N45), SECRETS (N46), UNDERWORLD (N47), TRIALS (N48), BELIEF (N50), MAGIC (N51), CULTURES (N53), PEOPLES (N54), ARMIES
    * (N55), UNREST (N56–N58), RUNAWAYS (N59), ECOLOGY (N60), EPIDEMICS (N61), DISASTERS (N62), EXPLORATION (N63), NEW_KINGDOMS (N64).
+   * N56–N64 are not built (audit 2026-11-16, N70): their switches are read by nothing yet, as marked below.
    */
   society: {
     feuds: (process.env.FEUDS ?? "on") !== "off",
@@ -101,9 +108,11 @@ export const config = {
     cultures: (process.env.CULTURES ?? "on") !== "off",
     peoples: (process.env.PEOPLES ?? "on") !== "off",
     armies: (process.env.ARMIES ?? "on") !== "off",
+    // Not built yet (N56–N64): nothing reads these switches; they are here so the env names stay stable when the phases land.
     unrest: (process.env.UNREST ?? "on") !== "off",
     runaways: (process.env.RUNAWAYS ?? "on") !== "off",
     ecology: (process.env.ECOLOGY ?? "on") !== "off",
+    // N61: only the outbreak state reads this (game/epidemic/model.ts); nothing starts an outbreak yet.
     epidemics: (process.env.EPIDEMICS ?? "on") !== "off",
     disasters: (process.env.DISASTERS ?? "on") !== "off",
     exploration: (process.env.EXPLORATION ?? "on") !== "off",

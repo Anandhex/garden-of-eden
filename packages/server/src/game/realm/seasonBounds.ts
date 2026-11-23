@@ -1,4 +1,4 @@
-import { roadClosed } from "@millbrook/shared";
+import { roadClosed } from "@garden-of-eden/shared";
 import { config } from "../../config.js";
 import { roadDataOf } from "../road/generateRoads.js";
 import { seasonDays } from "../weather.js";

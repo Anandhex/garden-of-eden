@@ -1,6 +1,6 @@
 [← Living world overview](../README.md) · [Stage 1](../stage-1-foundations.md) · [Stage 2](../stage-2-everyone-lives.md) · [Stage 3](../stage-3-npcs-choose.md) · [Stage 4](../stage-4-society.md) · [Stage 5](../stage-5-power-and-conflict.md) · [Stage 6](../stage-6-a-changing-world.md) · [Stage 7](../stage-7-the-player-in-the-world.md)
 
-# Implementation plans, N17–N68
+# Implementation plans, N17–N70
 
 Written 2026-10-13 (N17–N28) and 2026-10-14 (N29–N68). These are build guides for every phase of the living world track, for a coding agent (Sonnet, Opus) or a person picking up a phase cold. The stage files say **what** each phase is and when it's done. These plans say **how**: what exists now, which files to touch, the data shapes, the order of steps, the traps, and the tests that prove it.
 
@@ -189,6 +189,8 @@ Added 2026-10-14 with the N29–N68 plans. Everything in sections 1–10 still h
 
 ## 11. Where things stand, and the pieces that are missing
 
+**Audit, 2026-11-16:** since the lines below were written, Stage 4 (N45–N53) and first cuts of N54 and N55 were built as rules with tests (2026-11-03 and after), without the player's side, admin cards or docs; [N70](n70-society-in-play.md) is the catch-up. N27 and N28 are built. N20, N21, N23 and N24 steps 2–3 are still not built: of the table below, only the last three rows are done. `causedBy` is filled by hand in about twenty files (chatter, choice, kin, secrets, leisure, road situations), with no `withCause` scope and no stories.
+
 **Built (2026-10-23):** N17, N18, N19, N25, N25a, N25b, N26, N33, N37, N38 and N40 (see each stage file's **What differs**). **Since:** playtest pack 1 (2026-10-24), N69 (2026-11-02), the rest of Stage 2 (N27–N36, 2026-11-03) and the rest of Stage 3 (N39, N41–N44, 2026-11-03). **The vertical slice is built**, and the first play of it (2026-10-24) produced N26F–N26J (Part 3). **Not built:** N20–N24 (except `player.known`, `playerKnows` and `playerLearns`, built as N33's step 0 in `game/playerKnowledge.ts`), N27 and N28.
 
 **N26 Part E is built on top of N26 (2026-10-14, save v14)** ([plan](n26-the-open-road.md#part-e-everyone-on-the-road-is-someone-rework-asked-for-2026-10-14), asked for 2026-10-14): every traveller is a real person row (`people.away` while on a journey), migrants arrive on the day their journey does, the messenger relay (`relay.ts`) is deleted, and **news spreads by people**: travellers carry what their place knew when they left (`journey.carries`) and swap it with places at every stop, inns most of all; `reachesAt(news, site)` becomes "the day the place first heard it, or not yet". **The N29–N68 plans assume Part E, which is built.** Where the plans say `SiteState.newsSeen` with a day, read `realm.heard[site][newsId]` (see the stage file's What differs). Where a plan says a journey, a traveller or a carrier, it means a real person on a Part E journey; where it says a place heard news, it means Part E's `newsSeen` day. N33 then makes that knowledge per person instead of per place. Several later plans lean on small parts of those phases. **The rule:** if a phase needs a part that doesn't exist yet, it builds that part (only that part, as written in its own plan) as **step 0**, and says so in the stage file. It doesn't build its own version.
@@ -273,7 +275,7 @@ New tables after these: add them to `TABLES` and `ORDER_BY` in [`store/schema.ts
 
 ## 16. Save and schema versions from here on
 
-The save is at **v16** and the database at **schema 17** (Stage 3, 2026-11-03: v16 adds only optional fields, so a v15 save loads as it is; schema 16 is N42's `jobs`, `parties` and `people.grade`, schema 17 N43's `notable_items`; schema 9 was N40's, 2026-10-23). Every phase that adds saved state bumps the save version, the schema version or both, **with a real migration and a test from the version before** (the clean breaks at v11 and v13 were one-time decisions). If a phase would rather start clean, ask the user first. Each plan has a **Save** line saying what it adds. Two phases in a row may share a bump if they're built together.
+**Now (2026-11-16): save v17, schema 18** (Stages 4–5: the generic `records` table, `people.will`, `claimed_father`, `faith`, `gift`; saves from v14 on load). Before that: the save is at **v16** and the database at **schema 17** (Stage 3, 2026-11-03: v16 adds only optional fields, so a v15 save loads as it is; schema 16 is N42's `jobs`, `parties` and `people.grade`, schema 17 N43's `notable_items`; schema 9 was N40's, 2026-10-23). Every phase that adds saved state bumps the save version, the schema version or both, **with a real migration and a test from the version before** (the clean breaks at v11 and v13 were one-time decisions). If a phase would rather start clean, ask the user first. Each plan has a **Save** line saying what it adds. Two phases in a row may share a bump if they're built together.
 
 ## 17. Three grains of detail, and what a daily rule may read
 
@@ -285,7 +287,9 @@ So **any new daily rule for townsfolk must be a pure function of their rows, the
 
 ## 18. Client work goes in layers
 
-The browser draws from data it already has (N16's rule). New visual systems are their own Phaser layer like [`CrowdLayer.ts`](../../../packages/client/src/world/CrowdLayer.ts) and [`RoadLayer.ts`](../../../packages/client/src/world/RoadLayer.ts) (`world/MarksLayer.ts`, `world/InteriorLayer.ts`, `audio/` for sound); panels go in `client/src/ui/`; settings go in a small prefs module like [`voice/prefs.ts`](../../../packages/client/src/voice/prefs.ts); admin views go in [`client/src/admin/views/`](../../../packages/client/src/admin/views/). Logic the browser and server must agree on (placement, positions, what a sound bed is) goes in `packages/shared/src/` and is tested there.
+> **Changed by G5 (2026-10-23) and G8 (2026-11-04); read this first.** The paragraph below was written for the old web client. Now: anything the player sees is decided on the server, in `server/src/view/frame.ts` (the world) and `server/src/view/ui.ts` (panels, as sections and rows), with types in `shared/src/view/schema.ts`; every client draws it. The web client is under `packages/client/src/adapter/web/` (`world/`, `iso/`, `voice/`, `panels.ts`, `audio.ts`); the Unity client is `unity/GardenOfEden`. Files named in older plans that no longer exist: `client/src/ui/*.ts` (sheet, realm, roadbar, modals: now `view/ui.ts` plus `adapter/web/panels.ts`), `client/src/world/CrowdLayer.ts` and `RoadLayer.ts` (now `adapter/web/world/actors.ts` and the frame), `client/src/game.ts`, `store.ts`, `simulate.ts` (now `core/` and the server), `server/src/game/realm/visitors.ts` and `home.ts` (removed by N25a), `server/src/game/road/sources.ts`. A plan that says "add a Phaser layer" means: add it to the frame or the UI model, then draw it in each adapter.
+
+The browser draws from data it already has (N16's rule). New visual systems are their own Phaser layer like [`CrowdLayer.ts`](../../../packages/client/src/world/CrowdLayer.ts) and [`RoadLayer.ts`](../../../packages/client/src/world/RoadLayer.ts) (`world/MarksLayer.ts`, `world/InteriorLayer.ts`, `audio/` for sound); panels go in `client/src/ui/`; settings go in a small prefs module like [`voice/prefs.ts`](../../../packages/client/src/adapter/web/voice/prefs.ts); admin views go in [`client/src/admin/views/`](../../../packages/client/src/admin/views/). Logic the browser and server must agree on (placement, positions, what a sound bed is) goes in `packages/shared/src/` and is tested there.
 
 ## 19. New model call kinds
 
@@ -336,6 +340,15 @@ Every name the model invents goes through the invented-name check (`inventedWord
 2. [N39](n39-the-first-hour.md) the first hour (with N26H's note: show one way into a closed district early). ✅ Built 2026-11-03 (without the closed-district pointer), with the rest of Stage 3 (N41–N44).
 3. The rest of Stage 2: [N30](n30-seasons-and-the-farming-year.md) (✅ built 2026-11-02) (regional weather; its food curve now comes from N26G), [N27](n27-the-wilds.md) (✅ built 2026-11-02), [N28](n28-fauna-and-flora.md) (✅ built 2026-11-02), N31 (✅ built 2026-11-02), N32 (✅ built 2026-11-03), N34 (✅ built 2026-11-03), N35 (✅ built 2026-11-03, with N26 Part C), N36 (✅ built 2026-11-03), N29 (✅ built 2026-11-03), with N20, N21, N23 and N24 where the plans need them.
 4. Then Stages 3–7 in order, minus what the pack already built (parts of N48 and N49 as N26J's stand-ins). Stop and play after each stage, write down what feels alive and what is noise, and change the next stage's plans from that before building it.
+
+**Order from 2026-11-16** (after the audit; the look comes first by the user's decision of 2026-11-04, so the simulation steps wait for it or run beside it as server-only work):
+
+1. [G9](../../game/plans/g9-characters-face-body-plan.md) characters, then the rest of [G8](../../game/README.md#g8-the-unity-client). In hand.
+2. ✅ [N70](n70-society-in-play.md) society in play: fix `n55`, close the two dead ends, wire the player's actions, admin, bounds (built 2026-11-22). Next: a playtest of Stages 2–4, then N20 step 1.
+3. **Play** Stages 2–4 (the playtests that were skipped: playtest 2, Stage 2, Stage 3, N39's first hours by hand) and revise the plans for Stages 5–7 from it.
+4. [N20](n20-stories-drama-liveness.md) step 1 (causes on every event, the `withCause` scope) and [N24](n24-global-reporting.md) steps 2–3 (delivery to the player). N56, N58, N65 and N68 need them.
+5. Finish N54 and N55 against their plans, or cut the plans down to what was built and record why in the stage file.
+6. N56 → N59, then Stage 6, then Stage 7, with a play after each stage.
 
 The plans for N27–N68 were written before the slice was played. They are a good starting point, not a contract: if a playtest shows a phase is noise, cut it and record why in the stage file.
 

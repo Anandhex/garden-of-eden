@@ -1,0 +1,6634 @@
+{
+ "garments": {
+  "t_shirt": {
+   "neutral": {
+    "minSD": 0.0012,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "39/966"
+   },
+   "heavy_belly": {
+    "minSD": -0.0246,
+    "inside": 3,
+    "bodyThrough": 1
+   },
+   "thin": {
+    "minSD": 0.0091,
+    "inside": 0,
+    "bodyThrough": 1
+   },
+   "breast_curvy": {
+    "minSD": 0.005,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": -0.0228,
+    "inside": 4,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": -0.0334,
+    "inside": 9,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": -0.0203,
+    "inside": 1,
+    "bodyThrough": 3
+   },
+   "orc": {
+    "minSD": -0.024,
+    "inside": 4,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": -0.0156,
+    "inside": 2,
+    "bodyThrough": 1
+   },
+   "child": {
+    "minSD": 0.0062,
+    "inside": 0,
+    "bodyThrough": 6
+   },
+   "elf_tall": {
+    "minSD": 0.0034,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "t_shirt_open": {
+   "neutral": {
+    "minSD": 0.0012,
+    "inside": 0,
+    "bodyThrough": 6,
+    "inwardFaces": "53/940"
+   },
+   "heavy_belly": {
+    "minSD": -0.0246,
+    "inside": 3,
+    "bodyThrough": 4
+   },
+   "thin": {
+    "minSD": 0.004,
+    "inside": 0,
+    "bodyThrough": 1
+   },
+   "breast_curvy": {
+    "minSD": 0.0046,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": -0.0228,
+    "inside": 4,
+    "bodyThrough": 1
+   },
+   "dwarf": {
+    "minSD": -0.0334,
+    "inside": 9,
+    "bodyThrough": 3
+   },
+   "halfling": {
+    "minSD": -0.0203,
+    "inside": 1,
+    "bodyThrough": 5
+   },
+   "orc": {
+    "minSD": -0.024,
+    "inside": 4,
+    "bodyThrough": 4
+   },
+   "old_heavy": {
+    "minSD": -0.0156,
+    "inside": 2,
+    "bodyThrough": 3
+   },
+   "child": {
+    "minSD": 0.0061,
+    "inside": 0,
+    "bodyThrough": 6
+   },
+   "elf_tall": {
+    "minSD": 0.0034,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "t_jerkin": {
+   "neutral": {
+    "minSD": 0.0,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "44/966"
+   },
+   "heavy_belly": {
+    "minSD": -0.0246,
+    "inside": 3,
+    "bodyThrough": 3
+   },
+   "thin": {
+    "minSD": 0.0052,
+    "inside": 0,
+    "bodyThrough": 3
+   },
+   "breast_curvy": {
+    "minSD": 0.0071,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": -0.0228,
+    "inside": 4,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": -0.0334,
+    "inside": 9,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": -0.0203,
+    "inside": 1,
+    "bodyThrough": 4
+   },
+   "orc": {
+    "minSD": -0.024,
+    "inside": 4,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": -0.0156,
+    "inside": 2,
+    "bodyThrough": 4
+   },
+   "child": {
+    "minSD": 0.0063,
+    "inside": 0,
+    "bodyThrough": 7
+   },
+   "elf_tall": {
+    "minSD": -0.0015,
+    "inside": 0,
+    "bodyThrough": 1
+   }
+  },
+  "t_bodice": {
+   "neutral": {
+    "minSD": 0.0048,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "20/966"
+   },
+   "heavy_belly": {
+    "minSD": -0.0068,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.0064,
+    "inside": 0,
+    "bodyThrough": 1
+   },
+   "breast_curvy": {
+    "minSD": 0.003,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": -0.0107,
+    "inside": 1,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": -0.0087,
+    "inside": 1,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": -0.0079,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": -0.0105,
+    "inside": 1,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": -0.0092,
+    "inside": 1,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": 0.0038,
+    "inside": 0,
+    "bodyThrough": 5
+   },
+   "elf_tall": {
+    "minSD": 0.0021,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "t_robe_top": {
+   "neutral": {
+    "minSD": -0.0054,
+    "inside": 0,
+    "bodyThrough": 3,
+    "inwardFaces": "70/966"
+   },
+   "heavy_belly": {
+    "minSD": -0.0349,
+    "inside": 4,
+    "bodyThrough": 6
+   },
+   "thin": {
+    "minSD": -0.0016,
+    "inside": 0,
+    "bodyThrough": 3
+   },
+   "breast_curvy": {
+    "minSD": -0.0045,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": -0.0477,
+    "inside": 6,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": -0.0372,
+    "inside": 10,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": -0.0018,
+    "inside": 0,
+    "bodyThrough": 7
+   },
+   "orc": {
+    "minSD": -0.0446,
+    "inside": 5,
+    "bodyThrough": 2
+   },
+   "old_heavy": {
+    "minSD": -0.0328,
+    "inside": 5,
+    "bodyThrough": 5
+   },
+   "child": {
+    "minSD": 0.0018,
+    "inside": 0,
+    "bodyThrough": 8
+   },
+   "elf_tall": {
+    "minSD": -0.0088,
+    "inside": 1,
+    "bodyThrough": 6
+   }
+  },
+  "t_doublet": {
+   "neutral": {
+    "minSD": -0.0042,
+    "inside": 0,
+    "bodyThrough": 2,
+    "inwardFaces": "59/966"
+   },
+   "heavy_belly": {
+    "minSD": -0.0298,
+    "inside": 6,
+    "bodyThrough": 4
+   },
+   "thin": {
+    "minSD": 0.0002,
+    "inside": 0,
+    "bodyThrough": 1
+   },
+   "breast_curvy": {
+    "minSD": -0.0023,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": -0.0271,
+    "inside": 3,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": -0.0394,
+    "inside": 12,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": -0.0208,
+    "inside": 1,
+    "bodyThrough": 6
+   },
+   "orc": {
+    "minSD": -0.0267,
+    "inside": 4,
+    "bodyThrough": 2
+   },
+   "old_heavy": {
+    "minSD": -0.0193,
+    "inside": 4,
+    "bodyThrough": 10
+   },
+   "child": {
+    "minSD": 0.0027,
+    "inside": 0,
+    "bodyThrough": 7
+   },
+   "elf_tall": {
+    "minSD": -0.0067,
+    "inside": 0,
+    "bodyThrough": 4
+   }
+  },
+  "t_deel": {
+   "neutral": {
+    "minSD": -0.0076,
+    "inside": 0,
+    "bodyThrough": 4,
+    "inwardFaces": "66/966"
+   },
+   "heavy_belly": {
+    "minSD": -0.0283,
+    "inside": 3,
+    "bodyThrough": 6
+   },
+   "thin": {
+    "minSD": -0.0129,
+    "inside": 1,
+    "bodyThrough": 2
+   },
+   "breast_curvy": {
+    "minSD": -0.006,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": -0.0387,
+    "inside": 5,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": -0.0482,
+    "inside": 13,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": -0.0019,
+    "inside": 0,
+    "bodyThrough": 7
+   },
+   "orc": {
+    "minSD": -0.0388,
+    "inside": 5,
+    "bodyThrough": 3
+   },
+   "old_heavy": {
+    "minSD": -0.0467,
+    "inside": 7,
+    "bodyThrough": 5
+   },
+   "child": {
+    "minSD": 0.001,
+    "inside": 0,
+    "bodyThrough": 7
+   },
+   "elf_tall": {
+    "minSD": -0.0102,
+    "inside": 2,
+    "bodyThrough": 10
+   }
+  },
+  "t_clavus": {
+   "neutral": {
+    "minSD": -0.0001,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "43/966"
+   },
+   "heavy_belly": {
+    "minSD": -0.0288,
+    "inside": 6,
+    "bodyThrough": 2
+   },
+   "thin": {
+    "minSD": 0.0065,
+    "inside": 0,
+    "bodyThrough": 2
+   },
+   "breast_curvy": {
+    "minSD": 0.0064,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": -0.0261,
+    "inside": 4,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": -0.0384,
+    "inside": 12,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": -0.002,
+    "inside": 0,
+    "bodyThrough": 3
+   },
+   "orc": {
+    "minSD": -0.0257,
+    "inside": 4,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": -0.0186,
+    "inside": 3,
+    "bodyThrough": 4
+   },
+   "child": {
+    "minSD": 0.0071,
+    "inside": 0,
+    "bodyThrough": 6
+   },
+   "elf_tall": {
+    "minSD": 0.0044,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "t_jersey": {
+   "neutral": {
+    "minSD": 0.0031,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "32/966"
+   },
+   "heavy_belly": {
+    "minSD": -0.016,
+    "inside": 1,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.0081,
+    "inside": 0,
+    "bodyThrough": 1
+   },
+   "breast_curvy": {
+    "minSD": 0.0043,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": -0.0165,
+    "inside": 2,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": -0.0143,
+    "inside": 3,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": -0.0167,
+    "inside": 2,
+    "bodyThrough": 1
+   },
+   "orc": {
+    "minSD": -0.0162,
+    "inside": 2,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": -0.0111,
+    "inside": 2,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": 0.0053,
+    "inside": 0,
+    "bodyThrough": 6
+   },
+   "elf_tall": {
+    "minSD": 0.0029,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "t_mail": {
+   "neutral": {
+    "minSD": -0.0004,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "44/966"
+   },
+   "heavy_belly": {
+    "minSD": -0.0277,
+    "inside": 5,
+    "bodyThrough": 3
+   },
+   "thin": {
+    "minSD": 0.0048,
+    "inside": 0,
+    "bodyThrough": 3
+   },
+   "breast_curvy": {
+    "minSD": 0.0073,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": -0.0252,
+    "inside": 4,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": -0.0375,
+    "inside": 12,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": -0.0193,
+    "inside": 1,
+    "bodyThrough": 4
+   },
+   "orc": {
+    "minSD": -0.0248,
+    "inside": 4,
+    "bodyThrough": 1
+   },
+   "old_heavy": {
+    "minSD": -0.0178,
+    "inside": 3,
+    "bodyThrough": 5
+   },
+   "child": {
+    "minSD": 0.0059,
+    "inside": 0,
+    "bodyThrough": 9
+   },
+   "elf_tall": {
+    "minSD": -0.0018,
+    "inside": 0,
+    "bodyThrough": 1
+   }
+  },
+  "t_breastplate": {
+   "neutral": {
+    "minSD": -0.0156,
+    "inside": 2,
+    "bodyThrough": 9,
+    "inwardFaces": "96/441"
+   },
+   "heavy_belly": {
+    "minSD": -0.0046,
+    "inside": 0,
+    "bodyThrough": 8
+   },
+   "thin": {
+    "minSD": -0.0221,
+    "inside": 4,
+    "bodyThrough": 9
+   },
+   "breast_curvy": {
+    "minSD": -0.0206,
+    "inside": 5,
+    "bodyThrough": 5
+   },
+   "muscle": {
+    "minSD": 0.0041,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": 0.0078,
+    "inside": 0,
+    "bodyThrough": 7
+   },
+   "halfling": {
+    "minSD": -0.0112,
+    "inside": 2,
+    "bodyThrough": 5
+   },
+   "orc": {
+    "minSD": -0.0013,
+    "inside": 0,
+    "bodyThrough": 5
+   },
+   "old_heavy": {
+    "minSD": -0.0327,
+    "inside": 7,
+    "bodyThrough": 9
+   },
+   "child": {
+    "minSD": -0.0075,
+    "inside": 0,
+    "bodyThrough": 14
+   },
+   "elf_tall": {
+    "minSD": -0.0125,
+    "inside": 4,
+    "bodyThrough": 20
+   }
+  },
+  "t_vest_quilted": {
+   "neutral": {
+    "minSD": 0.013,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "55/531"
+   },
+   "heavy_belly": {
+    "minSD": 0.01,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.0114,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": 0.0109,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": 0.0102,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": 0.0101,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": 0.0107,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": 0.0101,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": -0.006,
+    "inside": 0,
+    "bodyThrough": 2
+   },
+   "child": {
+    "minSD": 0.0084,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": -0.0092,
+    "inside": 1,
+    "bodyThrough": 4
+   }
+  },
+  "t_vest_fur": {
+   "neutral": {
+    "minSD": 0.0123,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "56/533"
+   },
+   "heavy_belly": {
+    "minSD": 0.0081,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.0106,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": 0.0103,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": 0.0082,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": 0.0083,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": 0.0122,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": 0.0083,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": -0.007,
+    "inside": 0,
+    "bodyThrough": 3
+   },
+   "child": {
+    "minSD": 0.01,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": -0.0101,
+    "inside": 1,
+    "bodyThrough": 7
+   }
+  },
+  "t_rags": {
+   "neutral": {
+    "minSD": 0.0019,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "99/773"
+   },
+   "heavy_belly": {
+    "minSD": 0.0018,
+    "inside": 0,
+    "bodyThrough": 2
+   },
+   "thin": {
+    "minSD": 0.0019,
+    "inside": 0,
+    "bodyThrough": 1
+   },
+   "breast_curvy": {
+    "minSD": 0.0019,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": 0.0019,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": 0.0019,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": 0.002,
+    "inside": 0,
+    "bodyThrough": 2
+   },
+   "orc": {
+    "minSD": 0.0019,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": 0.002,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": 0.0015,
+    "inside": 0,
+    "bodyThrough": 3
+   },
+   "elf_tall": {
+    "minSD": 0.0019,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "a_sleeve_long": {
+   "neutral": {
+    "minSD": 0.0094,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "34/941"
+   },
+   "heavy_belly": {
+    "minSD": 0.0068,
+    "inside": 0,
+    "bodyThrough": 2
+   },
+   "thin": {
+    "minSD": 0.009,
+    "inside": 0,
+    "bodyThrough": 1
+   },
+   "breast_curvy": {
+    "minSD": 0.0079,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": 0.0051,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": 0.0045,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": 0.0074,
+    "inside": 0,
+    "bodyThrough": 3
+   },
+   "orc": {
+    "minSD": 0.0053,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": 0.0094,
+    "inside": 0,
+    "bodyThrough": 1
+   },
+   "child": {
+    "minSD": 0.0015,
+    "inside": 0,
+    "bodyThrough": 6
+   },
+   "elf_tall": {
+    "minSD": 0.0072,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "a_sleeve_fitted": {
+   "neutral": {
+    "minSD": 0.0045,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "6/941"
+   },
+   "heavy_belly": {
+    "minSD": 0.0035,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.0052,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": 0.0034,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": 0.0029,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": 0.0026,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": 0.0038,
+    "inside": 0,
+    "bodyThrough": 1
+   },
+   "orc": {
+    "minSD": 0.0029,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": 0.004,
+    "inside": 0,
+    "bodyThrough": 1
+   },
+   "child": {
+    "minSD": 0.003,
+    "inside": 0,
+    "bodyThrough": 3
+   },
+   "elf_tall": {
+    "minSD": 0.0032,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "a_sleeve_short": {
+   "neutral": {
+    "minSD": 0.0075,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "35/279"
+   },
+   "heavy_belly": {
+    "minSD": 0.0076,
+    "inside": 0,
+    "bodyThrough": 4
+   },
+   "thin": {
+    "minSD": 0.0074,
+    "inside": 0,
+    "bodyThrough": 1
+   },
+   "breast_curvy": {
+    "minSD": 0.0077,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": 0.0074,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": 0.0072,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": 0.0077,
+    "inside": 0,
+    "bodyThrough": 3
+   },
+   "orc": {
+    "minSD": 0.0073,
+    "inside": 0,
+    "bodyThrough": 1
+   },
+   "old_heavy": {
+    "minSD": 0.0077,
+    "inside": 0,
+    "bodyThrough": 2
+   },
+   "child": {
+    "minSD": 0.0002,
+    "inside": 0,
+    "bodyThrough": 4
+   },
+   "elf_tall": {
+    "minSD": 0.007,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "a_sleeve_rolled": {
+   "neutral": {
+    "minSD": 0.0085,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "45/474"
+   },
+   "heavy_belly": {
+    "minSD": 0.0083,
+    "inside": 0,
+    "bodyThrough": 3
+   },
+   "thin": {
+    "minSD": 0.0085,
+    "inside": 0,
+    "bodyThrough": 1
+   },
+   "breast_curvy": {
+    "minSD": 0.0062,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": 0.0081,
+    "inside": 0,
+    "bodyThrough": 2
+   },
+   "dwarf": {
+    "minSD": 0.0078,
+    "inside": 0,
+    "bodyThrough": 4
+   },
+   "halfling": {
+    "minSD": 0.0085,
+    "inside": 0,
+    "bodyThrough": 4
+   },
+   "orc": {
+    "minSD": 0.0082,
+    "inside": 0,
+    "bodyThrough": 2
+   },
+   "old_heavy": {
+    "minSD": 0.0073,
+    "inside": 0,
+    "bodyThrough": 1
+   },
+   "child": {
+    "minSD": 0.001,
+    "inside": 0,
+    "bodyThrough": 5
+   },
+   "elf_tall": {
+    "minSD": 0.0084,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "a_sleeve_wide": {
+   "neutral": {
+    "minSD": 0.0118,
+    "inside": 0,
+    "bodyThrough": 3,
+    "inwardFaces": "71/665"
+   },
+   "heavy_belly": {
+    "minSD": -0.0008,
+    "inside": 0,
+    "bodyThrough": 6
+   },
+   "thin": {
+    "minSD": 0.0089,
+    "inside": 0,
+    "bodyThrough": 4
+   },
+   "breast_curvy": {
+    "minSD": 0.02,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": 0.0137,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": 0.007,
+    "inside": 0,
+    "bodyThrough": 6
+   },
+   "halfling": {
+    "minSD": -0.0011,
+    "inside": 0,
+    "bodyThrough": 3
+   },
+   "orc": {
+    "minSD": 0.0101,
+    "inside": 0,
+    "bodyThrough": 3
+   },
+   "old_heavy": {
+    "minSD": 0.0036,
+    "inside": 0,
+    "bodyThrough": 5
+   },
+   "child": {
+    "minSD": -0.0154,
+    "inside": 4,
+    "bodyThrough": 4
+   },
+   "elf_tall": {
+    "minSD": 0.0037,
+    "inside": 0,
+    "bodyThrough": 4
+   }
+  },
+  "a_sleeve_puffed": {
+   "neutral": {
+    "minSD": -0.0066,
+    "inside": 0,
+    "bodyThrough": 5,
+    "inwardFaces": "81/941"
+   },
+   "heavy_belly": {
+    "minSD": -0.0141,
+    "inside": 2,
+    "bodyThrough": 5
+   },
+   "thin": {
+    "minSD": 0.0007,
+    "inside": 0,
+    "bodyThrough": 5
+   },
+   "breast_curvy": {
+    "minSD": 0.0031,
+    "inside": 0,
+    "bodyThrough": 6
+   },
+   "muscle": {
+    "minSD": 0.0069,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": -0.0058,
+    "inside": 0,
+    "bodyThrough": 5
+   },
+   "halfling": {
+    "minSD": -0.0127,
+    "inside": 1,
+    "bodyThrough": 4
+   },
+   "orc": {
+    "minSD": 0.0018,
+    "inside": 0,
+    "bodyThrough": 2
+   },
+   "old_heavy": {
+    "minSD": -0.0117,
+    "inside": 2,
+    "bodyThrough": 3
+   },
+   "child": {
+    "minSD": -0.0316,
+    "inside": 10,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": -0.0054,
+    "inside": 0,
+    "bodyThrough": 8
+   }
+  },
+  "a_mail": {
+   "neutral": {
+    "minSD": 0.0042,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "39/513"
+   },
+   "heavy_belly": {
+    "minSD": 0.0032,
+    "inside": 0,
+    "bodyThrough": 2
+   },
+   "thin": {
+    "minSD": 0.0048,
+    "inside": 0,
+    "bodyThrough": 1
+   },
+   "breast_curvy": {
+    "minSD": 0.0056,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": 0.0027,
+    "inside": 0,
+    "bodyThrough": 1
+   },
+   "dwarf": {
+    "minSD": 0.0024,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": 0.0035,
+    "inside": 0,
+    "bodyThrough": 5
+   },
+   "orc": {
+    "minSD": 0.0027,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": 0.0052,
+    "inside": 0,
+    "bodyThrough": 1
+   },
+   "child": {
+    "minSD": 0.0019,
+    "inside": 0,
+    "bodyThrough": 14
+   },
+   "elf_tall": {
+    "minSD": 0.0048,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "a_rags": {
+   "neutral": {
+    "minSD": 0.002,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "39/246"
+   },
+   "heavy_belly": {
+    "minSD": 0.002,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.002,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": 0.002,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": 0.002,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": 0.002,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": 0.002,
+    "inside": 0,
+    "bodyThrough": 1
+   },
+   "orc": {
+    "minSD": 0.002,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": 0.002,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": 0.002,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.0018,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "a_bracer": {
+   "neutral": {
+    "minSD": 0.012,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "68/377"
+   },
+   "heavy_belly": {
+    "minSD": 0.0104,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.0127,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": 0.0127,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": 0.0094,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": 0.009,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": 0.0097,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": 0.0095,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": 0.0129,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": 0.0076,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.008,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "a_vambrace": {
+   "neutral": {
+    "minSD": 0.0226,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "92/530"
+   },
+   "heavy_belly": {
+    "minSD": 0.0159,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.0235,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": 0.0145,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": 0.0118,
+    "inside": 0,
+    "bodyThrough": 1
+   },
+   "dwarf": {
+    "minSD": 0.0102,
+    "inside": 0,
+    "bodyThrough": 2
+   },
+   "halfling": {
+    "minSD": 0.0173,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": 0.0118,
+    "inside": 0,
+    "bodyThrough": 1
+   },
+   "old_heavy": {
+    "minSD": 0.0171,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": 0.0159,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.0088,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "a_pauldron": {
+   "neutral": {
+    "minSD": -0.0129,
+    "inside": 2,
+    "bodyThrough": 1,
+    "inwardFaces": "68/342"
+   },
+   "heavy_belly": {
+    "minSD": 0.0042,
+    "inside": 0,
+    "bodyThrough": 1
+   },
+   "thin": {
+    "minSD": -0.0155,
+    "inside": 4,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": -0.0057,
+    "inside": 0,
+    "bodyThrough": 1
+   },
+   "muscle": {
+    "minSD": 0.0058,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": -0.0242,
+    "inside": 3,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": -0.0036,
+    "inside": 0,
+    "bodyThrough": 1
+   },
+   "orc": {
+    "minSD": 0.0145,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": -0.0205,
+    "inside": 4,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": -0.0022,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": -0.0237,
+    "inside": 6,
+    "bodyThrough": 0
+   }
+  },
+  "h_gloves": {
+   "neutral": {
+    "minSD": -0.0037,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "130/1684"
+   },
+   "heavy_belly": {
+    "minSD": -0.0037,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": -0.0037,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": -0.0036,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": -0.0037,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": -0.0036,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": -0.0037,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": -0.0037,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": -0.0034,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": -0.0036,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": -0.0039,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "h_mittens": {
+   "neutral": {
+    "minSD": -0.0087,
+    "inside": 3,
+    "bodyThrough": 0,
+    "inwardFaces": "180/1684"
+   },
+   "heavy_belly": {
+    "minSD": -0.0087,
+    "inside": 3,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": -0.0087,
+    "inside": 3,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": -0.0077,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": -0.0087,
+    "inside": 3,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": -0.0087,
+    "inside": 3,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": -0.0086,
+    "inside": 3,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": -0.0087,
+    "inside": 3,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": -0.0079,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": -0.0082,
+    "inside": 3,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": -0.0079,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "h_gauntlets": {
+   "neutral": {
+    "minSD": -0.0056,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "268/1997"
+   },
+   "heavy_belly": {
+    "minSD": -0.0056,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": -0.0056,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": -0.0051,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": -0.0056,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": -0.0056,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": -0.0056,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": -0.0056,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": -0.0051,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": -0.0055,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": -0.0054,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "h_wraps": {
+   "neutral": {
+    "minSD": 0.0108,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "10/215"
+   },
+   "heavy_belly": {
+    "minSD": 0.0097,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.0109,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": 0.0098,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": 0.0094,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": 0.0075,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": 0.0123,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": 0.0075,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": 0.0102,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": 0.0143,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.0061,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "l_trousers": {
+   "neutral": {
+    "minSD": 0.0087,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "1/1706"
+   },
+   "heavy_belly": {
+    "minSD": -0.0099,
+    "inside": 6,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.009,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": 0.0075,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": -0.0101,
+    "inside": 6,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": -0.0098,
+    "inside": 10,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": -0.0104,
+    "inside": 2,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": -0.0104,
+    "inside": 10,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": -0.0101,
+    "inside": 3,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": 0.0101,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.0097,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "l_leggings": {
+   "neutral": {
+    "minSD": 0.0058,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "0/1706"
+   },
+   "heavy_belly": {
+    "minSD": -0.006,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.0058,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": 0.0027,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": -0.006,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": -0.0063,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": -0.0061,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": -0.0065,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": -0.005,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": 0.0054,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.0045,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "l_breeches": {
+   "neutral": {
+    "minSD": 0.0014,
+    "inside": 0,
+    "bodyThrough": 2,
+    "inwardFaces": "27/1019"
+   },
+   "heavy_belly": {
+    "minSD": -0.0099,
+    "inside": 6,
+    "bodyThrough": 13
+   },
+   "thin": {
+    "minSD": 0.0014,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": 0.0015,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": -0.0088,
+    "inside": 2,
+    "bodyThrough": 18
+   },
+   "dwarf": {
+    "minSD": -0.0098,
+    "inside": 10,
+    "bodyThrough": 18
+   },
+   "halfling": {
+    "minSD": -0.0104,
+    "inside": 2,
+    "bodyThrough": 5
+   },
+   "orc": {
+    "minSD": -0.0104,
+    "inside": 8,
+    "bodyThrough": 11
+   },
+   "old_heavy": {
+    "minSD": -0.0101,
+    "inside": 3,
+    "bodyThrough": 14
+   },
+   "child": {
+    "minSD": 0.0014,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.0015,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "l_baggy": {
+   "neutral": {
+    "minSD": 0.0087,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "34/1603"
+   },
+   "heavy_belly": {
+    "minSD": -0.0099,
+    "inside": 6,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.009,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": 0.0093,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": -0.0101,
+    "inside": 6,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": -0.0098,
+    "inside": 10,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": -0.0104,
+    "inside": 2,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": -0.0104,
+    "inside": 10,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": -0.0101,
+    "inside": 3,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": 0.0101,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.0097,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "l_shorts": {
+   "neutral": {
+    "minSD": 0.0015,
+    "inside": 0,
+    "bodyThrough": 2,
+    "inwardFaces": "31/354"
+   },
+   "heavy_belly": {
+    "minSD": -0.0009,
+    "inside": 0,
+    "bodyThrough": 4
+   },
+   "thin": {
+    "minSD": 0.0015,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": 0.0015,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": -0.0077,
+    "inside": 0,
+    "bodyThrough": 2
+   },
+   "dwarf": {
+    "minSD": -0.0098,
+    "inside": 4,
+    "bodyThrough": 1
+   },
+   "halfling": {
+    "minSD": -0.0104,
+    "inside": 2,
+    "bodyThrough": 3
+   },
+   "orc": {
+    "minSD": -0.0068,
+    "inside": 0,
+    "bodyThrough": 2
+   },
+   "old_heavy": {
+    "minSD": -0.0101,
+    "inside": 3,
+    "bodyThrough": 3
+   },
+   "child": {
+    "minSD": 0.0015,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.0015,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "l_greaves": {
+   "neutral": {
+    "minSD": 0.0014,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "77/1101"
+   },
+   "heavy_belly": {
+    "minSD": -0.0098,
+    "inside": 4,
+    "bodyThrough": 14
+   },
+   "thin": {
+    "minSD": 0.0013,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": 0.0014,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": -0.0101,
+    "inside": 6,
+    "bodyThrough": 17
+   },
+   "dwarf": {
+    "minSD": -0.0096,
+    "inside": 4,
+    "bodyThrough": 21
+   },
+   "halfling": {
+    "minSD": 0.0014,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": -0.0104,
+    "inside": 6,
+    "bodyThrough": 12
+   },
+   "old_heavy": {
+    "minSD": -0.0067,
+    "inside": 0,
+    "bodyThrough": 12
+   },
+   "child": {
+    "minSD": 0.0015,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.0014,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "l_leg_wraps": {
+   "neutral": {
+    "minSD": 0.0039,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "31/670"
+   },
+   "heavy_belly": {
+    "minSD": 0.0039,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.0039,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": 0.0039,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": -0.0086,
+    "inside": 1,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": -0.0076,
+    "inside": 0,
+    "bodyThrough": 3
+   },
+   "halfling": {
+    "minSD": 0.0038,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": -0.0088,
+    "inside": 1,
+    "bodyThrough": 1
+   },
+   "old_heavy": {
+    "minSD": 0.0038,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": 0.0038,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.0038,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "l_rags": {
+   "neutral": {
+    "minSD": 0.0024,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "48/537"
+   },
+   "heavy_belly": {
+    "minSD": -0.0098,
+    "inside": 3,
+    "bodyThrough": 7
+   },
+   "thin": {
+    "minSD": 0.0024,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": 0.0024,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": -0.0075,
+    "inside": 0,
+    "bodyThrough": 4
+   },
+   "dwarf": {
+    "minSD": -0.0093,
+    "inside": 4,
+    "bodyThrough": 6
+   },
+   "halfling": {
+    "minSD": -0.008,
+    "inside": 1,
+    "bodyThrough": 6
+   },
+   "orc": {
+    "minSD": -0.0104,
+    "inside": 4,
+    "bodyThrough": 7
+   },
+   "old_heavy": {
+    "minSD": -0.0101,
+    "inside": 3,
+    "bodyThrough": 5
+   },
+   "child": {
+    "minSD": 0.0024,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.0025,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "s_skirt_long": {
+   "neutral": {
+    "minSD": 0.0267,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "0/70"
+   },
+   "heavy_belly": {
+    "minSD": -0.0018,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.0259,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": -0.0092,
+    "inside": 3,
+    "bodyThrough": 5
+   },
+   "muscle": {
+    "minSD": -0.0303,
+    "inside": 3,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": -0.0349,
+    "inside": 1,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": 0.0258,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": -0.0459,
+    "inside": 3,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": 0.0099,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": 0.0253,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.0246,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "s_skirt_short": {
+   "neutral": {
+    "minSD": 0.0267,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "0/109"
+   },
+   "heavy_belly": {
+    "minSD": 0.0054,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.025,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": -0.0032,
+    "inside": 0,
+    "bodyThrough": 2
+   },
+   "muscle": {
+    "minSD": -0.0293,
+    "inside": 4,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": -0.046,
+    "inside": 7,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": 0.0234,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": -0.0456,
+    "inside": 5,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": 0.0194,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": 0.0253,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.0246,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "s_kilt": {
+   "neutral": {
+    "minSD": 0.0202,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "1/177"
+   },
+   "heavy_belly": {
+    "minSD": 0.0075,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.0196,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": -0.0185,
+    "inside": 4,
+    "bodyThrough": 7
+   },
+   "muscle": {
+    "minSD": -0.0379,
+    "inside": 3,
+    "bodyThrough": 2
+   },
+   "dwarf": {
+    "minSD": -0.0379,
+    "inside": 2,
+    "bodyThrough": 1
+   },
+   "halfling": {
+    "minSD": 0.0169,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": -0.0405,
+    "inside": 1,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": 0.0165,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": 0.0202,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.0102,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "s_robe_lower": {
+   "neutral": {
+    "minSD": 0.0378,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "0/39"
+   },
+   "heavy_belly": {
+    "minSD": 0.0129,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.0378,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": -0.0201,
+    "inside": 1,
+    "bodyThrough": 4
+   },
+   "muscle": {
+    "minSD": 0.0174,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": 0.0147,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": 0.0319,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": 0.0229,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": 0.0285,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": 0.0374,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.0179,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "s_dress_skirt": {
+   "neutral": {
+    "minSD": 0.0287,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "0/48"
+   },
+   "heavy_belly": {
+    "minSD": -0.0046,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.0288,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": -0.0019,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": -0.034,
+    "inside": 2,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": -0.0037,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": 0.0261,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": 0.0075,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": 0.0178,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": 0.0287,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.0287,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "s_tunic_skirt": {
+   "neutral": {
+    "minSD": 0.0231,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "0/145"
+   },
+   "heavy_belly": {
+    "minSD": 0.0027,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.0234,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": -0.0218,
+    "inside": 3,
+    "bodyThrough": 8
+   },
+   "muscle": {
+    "minSD": -0.0339,
+    "inside": 2,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": 0.0092,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": 0.0168,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": -0.0467,
+    "inside": 1,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": 0.0182,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": 0.0214,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.02,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "f_shoes": {
+   "neutral": {
+    "minSD": -0.0056,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "80/1335"
+   },
+   "heavy_belly": {
+    "minSD": -0.0056,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": -0.0056,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": -0.0053,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": -0.0056,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": -0.0056,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": -0.0051,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": -0.0056,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": -0.0053,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": -0.0051,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": -0.0053,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "f_boots_short": {
+   "neutral": {
+    "minSD": -0.0088,
+    "inside": 2,
+    "bodyThrough": 0,
+    "inwardFaces": "157/1843"
+   },
+   "heavy_belly": {
+    "minSD": -0.0088,
+    "inside": 4,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": -0.0088,
+    "inside": 2,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": -0.0096,
+    "inside": 6,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": -0.0087,
+    "inside": 2,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": -0.0088,
+    "inside": 3,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": -0.0085,
+    "inside": 6,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": -0.0088,
+    "inside": 4,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": -0.0096,
+    "inside": 6,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": -0.0098,
+    "inside": 5,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": -0.0096,
+    "inside": 6,
+    "bodyThrough": 0
+   }
+  },
+  "f_boots_tall": {
+   "neutral": {
+    "minSD": -0.0088,
+    "inside": 2,
+    "bodyThrough": 0,
+    "inwardFaces": "172/2382"
+   },
+   "heavy_belly": {
+    "minSD": -0.0088,
+    "inside": 4,
+    "bodyThrough": 11
+   },
+   "thin": {
+    "minSD": -0.0088,
+    "inside": 2,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": -0.0096,
+    "inside": 6,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": -0.0101,
+    "inside": 6,
+    "bodyThrough": 9
+   },
+   "dwarf": {
+    "minSD": -0.0096,
+    "inside": 5,
+    "bodyThrough": 11
+   },
+   "halfling": {
+    "minSD": -0.0085,
+    "inside": 6,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": -0.0104,
+    "inside": 6,
+    "bodyThrough": 10
+   },
+   "old_heavy": {
+    "minSD": -0.0096,
+    "inside": 6,
+    "bodyThrough": 6
+   },
+   "child": {
+    "minSD": -0.0098,
+    "inside": 5,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": -0.0096,
+    "inside": 6,
+    "bodyThrough": 0
+   }
+  },
+  "f_sandals": {
+   "neutral": {
+    "minSD": -0.0028,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "127/609"
+   },
+   "heavy_belly": {
+    "minSD": -0.0028,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": -0.0028,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": -0.002,
+    "inside": 0,
+    "bodyThrough": 4
+   },
+   "muscle": {
+    "minSD": -0.0028,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": -0.0028,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": -0.0023,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": -0.0028,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": -0.002,
+    "inside": 0,
+    "bodyThrough": 4
+   },
+   "child": {
+    "minSD": -0.0015,
+    "inside": 0,
+    "bodyThrough": 1
+   },
+   "elf_tall": {
+    "minSD": -0.002,
+    "inside": 0,
+    "bodyThrough": 4
+   }
+  },
+  "f_sabatons": {
+   "neutral": {
+    "minSD": -0.0112,
+    "inside": 4,
+    "bodyThrough": 0,
+    "inwardFaces": "161/1674"
+   },
+   "heavy_belly": {
+    "minSD": -0.0112,
+    "inside": 4,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": -0.0112,
+    "inside": 3,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": -0.0097,
+    "inside": 6,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": -0.0112,
+    "inside": 3,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": -0.0112,
+    "inside": 3,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": -0.0102,
+    "inside": 6,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": -0.0112,
+    "inside": 5,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": -0.0095,
+    "inside": 5,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": -0.0117,
+    "inside": 10,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": -0.0095,
+    "inside": 5,
+    "bodyThrough": 0
+   }
+  },
+  "f_wraps": {
+   "neutral": {
+    "minSD": -0.0069,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "118/1843"
+   },
+   "heavy_belly": {
+    "minSD": -0.0069,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": -0.0069,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": -0.0072,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": -0.0069,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": -0.0069,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": -0.0069,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": -0.0069,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": -0.0072,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": -0.0073,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": -0.0072,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "o_belt": {
+   "neutral": {
+    "minSD": 0.0298,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "2/78"
+   },
+   "heavy_belly": {
+    "minSD": 0.0218,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.0296,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": 0.0159,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": 0.0296,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": 0.0233,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": 0.02,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": 0.0287,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": 0.0181,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": 0.0297,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.0286,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "o_belt_sash": {
+   "neutral": {
+    "minSD": 0.0412,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "0/120"
+   },
+   "heavy_belly": {
+    "minSD": -0.0151,
+    "inside": 3,
+    "bodyThrough": 4
+   },
+   "thin": {
+    "minSD": 0.0375,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": -0.0062,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": 0.0347,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": 0.0241,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": 0.0117,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": 0.0395,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": -0.001,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": 0.035,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.0246,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "o_bandolier": {
+   "neutral": {
+    "minSD": 0.0181,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "0/56"
+   },
+   "heavy_belly": {
+    "minSD": 0.0179,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.0181,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": 0.0178,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": 0.0179,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": 0.0175,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": 0.018,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": 0.0174,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": 0.017,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": 0.0182,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.0184,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "o_apron": {
+   "neutral": {
+    "minSD": 0.0145,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "5/98"
+   },
+   "heavy_belly": {
+    "minSD": 0.0148,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.0145,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": 0.0112,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": -0.0417,
+    "inside": 1,
+    "bodyThrough": 2
+   },
+   "dwarf": {
+    "minSD": -0.0401,
+    "inside": 3,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": 0.0144,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": -0.0498,
+    "inside": 1,
+    "bodyThrough": 1
+   },
+   "old_heavy": {
+    "minSD": -0.0414,
+    "inside": 1,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": 0.0112,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.0142,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "o_tabard": {
+   "neutral": {
+    "minSD": 0.0339,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "0/18"
+   },
+   "heavy_belly": {
+    "minSD": -0.0049,
+    "inside": 0,
+    "bodyThrough": 2
+   },
+   "thin": {
+    "minSD": 0.0341,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": 0.0254,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": -0.0186,
+    "inside": 1,
+    "bodyThrough": 3
+   },
+   "dwarf": {
+    "minSD": -0.0459,
+    "inside": 4,
+    "bodyThrough": 4
+   },
+   "halfling": {
+    "minSD": 0.0324,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": -0.0244,
+    "inside": 1,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": -0.0325,
+    "inside": 1,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": 0.0313,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.03,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "o_cloak_long": {
+   "neutral": {
+    "minSD": -0.0034,
+    "inside": 0,
+    "bodyThrough": 15,
+    "inwardFaces": "6/76"
+   },
+   "heavy_belly": {
+    "minSD": -0.0102,
+    "inside": 1,
+    "bodyThrough": 18
+   },
+   "thin": {
+    "minSD": 0.0012,
+    "inside": 0,
+    "bodyThrough": 2
+   },
+   "breast_curvy": {
+    "minSD": 0.0083,
+    "inside": 0,
+    "bodyThrough": 1
+   },
+   "muscle": {
+    "minSD": -0.013,
+    "inside": 1,
+    "bodyThrough": 64
+   },
+   "dwarf": {
+    "minSD": -0.0226,
+    "inside": 4,
+    "bodyThrough": 100
+   },
+   "halfling": {
+    "minSD": 0.0085,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": -0.0186,
+    "inside": 1,
+    "bodyThrough": 62
+   },
+   "old_heavy": {
+    "minSD": 0.0005,
+    "inside": 0,
+    "bodyThrough": 16
+   },
+   "child": {
+    "minSD": 0.0085,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.0083,
+    "inside": 0,
+    "bodyThrough": 1
+   }
+  },
+  "o_cape_short": {
+   "neutral": {
+    "minSD": 0.0351,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "0/32"
+   },
+   "heavy_belly": {
+    "minSD": 0.0205,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.0353,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": 0.0328,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": 0.0114,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": 0.0053,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": 0.0351,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": 0.011,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": 0.0338,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": 0.0352,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.0333,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "o_hood": {
+   "neutral": {
+    "minSD": 0.0015,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "7/454"
+   },
+   "heavy_belly": {
+    "minSD": 0.0013,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": -0.0019,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": -0.02,
+    "inside": 21,
+    "bodyThrough": 28
+   },
+   "muscle": {
+    "minSD": 0.0013,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": -0.0071,
+    "inside": 0,
+    "bodyThrough": 5
+   },
+   "halfling": {
+    "minSD": -0.0101,
+    "inside": 7,
+    "bodyThrough": 31
+   },
+   "orc": {
+    "minSD": 0.0014,
+    "inside": 0,
+    "bodyThrough": 1
+   },
+   "old_heavy": {
+    "minSD": -0.0111,
+    "inside": 9,
+    "bodyThrough": 54
+   },
+   "child": {
+    "minSD": -0.045,
+    "inside": 51,
+    "bodyThrough": 45
+   },
+   "elf_tall": {
+    "minSD": -0.007,
+    "inside": 0,
+    "bodyThrough": 3
+   }
+  },
+  "o_scarf": {
+   "neutral": {
+    "minSD": 0.0039,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "0/102"
+   },
+   "heavy_belly": {
+    "minSD": 0.004,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.0039,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": 0.0039,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": 0.004,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": 0.004,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": 0.0039,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": 0.004,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": 0.0039,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": 0.0004,
+    "inside": 0,
+    "bodyThrough": 2
+   },
+   "elf_tall": {
+    "minSD": 0.0068,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "o_collar_fur": {
+   "neutral": {
+    "minSD": -0.0383,
+    "inside": 2,
+    "bodyThrough": 0,
+    "inwardFaces": "7/108"
+   },
+   "heavy_belly": {
+    "minSD": -0.0393,
+    "inside": 4,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.0212,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": 0.02,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": -0.0425,
+    "inside": 5,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": -0.0474,
+    "inside": 4,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": -0.0453,
+    "inside": 4,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": -0.0476,
+    "inside": 5,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": 0.0247,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": -0.0472,
+    "inside": 3,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.0202,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "o_pouch": {
+   "neutral": {
+    "minSD": -0.0104,
+    "inside": 2,
+    "bodyThrough": 1,
+    "inwardFaces": "4/10"
+   },
+   "heavy_belly": {
+    "minSD": -0.0454,
+    "inside": 3,
+    "bodyThrough": 3
+   },
+   "thin": {
+    "minSD": -0.0104,
+    "inside": 2,
+    "bodyThrough": 2
+   },
+   "breast_curvy": {
+    "minSD": -0.0114,
+    "inside": 1,
+    "bodyThrough": 3
+   },
+   "muscle": {
+    "minSD": -0.0104,
+    "inside": 2,
+    "bodyThrough": 2
+   },
+   "dwarf": {
+    "minSD": -0.0279,
+    "inside": 3,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": -0.019,
+    "inside": 3,
+    "bodyThrough": 1
+   },
+   "orc": {
+    "minSD": -0.0103,
+    "inside": 3,
+    "bodyThrough": 2
+   },
+   "old_heavy": {
+    "minSD": -0.0192,
+    "inside": 3,
+    "bodyThrough": 2
+   },
+   "child": {
+    "minSD": -0.0104,
+    "inside": 2,
+    "bodyThrough": 2
+   },
+   "elf_tall": {
+    "minSD": -0.0106,
+    "inside": 1,
+    "bodyThrough": 2
+   }
+  },
+  "o_satchel": {
+   "neutral": {
+    "minSD": -0.0249,
+    "inside": 2,
+    "bodyThrough": 4,
+    "inwardFaces": "6/38"
+   },
+   "heavy_belly": {
+    "minSD": -0.0231,
+    "inside": 4,
+    "bodyThrough": 2
+   },
+   "thin": {
+    "minSD": -0.0215,
+    "inside": 1,
+    "bodyThrough": 5
+   },
+   "breast_curvy": {
+    "minSD": -0.021,
+    "inside": 2,
+    "bodyThrough": 6
+   },
+   "muscle": {
+    "minSD": -0.028,
+    "inside": 2,
+    "bodyThrough": 4
+   },
+   "dwarf": {
+    "minSD": -0.0293,
+    "inside": 4,
+    "bodyThrough": 6
+   },
+   "halfling": {
+    "minSD": -0.0253,
+    "inside": 2,
+    "bodyThrough": 4
+   },
+   "orc": {
+    "minSD": -0.0278,
+    "inside": 4,
+    "bodyThrough": 2
+   },
+   "old_heavy": {
+    "minSD": -0.038,
+    "inside": 3,
+    "bodyThrough": 2
+   },
+   "child": {
+    "minSD": -0.0225,
+    "inside": 1,
+    "bodyThrough": 4
+   },
+   "elf_tall": {
+    "minSD": -0.0374,
+    "inside": 1,
+    "bodyThrough": 5
+   }
+  },
+  "o_toga_drape": {
+   "neutral": {
+    "minSD": -0.0356,
+    "inside": 2,
+    "bodyThrough": 0,
+    "inwardFaces": "3/128"
+   },
+   "heavy_belly": {
+    "minSD": -0.0296,
+    "inside": 3,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": -0.0353,
+    "inside": 1,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": -0.0297,
+    "inside": 2,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": -0.0352,
+    "inside": 3,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": -0.024,
+    "inside": 7,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": -0.0343,
+    "inside": 1,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": -0.0311,
+    "inside": 5,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": 0.0054,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": -0.0066,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.0041,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "hw_straw_hat": {
+   "neutral": {
+    "minSD": 0.012,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "28/308"
+   },
+   "heavy_belly": {
+    "minSD": 0.012,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.012,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": 0.0122,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": 0.012,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": 0.012,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": 0.012,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": 0.012,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": 0.0122,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": 0.012,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.0122,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "hw_cap_soft": {
+   "neutral": {
+    "minSD": 0.0113,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "0/272"
+   },
+   "heavy_belly": {
+    "minSD": 0.0113,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.0113,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": 0.0112,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": 0.0113,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": 0.0113,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": 0.0113,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": 0.0114,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": 0.0112,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": 0.0113,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.0112,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "hw_skullcap": {
+   "neutral": {
+    "minSD": 0.0044,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "0/252"
+   },
+   "heavy_belly": {
+    "minSD": 0.0044,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.0044,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": 0.0044,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": 0.0044,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": 0.0044,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": 0.0044,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": 0.0044,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": 0.0044,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": 0.0044,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.0044,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "hw_helm_open": {
+   "neutral": {
+    "minSD": 0.0071,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "0/256"
+   },
+   "heavy_belly": {
+    "minSD": 0.0071,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.0071,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": 0.0074,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": 0.0071,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": 0.0071,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": 0.0071,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": 0.0071,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": 0.0074,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": 0.0071,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.0073,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "hw_circlet": {
+   "neutral": {
+    "minSD": 0.007,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "0/56"
+   },
+   "heavy_belly": {
+    "minSD": 0.007,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.007,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": 0.0071,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": 0.007,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": 0.007,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": 0.007,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": 0.007,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": 0.007,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": 0.007,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.007,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "hw_turban": {
+   "neutral": {
+    "minSD": 0.0209,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "0/153"
+   },
+   "heavy_belly": {
+    "minSD": 0.0209,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.0209,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": 0.0153,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": 0.0209,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": 0.021,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": 0.0209,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": 0.021,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": 0.0179,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": 0.0209,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.0207,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "hw_fur_cone": {
+   "neutral": {
+    "minSD": 0.0223,
+    "inside": 0,
+    "bodyThrough": 0,
+    "inwardFaces": "0/84"
+   },
+   "heavy_belly": {
+    "minSD": 0.0291,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "thin": {
+    "minSD": 0.0255,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "breast_curvy": {
+    "minSD": 0.0375,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "muscle": {
+    "minSD": 0.0223,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "dwarf": {
+    "minSD": 0.0334,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "halfling": {
+    "minSD": 0.025,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "orc": {
+    "minSD": 0.0332,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "old_heavy": {
+    "minSD": 0.038,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "child": {
+    "minSD": 0.0362,
+    "inside": 0,
+    "bodyThrough": 0
+   },
+   "elf_tall": {
+    "minSD": 0.0338,
+    "inside": 0,
+    "bodyThrough": 0
+   }
+  },
+  "hw_coif": {
+   "neutral": {
+    "minSD": -0.0004,
+    "inside": 0,
+    "bodyThrough": 9,
+    "inwardFaces": "13/480"
+   },
+   "heavy_belly": {
+    "minSD": -0.0033,
+    "inside": 0,
+    "bodyThrough": 11
+   },
+   "thin": {
+    "minSD": -0.0021,
+    "inside": 0,
+    "bodyThrough": 8
+   },
+   "breast_curvy": {
+    "minSD": -0.0047,
+    "inside": 0,
+    "bodyThrough": 2
+   },
+   "muscle": {
+    "minSD": -0.0004,
+    "inside": 0,
+    "bodyThrough": 9
+   },
+   "dwarf": {
+    "minSD": -0.0069,
+    "inside": 0,
+    "bodyThrough": 22
+   },
+   "halfling": {
+    "minSD": -0.01,
+    "inside": 7,
+    "bodyThrough": 19
+   },
+   "orc": {
+    "minSD": -0.0019,
+    "inside": 0,
+    "bodyThrough": 10
+   },
+   "old_heavy": {
+    "minSD": -0.0181,
+    "inside": 8,
+    "bodyThrough": 56
+   },
+   "child": {
+    "minSD": -0.0203,
+    "inside": 9,
+    "bodyThrough": 33
+   },
+   "elf_tall": {
+    "minSD": -0.0034,
+    "inside": 0,
+    "bodyThrough": 5
+   }
+  }
+ },
+ "outfits": {
+  "farmer_highland_m": {
+   "neutral": {
+    "total": 10,
+    "detail": {
+     "t_shirt through o_pouch": 3,
+     "s_kilt through o_pouch": 4,
+     "t_vest_fur through o_belt": 2,
+     "t_vest_fur through o_pouch": 1
+    }
+   },
+   "heavy_belly": {
+    "total": 10,
+    "detail": {
+     "t_shirt through s_kilt": 5,
+     "t_shirt through o_pouch": 1,
+     "t_shirt through t_vest_fur": 1,
+     "s_kilt through o_pouch": 2,
+     "t_vest_fur through o_pouch": 1
+    }
+   },
+   "thin": {
+    "total": 5,
+    "detail": {
+     "t_shirt through o_pouch": 1,
+     "s_kilt through o_pouch": 2,
+     "t_vest_fur through o_belt": 1,
+     "t_vest_fur through o_pouch": 1
+    }
+   },
+   "breast_curvy": {
+    "total": 27,
+    "detail": {
+     "t_shirt through s_kilt": 12,
+     "t_shirt through o_pouch": 2,
+     "a_sleeve_long through t_vest_fur": 6,
+     "s_kilt through o_pouch": 5,
+     "t_vest_fur through o_pouch": 2
+    }
+   },
+   "muscle": {
+    "total": 14,
+    "detail": {
+     "t_shirt through s_kilt": 4,
+     "t_shirt through o_pouch": 4,
+     "s_kilt through o_pouch": 3,
+     "t_vest_fur through o_belt": 2,
+     "t_vest_fur through o_pouch": 1
+    }
+   },
+   "dwarf": {
+    "total": 10,
+    "detail": {
+     "t_shirt through s_kilt": 2,
+     "t_shirt through o_belt": 1,
+     "t_shirt through o_pouch": 3,
+     "s_kilt through o_pouch": 1,
+     "t_vest_fur through o_belt": 1,
+     "t_vest_fur through o_pouch": 2
+    }
+   },
+   "halfling": {
+    "total": 4,
+    "detail": {
+     "s_kilt through o_pouch": 3,
+     "t_vest_fur through o_pouch": 1
+    }
+   },
+   "orc": {
+    "total": 6,
+    "detail": {
+     "t_shirt through s_kilt": 2,
+     "t_shirt through o_pouch": 3,
+     "s_kilt through o_pouch": 1
+    }
+   },
+   "old_heavy": {
+    "total": 13,
+    "detail": {
+     "t_shirt through o_belt": 1,
+     "t_shirt through o_pouch": 2,
+     "t_shirt through t_vest_fur": 1,
+     "a_sleeve_long through t_vest_fur": 4,
+     "s_kilt through o_pouch": 4,
+     "t_vest_fur through o_pouch": 1
+    }
+   },
+   "child": {
+    "total": 7,
+    "detail": {
+     "t_shirt through o_pouch": 1,
+     "s_kilt through o_pouch": 3,
+     "t_vest_fur through o_belt": 1,
+     "t_vest_fur through o_pouch": 2
+    }
+   },
+   "elf_tall": {
+    "total": 20,
+    "detail": {
+     "t_shirt through s_kilt": 1,
+     "t_shirt through o_pouch": 3,
+     "t_shirt through t_vest_fur": 1,
+     "a_sleeve_long through t_vest_fur": 9,
+     "s_kilt through o_pouch": 1,
+     "t_vest_fur through o_belt": 1,
+     "t_vest_fur through o_pouch": 4
+    }
+   }
+  },
+  "farmer_river_f": {
+   "neutral": {
+    "total": 0,
+    "detail": {}
+   },
+   "heavy_belly": {
+    "total": 7,
+    "detail": {
+     "t_bodice through s_skirt_long": 1,
+     "s_skirt_long through o_apron": 6
+    }
+   },
+   "thin": {
+    "total": 0,
+    "detail": {}
+   },
+   "breast_curvy": {
+    "total": 2,
+    "detail": {
+     "t_bodice through s_skirt_long": 2
+    }
+   },
+   "muscle": {
+    "total": 3,
+    "detail": {
+     "t_bodice through s_skirt_long": 1,
+     "t_bodice through o_apron": 1,
+     "s_skirt_long through o_apron": 1
+    }
+   },
+   "dwarf": {
+    "total": 1,
+    "detail": {
+     "s_skirt_long through o_apron": 1
+    }
+   },
+   "halfling": {
+    "total": 7,
+    "detail": {
+     "s_skirt_long through o_apron": 7
+    }
+   },
+   "orc": {
+    "total": 3,
+    "detail": {
+     "t_bodice through o_apron": 2,
+     "s_skirt_long through o_apron": 1
+    }
+   },
+   "old_heavy": {
+    "total": 5,
+    "detail": {
+     "s_skirt_long through o_apron": 5
+    }
+   },
+   "child": {
+    "total": 1,
+    "detail": {
+     "s_skirt_long through o_apron": 1
+    }
+   },
+   "elf_tall": {
+    "total": 0,
+    "detail": {}
+   }
+  },
+  "farmer_coastal_m": {
+   "neutral": {
+    "total": 0,
+    "detail": {}
+   },
+   "heavy_belly": {
+    "total": 0,
+    "detail": {}
+   },
+   "thin": {
+    "total": 0,
+    "detail": {}
+   },
+   "breast_curvy": {
+    "total": 0,
+    "detail": {}
+   },
+   "muscle": {
+    "total": 0,
+    "detail": {}
+   },
+   "dwarf": {
+    "total": 3,
+    "detail": {
+     "t_jersey through o_belt": 2,
+     "f_wraps through l_leg_wraps": 1
+    }
+   },
+   "halfling": {
+    "total": 2,
+    "detail": {
+     "t_jersey through o_belt": 2
+    }
+   },
+   "orc": {
+    "total": 0,
+    "detail": {}
+   },
+   "old_heavy": {
+    "total": 0,
+    "detail": {}
+   },
+   "child": {
+    "total": 0,
+    "detail": {}
+   },
+   "elf_tall": {
+    "total": 0,
+    "detail": {}
+   }
+  },
+  "farmer_forest_m": {
+   "neutral": {
+    "total": 1,
+    "detail": {
+     "t_jerkin through o_hood": 1
+    }
+   },
+   "heavy_belly": {
+    "total": 1,
+    "detail": {
+     "t_jerkin through o_hood": 1
+    }
+   },
+   "thin": {
+    "total": 37,
+    "detail": {
+     "t_jerkin through o_hood": 28,
+     "t_shirt through o_hood": 9
+    }
+   },
+   "breast_curvy": {
+    "total": 0,
+    "detail": {}
+   },
+   "muscle": {
+    "total": 3,
+    "detail": {
+     "t_jerkin through o_hood": 3
+    }
+   },
+   "dwarf": {
+    "total": 2,
+    "detail": {
+     "t_jerkin through o_belt": 1,
+     "t_shirt through o_belt": 1
+    }
+   },
+   "halfling": {
+    "total": 0,
+    "detail": {}
+   },
+   "orc": {
+    "total": 5,
+    "detail": {
+     "t_jerkin through o_belt": 2,
+     "t_jerkin through o_hood": 3
+    }
+   },
+   "old_heavy": {
+    "total": 8,
+    "detail": {
+     "t_jerkin through o_hood": 7,
+     "t_shirt through o_belt": 1
+    }
+   },
+   "child": {
+    "total": 0,
+    "detail": {}
+   },
+   "elf_tall": {
+    "total": 2,
+    "detail": {
+     "t_jerkin through o_hood": 2
+    }
+   }
+  },
+  "labourer_river_m": {
+   "neutral": {
+    "total": 0,
+    "detail": {}
+   },
+   "heavy_belly": {
+    "total": 1,
+    "detail": {
+     "t_shirt through o_apron": 1
+    }
+   },
+   "thin": {
+    "total": 0,
+    "detail": {}
+   },
+   "breast_curvy": {
+    "total": 0,
+    "detail": {}
+   },
+   "muscle": {
+    "total": 1,
+    "detail": {
+     "a_sleeve_rolled through a_bracer": 1
+    }
+   },
+   "dwarf": {
+    "total": 3,
+    "detail": {
+     "t_shirt through o_belt": 1,
+     "a_sleeve_rolled through a_bracer": 2
+    }
+   },
+   "halfling": {
+    "total": 4,
+    "detail": {
+     "a_sleeve_rolled through a_bracer": 4
+    }
+   },
+   "orc": {
+    "total": 1,
+    "detail": {
+     "a_sleeve_rolled through a_bracer": 1
+    }
+   },
+   "old_heavy": {
+    "total": 2,
+    "detail": {
+     "t_shirt through o_belt": 1,
+     "a_sleeve_rolled through a_bracer": 1
+    }
+   },
+   "child": {
+    "total": 7,
+    "detail": {
+     "a_sleeve_rolled through a_bracer": 7
+    }
+   },
+   "elf_tall": {
+    "total": 0,
+    "detail": {}
+   }
+  },
+  "labourer_steppe_m": {
+   "neutral": {
+    "total": 0,
+    "detail": {}
+   },
+   "heavy_belly": {
+    "total": 1,
+    "detail": {
+     "t_deel through o_belt_sash": 1
+    }
+   },
+   "thin": {
+    "total": 0,
+    "detail": {}
+   },
+   "breast_curvy": {
+    "total": 7,
+    "detail": {
+     "t_deel through o_belt_sash": 7
+    }
+   },
+   "muscle": {
+    "total": 0,
+    "detail": {}
+   },
+   "dwarf": {
+    "total": 4,
+    "detail": {
+     "t_deel through o_belt_sash": 4
+    }
+   },
+   "halfling": {
+    "total": 8,
+    "detail": {
+     "t_deel through o_belt_sash": 8
+    }
+   },
+   "orc": {
+    "total": 0,
+    "detail": {}
+   },
+   "old_heavy": {
+    "total": 4,
+    "detail": {
+     "t_deel through o_belt_sash": 4
+    }
+   },
+   "child": {
+    "total": 0,
+    "detail": {}
+   },
+   "elf_tall": {
+    "total": 0,
+    "detail": {}
+   }
+  },
+  "labourer_coastal_f": {
+   "neutral": {
+    "total": 0,
+    "detail": {}
+   },
+   "heavy_belly": {
+    "total": 4,
+    "detail": {
+     "t_jersey through s_skirt_short": 4
+    }
+   },
+   "thin": {
+    "total": 1,
+    "detail": {
+     "t_jersey through o_scarf": 1
+    }
+   },
+   "breast_curvy": {
+    "total": 14,
+    "detail": {
+     "t_jersey through s_skirt_short": 13,
+     "t_jersey through o_scarf": 1
+    }
+   },
+   "muscle": {
+    "total": 2,
+    "detail": {
+     "t_jersey through s_skirt_short": 2
+    }
+   },
+   "dwarf": {
+    "total": 6,
+    "detail": {
+     "t_jersey through s_skirt_short": 4,
+     "t_jersey through o_belt": 2
+    }
+   },
+   "halfling": {
+    "total": 2,
+    "detail": {
+     "t_jersey through o_belt": 2
+    }
+   },
+   "orc": {
+    "total": 1,
+    "detail": {
+     "t_jersey through s_skirt_short": 1
+    }
+   },
+   "old_heavy": {
+    "total": 1,
+    "detail": {
+     "t_jersey through o_scarf": 1
+    }
+   },
+   "child": {
+    "total": 0,
+    "detail": {}
+   },
+   "elf_tall": {
+    "total": 1,
+    "detail": {
+     "t_jersey through o_scarf": 1
+    }
+   }
+  },
+  "smith_highland_m": {
+   "neutral": {
+    "total": 0,
+    "detail": {}
+   },
+   "heavy_belly": {
+    "total": 1,
+    "detail": {
+     "t_shirt through o_apron": 1
+    }
+   },
+   "thin": {
+    "total": 0,
+    "detail": {}
+   },
+   "breast_curvy": {
+    "total": 0,
+    "detail": {}
+   },
+   "muscle": {
+    "total": 0,
+    "detail": {}
+   },
+   "dwarf": {
+    "total": 1,
+    "detail": {
+     "t_shirt through o_belt": 1
+    }
+   },
+   "halfling": {
+    "total": 0,
+    "detail": {}
+   },
+   "orc": {
+    "total": 0,
+    "detail": {}
+   },
+   "old_heavy": {
+    "total": 1,
+    "detail": {
+     "t_shirt through o_belt": 1
+    }
+   },
+   "child": {
+    "total": 0,
+    "detail": {}
+   },
+   "elf_tall": {
+    "total": 0,
+    "detail": {}
+   }
+  },
+  "smith_imperial_m": {
+   "neutral": {
+    "total": 0,
+    "detail": {}
+   },
+   "heavy_belly": {
+    "total": 6,
+    "detail": {
+     "t_clavus through o_apron": 6
+    }
+   },
+   "thin": {
+    "total": 0,
+    "detail": {}
+   },
+   "breast_curvy": {
+    "total": 0,
+    "detail": {}
+   },
+   "muscle": {
+    "total": 0,
+    "detail": {}
+   },
+   "dwarf": {
+    "total": 3,
+    "detail": {
+     "t_clavus through o_apron": 2,
+     "t_clavus through o_belt": 1
+    }
+   },
+   "halfling": {
+    "total": 1,
+    "detail": {
+     "t_clavus through o_apron": 1
+    }
+   },
+   "orc": {
+    "total": 2,
+    "detail": {
+     "t_clavus through o_belt": 2
+    }
+   },
+   "old_heavy": {
+    "total": 0,
+    "detail": {}
+   },
+   "child": {
+    "total": 0,
+    "detail": {}
+   },
+   "elf_tall": {
+    "total": 1,
+    "detail": {
+     "t_clavus through o_apron": 1
+    }
+   }
+  },
+  "merchant_river_m": {
+   "neutral": {
+    "total": 7,
+    "detail": {
+     "t_doublet through o_belt": 2,
+     "t_doublet through o_pouch": 2,
+     "t_doublet through o_scarf": 3
+    }
+   },
+   "heavy_belly": {
+    "total": 6,
+    "detail": {
+     "t_doublet through o_pouch": 1,
+     "t_doublet through o_scarf": 5
+    }
+   },
+   "thin": {
+    "total": 4,
+    "detail": {
+     "t_doublet through o_belt": 2,
+     "t_doublet through o_scarf": 2
+    }
+   },
+   "breast_curvy": {
+    "total": 6,
+    "detail": {
+     "t_doublet through o_pouch": 1,
+     "t_doublet through o_scarf": 5
+    }
+   },
+   "muscle": {
+    "total": 12,
+    "detail": {
+     "t_doublet through o_belt": 2,
+     "t_doublet through o_pouch": 4,
+     "t_doublet through o_scarf": 6
+    }
+   },
+   "dwarf": {
+    "total": 10,
+    "detail": {
+     "t_doublet through o_belt": 1,
+     "t_doublet through o_pouch": 4,
+     "t_doublet through o_scarf": 5
+    }
+   },
+   "halfling": {
+    "total": 5,
+    "detail": {
+     "t_doublet through o_pouch": 2,
+     "t_doublet through o_scarf": 3
+    }
+   },
+   "orc": {
+    "total": 9,
+    "detail": {
+     "t_doublet through o_belt": 2,
+     "t_doublet through o_pouch": 2,
+     "t_doublet through o_scarf": 5
+    }
+   },
+   "old_heavy": {
+    "total": 3,
+    "detail": {
+     "t_doublet through o_pouch": 1,
+     "t_doublet through o_scarf": 2
+    }
+   },
+   "child": {
+    "total": 4,
+    "detail": {
+     "t_doublet through o_belt": 1,
+     "t_doublet through o_pouch": 1,
+     "t_doublet through o_scarf": 2
+    }
+   },
+   "elf_tall": {
+    "total": 8,
+    "detail": {
+     "t_doublet through o_pouch": 3,
+     "t_doublet through o_scarf": 5
+    }
+   }
+  },
+  "merchant_coastal_f": {
+   "neutral": {
+    "total": 9,
+    "detail": {
+     "t_shirt_open through o_pouch": 3,
+     "a_sleeve_puffed through t_vest_quilted": 4,
+     "t_vest_quilted through o_pouch": 2
+    }
+   },
+   "heavy_belly": {
+    "total": 9,
+    "detail": {
+     "t_shirt_open through o_belt_sash": 3,
+     "t_shirt_open through o_pouch": 1,
+     "a_sleeve_puffed through t_vest_quilted": 2,
+     "t_vest_quilted through o_belt_sash": 2,
+     "t_vest_quilted through o_pouch": 1
+    }
+   },
+   "thin": {
+    "total": 7,
+    "detail": {
+     "t_shirt_open through o_pouch": 1,
+     "a_sleeve_puffed through t_vest_quilted": 5,
+     "t_vest_quilted through o_pouch": 1
+    }
+   },
+   "breast_curvy": {
+    "total": 8,
+    "detail": {
+     "t_shirt_open through o_pouch": 2,
+     "t_shirt_open through t_vest_quilted": 1,
+     "a_sleeve_puffed through t_vest_quilted": 3,
+     "t_vest_quilted through o_pouch": 2
+    }
+   },
+   "muscle": {
+    "total": 5,
+    "detail": {
+     "t_shirt_open through o_pouch": 4,
+     "t_vest_quilted through o_pouch": 1
+    }
+   },
+   "dwarf": {
+    "total": 7,
+    "detail": {
+     "t_shirt_open through o_pouch": 3,
+     "t_vest_quilted through o_belt_sash": 1,
+     "t_vest_quilted through o_pouch": 3
+    }
+   },
+   "halfling": {
+    "total": 9,
+    "detail": {
+     "t_shirt_open through o_belt_sash": 1,
+     "a_sleeve_puffed through t_vest_quilted": 1,
+     "t_vest_quilted through o_belt_sash": 6,
+     "t_vest_quilted through o_pouch": 1
+    }
+   },
+   "orc": {
+    "total": 3,
+    "detail": {
+     "t_shirt_open through o_pouch": 3
+    }
+   },
+   "old_heavy": {
+    "total": 23,
+    "detail": {
+     "t_shirt_open through o_belt_sash": 5,
+     "t_shirt_open through o_pouch": 2,
+     "t_shirt_open through t_vest_quilted": 5,
+     "a_sleeve_puffed through t_vest_quilted": 3,
+     "t_vest_quilted through o_belt_sash": 6,
+     "t_vest_quilted through o_pouch": 2
+    }
+   },
+   "child": {
+    "total": 3,
+    "detail": {
+     "t_shirt_open through o_pouch": 1,
+     "t_vest_quilted through o_pouch": 2
+    }
+   },
+   "elf_tall": {
+    "total": 19,
+    "detail": {
+     "t_shirt_open through o_pouch": 3,
+     "t_shirt_open through t_vest_quilted": 2,
+     "a_sleeve_puffed through t_vest_quilted": 11,
+     "t_vest_quilted through o_pouch": 3
+    }
+   }
+  },
+  "merchant_steppe_m": {
+   "neutral": {
+    "total": 1,
+    "detail": {
+     "t_deel through o_pouch": 1
+    }
+   },
+   "heavy_belly": {
+    "total": 3,
+    "detail": {
+     "t_deel through o_belt_sash": 1,
+     "t_deel through o_pouch": 2
+    }
+   },
+   "thin": {
+    "total": 0,
+    "detail": {}
+   },
+   "breast_curvy": {
+    "total": 7,
+    "detail": {
+     "t_deel through o_belt_sash": 7
+    }
+   },
+   "muscle": {
+    "total": 2,
+    "detail": {
+     "t_deel through o_pouch": 2
+    }
+   },
+   "dwarf": {
+    "total": 6,
+    "detail": {
+     "t_deel through o_belt_sash": 4,
+     "t_deel through o_pouch": 2
+    }
+   },
+   "halfling": {
+    "total": 11,
+    "detail": {
+     "t_deel through o_belt_sash": 8,
+     "t_deel through o_pouch": 3
+    }
+   },
+   "orc": {
+    "total": 5,
+    "detail": {
+     "t_deel through o_pouch": 2,
+     "t_deel through o_collar_fur": 3
+    }
+   },
+   "old_heavy": {
+    "total": 5,
+    "detail": {
+     "t_deel through o_belt_sash": 4,
+     "t_deel through o_pouch": 1
+    }
+   },
+   "child": {
+    "total": 1,
+    "detail": {
+     "t_deel through o_pouch": 1
+    }
+   },
+   "elf_tall": {
+    "total": 3,
+    "detail": {
+     "t_deel through o_pouch": 3
+    }
+   }
+  },
+  "noble_imperial_m": {
+   "neutral": {
+    "total": 0,
+    "detail": {}
+   },
+   "heavy_belly": {
+    "total": 0,
+    "detail": {}
+   },
+   "thin": {
+    "total": 0,
+    "detail": {}
+   },
+   "breast_curvy": {
+    "total": 0,
+    "detail": {}
+   },
+   "muscle": {
+    "total": 0,
+    "detail": {}
+   },
+   "dwarf": {
+    "total": 0,
+    "detail": {}
+   },
+   "halfling": {
+    "total": 0,
+    "detail": {}
+   },
+   "orc": {
+    "total": 0,
+    "detail": {}
+   },
+   "old_heavy": {
+    "total": 0,
+    "detail": {}
+   },
+   "child": {
+    "total": 0,
+    "detail": {}
+   },
+   "elf_tall": {
+    "total": 0,
+    "detail": {}
+   }
+  },
+  "noble_imperial_f": {
+   "neutral": {
+    "total": 0,
+    "detail": {}
+   },
+   "heavy_belly": {
+    "total": 3,
+    "detail": {
+     "t_bodice through o_belt_sash": 3
+    }
+   },
+   "thin": {
+    "total": 0,
+    "detail": {}
+   },
+   "breast_curvy": {
+    "total": 9,
+    "detail": {
+     "t_bodice through s_dress_skirt": 9
+    }
+   },
+   "muscle": {
+    "total": 0,
+    "detail": {}
+   },
+   "dwarf": {
+    "total": 2,
+    "detail": {
+     "t_bodice through s_dress_skirt": 2
+    }
+   },
+   "halfling": {
+    "total": 0,
+    "detail": {}
+   },
+   "orc": {
+    "total": 0,
+    "detail": {}
+   },
+   "old_heavy": {
+    "total": 2,
+    "detail": {
+     "t_bodice through o_belt_sash": 2
+    }
+   },
+   "child": {
+    "total": 0,
+    "detail": {}
+   },
+   "elf_tall": {
+    "total": 0,
+    "detail": {}
+   }
+  },
+  "noble_river_m": {
+   "neutral": {
+    "total": 2,
+    "detail": {
+     "t_doublet through o_belt": 2
+    }
+   },
+   "heavy_belly": {
+    "total": 0,
+    "detail": {}
+   },
+   "thin": {
+    "total": 2,
+    "detail": {
+     "t_doublet through o_belt": 2
+    }
+   },
+   "breast_curvy": {
+    "total": 0,
+    "detail": {}
+   },
+   "muscle": {
+    "total": 2,
+    "detail": {
+     "t_doublet through o_belt": 2
+    }
+   },
+   "dwarf": {
+    "total": 1,
+    "detail": {
+     "t_doublet through o_belt": 1
+    }
+   },
+   "halfling": {
+    "total": 0,
+    "detail": {}
+   },
+   "orc": {
+    "total": 2,
+    "detail": {
+     "t_doublet through o_belt": 2
+    }
+   },
+   "old_heavy": {
+    "total": 0,
+    "detail": {}
+   },
+   "child": {
+    "total": 1,
+    "detail": {
+     "t_doublet through o_belt": 1
+    }
+   },
+   "elf_tall": {
+    "total": 0,
+    "detail": {}
+   }
+  },
+  "noble_highland_f": {
+   "neutral": {
+    "total": 2,
+    "detail": {
+     "t_bodice through o_cloak_long": 1,
+     "o_collar_fur through o_cloak_long": 1
+    }
+   },
+   "heavy_belly": {
+    "total": 3,
+    "detail": {
+     "t_bodice through o_cloak_long": 1,
+     "o_collar_fur through o_cloak_long": 2
+    }
+   },
+   "thin": {
+    "total": 4,
+    "detail": {
+     "t_bodice through o_cloak_long": 2,
+     "o_collar_fur through o_cloak_long": 2
+    }
+   },
+   "breast_curvy": {
+    "total": 13,
+    "detail": {
+     "t_bodice through s_dress_skirt": 9,
+     "t_bodice through o_cloak_long": 1,
+     "o_collar_fur through o_cloak_long": 3
+    }
+   },
+   "muscle": {
+    "total": 4,
+    "detail": {
+     "t_bodice through o_cloak_long": 1,
+     "o_collar_fur through o_cloak_long": 3
+    }
+   },
+   "dwarf": {
+    "total": 7,
+    "detail": {
+     "t_bodice through s_dress_skirt": 2,
+     "t_bodice through o_cloak_long": 1,
+     "t_bodice through o_belt": 1,
+     "o_collar_fur through o_cloak_long": 3
+    }
+   },
+   "halfling": {
+    "total": 4,
+    "detail": {
+     "t_bodice through o_cloak_long": 1,
+     "t_bodice through o_belt": 2,
+     "o_collar_fur through o_cloak_long": 1
+    }
+   },
+   "orc": {
+    "total": 2,
+    "detail": {
+     "t_bodice through o_cloak_long": 1,
+     "o_collar_fur through o_cloak_long": 1
+    }
+   },
+   "old_heavy": {
+    "total": 11,
+    "detail": {
+     "t_bodice through o_cloak_long": 3,
+     "t_bodice through o_belt": 2,
+     "s_dress_skirt through o_cloak_long": 3,
+     "o_collar_fur through o_cloak_long": 3
+    }
+   },
+   "child": {
+    "total": 1,
+    "detail": {
+     "t_bodice through o_cloak_long": 1
+    }
+   },
+   "elf_tall": {
+    "total": 6,
+    "detail": {
+     "t_bodice through o_cloak_long": 2,
+     "o_collar_fur through o_cloak_long": 4
+    }
+   }
+  },
+  "noble_steppe_m": {
+   "neutral": {
+    "total": 0,
+    "detail": {}
+   },
+   "heavy_belly": {
+    "total": 1,
+    "detail": {
+     "t_deel through o_belt_sash": 1
+    }
+   },
+   "thin": {
+    "total": 0,
+    "detail": {}
+   },
+   "breast_curvy": {
+    "total": 7,
+    "detail": {
+     "t_deel through o_belt_sash": 7
+    }
+   },
+   "muscle": {
+    "total": 0,
+    "detail": {}
+   },
+   "dwarf": {
+    "total": 4,
+    "detail": {
+     "t_deel through o_belt_sash": 4
+    }
+   },
+   "halfling": {
+    "total": 8,
+    "detail": {
+     "t_deel through o_belt_sash": 8
+    }
+   },
+   "orc": {
+    "total": 3,
+    "detail": {
+     "t_deel through o_collar_fur": 3
+    }
+   },
+   "old_heavy": {
+    "total": 4,
+    "detail": {
+     "t_deel through o_belt_sash": 4
+    }
+   },
+   "child": {
+    "total": 0,
+    "detail": {}
+   },
+   "elf_tall": {
+    "total": 0,
+    "detail": {}
+   }
+  },
+  "priest_imperial_m": {
+   "neutral": {
+    "total": 0,
+    "detail": {}
+   },
+   "heavy_belly": {
+    "total": 5,
+    "detail": {
+     "t_robe_top through s_robe_lower": 4,
+     "t_robe_top through o_belt_sash": 1
+    }
+   },
+   "thin": {
+    "total": 0,
+    "detail": {}
+   },
+   "breast_curvy": {
+    "total": 24,
+    "detail": {
+     "t_robe_top through s_robe_lower": 8,
+     "t_robe_top through o_belt_sash": 7,
+     "s_robe_lower through o_belt_sash": 9
+    }
+   },
+   "muscle": {
+    "total": 1,
+    "detail": {
+     "t_robe_top through s_robe_lower": 1
+    }
+   },
+   "dwarf": {
+    "total": 8,
+    "detail": {
+     "t_robe_top through s_robe_lower": 4,
+     "t_robe_top through o_belt_sash": 4
+    }
+   },
+   "halfling": {
+    "total": 7,
+    "detail": {
+     "t_robe_top through o_belt_sash": 7
+    }
+   },
+   "orc": {
+    "total": 2,
+    "detail": {
+     "t_robe_top through s_robe_lower": 2
+    }
+   },
+   "old_heavy": {
+    "total": 16,
+    "detail": {
+     "t_robe_top through o_belt_sash": 6,
+     "s_robe_lower through o_belt_sash": 10
+    }
+   },
+   "child": {
+    "total": 1,
+    "detail": {
+     "t_robe_top through s_robe_lower": 1
+    }
+   },
+   "elf_tall": {
+    "total": 7,
+    "detail": {
+     "t_robe_top through o_belt_sash": 1,
+     "a_sleeve_wide through s_robe_lower": 1,
+     "a_sleeve_wide through o_belt_sash": 5
+    }
+   }
+  },
+  "priest_forest_f": {
+   "neutral": {
+    "total": 28,
+    "detail": {
+     "t_robe_top through o_hood": 25,
+     "t_robe_top through o_belt": 1,
+     "s_robe_lower through o_belt": 2
+    }
+   },
+   "heavy_belly": {
+    "total": 21,
+    "detail": {
+     "t_robe_top through s_robe_lower": 4,
+     "t_robe_top through o_hood": 17
+    }
+   },
+   "thin": {
+    "total": 31,
+    "detail": {
+     "t_robe_top through o_hood": 30,
+     "s_robe_lower through o_belt": 1
+    }
+   },
+   "breast_curvy": {
+    "total": 16,
+    "detail": {
+     "t_robe_top through s_robe_lower": 8,
+     "t_robe_top through o_hood": 8
+    }
+   },
+   "muscle": {
+    "total": 45,
+    "detail": {
+     "t_robe_top through s_robe_lower": 1,
+     "t_robe_top through o_hood": 41,
+     "t_robe_top through o_belt": 1,
+     "s_robe_lower through o_belt": 2
+    }
+   },
+   "dwarf": {
+    "total": 16,
+    "detail": {
+     "t_robe_top through s_robe_lower": 4,
+     "t_robe_top through o_hood": 10,
+     "s_robe_lower through o_belt": 2
+    }
+   },
+   "halfling": {
+    "total": 8,
+    "detail": {
+     "t_robe_top through o_hood": 6,
+     "s_robe_lower through o_belt": 2
+    }
+   },
+   "orc": {
+    "total": 41,
+    "detail": {
+     "t_robe_top through s_robe_lower": 2,
+     "t_robe_top through o_hood": 37,
+     "s_robe_lower through o_belt": 2
+    }
+   },
+   "old_heavy": {
+    "total": 20,
+    "detail": {
+     "t_robe_top through o_hood": 18,
+     "t_robe_top through o_belt": 1,
+     "s_robe_lower through o_belt": 1
+    }
+   },
+   "child": {
+    "total": 4,
+    "detail": {
+     "t_robe_top through s_robe_lower": 1,
+     "t_robe_top through o_belt": 1,
+     "s_robe_lower through o_belt": 2
+    }
+   },
+   "elf_tall": {
+    "total": 21,
+    "detail": {
+     "t_robe_top through o_hood": 19,
+     "t_robe_top through o_belt": 1,
+     "s_robe_lower through o_belt": 1
+    }
+   }
+  },
+  "guard_imperial_m": {
+   "neutral": {
+    "total": 18,
+    "detail": {
+     "t_shirt through a_pauldron": 1,
+     "a_sleeve_fitted through t_breastplate": 9,
+     "f_boots_tall through l_greaves": 8
+    }
+   },
+   "heavy_belly": {
+    "total": 30,
+    "detail": {
+     "t_shirt through o_tabard": 1,
+     "a_sleeve_fitted through t_breastplate": 5,
+     "a_sleeve_fitted through a_vambrace": 9,
+     "l_trousers through o_tabard": 3,
+     "f_boots_tall through l_greaves": 12
+    }
+   },
+   "thin": {
+    "total": 11,
+    "detail": {
+     "a_sleeve_fitted through t_breastplate": 9,
+     "f_boots_tall through l_greaves": 2
+    }
+   },
+   "breast_curvy": {
+    "total": 14,
+    "detail": {
+     "t_breastplate through o_tabard": 3,
+     "a_sleeve_fitted through t_breastplate": 9,
+     "f_boots_tall through l_greaves": 2
+    }
+   },
+   "muscle": {
+    "total": 41,
+    "detail": {
+     "t_shirt through o_tabard": 3,
+     "a_sleeve_fitted through t_breastplate": 3,
+     "a_sleeve_fitted through a_vambrace": 15,
+     "l_trousers through o_tabard": 4,
+     "f_boots_tall through l_greaves": 16
+    }
+   },
+   "dwarf": {
+    "total": 45,
+    "detail": {
+     "t_shirt through o_belt": 1,
+     "t_shirt through o_tabard": 1,
+     "a_sleeve_fitted through t_breastplate": 7,
+     "a_sleeve_fitted through a_pauldron": 1,
+     "a_sleeve_fitted through a_vambrace": 14,
+     "l_trousers through o_tabard": 2,
+     "f_boots_tall through l_greaves": 19
+    }
+   },
+   "halfling": {
+    "total": 29,
+    "detail": {
+     "t_shirt through a_pauldron": 1,
+     "a_sleeve_fitted through t_breastplate": 9,
+     "a_sleeve_fitted through a_vambrace": 9,
+     "f_boots_tall through l_greaves": 10
+    }
+   },
+   "orc": {
+    "total": 29,
+    "detail": {
+     "t_shirt through a_pauldron": 1,
+     "t_shirt through o_tabard": 1,
+     "a_sleeve_fitted through t_breastplate": 6,
+     "a_sleeve_fitted through a_vambrace": 9,
+     "f_boots_tall through l_greaves": 12
+    }
+   },
+   "old_heavy": {
+    "total": 14,
+    "detail": {
+     "t_shirt through o_belt": 1,
+     "a_sleeve_fitted through t_breastplate": 9,
+     "f_boots_tall through l_greaves": 4
+    }
+   },
+   "child": {
+    "total": 50,
+    "detail": {
+     "a_sleeve_fitted through t_breastplate": 21,
+     "a_sleeve_fitted through a_pauldron": 1,
+     "a_sleeve_fitted through a_vambrace": 12,
+     "f_boots_tall through l_greaves": 15,
+     "h_gauntlets through a_vambrace": 1
+    }
+   },
+   "elf_tall": {
+    "total": 19,
+    "detail": {
+     "a_sleeve_fitted through t_breastplate": 19
+    }
+   }
+  },
+  "guard_highland_m": {
+   "neutral": {
+    "total": 15,
+    "detail": {
+     "t_mail through s_kilt": 1,
+     "t_mail through o_cloak_long": 3,
+     "t_mail through hw_coif": 8,
+     "hw_coif through o_cloak_long": 3
+    }
+   },
+   "heavy_belly": {
+    "total": 15,
+    "detail": {
+     "t_mail through s_kilt": 7,
+     "t_mail through o_cloak_long": 1,
+     "t_mail through hw_coif": 5,
+     "hw_coif through o_cloak_long": 2
+    }
+   },
+   "thin": {
+    "total": 30,
+    "detail": {
+     "t_mail through s_kilt": 1,
+     "t_mail through o_cloak_long": 1,
+     "t_mail through hw_coif": 23,
+     "hw_coif through o_cloak_long": 5
+    }
+   },
+   "breast_curvy": {
+    "total": 22,
+    "detail": {
+     "t_mail through s_kilt": 13,
+     "t_mail through o_cloak_long": 3,
+     "t_mail through hw_coif": 3,
+     "hw_coif through o_cloak_long": 3
+    }
+   },
+   "muscle": {
+    "total": 27,
+    "detail": {
+     "t_mail through s_kilt": 6,
+     "t_mail through o_cloak_long": 1,
+     "t_mail through hw_coif": 18,
+     "hw_coif through o_cloak_long": 2
+    }
+   },
+   "dwarf": {
+    "total": 14,
+    "detail": {
+     "t_mail through s_kilt": 7,
+     "t_mail through o_belt": 1,
+     "t_mail through o_cloak_long": 1,
+     "t_mail through hw_coif": 3,
+     "hw_coif through o_cloak_long": 2
+    }
+   },
+   "halfling": {
+    "total": 11,
+    "detail": {
+     "t_mail through s_kilt": 2,
+     "t_mail through o_cloak_long": 3,
+     "t_mail through hw_coif": 3,
+     "hw_coif through o_cloak_long": 3
+    }
+   },
+   "orc": {
+    "total": 29,
+    "detail": {
+     "t_mail through s_kilt": 6,
+     "t_mail through o_belt": 2,
+     "t_mail through o_cloak_long": 1,
+     "t_mail through hw_coif": 18,
+     "hw_coif through o_cloak_long": 2
+    }
+   },
+   "old_heavy": {
+    "total": 10,
+    "detail": {
+     "t_mail through o_cloak_long": 1,
+     "t_mail through hw_coif": 8,
+     "hw_coif through o_cloak_long": 1
+    }
+   },
+   "child": {
+    "total": 6,
+    "detail": {
+     "t_mail through s_kilt": 1,
+     "t_mail through o_cloak_long": 3,
+     "hw_coif through o_cloak_long": 2
+    }
+   },
+   "elf_tall": {
+    "total": 11,
+    "detail": {
+     "t_mail through s_kilt": 1,
+     "t_mail through o_cloak_long": 3,
+     "t_mail through hw_coif": 3,
+     "hw_coif through o_cloak_long": 4
+    }
+   }
+  },
+  "soldier_steppe_m": {
+   "neutral": {
+    "total": 25,
+    "detail": {
+     "a_sleeve_long through t_breastplate": 7,
+     "a_sleeve_long through a_vambrace": 18
+    }
+   },
+   "heavy_belly": {
+    "total": 17,
+    "detail": {
+     "a_sleeve_long through t_breastplate": 3,
+     "a_sleeve_long through a_vambrace": 14
+    }
+   },
+   "thin": {
+    "total": 12,
+    "detail": {
+     "a_sleeve_long through t_breastplate": 6,
+     "a_sleeve_long through a_vambrace": 6
+    }
+   },
+   "breast_curvy": {
+    "total": 13,
+    "detail": {
+     "t_deel through t_breastplate": 3,
+     "a_sleeve_long through t_breastplate": 10
+    }
+   },
+   "muscle": {
+    "total": 22,
+    "detail": {
+     "t_deel through t_breastplate": 1,
+     "a_sleeve_long through t_breastplate": 5,
+     "a_sleeve_long through a_vambrace": 16
+    }
+   },
+   "dwarf": {
+    "total": 25,
+    "detail": {
+     "a_sleeve_long through t_breastplate": 5,
+     "a_sleeve_long through a_vambrace": 20
+    }
+   },
+   "halfling": {
+    "total": 29,
+    "detail": {
+     "a_sleeve_long through t_breastplate": 9,
+     "a_sleeve_long through a_vambrace": 20
+    }
+   },
+   "orc": {
+    "total": 25,
+    "detail": {
+     "t_deel through t_breastplate": 1,
+     "a_sleeve_long through t_breastplate": 6,
+     "a_sleeve_long through a_vambrace": 18
+    }
+   },
+   "old_heavy": {
+    "total": 22,
+    "detail": {
+     "t_deel through t_breastplate": 17,
+     "a_sleeve_long through t_breastplate": 5
+    }
+   },
+   "child": {
+    "total": 56,
+    "detail": {
+     "t_deel through a_vambrace": 1,
+     "a_sleeve_long through t_breastplate": 23,
+     "a_sleeve_long through a_vambrace": 32
+    }
+   },
+   "elf_tall": {
+    "total": 23,
+    "detail": {
+     "t_deel through t_breastplate": 4,
+     "a_sleeve_long through t_breastplate": 19
+    }
+   }
+  },
+  "soldier_river_f": {
+   "neutral": {
+    "total": 2,
+    "detail": {
+     "t_jerkin through o_pouch": 2
+    }
+   },
+   "heavy_belly": {
+    "total": 2,
+    "detail": {
+     "t_jerkin through o_pouch": 1,
+     "a_sleeve_fitted through a_bracer": 1
+    }
+   },
+   "thin": {
+    "total": 1,
+    "detail": {
+     "t_jerkin through o_pouch": 1
+    }
+   },
+   "breast_curvy": {
+    "total": 2,
+    "detail": {
+     "t_jerkin through o_pouch": 2
+    }
+   },
+   "muscle": {
+    "total": 4,
+    "detail": {
+     "t_jerkin through o_pouch": 4
+    }
+   },
+   "dwarf": {
+    "total": 7,
+    "detail": {
+     "t_jerkin through o_belt": 1,
+     "t_jerkin through o_pouch": 4,
+     "a_sleeve_fitted through a_bracer": 2
+    }
+   },
+   "halfling": {
+    "total": 1,
+    "detail": {
+     "a_sleeve_fitted through a_bracer": 1
+    }
+   },
+   "orc": {
+    "total": 5,
+    "detail": {
+     "t_jerkin through o_belt": 2,
+     "t_jerkin through o_pouch": 3
+    }
+   },
+   "old_heavy": {
+    "total": 1,
+    "detail": {
+     "t_jerkin through o_pouch": 1
+    }
+   },
+   "child": {
+    "total": 2,
+    "detail": {
+     "t_jerkin through o_pouch": 1,
+     "a_sleeve_fitted through a_bracer": 1
+    }
+   },
+   "elf_tall": {
+    "total": 3,
+    "detail": {
+     "t_jerkin through o_pouch": 3
+    }
+   }
+  },
+  "scholar_imperial_m": {
+   "neutral": {
+    "total": 12,
+    "detail": {
+     "t_robe_top through o_belt": 1,
+     "t_robe_top through o_satchel": 4,
+     "s_robe_lower through o_belt": 2,
+     "s_robe_lower through o_satchel": 5
+    }
+   },
+   "heavy_belly": {
+    "total": 7,
+    "detail": {
+     "t_robe_top through s_robe_lower": 4,
+     "t_robe_top through o_satchel": 3
+    }
+   },
+   "thin": {
+    "total": 9,
+    "detail": {
+     "t_robe_top through o_satchel": 4,
+     "s_robe_lower through o_belt": 1,
+     "s_robe_lower through o_satchel": 4
+    }
+   },
+   "breast_curvy": {
+    "total": 23,
+    "detail": {
+     "t_robe_top through s_robe_lower": 8,
+     "t_robe_top through o_satchel": 4,
+     "a_sleeve_wide through o_satchel": 11
+    }
+   },
+   "muscle": {
+    "total": 12,
+    "detail": {
+     "t_robe_top through s_robe_lower": 1,
+     "t_robe_top through o_belt": 1,
+     "t_robe_top through o_satchel": 2,
+     "s_robe_lower through o_belt": 2,
+     "s_robe_lower through o_satchel": 6
+    }
+   },
+   "dwarf": {
+    "total": 13,
+    "detail": {
+     "t_robe_top through s_robe_lower": 4,
+     "t_robe_top through o_satchel": 5,
+     "s_robe_lower through o_belt": 2,
+     "s_robe_lower through o_satchel": 2
+    }
+   },
+   "halfling": {
+    "total": 13,
+    "detail": {
+     "t_robe_top through o_satchel": 4,
+     "s_robe_lower through o_belt": 2,
+     "s_robe_lower through o_satchel": 7
+    }
+   },
+   "orc": {
+    "total": 8,
+    "detail": {
+     "t_robe_top through s_robe_lower": 2,
+     "t_robe_top through o_satchel": 4,
+     "s_robe_lower through o_belt": 2
+    }
+   },
+   "old_heavy": {
+    "total": 4,
+    "detail": {
+     "t_robe_top through o_belt": 1,
+     "t_robe_top through o_satchel": 2,
+     "s_robe_lower through o_belt": 1
+    }
+   },
+   "child": {
+    "total": 13,
+    "detail": {
+     "t_robe_top through s_robe_lower": 1,
+     "t_robe_top through o_belt": 1,
+     "t_robe_top through o_satchel": 4,
+     "s_robe_lower through o_belt": 2,
+     "s_robe_lower through o_satchel": 5
+    }
+   },
+   "elf_tall": {
+    "total": 20,
+    "detail": {
+     "t_robe_top through o_belt": 1,
+     "t_robe_top through o_satchel": 2,
+     "a_sleeve_wide through s_robe_lower": 1,
+     "a_sleeve_wide through o_satchel": 10,
+     "s_robe_lower through o_belt": 1,
+     "s_robe_lower through o_satchel": 5
+    }
+   }
+  },
+  "scholar_river_f": {
+   "neutral": {
+    "total": 9,
+    "detail": {
+     "t_doublet through o_scarf": 3,
+     "t_doublet through o_satchel": 2,
+     "l_trousers through o_satchel": 4
+    }
+   },
+   "heavy_belly": {
+    "total": 8,
+    "detail": {
+     "t_doublet through o_scarf": 5,
+     "t_doublet through o_satchel": 3
+    }
+   },
+   "thin": {
+    "total": 7,
+    "detail": {
+     "t_doublet through o_scarf": 2,
+     "t_doublet through o_satchel": 1,
+     "l_trousers through o_satchel": 4
+    }
+   },
+   "breast_curvy": {
+    "total": 15,
+    "detail": {
+     "t_doublet through o_scarf": 5,
+     "t_doublet through o_satchel": 2,
+     "a_sleeve_fitted through o_satchel": 4,
+     "l_trousers through o_satchel": 4
+    }
+   },
+   "muscle": {
+    "total": 11,
+    "detail": {
+     "t_doublet through o_scarf": 6,
+     "t_doublet through o_satchel": 1,
+     "l_trousers through o_satchel": 4
+    }
+   },
+   "dwarf": {
+    "total": 11,
+    "detail": {
+     "t_doublet through o_scarf": 5,
+     "t_doublet through o_satchel": 4,
+     "l_trousers through o_satchel": 2
+    }
+   },
+   "halfling": {
+    "total": 5,
+    "detail": {
+     "t_doublet through o_scarf": 3,
+     "t_doublet through o_satchel": 2
+    }
+   },
+   "orc": {
+    "total": 10,
+    "detail": {
+     "t_doublet through o_scarf": 5,
+     "t_doublet through o_satchel": 1,
+     "l_trousers through o_satchel": 4
+    }
+   },
+   "old_heavy": {
+    "total": 6,
+    "detail": {
+     "t_doublet through o_scarf": 2,
+     "t_doublet through o_satchel": 2,
+     "l_trousers through o_satchel": 2
+    }
+   },
+   "child": {
+    "total": 6,
+    "detail": {
+     "t_doublet through o_scarf": 2,
+     "t_doublet through o_satchel": 3,
+     "l_trousers through o_satchel": 1
+    }
+   },
+   "elf_tall": {
+    "total": 10,
+    "detail": {
+     "t_doublet through o_scarf": 5,
+     "t_doublet through o_satchel": 2,
+     "l_trousers through o_satchel": 3
+    }
+   }
+  },
+  "traveller_forest_m": {
+   "neutral": {
+    "total": 6,
+    "detail": {
+     "t_jerkin through o_cloak_long": 3,
+     "t_jerkin through o_pouch": 2,
+     "a_sleeve_long through a_bracer": 1
+    }
+   },
+   "heavy_belly": {
+    "total": 4,
+    "detail": {
+     "t_jerkin through o_cloak_long": 1,
+     "t_jerkin through o_pouch": 1,
+     "a_sleeve_long through a_bracer": 2
+    }
+   },
+   "thin": {
+    "total": 2,
+    "detail": {
+     "t_jerkin through o_cloak_long": 1,
+     "t_jerkin through o_pouch": 1
+    }
+   },
+   "breast_curvy": {
+    "total": 6,
+    "detail": {
+     "t_jerkin through o_cloak_long": 4,
+     "t_jerkin through o_pouch": 2
+    }
+   },
+   "muscle": {
+    "total": 7,
+    "detail": {
+     "t_jerkin through o_cloak_long": 1,
+     "t_jerkin through o_pouch": 4,
+     "a_sleeve_long through a_bracer": 2
+    }
+   },
+   "dwarf": {
+    "total": 9,
+    "detail": {
+     "t_jerkin through o_cloak_long": 1,
+     "t_jerkin through o_belt": 1,
+     "t_jerkin through o_pouch": 4,
+     "a_sleeve_long through a_bracer": 3
+    }
+   },
+   "halfling": {
+    "total": 3,
+    "detail": {
+     "t_jerkin through o_cloak_long": 2,
+     "a_sleeve_long through a_bracer": 1
+    }
+   },
+   "orc": {
+    "total": 8,
+    "detail": {
+     "t_jerkin through o_cloak_long": 1,
+     "t_jerkin through o_belt": 2,
+     "t_jerkin through o_pouch": 3,
+     "a_sleeve_long through a_bracer": 2
+    }
+   },
+   "old_heavy": {
+    "total": 2,
+    "detail": {
+     "t_jerkin through o_cloak_long": 1,
+     "t_jerkin through o_pouch": 1
+    }
+   },
+   "child": {
+    "total": 6,
+    "detail": {
+     "t_jerkin through o_cloak_long": 3,
+     "t_jerkin through o_pouch": 1,
+     "a_sleeve_long through a_bracer": 2
+    }
+   },
+   "elf_tall": {
+    "total": 6,
+    "detail": {
+     "t_jerkin through o_cloak_long": 3,
+     "t_jerkin through o_pouch": 3
+    }
+   }
+  },
+  "traveller_coastal_f": {
+   "neutral": {
+    "total": 6,
+    "detail": {
+     "t_jersey through o_satchel": 3,
+     "l_breeches through o_satchel": 3
+    }
+   },
+   "heavy_belly": {
+    "total": 3,
+    "detail": {
+     "t_jersey through o_satchel": 3
+    }
+   },
+   "thin": {
+    "total": 5,
+    "detail": {
+     "t_jersey through o_satchel": 2,
+     "t_jersey through o_scarf": 1,
+     "l_breeches through o_satchel": 2
+    }
+   },
+   "breast_curvy": {
+    "total": 6,
+    "detail": {
+     "t_jersey through o_satchel": 1,
+     "t_jersey through o_scarf": 1,
+     "l_breeches through o_satchel": 4
+    }
+   },
+   "muscle": {
+    "total": 7,
+    "detail": {
+     "t_jersey through o_satchel": 3,
+     "l_breeches through o_satchel": 4
+    }
+   },
+   "dwarf": {
+    "total": 7,
+    "detail": {
+     "t_jersey through o_satchel": 5,
+     "l_breeches through o_satchel": 2
+    }
+   },
+   "halfling": {
+    "total": 3,
+    "detail": {
+     "t_jersey through o_satchel": 2,
+     "l_breeches through o_satchel": 1
+    }
+   },
+   "orc": {
+    "total": 5,
+    "detail": {
+     "t_jersey through o_satchel": 2,
+     "l_breeches through o_satchel": 3
+    }
+   },
+   "old_heavy": {
+    "total": 3,
+    "detail": {
+     "t_jersey through o_satchel": 1,
+     "t_jersey through o_scarf": 1,
+     "l_breeches through o_satchel": 1
+    }
+   },
+   "child": {
+    "total": 2,
+    "detail": {
+     "t_jersey through o_satchel": 1,
+     "l_breeches through o_satchel": 1
+    }
+   },
+   "elf_tall": {
+    "total": 7,
+    "detail": {
+     "t_jersey through o_satchel": 2,
+     "t_jersey through o_scarf": 1,
+     "l_breeches through o_satchel": 4
+    }
+   }
+  },
+  "child_river": {
+   "neutral": {
+    "total": 0,
+    "detail": {}
+   },
+   "heavy_belly": {
+    "total": 0,
+    "detail": {}
+   },
+   "thin": {
+    "total": 0,
+    "detail": {}
+   },
+   "breast_curvy": {
+    "total": 0,
+    "detail": {}
+   },
+   "muscle": {
+    "total": 0,
+    "detail": {}
+   },
+   "dwarf": {
+    "total": 1,
+    "detail": {
+     "t_shirt through o_belt": 1
+    }
+   },
+   "halfling": {
+    "total": 0,
+    "detail": {}
+   },
+   "orc": {
+    "total": 0,
+    "detail": {}
+   },
+   "old_heavy": {
+    "total": 1,
+    "detail": {
+     "t_shirt through o_belt": 1
+    }
+   },
+   "child": {
+    "total": 0,
+    "detail": {}
+   },
+   "elf_tall": {
+    "total": 0,
+    "detail": {}
+   }
+  },
+  "child_highland_f": {
+   "neutral": {
+    "total": 0,
+    "detail": {}
+   },
+   "heavy_belly": {
+    "total": 2,
+    "detail": {
+     "t_bodice through s_skirt_short": 2
+    }
+   },
+   "thin": {
+    "total": 0,
+    "detail": {}
+   },
+   "breast_curvy": {
+    "total": 10,
+    "detail": {
+     "t_bodice through s_skirt_short": 10
+    }
+   },
+   "muscle": {
+    "total": 2,
+    "detail": {
+     "t_bodice through s_skirt_short": 2
+    }
+   },
+   "dwarf": {
+    "total": 1,
+    "detail": {
+     "t_bodice through s_skirt_short": 1
+    }
+   },
+   "halfling": {
+    "total": 0,
+    "detail": {}
+   },
+   "orc": {
+    "total": 0,
+    "detail": {}
+   },
+   "old_heavy": {
+    "total": 0,
+    "detail": {}
+   },
+   "child": {
+    "total": 0,
+    "detail": {}
+   },
+   "elf_tall": {
+    "total": 0,
+    "detail": {}
+   }
+  },
+  "elder_forest_m": {
+   "neutral": {
+    "total": 3,
+    "detail": {
+     "t_shirt_open through o_scarf": 1,
+     "t_vest_fur through o_belt": 2
+    }
+   },
+   "heavy_belly": {
+    "total": 2,
+    "detail": {
+     "t_shirt_open through o_scarf": 1,
+     "t_shirt_open through t_vest_fur": 1
+    }
+   },
+   "thin": {
+    "total": 3,
+    "detail": {
+     "t_shirt_open through o_scarf": 1,
+     "o_scarf through o_cloak_long": 1,
+     "t_vest_fur through o_belt": 1
+    }
+   },
+   "breast_curvy": {
+    "total": 12,
+    "detail": {
+     "t_shirt_open through o_cloak_long": 1,
+     "t_shirt_open through o_scarf": 1,
+     "a_sleeve_long through t_vest_fur": 6,
+     "o_scarf through o_cloak_long": 2,
+     "t_vest_fur through o_cloak_long": 2
+    }
+   },
+   "muscle": {
+    "total": 3,
+    "detail": {
+     "t_shirt_open through o_scarf": 1,
+     "t_vest_fur through o_belt": 2
+    }
+   },
+   "dwarf": {
+    "total": 3,
+    "detail": {
+     "t_shirt_open through o_scarf": 1,
+     "t_shirt_open through o_belt": 1,
+     "t_vest_fur through o_belt": 1
+    }
+   },
+   "halfling": {
+    "total": 1,
+    "detail": {
+     "t_shirt_open through o_scarf": 1
+    }
+   },
+   "orc": {
+    "total": 3,
+    "detail": {
+     "t_shirt_open through o_scarf": 1,
+     "t_vest_fur through o_cloak_long": 2
+    }
+   },
+   "old_heavy": {
+    "total": 8,
+    "detail": {
+     "t_shirt_open through o_scarf": 1,
+     "t_shirt_open through o_belt": 1,
+     "t_shirt_open through t_vest_fur": 1,
+     "a_sleeve_long through t_vest_fur": 4,
+     "o_scarf through o_cloak_long": 1
+    }
+   },
+   "child": {
+    "total": 3,
+    "detail": {
+     "o_scarf through o_cloak_long": 2,
+     "t_vest_fur through o_belt": 1
+    }
+   },
+   "elf_tall": {
+    "total": 17,
+    "detail": {
+     "t_shirt_open through o_cloak_long": 1,
+     "t_shirt_open through o_scarf": 2,
+     "t_shirt_open through t_vest_fur": 1,
+     "a_sleeve_long through t_vest_fur": 9,
+     "o_scarf through o_cloak_long": 3,
+     "t_vest_fur through o_belt": 1
+    }
+   }
+  },
+  "elder_coastal_f": {
+   "neutral": {
+    "total": 0,
+    "detail": {}
+   },
+   "heavy_belly": {
+    "total": 7,
+    "detail": {
+     "t_bodice through s_skirt_long": 1,
+     "s_skirt_long through o_apron": 6
+    }
+   },
+   "thin": {
+    "total": 0,
+    "detail": {}
+   },
+   "breast_curvy": {
+    "total": 2,
+    "detail": {
+     "t_bodice through s_skirt_long": 2
+    }
+   },
+   "muscle": {
+    "total": 3,
+    "detail": {
+     "t_bodice through s_skirt_long": 1,
+     "t_bodice through o_apron": 1,
+     "s_skirt_long through o_apron": 1
+    }
+   },
+   "dwarf": {
+    "total": 1,
+    "detail": {
+     "s_skirt_long through o_apron": 1
+    }
+   },
+   "halfling": {
+    "total": 7,
+    "detail": {
+     "s_skirt_long through o_apron": 7
+    }
+   },
+   "orc": {
+    "total": 3,
+    "detail": {
+     "t_bodice through o_apron": 2,
+     "s_skirt_long through o_apron": 1
+    }
+   },
+   "old_heavy": {
+    "total": 5,
+    "detail": {
+     "s_skirt_long through o_apron": 5
+    }
+   },
+   "child": {
+    "total": 1,
+    "detail": {
+     "s_skirt_long through o_apron": 1
+    }
+   },
+   "elf_tall": {
+    "total": 0,
+    "detail": {}
+   }
+  },
+  "slave_ragged_m": {
+   "neutral": {
+    "total": 0,
+    "detail": {}
+   },
+   "heavy_belly": {
+    "total": 5,
+    "detail": {
+     "a_rags through t_rags": 5
+    }
+   },
+   "thin": {
+    "total": 7,
+    "detail": {
+     "a_rags through t_rags": 7
+    }
+   },
+   "breast_curvy": {
+    "total": 0,
+    "detail": {}
+   },
+   "muscle": {
+    "total": 0,
+    "detail": {}
+   },
+   "dwarf": {
+    "total": 1,
+    "detail": {
+     "a_rags through t_rags": 1
+    }
+   },
+   "halfling": {
+    "total": 5,
+    "detail": {
+     "a_rags through t_rags": 5
+    }
+   },
+   "orc": {
+    "total": 2,
+    "detail": {
+     "a_rags through t_rags": 2
+    }
+   },
+   "old_heavy": {
+    "total": 7,
+    "detail": {
+     "a_rags through t_rags": 7
+    }
+   },
+   "child": {
+    "total": 2,
+    "detail": {
+     "a_rags through t_rags": 2
+    }
+   },
+   "elf_tall": {
+    "total": 2,
+    "detail": {
+     "a_rags through t_rags": 2
+    }
+   }
+  },
+  "slave_ragged_f": {
+   "neutral": {
+    "total": 0,
+    "detail": {}
+   },
+   "heavy_belly": {
+    "total": 5,
+    "detail": {
+     "a_rags through t_rags": 5
+    }
+   },
+   "thin": {
+    "total": 7,
+    "detail": {
+     "a_rags through t_rags": 7
+    }
+   },
+   "breast_curvy": {
+    "total": 0,
+    "detail": {}
+   },
+   "muscle": {
+    "total": 0,
+    "detail": {}
+   },
+   "dwarf": {
+    "total": 1,
+    "detail": {
+     "a_rags through t_rags": 1
+    }
+   },
+   "halfling": {
+    "total": 5,
+    "detail": {
+     "a_rags through t_rags": 5
+    }
+   },
+   "orc": {
+    "total": 2,
+    "detail": {
+     "a_rags through t_rags": 2
+    }
+   },
+   "old_heavy": {
+    "total": 7,
+    "detail": {
+     "a_rags through t_rags": 7
+    }
+   },
+   "child": {
+    "total": 2,
+    "detail": {
+     "a_rags through t_rags": 2
+    }
+   },
+   "elf_tall": {
+    "total": 2,
+    "detail": {
+     "a_rags through t_rags": 2
+    }
+   }
+  }
+ },
+ "summary": {
+  "garmentInside": {
+   "t_shirt": 23,
+   "t_shirt_open": 23,
+   "t_jerkin": 23,
+   "t_bodice": 4,
+   "t_robe_top": 31,
+   "t_doublet": 30,
+   "t_deel": 36,
+   "t_clavus": 29,
+   "t_jersey": 12,
+   "t_mail": 29,
+   "t_breastplate": 24,
+   "t_vest_quilted": 1,
+   "t_vest_fur": 1,
+   "t_rags": 0,
+   "a_sleeve_long": 0,
+   "a_sleeve_fitted": 0,
+   "a_sleeve_short": 0,
+   "a_sleeve_rolled": 0,
+   "a_sleeve_wide": 4,
+   "a_sleeve_puffed": 15,
+   "a_mail": 0,
+   "a_rags": 0,
+   "a_bracer": 0,
+   "a_vambrace": 0,
+   "a_pauldron": 19,
+   "h_gloves": 0,
+   "h_mittens": 24,
+   "h_gauntlets": 0,
+   "h_wraps": 0,
+   "l_trousers": 37,
+   "l_leggings": 0,
+   "l_breeches": 31,
+   "l_baggy": 37,
+   "l_shorts": 9,
+   "l_greaves": 20,
+   "l_leg_wraps": 2,
+   "l_rags": 15,
+   "s_skirt_long": 10,
+   "s_skirt_short": 16,
+   "s_kilt": 10,
+   "s_robe_lower": 1,
+   "s_dress_skirt": 2,
+   "s_tunic_skirt": 6,
+   "f_shoes": 0,
+   "f_boots_short": 46,
+   "f_boots_tall": 54,
+   "f_sandals": 0,
+   "f_sabatons": 54,
+   "f_wraps": 0,
+   "o_belt": 0,
+   "o_belt_sash": 3,
+   "o_bandolier": 0,
+   "o_apron": 6,
+   "o_tabard": 7,
+   "o_cloak_long": 7,
+   "o_cape_short": 0,
+   "o_hood": 88,
+   "o_scarf": 0,
+   "o_collar_fur": 27,
+   "o_pouch": 25,
+   "o_satchel": 26,
+   "o_toga_drape": 24,
+   "hw_straw_hat": 0,
+   "hw_cap_soft": 0,
+   "hw_skullcap": 0,
+   "hw_helm_open": 0,
+   "hw_circlet": 0,
+   "hw_turban": 0,
+   "hw_fur_cone": 0,
+   "hw_coif": 24
+  },
+  "bodyThrough": {
+   "t_shirt": 12,
+   "t_shirt_open": 33,
+   "t_jerkin": 22,
+   "t_bodice": 6,
+   "t_robe_top": 40,
+   "t_doublet": 36,
+   "t_deel": 44,
+   "t_clavus": 17,
+   "t_jersey": 8,
+   "t_mail": 26,
+   "t_breastplate": 91,
+   "t_vest_quilted": 6,
+   "t_vest_fur": 10,
+   "t_rags": 8,
+   "a_sleeve_long": 13,
+   "a_sleeve_fitted": 5,
+   "a_sleeve_short": 15,
+   "a_sleeve_rolled": 22,
+   "a_sleeve_wide": 38,
+   "a_sleeve_puffed": 43,
+   "a_mail": 24,
+   "a_rags": 1,
+   "a_bracer": 0,
+   "a_vambrace": 4,
+   "a_pauldron": 4,
+   "h_gloves": 0,
+   "h_mittens": 0,
+   "h_gauntlets": 0,
+   "h_wraps": 0,
+   "l_trousers": 0,
+   "l_leggings": 0,
+   "l_breeches": 81,
+   "l_baggy": 0,
+   "l_shorts": 17,
+   "l_greaves": 76,
+   "l_leg_wraps": 4,
+   "l_rags": 35,
+   "s_skirt_long": 5,
+   "s_skirt_short": 2,
+   "s_kilt": 10,
+   "s_robe_lower": 4,
+   "s_dress_skirt": 0,
+   "s_tunic_skirt": 8,
+   "f_shoes": 0,
+   "f_boots_short": 0,
+   "f_boots_tall": 47,
+   "f_sandals": 13,
+   "f_sabatons": 0,
+   "f_wraps": 0,
+   "o_belt": 0,
+   "o_belt_sash": 4,
+   "o_bandolier": 0,
+   "o_apron": 3,
+   "o_tabard": 9,
+   "o_cloak_long": 279,
+   "o_cape_short": 0,
+   "o_hood": 167,
+   "o_scarf": 2,
+   "o_collar_fur": 0,
+   "o_pouch": 20,
+   "o_satchel": 44,
+   "o_toga_drape": 0,
+   "hw_straw_hat": 0,
+   "hw_cap_soft": 0,
+   "hw_skullcap": 0,
+   "hw_helm_open": 0,
+   "hw_circlet": 0,
+   "hw_turban": 0,
+   "hw_fur_cone": 0,
+   "hw_coif": 184
+  },
+  "outfitLayerPokes": {
+   "farmer_highland_m": 126,
+   "farmer_river_f": 29,
+   "farmer_coastal_m": 5,
+   "farmer_forest_m": 59,
+   "labourer_river_m": 19,
+   "labourer_steppe_m": 24,
+   "labourer_coastal_f": 32,
+   "smith_highland_m": 3,
+   "smith_imperial_m": 13,
+   "merchant_river_m": 74,
+   "merchant_coastal_f": 102,
+   "merchant_steppe_m": 44,
+   "noble_imperial_m": 0,
+   "noble_imperial_f": 16,
+   "noble_river_m": 10,
+   "noble_highland_f": 57,
+   "noble_steppe_m": 27,
+   "priest_imperial_m": 71,
+   "priest_forest_f": 251,
+   "guard_imperial_m": 300,
+   "guard_highland_m": 190,
+   "soldier_steppe_m": 269,
+   "soldier_river_f": 30,
+   "scholar_imperial_m": 134,
+   "scholar_river_f": 98,
+   "traveller_forest_m": 59,
+   "traveller_coastal_f": 54,
+   "child_river": 2,
+   "child_highland_f": 15,
+   "elder_forest_m": 58,
+   "elder_coastal_f": 29,
+   "slave_ragged_m": 31,
+   "slave_ragged_f": 31
+  }
+ }
+}

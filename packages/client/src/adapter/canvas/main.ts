@@ -3,7 +3,7 @@
  * core and the protocol: squares for the land, dots for people, text for the panels. If it ever needs something the
  * protocol doesn't carry, the protocol is what's missing (it is the proof that an engine needs no game rules).
  */
-import type { Actor, Frame, GameEvent, Intent, PromptMsg, SpeechMsg, UiAction, UiModel } from "@millbrook/shared/view";
+import type { Actor, Frame, GameEvent, Intent, PromptMsg, SpeechMsg, UiAction, UiModel } from "@garden-of-eden/shared/view";
 import { Core, type ConnectionStatus, type EngineAdapter, type FrameChange } from "../../core";
 
 const W = 26;

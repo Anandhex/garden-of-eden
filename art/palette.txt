@@ -1,4 +1,4 @@
-# The Millbrook palette (G6): one character per colour, used by every source in art/sprites/.
+# The Garden of Eden palette (G6): one character per colour, used by every source in art/sprites/.
 # char  colour      name             [layer]
 # A layer tag sends that colour to a separate frame of a `split` sprite, drawn in greys so the adapter can tint it
 # (people's clothes by look.tint, hair by a stable pick, trim by look.trim). `.` is always transparent.

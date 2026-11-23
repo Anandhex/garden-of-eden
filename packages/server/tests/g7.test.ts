@@ -8,11 +8,11 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { floorTiles, furnitureOn, interiorOf, interiorWalkable, ITILE, spotFor } from "@millbrook/shared";
-import { dress, PatchSchema, TEMPLATES } from "@millbrook/shared/view";
+import { floorTiles, furnitureOn, interiorOf, interiorWalkable, ITILE, spotFor } from "@garden-of-eden/shared";
+import { dress, PatchSchema, TEMPLATES } from "@garden-of-eden/shared/view";
 import { FRAMES } from "../../client/src/adapter/web/art.js";
 import { MODEL_IDS, modelGeometry } from "../../client/src/adapter/web/iso/models.js";
-import { HEIGHT_MAX, heightAt, patchHeights, type HeightCtx, type LandKind } from "../src/view/height.js";
+import { HEIGHT_MAX, RELIEF_MAX, heightAt, patchHeights, patchRelief, reliefAt, type HeightCtx, type LandKind } from "../src/view/height.js";
 import { bakeLayers } from "../../client/src/adapter/web/iso/bake.js";
 import { cameraOffset, screenFacing, stepFor, toScreen, yawOf } from "../../client/src/adapter/web/iso/camera.js";
 import { hides, INSET, massing, nudgeOut, WALL_H } from "../../client/src/adapter/web/iso/massing.js";
@@ -193,6 +193,31 @@ describe("G7 Part B: the land's height", () => {
     expect(PatchSchema.safeParse({ ...base, height: [3, 40] }).success).toBe(true);
     expect(PatchSchema.safeParse(base).success).toBe(true);
     expect(PatchSchema.safeParse({ ...base, height: [41, 0] }).success).toBe(false);
+  });
+});
+
+describe("Relief (Unity client): deeper land, same seed same land", () => {
+  const kind = (x: number, y: number): LandKind => (Math.abs(x - 60) < 2 ? "water" : Math.hypot(x - 100, y - 30) < 6 ? "hill" : "land");
+  const open: HeightCtx = { seed: 42, open: true, kind };
+
+  it("is deterministic, in range, and open land spans tens of metres (1 unit = 0.15 m)", () => {
+    const a = patchRelief(open, 0, 0, 16, 16);
+    expect(patchRelief(open, 0, 0, 16, 16)).toEqual(a);
+    expect(patchRelief({ ...open, seed: 43 }, 0, 0, 16, 16)).not.toEqual(a);
+    let lo = RELIEF_MAX, hi = 0;
+    for (let y = 0; y < 160; y += 2) for (let x = 0; x < 160; x += 2) { const v = reliefAt(open, x, y); expect(Number.isInteger(v) && v >= 0 && v <= RELIEF_MAX).toBe(true); lo = Math.min(lo, v); hi = Math.max(hi, v); }
+    expect((hi - lo) * 0.15).toBeGreaterThan(15);
+  });
+
+  it("a place rolls gently (a few metres), keeps pads level and blends them into the land", () => {
+    const place: HeightCtx = { seed: 7, open: false, kind: () => "land", bounds: { w: 88, h: 56 }, pads: [{ x: 40, y: 25, w: 4, h: 3 }] };
+    const pad = new Set<number>();
+    for (let y = 24; y <= 28; y++) for (let x = 39; x <= 44; x++) pad.add(reliefAt(place, x, y));
+    expect(pad.size).toBe(1);
+    let lo = RELIEF_MAX, hi = 0;
+    for (let y = 14; y < 42; y++) for (let x = 20; x < 68; x++) { const v = reliefAt(place, x, y); lo = Math.min(lo, v); hi = Math.max(hi, v); if (x < 67) expect(Math.abs(v - reliefAt(place, x + 1, y))).toBeLessThanOrEqual(8); }
+    expect((hi - lo) * 0.15).toBeLessThan(9);
+    expect(patchRelief(null, 0, 0, 4, 4)).toEqual([]);
   });
 });
 

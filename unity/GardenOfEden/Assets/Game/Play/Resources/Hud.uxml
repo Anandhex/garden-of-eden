@@ -1,0 +1,39 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:VisualElement name="hud-root" class="hud-root">
+        <ui:VisualElement name="bubbles" class="bubbles" />
+        <ui:VisualElement name="header" class="panel header">
+            <ui:Label name="header-place" class="header-place" />
+            <ui:Label name="header-clock" class="header-text" />
+            <ui:Label name="header-today" class="header-text dim" />
+            <ui:Label name="header-stats" class="header-text" />
+            <ui:Label name="header-status" class="header-text dim" />
+            <ui:VisualElement name="header-actions" class="row-wrap" />
+        </ui:VisualElement>
+        <ui:Label name="banner" class="panel banner" />
+        <ui:VisualElement name="roadbar" class="panel roadbar" />
+        <ui:VisualElement name="feed" class="feed" />
+        <ui:Label name="prompt" class="panel prompt" />
+        <ui:VisualElement name="chat" class="panel chat">
+            <ui:Label name="chat-title" class="title" />
+            <ui:Label name="chat-stats" class="dim" />
+            <ui:ScrollView name="chat-log" class="chat-log" />
+            <ui:VisualElement name="chat-offers" />
+            <ui:VisualElement name="chat-tools" class="row-wrap" />
+            <ui:VisualElement name="chat-input-row" class="input-row">
+                <ui:DropdownField name="chat-mode" class="chat-mode" />
+                <ui:TextField name="chat-line" class="chat-line" />
+                <ui:Button name="chat-send" class="btn yes" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="sheet" class="panel sheet">
+            <ui:VisualElement name="sheet-tabs" class="row-wrap" />
+            <ui:ScrollView name="sheet-body" class="sheet-body" />
+        </ui:VisualElement>
+        <ui:VisualElement name="modal" class="scrim">
+            <ui:VisualElement name="modal-card" class="panel card" />
+        </ui:VisualElement>
+        <ui:VisualElement name="question" class="scrim">
+            <ui:VisualElement name="question-card" class="panel card" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

@@ -1,4 +1,4 @@
-import { besideRoad, partyAt } from "@millbrook/shared";
+import { besideRoad, partyAt } from "@garden-of-eden/shared";
 import type { Town } from "../town.js";
 import { landOf } from "./ground.js";
 import { journeysOf, lineOf } from "./journeys.js";

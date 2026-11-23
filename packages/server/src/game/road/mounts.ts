@@ -1,4 +1,4 @@
-import type { MountView } from "@millbrook/shared";
+import type { MountView } from "@garden-of-eden/shared";
 import type { PlayerState } from "../../npc/types.js";
 import { itemKey } from "../items.js";
 import { formatMoney } from "../money.js";

@@ -10,8 +10,8 @@ Asked for 2026-10-23, after G5: "it's more of 2.5D HD, but I am okay with the fi
 
 ## What exists
 
-- Every texture is drawn in code at start-up ([`world/textures.ts`](../../../packages/client/src/world/textures.ts), `makeTextures`, `TILE = 32`): no image files. Characters are coloured shapes with an `ORIGINS` tint.
-- Layers by depth number, not by kind: actors at `10 + y/TILE`, the hover at 5, night at 500, weather at 600, labels at 700 ([`WorldScene.ts`](../../../packages/client/src/world/WorldScene.ts), [`CrowdLayer.ts`](../../../packages/client/src/world/CrowdLayer.ts)). Night is one dark rectangle over everything.
+- Every texture is drawn in code at start-up ([`world/textures.ts`](../../../packages/client/src/adapter/web/world/textures.ts), `makeTextures`, `TILE = 32`): no image files. Characters are coloured shapes with an `ORIGINS` tint.
+- Layers by depth number, not by kind: actors at `10 + y/TILE`, the hover at 5, night at 500, weather at 600, labels at 700 ([`WorldScene.ts`](../../../packages/client/src/adapter/web/world/WorldScene.ts), [`CrowdLayer.ts`](../../../packages/client/src/world/CrowdLayer.ts)). Night is one dark rectangle over everything.
 - The open road is a pool of tile sprites keyed by ground id and object ([`RoadLayer.ts`](../../../packages/client/src/world/RoadLayer.ts), `OBJECTS`).
 - Positions are tiles already (world units), and G5 sends them that way.
 - **The maps are generated, not authored.** Towns, localities and the road all come from the seed (see [Generated world, no authored NPCs](../../living-world/plans/n25a-a-world-without-a-centre.md)). So Tiled can't be used to draw whole maps. It is used for **tilesets, autotile rules and building or prop templates** that the generator places.

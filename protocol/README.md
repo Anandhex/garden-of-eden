@@ -25,7 +25,7 @@ The server decides:
 
 If an adapter would need an `if` about the game, the server sends the answer instead. A test guards this for the
 web client: no file under `packages/client/src/core` or `packages/client/src/adapter` imports anything from
-`@millbrook/shared` except its `view` entry, and none uses `CrowdSim`, `findPath`, `chunkAt`, `partyAt` and the
+`@garden-of-eden/shared` except its `view` entry, and none uses `CrowdSim`, `findPath`, `chunkAt`, `partyAt` and the
 like.
 
 ## The connection
@@ -73,7 +73,7 @@ Positions are **tiles** (world units), not pixels. Travellers on the road may st
   is a fact (someone is home after dark); how it glows is up to the adapter. A building names its `template`
   (G6: how it is dressed, from [`templates.json`](../packages/shared/src/view/templates.json); `dress()` in
   [`templates.ts`](../packages/shared/src/view/templates.ts) stretches it to the building) and its `door` tile.
-  A template may be styled, `<template>~<style>` (G8: the place's regional look, its people's way and its land's
+  A template may be styled, `<template>~<style>` (G10: the place's regional look, its people's way and its land's
   walls); `templateById()` in [`styles.ts`](../packages/shared/src/view/styles.ts) gives the styled template, with
   its roof and wall frames swapped for the region's materials. An adapter that knows no styles can drop the `~…` part.
   `lights` (G6) are facts too: one `window` per window of the template (`win:<building>:<n>`, on while someone is

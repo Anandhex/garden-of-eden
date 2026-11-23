@@ -1,0 +1,854 @@
+{
+ "adder": {
+  "size_m": [
+   0.26,
+   0.74,
+   0.75
+  ],
+  "tris": 1618,
+  "bones": 14,
+  "blendshapes": 0,
+  "meshes": [
+   "adder_Body"
+  ],
+  "clips": [
+   "Attack",
+   "Idle",
+   "Slither",
+   "Strike"
+  ],
+  "arm_scale": 1.0
+ },
+ "bear": {
+  "size_m": [
+   0.58,
+   1.58,
+   1.16
+  ],
+  "tris": 1962,
+  "bones": 47,
+  "blendshapes": 0,
+  "meshes": [
+   "bear_Body"
+  ],
+  "clips": [
+   "Attack",
+   "Death",
+   "Eat",
+   "Eat_Low",
+   "HitReact_L",
+   "HitReact_R",
+   "Idle",
+   "Idle_2",
+   "Run",
+   "Walk"
+  ],
+  "arm_scale": 1.0
+ },
+ "boar": {
+  "size_m": [
+   0.38,
+   1.32,
+   0.86
+  ],
+  "tris": 2318,
+  "bones": 47,
+  "blendshapes": 0,
+  "meshes": [
+   "boar_Body",
+   "boar_Mane",
+   "boar_Snout",
+   "boar_Tusk_L",
+   "boar_Tusk_R"
+  ],
+  "clips": [
+   "Attack",
+   "Death",
+   "Eat",
+   "Eat_Low",
+   "HitReact_L",
+   "HitReact_R",
+   "Idle",
+   "Idle_2",
+   "Run",
+   "Walk"
+  ],
+  "arm_scale": 1.0
+ },
+ "centaur": {
+  "size_m": [
+   1.05,
+   1.65,
+   2.26
+  ],
+  "tris": 11786,
+  "bones": 99,
+  "blendshapes": 0,
+  "meshes": [
+   "centaur_Arms",
+   "centaur_Ear_L",
+   "centaur_Ear_R",
+   "centaur_Eye_L",
+   "centaur_Eye_R",
+   "centaur_HairCap",
+   "centaur_Hands",
+   "centaur_Head",
+   "centaur_Horse",
+   "centaur_Mane",
+   "centaur_Nose",
+   "centaur_Torso"
+  ],
+  "clips": [
+   "Attack",
+   "Attack_Kick",
+   "Death",
+   "Eat",
+   "Eat_Low",
+   "HitReact_L",
+   "HitReact_R",
+   "Idle",
+   "Idle_2",
+   "Run",
+   "Walk"
+  ],
+  "arm_scale": 1.0
+ },
+ "crow": {
+  "size_m": [
+   0.7,
+   0.66,
+   0.47
+  ],
+  "tris": 1430,
+  "bones": 18,
+  "blendshapes": 0,
+  "meshes": [
+   "crow_Beak",
+   "crow_Body",
+   "crow_EyeL",
+   "crow_EyeR",
+   "crow_Head",
+   "crow_Neck",
+   "crow_TailF0",
+   "crow_TailF1",
+   "crow_TailF2",
+   "crow_TailF3",
+   "crow_TailF4",
+   "crow_ThighL",
+   "crow_ThighR",
+   "crow_ToeBL",
+   "crow_ToeBR",
+   "crow_ToeL0",
+   "crow_ToeL1",
+   "crow_ToeL2",
+   "crow_ToeR0",
+   "crow_ToeR1",
+   "crow_ToeR2",
+   "crow_WingCovL",
+   "crow_WingCovR",
+   "crow_WL0_0",
+   "crow_WL0_1",
+   "crow_WL0_2",
+   "crow_WL0_3",
+   "crow_WL0_4",
+   "crow_WL0_5",
+   "crow_WL0_6",
+   "crow_WL0_7",
+   "crow_WL1_0",
+   "crow_WL1_1",
+   "crow_WL1_2",
+   "crow_WL1_3",
+   "crow_WL1_4",
+   "crow_WL1_5",
+   "crow_WL1_6",
+   "crow_WL1_7",
+   "crow_WR0_0",
+   "crow_WR0_1",
+   "crow_WR0_2",
+   "crow_WR0_3",
+   "crow_WR0_4",
+   "crow_WR0_5",
+   "crow_WR0_6",
+   "crow_WR0_7",
+   "crow_WR1_0",
+   "crow_WR1_1",
+   "crow_WR1_2",
+   "crow_WR1_3",
+   "crow_WR1_4",
+   "crow_WR1_5",
+   "crow_WR1_6",
+   "crow_WR1_7"
+  ],
+  "clips": [
+   "Fly",
+   "Idle",
+   "Peck",
+   "Walk"
+  ],
+  "arm_scale": 1.0
+ },
+ "deer": {
+  "size_m": [
+   0.46,
+   1.39,
+   1.35
+  ],
+  "tris": 2098,
+  "bones": 42,
+  "blendshapes": 0,
+  "meshes": [
+   "deer_Body"
+  ],
+  "clips": [
+   "Attack",
+   "Attack_Kick",
+   "Death",
+   "Eat",
+   "Eat_Low",
+   "HitReact_L",
+   "HitReact_R",
+   "Idle",
+   "Idle_2",
+   "Run",
+   "Walk"
+  ],
+  "arm_scale": 1.0
+ },
+ "dog": {
+  "size_m": [
+   0.24,
+   0.94,
+   0.69
+  ],
+  "tris": 1950,
+  "bones": 42,
+  "blendshapes": 0,
+  "meshes": [
+   "dog_Body"
+  ],
+  "clips": [
+   "Attack",
+   "Death",
+   "Eat",
+   "Eat_Low",
+   "HitReact_L",
+   "HitReact_R",
+   "Idle",
+   "Idle_2",
+   "Run",
+   "Walk"
+  ],
+  "arm_scale": 1.0
+ },
+ "dragon": {
+  "size_m": [
+   9.58,
+   9.54,
+   3.94
+  ],
+  "tris": 3196,
+  "bones": 57,
+  "blendshapes": 0,
+  "meshes": [
+   "dragon_Body",
+   "dragon_Cheek_L",
+   "dragon_Cheek_R",
+   "dragon_Horn_L",
+   "dragon_Horn_R",
+   "dragon_Spines",
+   "dragon_TailBlade",
+   "dragon_Wings"
+  ],
+  "clips": [
+   "Attack",
+   "Death",
+   "Eat",
+   "Eat_Low",
+   "HitReact_L",
+   "HitReact_R",
+   "Idle",
+   "Idle_2",
+   "Run",
+   "Walk",
+   "Wings_Flap"
+  ],
+  "arm_scale": 1.0
+ },
+ "fox": {
+  "size_m": [
+   0.16,
+   0.84,
+   0.4
+  ],
+  "tris": 1848,
+  "bones": 47,
+  "blendshapes": 0,
+  "meshes": [
+   "fox_Body"
+  ],
+  "clips": [
+   "Attack",
+   "Death",
+   "Eat",
+   "Eat_Low",
+   "HitReact_L",
+   "HitReact_R",
+   "Idle",
+   "Idle_2",
+   "Run",
+   "Walk"
+  ],
+  "arm_scale": 1.0
+ },
+ "giant": {
+  "size_m": [
+   2.41,
+   0.8,
+   4.6
+  ],
+  "tris": 14084,
+  "bones": 55,
+  "blendshapes": 50,
+  "meshes": [
+   "giant_Arms",
+   "giant_Beard",
+   "giant_Ear_L",
+   "giant_Ear_R",
+   "giant_Eye_L",
+   "giant_Eye_R",
+   "giant_Feet",
+   "giant_Hands",
+   "giant_Head",
+   "giant_Legs",
+   "giant_Nose",
+   "giant_Torso"
+  ],
+  "clips": [],
+  "arm_scale": 1.0
+ },
+ "gnoll": {
+  "size_m": [
+   1.06,
+   0.93,
+   2.02
+  ],
+  "tris": 13616,
+  "bones": 58,
+  "blendshapes": 50,
+  "meshes": [
+   "gnoll_Arms",
+   "gnoll_Ear_L",
+   "gnoll_Ear_R",
+   "gnoll_Eye_L",
+   "gnoll_Eye_R",
+   "gnoll_Feet",
+   "gnoll_Hands",
+   "gnoll_Head",
+   "gnoll_Legs",
+   "gnoll_Mane",
+   "gnoll_Snout",
+   "gnoll_SnoutNose",
+   "gnoll_Tail",
+   "gnoll_Torso"
+  ],
+  "clips": [
+   "Tail_Sway",
+   "Tail_Sway",
+   "Tail_Sway",
+   "Tail_Sway",
+   "Tail_Sway",
+   "Tail_Sway",
+   "Tail_Sway"
+  ],
+  "arm_scale": 1.0
+ },
+ "goat": {
+  "size_m": [
+   0.26,
+   0.92,
+   0.85
+  ],
+  "tris": 2278,
+  "bones": 42,
+  "blendshapes": 0,
+  "meshes": [
+   "goat_Beard",
+   "goat_Body",
+   "goat_Horn_L",
+   "goat_Horn_R"
+  ],
+  "clips": [
+   "Attack",
+   "Attack_Kick",
+   "Death",
+   "Eat",
+   "Eat_Low",
+   "HitReact_L",
+   "HitReact_R",
+   "Idle",
+   "Idle_2",
+   "Run",
+   "Walk"
+  ],
+  "arm_scale": 1.0
+ },
+ "goblin": {
+  "size_m": [
+   0.6,
+   0.21,
+   0.94
+  ],
+  "tris": 13964,
+  "bones": 55,
+  "blendshapes": 50,
+  "meshes": [
+   "goblin_Arms",
+   "goblin_Ear_Elf_A_L",
+   "goblin_Ear_Elf_A_R",
+   "goblin_Eye_L",
+   "goblin_Eye_R",
+   "goblin_Feet",
+   "goblin_Hands",
+   "goblin_Head",
+   "goblin_Legs",
+   "goblin_Nose_Orc",
+   "goblin_Torso"
+  ],
+  "clips": [],
+  "arm_scale": 1.0
+ },
+ "hare": {
+  "size_m": [
+   0.14,
+   0.45,
+   0.3
+  ],
+  "tris": 1848,
+  "bones": 47,
+  "blendshapes": 0,
+  "meshes": [
+   "hare_Body"
+  ],
+  "clips": [
+   "Attack",
+   "Death",
+   "Eat",
+   "Eat_Low",
+   "HitReact_L",
+   "HitReact_R",
+   "Idle",
+   "Idle_2",
+   "Run",
+   "Walk"
+  ],
+  "arm_scale": 1.0
+ },
+ "harpy": {
+  "size_m": [
+   2.02,
+   1.1,
+   1.68
+  ],
+  "tris": 14358,
+  "bones": 61,
+  "blendshapes": 46,
+  "meshes": [
+   "harpy_Arms",
+   "harpy_Crest0",
+   "harpy_Crest1",
+   "harpy_Crest2",
+   "harpy_Crest3",
+   "harpy_Crest4",
+   "harpy_Ear_L",
+   "harpy_Ear_R",
+   "harpy_Eye_L",
+   "harpy_Eye_R",
+   "harpy_Hands",
+   "harpy_Head",
+   "harpy_Legs",
+   "harpy_Nose",
+   "harpy_Shank_L",
+   "harpy_Shank_R",
+   "harpy_TailF0",
+   "harpy_TailF1",
+   "harpy_TailF2",
+   "harpy_TailF3",
+   "harpy_TailF4",
+   "harpy_TailF5",
+   "harpy_TailF6",
+   "harpy_Toe_L0",
+   "harpy_Toe_L1",
+   "harpy_Toe_L2",
+   "harpy_Toe_L_back",
+   "harpy_Toe_R0",
+   "harpy_Toe_R1",
+   "harpy_Toe_R2",
+   "harpy_Toe_R_back",
+   "harpy_Torso",
+   "harpy_TroF_L0",
+   "harpy_TroF_L1",
+   "harpy_TroF_L2",
+   "harpy_TroF_L3",
+   "harpy_TroF_L4",
+   "harpy_TroF_R0",
+   "harpy_TroF_R1",
+   "harpy_TroF_R2",
+   "harpy_TroF_R3",
+   "harpy_TroF_R4",
+   "harpy_Trouser_L",
+   "harpy_Trouser_R",
+   "harpy_Wings"
+  ],
+  "clips": [
+   "Wings_Flap",
+   "Wings_Flap",
+   "Wings_Flap",
+   "Wings_Flap",
+   "Wings_Flap",
+   "Wings_Flap"
+  ],
+  "arm_scale": 1.0
+ },
+ "heron": {
+  "size_m": [
+   1.08,
+   0.85,
+   0.98
+  ],
+  "tris": 1510,
+  "bones": 20,
+  "blendshapes": 0,
+  "meshes": [
+   "heron_Beak",
+   "heron_Body",
+   "heron_Crest0",
+   "heron_Crest1",
+   "heron_Crest2",
+   "heron_EyeL",
+   "heron_EyeR",
+   "heron_Head",
+   "heron_Neck",
+   "heron_TailF0",
+   "heron_TailF1",
+   "heron_TailF2",
+   "heron_TailF3",
+   "heron_TailF4",
+   "heron_ThighL",
+   "heron_ThighR",
+   "heron_ToeBL",
+   "heron_ToeBR",
+   "heron_ToeL0",
+   "heron_ToeL1",
+   "heron_ToeL2",
+   "heron_ToeR0",
+   "heron_ToeR1",
+   "heron_ToeR2",
+   "heron_WingCovL",
+   "heron_WingCovR",
+   "heron_WL0_0",
+   "heron_WL0_1",
+   "heron_WL0_2",
+   "heron_WL0_3",
+   "heron_WL0_4",
+   "heron_WL0_5",
+   "heron_WL0_6",
+   "heron_WL0_7",
+   "heron_WL1_0",
+   "heron_WL1_1",
+   "heron_WL1_2",
+   "heron_WL1_3",
+   "heron_WL1_4",
+   "heron_WL1_5",
+   "heron_WL1_6",
+   "heron_WL1_7",
+   "heron_WR0_0",
+   "heron_WR0_1",
+   "heron_WR0_2",
+   "heron_WR0_3",
+   "heron_WR0_4",
+   "heron_WR0_5",
+   "heron_WR0_6",
+   "heron_WR0_7",
+   "heron_WR1_0",
+   "heron_WR1_1",
+   "heron_WR1_2",
+   "heron_WR1_3",
+   "heron_WR1_4",
+   "heron_WR1_5",
+   "heron_WR1_6",
+   "heron_WR1_7"
+  ],
+  "clips": [
+   "Fly",
+   "Idle",
+   "Peck",
+   "Walk"
+  ],
+  "arm_scale": 1.0
+ },
+ "hobgoblin": {
+  "size_m": [
+   1.02,
+   0.33,
+   1.85
+  ],
+  "tris": 13964,
+  "bones": 55,
+  "blendshapes": 50,
+  "meshes": [
+   "hobgoblin_Arms",
+   "hobgoblin_Ear_Elf_A_L",
+   "hobgoblin_Ear_Elf_A_R",
+   "hobgoblin_Eye_L",
+   "hobgoblin_Eye_R",
+   "hobgoblin_Feet",
+   "hobgoblin_Hands",
+   "hobgoblin_Head",
+   "hobgoblin_Legs",
+   "hobgoblin_Nose_Orc",
+   "hobgoblin_Torso"
+  ],
+  "clips": [],
+  "arm_scale": 1.0
+ },
+ "horse": {
+  "size_m": [
+   0.58,
+   2.35,
+   2.0
+  ],
+  "tris": 2182,
+  "bones": 46,
+  "blendshapes": 0,
+  "meshes": [
+   "horse_Body"
+  ],
+  "clips": [
+   "Attack",
+   "Attack_Kick",
+   "Death",
+   "Eat",
+   "Eat_Low",
+   "HitReact_L",
+   "HitReact_R",
+   "Idle",
+   "Idle_2",
+   "Run",
+   "Walk"
+  ],
+  "arm_scale": 1.0
+ },
+ "kobold": {
+  "size_m": [
+   0.47,
+   0.5,
+   0.88
+  ],
+  "tris": 13748,
+  "bones": 59,
+  "blendshapes": 50,
+  "meshes": [
+   "kobold_Arms",
+   "kobold_Ear_L",
+   "kobold_Ear_R",
+   "kobold_Eye_L",
+   "kobold_Eye_R",
+   "kobold_Feet",
+   "kobold_Hands",
+   "kobold_Head",
+   "kobold_Horn_L",
+   "kobold_Horn_R",
+   "kobold_Legs",
+   "kobold_Snout",
+   "kobold_SnoutNose",
+   "kobold_Tail",
+   "kobold_Torso"
+  ],
+  "clips": [
+   "Tail_Sway",
+   "Tail_Sway",
+   "Tail_Sway",
+   "Tail_Sway",
+   "Tail_Sway",
+   "Tail_Sway",
+   "Tail_Sway"
+  ],
+  "arm_scale": 1.0
+ },
+ "lizardfolk": {
+  "size_m": [
+   0.93,
+   1.41,
+   1.89
+  ],
+  "tris": 13500,
+  "bones": 60,
+  "blendshapes": 50,
+  "meshes": [
+   "lizardfolk_Arms",
+   "lizardfolk_Crest",
+   "lizardfolk_Eye_L",
+   "lizardfolk_Eye_R",
+   "lizardfolk_Feet",
+   "lizardfolk_Hands",
+   "lizardfolk_Head",
+   "lizardfolk_Legs",
+   "lizardfolk_Nostril_L",
+   "lizardfolk_Nostril_R",
+   "lizardfolk_Snout",
+   "lizardfolk_Spines",
+   "lizardfolk_Tail",
+   "lizardfolk_Torso"
+  ],
+  "clips": [
+   "Tail_Sway",
+   "Tail_Sway",
+   "Tail_Sway",
+   "Tail_Sway",
+   "Tail_Sway",
+   "Tail_Sway",
+   "Tail_Sway"
+  ],
+  "arm_scale": 1.0
+ },
+ "minotaur": {
+  "size_m": [
+   1.34,
+   1.2,
+   2.86
+  ],
+  "tris": 13817,
+  "bones": 58,
+  "blendshapes": 50,
+  "meshes": [
+   "minotaur_Arms",
+   "minotaur_Ear_L",
+   "minotaur_Ear_R",
+   "minotaur_Eye_L",
+   "minotaur_Eye_R",
+   "minotaur_Feet",
+   "minotaur_Hands",
+   "minotaur_Head",
+   "minotaur_Horn_L",
+   "minotaur_Horn_R",
+   "minotaur_Legs",
+   "minotaur_Muzzle",
+   "minotaur_NosePad",
+   "minotaur_NoseRing",
+   "minotaur_Tail",
+   "minotaur_Torso"
+  ],
+  "clips": [
+   "Tail_Sway",
+   "Tail_Sway",
+   "Tail_Sway",
+   "Tail_Sway",
+   "Tail_Sway",
+   "Tail_Sway",
+   "Tail_Sway"
+  ],
+  "arm_scale": 1.0
+ },
+ "ogre": {
+  "size_m": [
+   1.6,
+   0.76,
+   2.41
+  ],
+  "tris": 14036,
+  "bones": 55,
+  "blendshapes": 50,
+  "meshes": [
+   "ogre_Arms",
+   "ogre_Ear_L",
+   "ogre_Ear_R",
+   "ogre_Eye_L",
+   "ogre_Eye_R",
+   "ogre_Feet",
+   "ogre_Hands",
+   "ogre_Head",
+   "ogre_Legs",
+   "ogre_Nose_Orc",
+   "ogre_Torso",
+   "ogre_Tusk_A_L",
+   "ogre_Tusk_A_R"
+  ],
+  "clips": [],
+  "arm_scale": 1.0
+ },
+ "spider": {
+  "size_m": [
+   1.6,
+   1.35,
+   0.52
+  ],
+  "tris": 2712,
+  "bones": 37,
+  "blendshapes": 0,
+  "meshes": [
+   "spider_Body"
+  ],
+  "clips": [
+   "Attack",
+   "Death",
+   "Idle",
+   "Jump",
+   "Walk"
+  ],
+  "arm_scale": 1.0
+ },
+ "troll": {
+  "size_m": [
+   2.15,
+   0.67,
+   2.8
+  ],
+  "tris": 14096,
+  "bones": 55,
+  "blendshapes": 50,
+  "meshes": [
+   "troll_Arms",
+   "troll_Ear_L",
+   "troll_Ear_R",
+   "troll_Eye_L",
+   "troll_Eye_R",
+   "troll_Feet",
+   "troll_Hands",
+   "troll_Head",
+   "troll_Knobs",
+   "troll_Legs",
+   "troll_Nose_Orc",
+   "troll_Torso",
+   "troll_Tusk_A_L",
+   "troll_Tusk_A_R"
+  ],
+  "clips": [],
+  "arm_scale": 1.0
+ },
+ "wolf": {
+  "size_m": [
+   0.37,
+   1.86,
+   0.94
+  ],
+  "tris": 1962,
+  "bones": 47,
+  "blendshapes": 0,
+  "meshes": [
+   "wolf_Body"
+  ],
+  "clips": [
+   "Attack",
+   "Death",
+   "Eat",
+   "Eat_Low",
+   "HitReact_L",
+   "HitReact_R",
+   "Idle",
+   "Idle_2",
+   "Run",
+   "Walk"
+  ],
+  "arm_scale": 1.0
+ }
+}

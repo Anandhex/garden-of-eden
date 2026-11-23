@@ -5,6 +5,11 @@ import type { AffairData } from "../kin/affairs.js";
 import { peekCourt } from "../secrets/court.js";
 import { faithFactions, peekFaith } from "../faith/model.js";
 import { peekMagic } from "../magic/model.js";
+import { peoplesOf } from "../peoples/generate.js";
+import { peekArmies, type SoldierData } from "../war/armies.js";
+import type { Mix } from "../culture/day.js";
+import { cultureOfKingdom } from "../culture/model.js";
+import { seasonDays } from "../weather.js";
 
 /**
  * The balance bounds of Stages 4–6 (N45–N64), checked at the end of a long run (`npm run sim:years`): each names its phase. When one fails,
@@ -78,5 +83,46 @@ export function checkSocietyBounds(realm: Realm, store: WorldStore): SocietyBoun
   const hunts = store.records.list("case", (c) => (c.data as { crime?: string }).crime === "sorcery").length;
   out.push({ name: "witch-hunts-rare", phase: "N51", ok: hunts / years <= Math.max(6, living * 0.002), detail: `${hunts} sorcery cases in ${years.toFixed(1)} years` });
   out.push({ name: "assassinations-rare", phase: "N46", ok: struck.length / ks / years <= 0.34, detail: `${struck.length} rulers murdered in ${years.toFixed(1)} years across ${ks} kingdoms` });
+
+  // ---- N52 (bounds added by N70) ----
+  const fabs = store.records.list<{ by: string; investigated?: { found?: string } }>("fabrication");
+  const oldFabs = fabs.filter((f) => f.since < day - year);
+  const stillSpreading = oldFabs.filter((f) => f.ended === null);
+  out.push({ name: "rumours-die-out", phase: "N52", ok: oldFabs.length < 4 || stillSpreading.length / oldFabs.length <= 0.5, detail: `${stillSpreading.length} of ${oldFabs.length} rumours older than a year still spreading` });
+  const mineLooked = fabs.filter((f) => f.data.by === "player" && f.data.investigated);
+  const traced = mineLooked.filter((f) => f.data.investigated!.found === "player");
+  out.push({ name: "player-rumours-traced", phase: "N52", ok: mineLooked.length < 5 || (traced.length / mineLooked.length >= 0.1 && traced.length / mineLooked.length <= 0.9), detail: `${traced.length} of ${mineLooked.length} of the player's investigated rumours traced back to them` });
+  // ---- N53 ----
+  const mixes = Object.values((realm.society?.cultureMix ?? {}) as Record<string, Mix>);
+  const swamped = mixes.filter((m) => Object.values(m.mix).reduce((a, v) => a + v, 0) >= 1);
+  const cultures = new Set(Object.values(realm.kingdoms).filter((k) => !k.fallen).map((k) => cultureOfKingdom(realm, k.id)?.template).filter(Boolean));
+  out.push({ name: "cultures-distinct", phase: "N53", ok: cultures.size >= Math.min(2, ks) && (mixes.length === 0 || swamped.length / mixes.length <= 0.5), detail: `${cultures.size} kinds of culture among ${ks} kingdoms; ${swamped.length} of ${mixes.length} mixing places taken over by their neighbours' ways` });
+  // ---- N54 ----
+  const peoples = peoplesOf(realm);
+  if (peoples) {
+    const homes = [peoples.warren, peoples.herd].filter((x): x is string => !!x).map((id) => realm.settlements[id]).filter((x) => !!x);
+    const gone = homes.filter((x) => x!.abandoned || x!.population <= 0);
+    const crowns = [peoples.orcs, peoples.dwarves].filter((x): x is string => !!x).map((id) => realm.kingdoms[id]).filter((x) => !!x);
+    const fallen = crowns.filter((k) => k!.fallen);
+    out.push({ name: "peoples-survive", phase: "N54", ok: gone.length === 0 && fallen.length < Math.max(1, crowns.length), detail: `${gone.length} of ${homes.length} homes of other peoples emptied; ${fallen.length} of ${crowns.length} of their crowns fallen` });
+    const burns = (realm.news ?? []).filter((n) => n.kind === "dragon" && /burned/.test(n.text));
+    const bySeason = new Map<number, number>();
+    for (const n of burns) bySeason.set(Math.floor(n.day / seasonDays()), (bySeason.get(Math.floor(n.day / seasonDays())) ?? 0) + 1);
+    out.push({ name: "dragon-burns-rarely", phase: "N54", ok: Math.max(0, ...bySeason.values()) <= 1, detail: `${burns.length} places burned by a dragon in the news kept, at most ${Math.max(0, ...bySeason.values())} in a season` });
+  }
+  // ---- N55 ----
+  const over: string[] = [];
+  for (const a of peekArmies(realm)) for (const [site, n] of Object.entries(a.raised)) {
+    const pop = realm.settlements[site]?.population ?? 0;
+    // The fighting-age are about three in ten; the heaviest levy takes one in ten of them, so a fifth of them is the ceiling.
+    if (n > Math.max(1, Math.ceil(pop * 0.3 * 0.2))) over.push(`${site} (${n} of ${pop})`);
+  }
+  out.push({ name: "levies-bounded", phase: "N55", ok: over.length === 0, detail: over.length === 0 ? `${peekArmies(realm).length} armies, every levy under a fifth of the fighting-age` : `levies over a fifth of the fighting-age: ${over.slice(0, 5).join(", ")}` });
+  const serving = store.records.list<SoldierData>("soldier", (s) => s.data.status === "serving");
+  const stale = serving.filter((s) => {
+    const w = realm.wars.find((x) => x.id === s.data.war);
+    return !w || (w.end !== undefined && day - w.end > 2);
+  });
+  out.push({ name: "nobody-serves-an-ended-war", phase: "N55", ok: stale.length === 0, detail: `${serving.length} soldiers serving, ${stale.length} of them in a war that ended` });
   return out;
 }

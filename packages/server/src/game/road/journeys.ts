@@ -1,4 +1,4 @@
-import { DAY_ENDS, DAY_STARTS, WALK_PACE, buildRoundTimeline, buildTimeline, graphOf, isOnTheRoad, journeyLine, placeAt, positionAt, type Away, type Carry, type Journey, type JourneyKind, type JourneyPosition, type JourneyRoad, type RoadData, type Traveller } from "@millbrook/shared";
+import { DAY_ENDS, DAY_STARTS, WALK_PACE, buildRoundTimeline, buildTimeline, graphOf, isOnTheRoad, journeyLine, placeAt, positionAt, type Away, type Carry, type Journey, type JourneyKind, type JourneyPosition, type JourneyRoad, type RoadData, type Traveller } from "@garden-of-eden/shared";
 import type { PeopleStore } from "../../store/peopleStore.js";
 import type { Realm } from "../realm/types.js";
 import { pathAround } from "./snow.js";
