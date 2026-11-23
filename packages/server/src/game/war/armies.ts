@@ -179,7 +179,11 @@ export function soldiersSiteDay(ctx: LifeCtx, step: Pick<SiteStep, "site" | "dea
   for (const sol of store.records.open<SoldierData>("soldier", (x) => x.site === site && x.data.status === "serving")) {
     const w = realm.wars.find((x) => x.id === sol.data.war);
     const r = sol.a ? store.people.get(sol.a) : null;
-    if (!r || r.death !== null) continue;
+    // Dead of something other than the war (illness, a hanging, a brawl on leave): off the muster, not serving for ever.
+    if (!r || r.death !== null) {
+      store.records.end(sol.id, day, "dead", { status: "dead" });
+      continue;
+    }
     if (!w || w.end !== undefined) {
       store.people.update(r.id, { away: null });
       store.careers.endJob(r.id, `soldier:${sol.data.rank}`, day);
