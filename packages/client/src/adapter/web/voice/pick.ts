@@ -1,5 +1,5 @@
 /** Choosing a browser voice for an NPC (T14). Pure, so it's tested without a browser. */
-import type { NpcVoice } from "@millbrook/shared/view";
+import type { NpcVoice } from "@garden-of-eden/shared/view";
 
 export interface VoiceOption {
   name: string;

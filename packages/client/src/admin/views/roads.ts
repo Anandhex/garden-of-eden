@@ -1,4 +1,4 @@
-import type { AdminClock, AdminJourney, AdminNewsChain, AdminRoads } from "@millbrook/shared";
+import type { AdminClock, AdminJourney, AdminNewsChain, AdminRoads } from "@garden-of-eden/shared";
 import { el, emptyP } from "../../dom";
 import { api } from "../api";
 import { nav } from "../nav";

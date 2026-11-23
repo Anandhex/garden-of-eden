@@ -4,7 +4,7 @@
  * ruins of an abandoned place, a battlefield with its graves). Nothing is on the player's map until found, told or read
  * on a map; off the road the player can lose their way; finds can be reported to a place's head.
  */
-import { CHUNK, Ground, chunkAt, offRoad, tileOf, wildPoiIn, wildPoisNear } from "@millbrook/shared";
+import { CHUNK, Ground, chunkAt, offRoad, tileOf, wildPoiIn, wildPoisNear } from "@garden-of-eden/shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { config } from "../src/config.js";
 import { loadCreatureTemplates } from "../src/game/creatures.js";

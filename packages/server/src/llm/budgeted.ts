@@ -1,4 +1,4 @@
-import type { AdminModelKind } from "@millbrook/shared";
+import type { AdminModelKind } from "@garden-of-eden/shared";
 import { budgets, CALL_KINDS, kindRank, type CallKind } from "../budgets.js";
 import { estimateTokens } from "./tokens.js";
 import type { ChatRequest, ChatResult, GenerateRequest, LLMProvider } from "./provider.js";

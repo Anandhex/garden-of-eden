@@ -96,6 +96,7 @@ export const config = {
    * Stages 4–6 (N45–N64): society, power and a changing world. Each system has its own switch (env `<NAME>=off`): FEUDS (estates, disputes,
    * feuds, affairs: N45), SECRETS (N46), UNDERWORLD (N47), TRIALS (N48), BELIEF (N50), MAGIC (N51), CULTURES (N53), PEOPLES (N54), ARMIES
    * (N55), UNREST (N56–N58), RUNAWAYS (N59), ECOLOGY (N60), EPIDEMICS (N61), DISASTERS (N62), EXPLORATION (N63), NEW_KINGDOMS (N64).
+   * N56–N64 are not built (audit 2026-11-16, N70): their switches are read by nothing yet, as marked below.
    */
   society: {
     feuds: (process.env.FEUDS ?? "on") !== "off",
@@ -107,9 +108,11 @@ export const config = {
     cultures: (process.env.CULTURES ?? "on") !== "off",
     peoples: (process.env.PEOPLES ?? "on") !== "off",
     armies: (process.env.ARMIES ?? "on") !== "off",
+    // Not built yet (N56–N64): nothing reads these switches; they are here so the env names stay stable when the phases land.
     unrest: (process.env.UNREST ?? "on") !== "off",
     runaways: (process.env.RUNAWAYS ?? "on") !== "off",
     ecology: (process.env.ECOLOGY ?? "on") !== "off",
+    // N61: only the outbreak state reads this (game/epidemic/model.ts); nothing starts an outbreak yet.
     epidemics: (process.env.EPIDEMICS ?? "on") !== "off",
     disasters: (process.env.DISASTERS ?? "on") !== "off",
     exploration: (process.env.EXPLORATION ?? "on") !== "off",

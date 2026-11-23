@@ -1,4 +1,4 @@
-import type { RealmView } from "@millbrook/shared";
+import type { RealmView } from "@garden-of-eden/shared";
 import { formatMoney } from "../money.js";
 import { fame } from "../office/repute.js";
 import { ongoing, partyName } from "./diplomacy.js";

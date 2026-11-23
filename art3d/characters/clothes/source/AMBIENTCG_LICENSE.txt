@@ -1,0 +1,5 @@
+ambientCG assets (Fabric030, Fabric048, Fabric026, Leather011, Metal032; 1K-JPG colour maps used here)
+Licence: Creative Commons CC0 1.0 Universal. Verified 2026-11-08 at https://docs.ambientcg.com/license/ :
+"All ambientCG assets are provided under the Creative Commons CC0 1.0 Universal License ... You can copy, modify,
+distribute and perform the assets, even for commercial purposes, all without asking permission."
+Downloaded from https://ambientcg.com/get?file=<AssetId>_1K-JPG.zip without login.

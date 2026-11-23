@@ -4,6 +4,8 @@
 
 What the player sees, the life they lead, the world reaching out to them, and what the world remembers.
 
+> **Not started** (audit, 2026-11-16). Since G5, anything the player sees is built once in `server/src/view/ui.ts` and drawn by every client (web, Unity); the plans here were written before that and name web files that have moved ([plans README §18](plans/README.md#18-client-work-goes-in-layers)). N65 and N68 need N20's stories and N24's delivery, which aren't built.
+
 ## N65: The player's view
 
 **Status:** ⬜ Planned

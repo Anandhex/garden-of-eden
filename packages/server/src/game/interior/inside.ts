@@ -1,4 +1,4 @@
-import { interiorOf, interiorWalkable, ITILE, floorTiles, spotFor, type CrowdDay, type CrowdSim, type Furniture, type Household, type Interior } from "@millbrook/shared";
+import { interiorOf, interiorWalkable, ITILE, floorTiles, spotFor, type CrowdDay, type CrowdSim, type Furniture, type Household, type Interior } from "@garden-of-eden/shared";
 import type { NpcPersona, NpcSecret, PlayerState } from "../../npc/types.js";
 import { learnSecret } from "../../npc/secrets.js";
 import { skillLevel } from "../../npc/skills.js";

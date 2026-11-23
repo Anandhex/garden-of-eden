@@ -1,4 +1,4 @@
-import type { AdminGossip, AdminKnowers } from "@millbrook/shared";
+import type { AdminGossip, AdminKnowers } from "@garden-of-eden/shared";
 import { config } from "../config.js";
 import { describeKnown } from "../game/gossip/describe.js";
 import { parseRef } from "../game/gossip/refs.js";

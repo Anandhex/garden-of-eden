@@ -1,4 +1,4 @@
-import { TILES_PER_UNIT, cumulative, dist, pointAt, project } from "@millbrook/shared";
+import { TILES_PER_UNIT, cumulative, dist, pointAt, project } from "@garden-of-eden/shared";
 import { streamFor } from "../dice.js";
 import { makeFigure } from "../realm/figures.js";
 import { leaderRole } from "../realm/figures.js";

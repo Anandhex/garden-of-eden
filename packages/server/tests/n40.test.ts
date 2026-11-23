@@ -1,5 +1,5 @@
 import { DatabaseSync } from "node:sqlite";
-import { CLASS_RANK, type SocialClass } from "@millbrook/shared";
+import { CLASS_RANK, type SocialClass } from "@garden-of-eden/shared";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { config } from "../src/config.js";
 import { ambitionDay, careerYearDay } from "../src/game/ambition/day.js";

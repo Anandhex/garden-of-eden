@@ -1,4 +1,4 @@
-import { homeDistrict, type SocialClass } from "@millbrook/shared";
+import { homeDistrict, type SocialClass } from "@garden-of-eden/shared";
 import type { PersonRow } from "../../store/peopleStore.js";
 import type { WorldStore } from "../db.js";
 import { recordLifeEvent } from "../people/events.js";

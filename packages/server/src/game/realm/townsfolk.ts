@@ -1,5 +1,5 @@
-import { homeDistrict, type District } from "@millbrook/shared";
-import { CLASS_COLORS, CLASS_RANK, CLASS_WORDS, type CrowdRoster, hashStr, honorific, JOB_INFO, type Job, seeded, type SocialClass, type Townsperson } from "@millbrook/shared";
+import { homeDistrict, type District } from "@garden-of-eden/shared";
+import { CLASS_COLORS, CLASS_RANK, CLASS_WORDS, type CrowdRoster, hashStr, honorific, JOB_INFO, type Job, seeded, type SocialClass, type Townsperson } from "@garden-of-eden/shared";
 import { parsePersona } from "../../npc/personaSchema.js";
 import { assemblePersona, fallbackIdentity, rollTemplate, type NpcTemplate, type Where } from "../../npc/templates.js";
 import type { NpcPersona } from "../../npc/types.js";
@@ -23,7 +23,7 @@ import type { Realm, RealmFaction, Settlement, SettlementKind } from "./types.js
  * royal), a job, a home, a workplace, maybe a master and maybe a faction. Who they
  * are is rolled here from the realm's seed, person by person, so the same place has
  * the same people every visit and a growing town only adds to the end of the list.
- * Where they are is the shared crowd simulation (@millbrook/shared crowd.ts). None
+ * Where they are is the shared crowd simulation (@garden-of-eden/shared crowd.ts). None
  * of them costs a model call until the player talks to one: then they become a
  * talking NPC (townsfolkPersona), kept in the save like the notables.
  */

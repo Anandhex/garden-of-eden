@@ -5,10 +5,10 @@
  * nothing is stopped, not left running silent. Spots are short synthesized sounds, panned by where they are. It starts only
  * after a click or a key (browsers require it) and only while sound is on (this browser's setting).
  */
-import { soundscape, type BedId, type Scape, type ScapeInput, type SpotRule, type SpotSource } from "@millbrook/shared/view";
+import { soundscape, type BedId, type Scape, type ScapeInput, type SpotRule, type SpotSource } from "@garden-of-eden/shared/view";
 
-const PREF = "millbrook-sound";
-const VOLUME_PREF = "millbrook-soundVolume";
+const PREF = "garden-of-eden-sound";
+const VOLUME_PREF = "garden-of-eden-soundVolume";
 /** Seconds a bed takes to reach a new volume. */
 const FADE = 2.5;
 /** Most beds playing at once. */

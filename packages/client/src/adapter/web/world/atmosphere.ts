@@ -5,7 +5,7 @@
  * of the view, drifting a little against the camera and softly blurred, as if nearer the eye than the street.
  */
 import * as Phaser from "phaser";
-import type { Frame } from "@millbrook/shared/view";
+import type { Frame } from "@garden-of-eden/shared/view";
 import { pickFrame, type Pick } from "../art";
 import { DEPTH } from "./depth";
 import { TILE } from "./textures";

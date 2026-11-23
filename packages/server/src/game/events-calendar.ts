@@ -1,5 +1,5 @@
 import { dominant, type Mood } from "./mood/model.js";
-import { REALM_MAP, daylight, daysInSeason, seasonDay, type CrowdDay } from "@millbrook/shared";
+import { REALM_MAP, daylight, daysInSeason, seasonDay, type CrowdDay } from "@garden-of-eden/shared";
 import { config } from "../config.js";
 import { seedFrom } from "./dice.js";
 import { parseItem } from "./items.js";

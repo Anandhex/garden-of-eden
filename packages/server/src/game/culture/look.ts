@@ -1,9 +1,9 @@
 /**
- * How a place is built (G8): its style (shared styles.ts) from the people who live there, its kingdom's culture, its
+ * How a place is built (G10): its style (shared styles.ts) from the people who live there, its kingdom's culture, its
  * land and its size; and its culture's colours, for painted roofs and market awnings. Read by the view, never stored:
  * the same place looks the same on every visit, and a place that changes hands is rebuilt in its new masters' colours.
  */
-import { styleIdFor } from "@millbrook/shared/view";
+import { styleIdFor } from "@garden-of-eden/shared/view";
 import type { Realm } from "../realm/types.js";
 import { cultureAt } from "./model.js";
 

@@ -4,7 +4,7 @@
  * keys and clicks to intents. It decides how things look, never what is true or allowed.
  */
 import "./style.css";
-import type { Frame, GameEvent, PromptMsg, SpeechMsg, UiModel } from "@millbrook/shared/view";
+import type { Frame, GameEvent, PromptMsg, SpeechMsg, UiModel } from "@garden-of-eden/shared/view";
 import { SoundEngine } from "./audio";
 import { Core, type ConnectionStatus, type EngineAdapter, type FrameChange } from "../../core";
 import { $ } from "../../dom";

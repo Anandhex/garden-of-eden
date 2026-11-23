@@ -3,7 +3,7 @@
  * it (act, move, tick), each through the server's one queue. server.ts builds this; nothing in
  * view/ reaches into the game any other way, and nothing in view/ changes the game except through these calls.
  */
-import type { CrowdDay, CrowdSim, GameEvent, Journey, RealmView, RoadData, Snapshot, StreamEvent } from "@millbrook/shared";
+import type { CrowdDay, CrowdSim, GameEvent, Journey, RealmView, RoadData, Snapshot, StreamEvent } from "@garden-of-eden/shared";
 import type { landOf } from "../game/road/ground.js";
 
 export type Land = ReturnType<typeof landOf>;
@@ -29,13 +29,17 @@ export interface ViewHost {
   /** The fields in a rectangle of the road world (N26G): each plot tile's stage (0..7 growing, 10+ a mark), keyed "x,y". */
   fieldStages?(x0: number, y0: number, w: number, h: number): Map<string, number>;
   /** The marks on the place the player is in (N31): burned houses, scaffolding, graves, banners, empty stalls. */
-  marks?(): import("@millbrook/shared/view").Mark[];
+  marks?(): import("@garden-of-eden/shared/view").Mark[];
   /** The journeys within `radius` tiles of the player on the road now. */
   journeysNear(radius: number): Journey[];
   /** People walking to work along the road near the player (N26F decision 12): miners, hunters, the ore cart, the watch. */
   commuters?(radius: number): Array<{ id: string; x: number; y: number; name: string; role: string; kind: string; purpose: string; from: string; to: string; journey: string }>;
-  /** How the place the player is in is built (G8): its style id (shared styles.ts) and its culture's colours. */
+  /** How the place the player is in is built (G10): its style id (shared styles.ts) and its culture's colours. */
   buildLook?(): { style?: string; colours?: string[] } | null;
+  /** The culture template id (highland, river, coastal...) of the place the player is in, for how its buildings are built; null when there is none. */
+  cultureStyle?(): string | null;
+  /** The talking people (human, elf, dwarf, halfling, orc) of the place the player is in, for the bodies of its townsfolk; null: human. */
+  townSpecies?(): string | null;
   /** A settlement's name by id. */
   placeName(id: string): string;
   realm(): RealmView | null;

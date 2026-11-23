@@ -1,0 +1,27 @@
+{
+    "name": "GardenOfEden.Editor",
+    "rootNamespace": "GardenOfEden.EditorTools",
+    "references": [
+        "GardenOfEden.Net",
+        "GardenOfEden.Look",
+        "GardenOfEden.World",
+        "GardenOfEden.Play",
+        "Unity.RenderPipelines.Universal.Runtime",
+        "Unity.RenderPipelines.Universal.Editor",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Newtonsoft.Json.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

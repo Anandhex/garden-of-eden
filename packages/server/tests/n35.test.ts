@@ -22,7 +22,7 @@ import { maxSkipHours, passUntil, summaryLines } from "../src/game/time/pass.js"
 import { Town } from "../src/game/town.js";
 import { materialisePeople } from "../src/store/materialise.js";
 import type { PersonRow } from "../src/store/peopleStore.js";
-import { besideRoad } from "@millbrook/shared";
+import { besideRoad } from "@garden-of-eden/shared";
 import { FakeProvider, always } from "./helpers.js";
 
 vi.setConfig({ testTimeout: 300_000 });

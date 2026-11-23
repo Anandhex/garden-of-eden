@@ -1,5 +1,5 @@
 import type { DeathNote } from "../game/deathNews.js";
-import type { NpcVoice } from "@millbrook/shared";
+import type { NpcVoice } from "@garden-of-eden/shared";
 import type { QuestTier } from "../game/levels.js";
 import type { Life, Tier } from "../game/life.js";
 import type { TitleId } from "../game/titles.js";

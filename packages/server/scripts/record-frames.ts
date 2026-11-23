@@ -9,7 +9,7 @@
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import type { Intent } from "@millbrook/shared/view";
+import type { Intent } from "@garden-of-eden/shared/view";
 import { fakeModel, ProtocolClient, sleep, startGame } from "./game-process.js";
 
 const minutes = Math.max(1, Number(process.argv[2] ?? 10));
@@ -60,7 +60,7 @@ try {
   writeFileSync(out, c.msgs.map((m) => JSON.stringify({ at: m.at, msg: m.msg })).join("\n") + "\n");
   const bytes = c.msgs.reduce((n, m) => n + m.bytes, 0);
   console.log(`Recorded ${c.msgs.length} messages (${Math.round(bytes / 1024)} KB, ${Math.round((c.msgs.at(-1)?.at ?? 0) / 1000)} s) to protocol/recordings/${name}.jsonl.`);
-  console.log(`Play it back: npm run dev -w @millbrook/client, then open http://localhost:5173/?replay=/recordings/${name}.jsonl (or canvas.html?replay=…).`);
+  console.log(`Play it back: npm run dev -w @garden-of-eden/client, then open http://localhost:5173/?replay=/recordings/${name}.jsonl (or canvas.html?replay=…).`);
   c.close();
 } finally {
   game.stop();

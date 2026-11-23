@@ -1,4 +1,4 @@
-import { STEPS_PER_GAME_MINUTE, type Footprint, type RoadData, type RoadPath, type RoadPoint } from "@millbrook/shared";
+import { STEPS_PER_GAME_MINUTE, type Footprint, type RoadData, type RoadPath, type RoadPoint } from "@garden-of-eden/shared";
 import type { PlayerState } from "../../npc/types.js";
 import { formatMoney } from "../money.js";
 import type { Realm } from "../realm/types.js";

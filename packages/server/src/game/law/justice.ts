@@ -1,6 +1,6 @@
 import { config } from "../../config.js";
 import { jail, pardonOf, trialsDay, tryCase } from "./trial.js";
-import { WALK_PACE } from "@millbrook/shared";
+import { WALK_PACE } from "@garden-of-eden/shared";
 import type { PlayerState } from "../../npc/types.js";
 import type { PersonRow } from "../../store/peopleStore.js";
 import type { WorldStore } from "../db.js";

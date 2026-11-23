@@ -1,4 +1,4 @@
-import type { AdminSection } from "@millbrook/shared";
+import type { AdminSection } from "@garden-of-eden/shared";
 import { weightOn } from "../game/chatter/grievance.js";
 import { feelings } from "../game/chatter/rel.js";
 import type { PersonRow } from "../store/peopleStore.js";

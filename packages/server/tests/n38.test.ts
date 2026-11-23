@@ -16,7 +16,7 @@ import { MAX_RUN } from "../src/game/choice/weights.js";
 import { protectedSet } from "../src/game/choice/protect.js";
 import { liveSites } from "../src/game/people/live.js";
 import { advanceWorld, settle } from "../src/game/people/world.js";
-import { CLASS_RANK, CrowdSim, type CrowdDay, type SocialClass, type Townsperson } from "@millbrook/shared";
+import { CLASS_RANK, CrowdSim, type CrowdDay, type SocialClass, type Townsperson } from "@garden-of-eden/shared";
 import { addGrievance } from "../src/game/chatter/grievance.js";
 import { intentsOn } from "../src/game/choice/intents.js";
 import { rosterFor } from "../src/game/realm/townsfolk.js";
@@ -378,7 +378,8 @@ describe("N38 step 6: townsfolk at coarse grain", () => {
     const sim = new CrowdSim({ id: map.id, w: map.w, h: map.h, tiles: map.tiles, buildings: map.buildings, zones: map.zones }, roster);
     const [a, b] = roster.people.filter((p) => p.job !== "child" && p.job !== "guard" && p.work !== "home").slice(0, 2) as [Townsperson, Townsperson];
     const clear: CrowdDay = { weather: "clear", festival: false };
-    const away = (d: CrowdDay) => sim.at(a, 3, 12 * 60, d);
+    // Late enough that a walk across the (organically spread) village has got them to the door.
+    const away = (d: CrowdDay) => sim.at(a, 3, 12 * 60 + 40, d);
     const usual = away(clear);
     const sent: CrowdDay = { ...clear, intents: [{ id: a.id, kind: "confront", target: b.id }] };
     const there = away(sent);

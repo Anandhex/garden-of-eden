@@ -1,4 +1,4 @@
-import { type AdminClock, type AdminEvent, type AdminEventQuery, type AdminSource, compareAt } from "@millbrook/shared";
+import { type AdminClock, type AdminEvent, type AdminEventQuery, type AdminSource, compareAt } from "@garden-of-eden/shared";
 import { el, emptyP } from "../../dom";
 import { api } from "../api";
 import { renderEvent } from "../card";

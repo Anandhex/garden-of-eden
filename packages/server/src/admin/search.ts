@@ -1,5 +1,5 @@
 import { allCreatures } from "../game/site.js";
-import type { AdminCardKind, AdminSearchHit, AdminSearchResult } from "@millbrook/shared";
+import type { AdminCardKind, AdminSearchHit, AdminSearchResult } from "@garden-of-eden/shared";
 import { titled } from "../game/realm/figures.js";
 import { parseTownsfolkId } from "../game/realm/townsfolk.js";
 import type { AdminContext } from "./context.js";

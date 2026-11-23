@@ -7,7 +7,7 @@
 import { days } from "./long.js";
 import { DatabaseSync } from "node:sqlite";
 import { beforeEach, describe, expect, it, onTestFinished, vi } from "vitest";
-import { CHAT_MINUTES, CLASS_RANK, CrowdSim, kindLines, markKey, type SocialClass } from "@millbrook/shared";
+import { CHAT_MINUTES, CLASS_RANK, CrowdSim, kindLines, markKey, type SocialClass } from "@garden-of-eden/shared";
 import { config } from "../src/config.js";
 import { card } from "../src/admin/person.js";
 import type { AdminContext } from "../src/admin/context.js";

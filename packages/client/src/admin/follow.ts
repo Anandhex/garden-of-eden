@@ -1,10 +1,10 @@
-import { type AdminClock, type AdminCrowd, CrowdSim } from "@millbrook/shared";
+import { type AdminClock, type AdminCrowd, CrowdSim } from "@garden-of-eden/shared";
 import { el } from "../dom";
 import { api } from "./api";
 
 /**
  * Following someone (N17): their settlement's map with every townsperson on it, drawn
- * on a canvas with the same crowd simulation the game uses (@millbrook/shared), centred
+ * on a canvas with the same crowd simulation the game uses (@garden-of-eden/shared), centred
  * on the person followed. Read-only: where everyone is comes from the roster, the map and the clock.
  */
 

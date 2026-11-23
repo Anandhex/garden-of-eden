@@ -1,4 +1,4 @@
-import { TILES_PER_UNIT, baseWeather, daysInSeason, forcedWeather, hashUnit, seasonAt, weatherAt, yearDay, yearNumber, type WeatherKind } from "@millbrook/shared";
+import { TILES_PER_UNIT, baseWeather, daysInSeason, forcedWeather, hashUnit, seasonAt, weatherAt, yearDay, yearNumber, type WeatherKind } from "@garden-of-eden/shared";
 import { config } from "../config.js";
 import type { Realm } from "./realm/types.js";
 

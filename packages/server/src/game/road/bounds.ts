@@ -1,10 +1,10 @@
-import { graphOf, isOnTheRoad } from "@millbrook/shared";
+import { graphOf, isOnTheRoad } from "@garden-of-eden/shared";
 import type { PeopleStore } from "../../store/peopleStore.js";
 import { parseAway } from "../../store/peopleStore.js";
 import type { Realm } from "../realm/types.js";
 import { roadDataOf } from "./generateRoads.js";
 import { journeysOf, MAX_JOURNEYS } from "./journeys.js";
-import { coverOf, GATE_CLEAR, MAX_COVER } from "@millbrook/shared";
+import { coverOf, GATE_CLEAR, MAX_COVER } from "@garden-of-eden/shared";
 import { territoriesNow } from "./territories.js";
 import { beatsAlong, spaced } from "./beats.js";
 

@@ -1,0 +1,728 @@
+{
+ "note": "one object per style under the Groom empty; show the picked one. Shell styles: alpha = clamp((A - sparse*Layer) / (1 - sparse*Layer)) * gain * Fade, colour = hair colour x strand brightness x mix(dark_in, 1, Layer); MakeHuman card styles: texture luminance / mean_lum ^ 1.35 x hair colour, with hair_fine.png along v.",
+ "hair": {
+  "afro": {
+   "kind": "shell",
+   "texture": "curl_strands.png",
+   "gain": 1.7,
+   "sparse": 0.62,
+   "dark_in": 0.45,
+   "base": "curls",
+   "sexes": "FM",
+   "params": {
+    "thick": 0.055
+   },
+   "object": "Hair_Afro",
+   "tris": 10260,
+   "keys": 36
+  },
+  "afro short": {
+   "kind": "shell",
+   "texture": "curl_strands.png",
+   "gain": 1.7,
+   "sparse": 0.62,
+   "dark_in": 0.45,
+   "base": "curls",
+   "sexes": "FM",
+   "params": {
+    "thick": 0.024
+   },
+   "object": "Hair_AfroShort",
+   "tris": 4560,
+   "keys": 36
+  },
+  "bob": {
+   "kind": "card",
+   "texture": "hair/bob01_diffuse.png",
+   "mean_lum": 0.0205,
+   "base": "bob01",
+   "sexes": "F",
+   "params": {
+    "fringe": 1.0
+   },
+   "object": "Hair_Bob",
+   "tris": 8474,
+   "keys": 41
+  },
+  "bob chin": {
+   "kind": "card",
+   "texture": "hair/bob01_diffuse.png",
+   "mean_lum": 0.0205,
+   "base": "bob01",
+   "sexes": "F",
+   "params": {
+    "length": 0.8,
+    "fringe": 1.0
+   },
+   "object": "Hair_BobChin",
+   "tris": 8474,
+   "keys": 40
+  },
+  "bob short": {
+   "kind": "card",
+   "texture": "hair/bob02_diffuse.png",
+   "mean_lum": 0.3525,
+   "base": "bob02",
+   "sexes": "F",
+   "params": {
+    "fringe": 1.0
+   },
+   "object": "Hair_BobShort",
+   "tris": 2248,
+   "keys": 68
+  },
+  "braid": {
+   "kind": "card",
+   "texture": "hair/braid01_diffuse.png",
+   "mean_lum": 0.0112,
+   "base": "braid01",
+   "sexes": "F",
+   "params": {
+    "fringe": 1.0
+   },
+   "object": "Hair_Braid",
+   "tris": 5518,
+   "keys": 33
+  },
+  "braid short": {
+   "kind": "card",
+   "texture": "hair/braid01_diffuse.png",
+   "mean_lum": 0.0112,
+   "base": "braid01",
+   "sexes": "F",
+   "params": {
+    "length": 0.75,
+    "fringe": 1.0
+   },
+   "object": "Hair_BraidShort",
+   "tris": 5518,
+   "keys": 32
+  },
+  "buzz": {
+   "kind": "card",
+   "texture": "hair/short04_diffuse.png",
+   "mean_lum": 0.0192,
+   "base": "short04",
+   "sexes": "M",
+   "params": {
+    "puff": 1.0,
+    "scalp": 0.3
+   },
+   "object": "Hair_Buzz",
+   "tris": 1050,
+   "keys": 40
+  },
+  "crew": {
+   "kind": "card",
+   "texture": "hair/short04_diffuse.png",
+   "mean_lum": 0.0192,
+   "base": "short04",
+   "sexes": "M",
+   "params": {
+    "puff": 1.02
+   },
+   "object": "Hair_Crew",
+   "tris": 1050,
+   "keys": 40
+  },
+  "cropped": {
+   "kind": "card",
+   "texture": "hair/short04_diffuse.png",
+   "mean_lum": 0.0192,
+   "base": "short04",
+   "sexes": "FM",
+   "params": {},
+   "object": "Hair_Cropped",
+   "tris": 1050,
+   "keys": 40
+  },
+  "curly bob": {
+   "kind": "shell",
+   "texture": "curl_strands.png",
+   "gain": 1.7,
+   "sparse": 0.62,
+   "dark_in": 0.45,
+   "base": "curls",
+   "sexes": "F",
+   "params": {
+    "thick": 0.04,
+    "drop": 0.025
+   },
+   "object": "Hair_CurlyBob",
+   "tris": 7980,
+   "keys": 36
+  },
+  "long": {
+   "kind": "card",
+   "texture": "hair/long01_diffuse.png",
+   "mean_lum": 0.0251,
+   "base": "long01",
+   "sexes": "F",
+   "params": {},
+   "object": "Hair_Long",
+   "tris": 4108,
+   "keys": 26
+  },
+  "long full": {
+   "kind": "card",
+   "texture": "hair/long01_diffuse.png",
+   "mean_lum": 0.0251,
+   "base": "long01",
+   "sexes": "F",
+   "params": {
+    "puff": 1.06
+   },
+   "object": "Hair_LongFull",
+   "tris": 4108,
+   "keys": 26
+  },
+  "long loose": {
+   "kind": "card",
+   "texture": "hair/long01_diffuse.png",
+   "mean_lum": 0.0251,
+   "base": "long01",
+   "sexes": "M",
+   "params": {
+    "length": 0.7
+   },
+   "object": "Hair_LongLoose",
+   "tris": 4108,
+   "keys": 27
+  },
+  "long shoulder": {
+   "kind": "card",
+   "texture": "hair/long01_diffuse.png",
+   "mean_lum": 0.0251,
+   "base": "long01",
+   "sexes": "F",
+   "params": {
+    "length": 0.6
+   },
+   "object": "Hair_LongShoulder",
+   "tris": 4108,
+   "keys": 27
+  },
+  "long tied": {
+   "kind": "card",
+   "texture": "hair/ponytail01_diffuse.png",
+   "mean_lum": 0.0635,
+   "base": "ponytail01",
+   "sexes": "M",
+   "params": {
+    "length": 0.85
+   },
+   "object": "Hair_LongTied",
+   "tris": 5352,
+   "keys": 32
+  },
+  "pixie": {
+   "kind": "card",
+   "texture": "hair/short03_diffuse.png",
+   "mean_lum": 0.0492,
+   "base": "short03",
+   "sexes": "F",
+   "params": {
+    "fringe": 1.0
+   },
+   "object": "Hair_Pixie",
+   "tris": 1922,
+   "keys": 54
+  },
+  "pixie full": {
+   "kind": "card",
+   "texture": "hair/short03_diffuse.png",
+   "mean_lum": 0.0492,
+   "base": "short03",
+   "sexes": "F",
+   "params": {
+    "puff": 1.06,
+    "fringe": 1.0
+   },
+   "object": "Hair_PixieFull",
+   "tris": 1922,
+   "keys": 54
+  },
+  "ponytail": {
+   "kind": "card",
+   "texture": "hair/ponytail01_diffuse.png",
+   "mean_lum": 0.0635,
+   "base": "ponytail01",
+   "sexes": "FM",
+   "params": {},
+   "object": "Hair_Ponytail",
+   "tris": 5352,
+   "keys": 31
+  },
+  "ponytail short": {
+   "kind": "card",
+   "texture": "hair/ponytail01_diffuse.png",
+   "mean_lum": 0.0635,
+   "base": "ponytail01",
+   "sexes": "F",
+   "params": {
+    "length": 0.7
+   },
+   "object": "Hair_PonytailShort",
+   "tris": 5352,
+   "keys": 32
+  },
+  "receding crop": {
+   "kind": "shell",
+   "texture": "scalp_strands.png",
+   "gain": 1.5,
+   "sparse": 0.45,
+   "dark_in": 0.6,
+   "base": "cap",
+   "sexes": "M",
+   "params": {
+    "thick": 0.004,
+    "front": 0.5,
+    "temple": 1.0
+   },
+   "object": "Hair_RecedingCrop",
+   "tris": 3856,
+   "keys": 33
+  },
+  "receding short": {
+   "kind": "shell",
+   "texture": "scalp_strands.png",
+   "gain": 1.5,
+   "sparse": 0.45,
+   "dark_in": 0.6,
+   "base": "cap",
+   "sexes": "M",
+   "params": {
+    "thick": 0.006,
+    "front": 0.3,
+    "temple": 0.9
+   },
+   "object": "Hair_RecedingShort",
+   "tris": 3904,
+   "keys": 33
+  },
+  "short": {
+   "kind": "card",
+   "texture": "hair/short02_diffuse.png",
+   "mean_lum": 0.0536,
+   "base": "short02",
+   "sexes": "M",
+   "params": {},
+   "object": "Hair_Short",
+   "tris": 3344,
+   "keys": 43
+  },
+  "short full": {
+   "kind": "card",
+   "texture": "hair/short01_diffuse.png",
+   "mean_lum": 0.0132,
+   "base": "short01",
+   "sexes": "M",
+   "params": {
+    "puff": 1.05
+   },
+   "object": "Hair_ShortFull",
+   "tris": 3678,
+   "keys": 32
+  },
+  "short messy": {
+   "kind": "card",
+   "texture": "hair/short02_diffuse.png",
+   "mean_lum": 0.0536,
+   "base": "short02",
+   "sexes": "M",
+   "params": {
+    "puff": 1.07
+   },
+   "object": "Hair_ShortMessy",
+   "tris": 3344,
+   "keys": 43
+  },
+  "short side part": {
+   "kind": "card",
+   "texture": "hair/short01_diffuse.png",
+   "mean_lum": 0.0132,
+   "base": "short01",
+   "sexes": "M",
+   "params": {},
+   "object": "Hair_ShortSidePart",
+   "tris": 3678,
+   "keys": 32
+  },
+  "short tight": {
+   "kind": "card",
+   "texture": "hair/short02_diffuse.png",
+   "mean_lum": 0.0536,
+   "base": "short02",
+   "sexes": "M",
+   "params": {
+    "puff": 1.01
+   },
+   "object": "Hair_ShortTight",
+   "tris": 3344,
+   "keys": 43
+  },
+  "thinning crown": {
+   "kind": "shell",
+   "texture": "scalp_strands.png",
+   "gain": 1.5,
+   "sparse": 0.45,
+   "dark_in": 0.6,
+   "base": "cap",
+   "sexes": "M",
+   "params": {
+    "thick": 0.005,
+    "front": 0.12,
+    "temple": 0.35,
+    "crown": 0.9
+   },
+   "object": "Hair_ThinningCrown",
+   "tris": 4064,
+   "keys": 34
+  },
+  "tousled": {
+   "kind": "shell",
+   "texture": "scalp_strands.png",
+   "gain": 1.5,
+   "sparse": 0.45,
+   "dark_in": 0.6,
+   "base": "cap",
+   "sexes": "M",
+   "params": {
+    "thick": 0.013,
+    "layers": 6
+   },
+   "object": "Hair_Tousled",
+   "tris": 6120,
+   "keys": 35
+  },
+  "bald": {
+   "kind": "none",
+   "base": null,
+   "sexes": "M",
+   "params": {}
+  },
+  "shaved": {
+   "kind": "none",
+   "base": null,
+   "sexes": "FM",
+   "params": {
+    "scalp": 0.25
+   }
+  }
+ },
+ "beards": {
+  "beard no moustache": {
+   "kind": "shell",
+   "texture": "beard_clumps.png",
+   "gain": 1.7,
+   "sparse": 0.55,
+   "dark_in": 0.5,
+   "grey": 0,
+   "region": "full_nom",
+   "object": "Beard_BeardNoMoustache",
+   "tris": 8400,
+   "keys": 66
+  },
+  "chin strap": {
+   "kind": "shell",
+   "texture": "beard_clumps.png",
+   "gain": 1.7,
+   "sparse": 0.55,
+   "dark_in": 0.5,
+   "grey": 0,
+   "region": "strap",
+   "object": "Beard_ChinStrap",
+   "tris": 6000,
+   "keys": 60
+  },
+  "full beard": {
+   "kind": "shell",
+   "texture": "beard_clumps.png",
+   "gain": 1.8,
+   "sparse": 0.55,
+   "dark_in": 0.5,
+   "grey": 0,
+   "region": "full_long",
+   "object": "Beard_FullBeard",
+   "tris": 11784,
+   "keys": 67
+  },
+  "full beard grey": {
+   "kind": "shell",
+   "texture": "beard_clumps.png",
+   "gain": 1.8,
+   "sparse": 0.55,
+   "dark_in": 0.5,
+   "grey": 0.55,
+   "region": "full_long",
+   "object": "Beard_FullBeardGrey",
+   "tris": 11784,
+   "keys": 67
+  },
+  "goatee": {
+   "kind": "shell",
+   "texture": "beard_clumps.png",
+   "gain": 1.8,
+   "sparse": 0.55,
+   "dark_in": 0.5,
+   "grey": 0,
+   "region": "goatee",
+   "object": "Beard_Goatee",
+   "tris": 1720,
+   "keys": 43
+  },
+  "goatee and moustache": {
+   "kind": "shell",
+   "texture": "beard_clumps.png",
+   "gain": 1.8,
+   "sparse": 0.55,
+   "dark_in": 0.5,
+   "grey": 0,
+   "region": "goatee_m",
+   "object": "Beard_GoateeAndMoustache",
+   "tris": 3620,
+   "keys": 50
+  },
+  "goatee grey": {
+   "kind": "shell",
+   "texture": "beard_clumps.png",
+   "gain": 1.8,
+   "sparse": 0.55,
+   "dark_in": 0.5,
+   "grey": 0.55,
+   "region": "goatee_m",
+   "object": "Beard_GoateeGrey",
+   "tris": 3620,
+   "keys": 50
+  },
+  "moustache": {
+   "kind": "shell",
+   "texture": "beard_clumps.png",
+   "gain": 1.9,
+   "sparse": 0.55,
+   "dark_in": 0.5,
+   "grey": 0,
+   "region": "moustache",
+   "object": "Beard_Moustache",
+   "tris": 1940,
+   "keys": 48
+  },
+  "moustache grey": {
+   "kind": "shell",
+   "texture": "beard_clumps.png",
+   "gain": 1.9,
+   "sparse": 0.55,
+   "dark_in": 0.5,
+   "grey": 0.55,
+   "region": "moustache",
+   "object": "Beard_MoustacheGrey",
+   "tris": 1940,
+   "keys": 48
+  },
+  "mutton chops": {
+   "kind": "shell",
+   "texture": "beard_clumps.png",
+   "gain": 1.8,
+   "sparse": 0.55,
+   "dark_in": 0.5,
+   "grey": 0,
+   "region": "chops",
+   "object": "Beard_MuttonChops",
+   "tris": 10000,
+   "keys": 63
+  },
+  "short beard": {
+   "kind": "shell",
+   "texture": "beard_clumps.png",
+   "gain": 1.7,
+   "sparse": 0.55,
+   "dark_in": 0.5,
+   "grey": 0,
+   "region": "full",
+   "object": "Beard_ShortBeard",
+   "tris": 9820,
+   "keys": 67
+  },
+  "short beard grey": {
+   "kind": "shell",
+   "texture": "beard_clumps.png",
+   "gain": 1.7,
+   "sparse": 0.55,
+   "dark_in": 0.5,
+   "grey": 0.55,
+   "region": "full",
+   "object": "Beard_ShortBeardGrey",
+   "tris": 9820,
+   "keys": 67
+  },
+  "sideburns": {
+   "kind": "shell",
+   "texture": "beard_clumps.png",
+   "gain": 1.7,
+   "sparse": 0.55,
+   "dark_in": 0.5,
+   "grey": 0,
+   "region": "sideburns",
+   "object": "Beard_Sideburns",
+   "tris": 3552,
+   "keys": 29
+  },
+  "none": {
+   "kind": "none",
+   "region": null,
+   "strength": 0,
+   "grey": 0
+  },
+  "stubble": {
+   "kind": "skin tint",
+   "region": "full",
+   "strength": 0.8,
+   "grey": 0
+  },
+  "stubble light": {
+   "kind": "skin tint",
+   "region": "full",
+   "strength": 0.55,
+   "grey": 0
+  },
+  "stubble grey": {
+   "kind": "skin tint",
+   "region": "full",
+   "strength": 0.7,
+   "grey": 0.6
+  }
+ },
+ "brows": {
+  "soft arch": {
+   "texture": "eyebrow001.png",
+   "card": "eyebrow001 (Part_Brows)",
+   "keys": {},
+   "density": 1.0
+  },
+  "straight": {
+   "texture": "brow_groomed.png",
+   "card": "eyebrow001 (Part_Brows)",
+   "keys": {
+    "Brow_Arch": -0.9,
+    "Brow_Tilt": -0.3,
+    "Brow_Thick": 0.2
+   },
+   "density": 1.0
+  },
+  "high arch": {
+   "texture": "brow_fine.png",
+   "card": "eyebrow001 (Part_Brows)",
+   "keys": {
+    "Brow_Arch": 0.9,
+    "Brow_ArchPos": 0.3,
+    "Brow_Height": 0.3,
+    "Brow_Thick": -0.2
+   },
+   "density": 0.9
+  },
+  "thick natural": {
+   "texture": "brow_bushy.png",
+   "card": "eyebrow001 (Part_Brows)",
+   "keys": {
+    "Brow_Thick": 0.4,
+    "Brow_Gap": -0.2
+   },
+   "density": 1.05
+  },
+  "thin": {
+   "texture": "brow_fine.png",
+   "card": "eyebrow001 (Part_Brows)",
+   "keys": {
+    "Brow_Thick": -0.8,
+    "Brow_Arch": 0.3
+   },
+   "density": 0.8
+  },
+  "short tail": {
+   "texture": "brow_feathered.png",
+   "card": "eyebrow001 (Part_Brows)",
+   "keys": {
+    "Brow_Length": -0.9,
+    "Brow_Thick": 0.2
+   },
+   "density": 1.0
+  },
+  "angled": {
+   "texture": "brow_groomed.png",
+   "card": "eyebrow001 (Part_Brows)",
+   "keys": {
+    "Brow_Arch": 0.6,
+    "Brow_ArchPos": 0.7,
+    "Brow_Tilt": 0.4
+   },
+   "density": 1.05
+  },
+  "low flat": {
+   "texture": "brow_bushy.png",
+   "card": "eyebrow001 (Part_Brows)",
+   "keys": {
+    "Brow_Height": -0.1,
+    "Brow_Arch": -0.6,
+    "Brow_Thick": 0.1
+   },
+   "density": 0.95
+  }
+ },
+ "palette": {
+  "black": [
+   0.055,
+   0.047,
+   0.042
+  ],
+  "soft black": [
+   0.095,
+   0.072,
+   0.058
+  ],
+  "dark brown": [
+   0.16,
+   0.105,
+   0.072
+  ],
+  "brown": [
+   0.25,
+   0.165,
+   0.105
+  ],
+  "light brown": [
+   0.36,
+   0.26,
+   0.165
+  ],
+  "dark blonde": [
+   0.48,
+   0.37,
+   0.24
+  ],
+  "blonde": [
+   0.64,
+   0.53,
+   0.36
+  ],
+  "auburn": [
+   0.3,
+   0.15,
+   0.09
+  ],
+  "red": [
+   0.42,
+   0.21,
+   0.11
+  ]
+ },
+ "defaults": {
+  "F": {
+   "hair": "ponytail",
+   "beard": "none"
+  },
+  "M": {
+   "hair": "short side part",
+   "beard": "none"
+  }
+ }
+}

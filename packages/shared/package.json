@@ -1,8 +1,8 @@
 {
-  "name": "@millbrook/shared",
+  "name": "@garden-of-eden/shared",
   "version": "0.1.0",
   "private": true,
-  "description": "Types and small pure helpers shared by the Millbrook server and client",
+  "description": "Types and small pure helpers shared by the Garden of Eden server and client",
   "type": "module",
   "exports": {
     ".": "./src/index.ts",

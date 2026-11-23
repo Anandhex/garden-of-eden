@@ -1,4 +1,4 @@
-import { tilesFrom } from "@millbrook/shared";
+import { tilesFrom } from "@garden-of-eden/shared";
 import { roundPath, shortest } from "../paths.js";
 import { journeysOf } from "../journeys.js";
 import { COURIER_IMPORTANCE, TRIPS } from "./config.js";

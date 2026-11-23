@@ -1,4 +1,4 @@
-import { WALK_PACE, buildTimeline, cumulative, describeWalk, journeyLine, pointAt, project, shortestWay, type JourneyLine, type JourneyRoad, type RoadData, type RoadPath, type RoadPoint } from "@millbrook/shared";
+import { WALK_PACE, buildTimeline, cumulative, describeWalk, journeyLine, pointAt, project, shortestWay, type JourneyLine, type JourneyRoad, type RoadData, type RoadPath, type RoadPoint } from "@garden-of-eden/shared";
 import { formatMoney } from "../money.js";
 import type { Town } from "../town.js";
 import { weatherOn, whereOf } from "../weather.js";

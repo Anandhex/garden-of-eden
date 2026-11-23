@@ -1,5 +1,5 @@
-import { hashStr, seeded } from "@millbrook/shared";
-import { CLASS_RANK } from "@millbrook/shared";
+import { hashStr, seeded } from "@garden-of-eden/shared";
+import { CLASS_RANK } from "@garden-of-eden/shared";
 import type { PersonRow } from "../../store/peopleStore.js";
 import { ITEM_TIERS } from "../items.js";
 import { parseRowTraits, type RowTraits } from "./rules.js";

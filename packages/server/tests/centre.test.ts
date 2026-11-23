@@ -22,8 +22,8 @@ function walk(dir: string, out: string[] = []): string[] {
   return out;
 }
 
-/** The project's own name stays: the package scope and the storage keys. */
-const ALLOWED = /@millbrook\/|millbrook\.(timeFlows|voice|[a-zA-Z]+Key)|millbrook-/g;
+/** The project's own name (Garden of Eden) stays: the package scope and the storage keys. */
+const ALLOWED = /@garden-of-eden\/|garden-of-eden[.-]/g;
 
 const PATTERNS: Array<{ name: string; re: RegExp; ceiling: number }> = [
   { name: "HOME_ID", re: /HOME_ID/, ceiling: 0 },

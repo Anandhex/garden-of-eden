@@ -1,0 +1,379 @@
+{
+ "_doc": "Neutral feminine (F) and masculine (M) recipe on MakeHuman: MPFB macros, MakeHuman detail targets ('*-' = both sides), our custom fields (stylise_mh.custom_fields) and the proportion warp targets. Edited by hand each comparison round (report.md, 'MakeHuman base').",
+ "F": {
+  "macro": {
+   "gender": 0.0,
+   "age": 0.5,
+   "muscle": 0.5,
+   "weight": 0.45,
+   "proportions": 1.0,
+   "height": 0.5,
+   "cupsize": 0.5,
+   "firmness": 0.6
+  },
+  "targets": {
+   "nose/nose-scale-horiz-decr": 0.5,
+   "nose/nose-point-up": 0.5,
+   "nose/nose-width1-decr": 0.3,
+   "nose/nose-width2-decr": 0.3,
+   "ears/*-ear-scale-decr": 0.4,
+   "ears/*-ear-wing-decr": 0.6,
+   "head/head-invertedtriangular": 0.4,
+   "nose/nose-point-width-decr": 0.5,
+   "nose/nose-nostrils-width-decr": 0.4,
+   "nose/nose-volume-decr": 0.5,
+   "nose/nose-flaring-decr": 0.3,
+   "hip/hip-scale-horiz-decr": 0.8,
+   "torso/measure-shoulder-dist-decr": 1.0,
+   "torso/measure-waist-circ-incr": 0.386,
+   "torso/measure-hips-circ-decr": 0.365,
+   "nose/nose-scale-depth-decr": 0.2,
+   "eyebrows/eyebrows-trans-down": 0.25,
+   "head/head-back-scale-depth-decr": 1.0,
+   "eyebrows/eyebrows-trans-backward": 0.5,
+   "forehead/forehead-scale-vert-decr": 0.15,
+   "head/head-scale-depth-decr": 0.3,
+   "mouth/mouth-cupidsbow-incr": 0.3,
+   "mouth/mouth-philtrum-volume-incr": 0.3,
+   "mouth/mouth-lowerlip-volume-decr": 0.55,
+   "mouth/mouth-scale-depth-decr": 0.45,
+   "nose/nose-scale-vert-incr": 0.3,
+   "neck/measure-neck-circ-decr": 0.5,
+   "mouth/mouth-upperlip-volume-decr": 0.3,
+   "mouth/mouth-scale-horiz-decr": 0.1
+  },
+  "fields": [
+   {
+    "type": "mannequin",
+    "iters": 60,
+    "nipple_r": 0.026,
+    "groin_r": 0.065
+   },
+   {
+    "type": "soften",
+    "region": "cheeks",
+    "r": 0.03,
+    "k": 0.5,
+    "iters": 24,
+    "taubin": true
+   },
+   {
+    "type": "brow_flatten",
+    "amount": 0.0018
+   }
+  ],
+  "stylise": {
+   "height": 1.65,
+   "heads": 8.2,
+   "crotch": 0.485
+  },
+  "stylise_local": [
+   {
+    "at": "cheek_L",
+    "r": 0.028,
+    "push": 0.0018,
+    "move": [
+     0,
+     0,
+     0.0008
+    ]
+   },
+   {
+    "at": "nose",
+    "r": 0.018,
+    "scale": [
+     0.9,
+     1,
+     1
+    ]
+   },
+   {
+    "at": "crown",
+    "r": 0.07,
+    "push": 0.002,
+    "sq": [
+     1,
+     1,
+     0.8
+    ]
+   },
+   {
+    "at": "temple_L",
+    "r": 0.03,
+    "push": 0.0012
+   }
+  ]
+ },
+ "M": {
+  "macro": {
+   "gender": 1.0,
+   "age": 0.5,
+   "muscle": 0.6,
+   "weight": 0.5,
+   "proportions": 1.0,
+   "height": 0.5,
+   "cupsize": 0.5,
+   "firmness": 0.5
+  },
+  "targets": {
+   "ears/*-ear-scale-decr": 0.4,
+   "ears/*-ear-wing-decr": 0.6,
+   "head/head-fat-decr": 0.8,
+   "head/head-square": 0.6,
+   "nose/nose-scale-horiz-decr": 0.5,
+   "nose/nose-point-width-decr": 0.3,
+   "eyebrows/eyebrows-trans-down": 0.0,
+   "hip/hip-scale-horiz-decr": 0.6,
+   "torso/torso-vshape-incr": 0.3,
+   "torso/measure-shoulder-dist-decr": 1.0,
+   "torso/measure-waist-circ-incr": 0.0,
+   "torso/measure-hips-circ-incr": 0.246,
+   "head/head-back-scale-depth-decr": 1.0,
+   "eyebrows/eyebrows-trans-backward": 0.5,
+   "cheek/*-cheek-bones-incr": 0.5,
+   "forehead/forehead-scale-vert-decr": 0.15,
+   "cheek/*-cheek-inner-decr": 0.5,
+   "head/head-scale-depth-decr": 0.3,
+   "mouth/mouth-upperlip-volume-decr": 0.35,
+   "mouth/mouth-lowerlip-volume-decr": 0.4,
+   "mouth/mouth-cupidsbow-decr": 0.2,
+   "chin/chin-prominent-incr": 0.3,
+   "chin/chin-bones-incr": 0.3,
+   "neck/measure-neck-circ-decr": 0.7,
+   "nose/nose-scale-depth-decr": 0.2,
+   "nose/nose-nostrils-width-decr": 0.3,
+   "nose/nose-flaring-decr": 0.3,
+   "mouth/mouth-scale-depth-decr": 0.45
+  },
+  "fields": [
+   {
+    "type": "mannequin",
+    "iters": 60,
+    "nipple_r": 0.026,
+    "groin_r": 0.065
+   },
+   {
+    "type": "soften",
+    "region": "cheeks",
+    "r": 0.03,
+    "k": 0.5,
+    "iters": 24,
+    "taubin": true
+   },
+   {
+    "type": "brow_flatten",
+    "amount": 0.0018
+   }
+  ],
+  "stylise": {
+   "height": 1.78,
+   "heads": 8.0,
+   "crotch": 0.48
+  },
+  "stylise_local": [
+   {
+    "at": "cheekbone_L",
+    "r": 0.02,
+    "push": 0.0015,
+    "sq": [
+     1,
+     1,
+     0.7
+    ]
+   },
+   {
+    "at": "cheek_L",
+    "r": 0.025,
+    "push": -0.0008
+   },
+   {
+    "at": "nose",
+    "r": 0.018,
+    "scale": [
+     0.92,
+     1,
+     1
+    ]
+   },
+   {
+    "at": "crown",
+    "r": 0.07,
+    "push": 0.0015,
+    "sq": [
+     1,
+     1,
+     0.8
+    ]
+   }
+  ]
+ },
+ "proxies": {
+  "eyes": "high-poly",
+  "eyelashes": {
+   "F": "eyelashes02",
+   "M": "eyelashes01"
+  },
+  "teeth": "teeth_base",
+  "tongue": "tongue01",
+  "eyebrows": {
+   "F": "eyebrow001",
+   "M": "eyebrow012"
+  },
+  "hair": {
+   "F": "ponytail01",
+   "M": "short01"
+  }
+ },
+ "look": {
+  "F": {
+   "person": {
+    "eye_tex": "eye_brown_mh.png",
+    "brow_col": [
+     0.12,
+     0.07,
+     0.04
+    ],
+    "brow_gain": 1.2,
+    "hair_col": [
+     0.22,
+     0.12,
+     0.06
+    ]
+   },
+   "paint": {
+    "lip": [
+     0.76,
+     0.46,
+     0.5
+    ],
+    "blush": 1.2
+   },
+   "decal": {
+    "liner": 0.0,
+    "liner_w": [
+     0.25,
+     1.0
+    ],
+    "flick": 0.0,
+    "lower": 0.0,
+    "shade": 0.0,
+    "crease": 0.0,
+    "liner_dz": 0.0006,
+    "brow": "eyebrow001",
+    "brow_shadow": 0.0,
+    "brow_w": 2.6,
+    "brow_col": [
+     0.22,
+     0.14,
+     0.1
+    ],
+    "flick_angle": 20,
+    "crease_h": 0.85,
+    "brow_params": {
+     "Brow_Height": 2.0,
+     "Brow_Arch": 0.4,
+     "Brow_Tilt": 0.2
+    }
+   },
+   "ribbon": {
+    "width": [
+     0.0,
+     0.01
+    ],
+    "lift": 0.0,
+    "tuck": 0.0002,
+    "front": 0.0013,
+    "lower": 1.0,
+    "lower_width": 0.0022,
+    "n": 28
+   },
+   "snap_brows": true,
+   "brow_params": {
+    "Brow_Height": 2.0,
+    "Brow_Arch": 0.4,
+    "Brow_Tilt": 0.2
+   },
+   "teeth_offset": [
+    0.0,
+    0.0015,
+    -0.0008
+   ],
+   "tear_duct": false,
+   "blink_lashes": true
+  },
+  "M": {
+   "person": {
+    "eye_tex": "eye_brown_mh.png",
+    "brow_col": [
+     0.05,
+     0.035,
+     0.025
+    ],
+    "brow_gain": 1.3,
+    "hair_col": [
+     0.16,
+     0.1,
+     0.06
+    ]
+   },
+   "paint": {
+    "lip": [
+     0.9,
+     0.72,
+     0.7
+    ],
+    "blush": 0.6
+   },
+   "decal": {
+    "liner": 0.0,
+    "liner_w": [
+     0.4,
+     0.9
+    ],
+    "flick": 0.0,
+    "lower": 0.0,
+    "shade": 0.0,
+    "crease": 0.0,
+    "liner_dz": 0.0001,
+    "brow": "eyebrow012",
+    "brow_shadow": 0.0,
+    "brow_w": 3.4,
+    "brow_col": [
+     0.12,
+     0.08,
+     0.06
+    ],
+    "crease_h": 0.85,
+    "brow_params": {
+     "Brow_Height": 2.0
+    }
+   },
+   "ribbon": {
+    "width": [
+     0.0,
+     0.005
+    ],
+    "lift": 0.0,
+    "tuck": 0.0004,
+    "front": 0.001,
+    "lower": 1.0,
+    "lower_width": 0.0015,
+    "n": 24
+   },
+   "snap_brows": true,
+   "teeth_offset": [
+    0.0,
+    0.0015,
+    -0.0008
+   ],
+   "brow_params": {
+    "Brow_Height": 2.0
+   },
+   "tear_duct": false,
+   "blink_lashes": true
+  }
+ },
+ "preview_stylise": true,
+ "_history": "recipe_round14.json = the state before the lips/neck reset (user feedback 2026-11-21: lips sausage-like, neck a slope)",
+ "_round21": "eyes = plain MakeHuman (no eye targets, no lid fields, default eye texture/material, default lashes); see report Round 21"
+}

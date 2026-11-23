@@ -5,7 +5,7 @@
  * minute is TIME_FLOW_SECONDS of real time, so a burst every ~120 frames). The real 60 fps
  * check is `?fps=1` in the browser (README: "Checking the frame rate").
  */
-import { CrowdSim, type CrowdDay, type CrowdPos } from "@millbrook/shared";
+import { CrowdSim, type CrowdDay, type CrowdPos } from "@garden-of-eden/shared";
 import { describe, expect, it } from "vitest";
 import { budgets, perfSlack } from "../../server/src/budgets.js";
 import { generateRealm } from "../../server/src/game/realm/generate.js";

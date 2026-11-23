@@ -4,7 +4,7 @@
  */
 import { days } from "./long.js";
 import { beforeEach, describe, expect, it } from "vitest";
-import { cumulative, pointAt, findPath, resample, CHUNK, STEPS_PER_DAY_WALK, STEPS_PER_GAME_MINUTE, STEPS_PER_SECOND, REAL_MINUTES_PER_DAY_WALK, TILES_PER_UNIT, DAY_WALK_UNITS, chunkAt, isSolidGround, journeyLine, type Journey, positionAt, shortestWay, type RoadData } from "@millbrook/shared";
+import { cumulative, pointAt, findPath, resample, CHUNK, STEPS_PER_DAY_WALK, STEPS_PER_GAME_MINUTE, STEPS_PER_SECOND, REAL_MINUTES_PER_DAY_WALK, TILES_PER_UNIT, DAY_WALK_UNITS, chunkAt, isSolidGround, journeyLine, type Journey, positionAt, shortestWay, type RoadData } from "@garden-of-eden/shared";
 import { config } from "../src/config.js";
 import { loadCreatureTemplates } from "../src/game/creatures.js";
 import { generateRealm } from "../src/game/realm/generate.js";

@@ -1,4 +1,4 @@
-import type { AdminTiming } from "@millbrook/shared";
+import type { AdminTiming } from "@garden-of-eden/shared";
 
 /**
  * Timings (N17): how long the simulation's steps take, kept as a ring buffer of the

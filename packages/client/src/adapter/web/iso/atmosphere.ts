@@ -6,7 +6,7 @@
  * gives HD-2D its look: a soft bloom on lights and a tilt-shift blur that keeps the band round the player sharp.
  */
 import * as THREE from "three";
-import type { Frame } from "@millbrook/shared/view";
+import type { Frame } from "@garden-of-eden/shared/view";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";

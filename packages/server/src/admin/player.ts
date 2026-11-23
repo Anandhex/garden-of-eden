@@ -1,4 +1,4 @@
-import type { AdminBelief, AdminCard, AdminOpinion, AdminPlayerView } from "@millbrook/shared";
+import type { AdminBelief, AdminCard, AdminOpinion, AdminPlayerView } from "@garden-of-eden/shared";
 import { loanDue } from "../game/favours.js";
 import { formatMoney } from "../game/money.js";
 import { describeReputation } from "../game/reputation.js";

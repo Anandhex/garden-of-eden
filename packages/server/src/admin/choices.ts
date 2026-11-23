@@ -1,4 +1,4 @@
-import type { AdminSection } from "@millbrook/shared";
+import type { AdminSection } from "@garden-of-eden/shared";
 import { choicesOf } from "../game/choice/talker.js";
 import { reasonOf } from "../game/choice/score.js";
 import { choiceWords } from "../game/choice/words.js";

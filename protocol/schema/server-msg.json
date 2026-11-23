@@ -157,6 +157,14 @@
                       "minimum": 0,
                       "maximum": 40
                     }
+                  },
+                  "relief": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
                   }
                 },
                 "required": [
@@ -223,6 +231,9 @@
                   },
                   "smoke": {
                     "type": "boolean"
+                  },
+                  "style": {
+                    "type": "string"
                   }
                 },
                 "required": [
@@ -603,6 +614,34 @@
                           },
                           "size": {
                             "type": "number"
+                          },
+                          "species": {
+                            "type": "string"
+                          },
+                          "sex": {
+                            "type": "string",
+                            "enum": [
+                              "f",
+                              "m"
+                            ]
+                          },
+                          "age": {
+                            "type": "string",
+                            "enum": [
+                              "child",
+                              "adult",
+                              "elder",
+                              "venerable"
+                            ]
+                          },
+                          "cls": {
+                            "type": "string"
+                          },
+                          "job": {
+                            "type": "string"
+                          },
+                          "culture": {
+                            "type": "string"
                           }
                         },
                         "required": [

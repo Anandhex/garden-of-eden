@@ -1,0 +1,38 @@
+{
+ "feminine": {
+  "height_m": 1.646,
+  "heads_tall": 7.686,
+  "head_h_m": 0.214,
+  "crotch_over_height": 0.482,
+  "shoulder_w_over_head_h": 1.682,
+  "shoulder_w_over_head_w": 2.293,
+  "waist_over_hip": 0.387,
+  "hip_w_over_head_h": 1.636,
+  "neck_len_over_head_h": 0.17,
+  "hand_len_over_head_h": 0.818,
+  "eye_w_over_face_w": 0.351,
+  "eye_open_h_over_w": 0.476,
+  "eye_gap_over_eye_w": 0.638,
+  "nose_len_over_face_h": 0.36,
+  "mouth_w_over_face_w": 0.236,
+  "mouth_w_over_eye_gap": 1.054
+ },
+ "masculine": {
+  "height_m": 1.75,
+  "heads_tall": 7.501,
+  "head_h_m": 0.233,
+  "crotch_over_height": 0.485,
+  "shoulder_w_over_head_h": 2.255,
+  "shoulder_w_over_head_w": 3.531,
+  "waist_over_hip": 0.736,
+  "hip_w_over_head_h": 1.261,
+  "neck_len_over_head_h": 0.173,
+  "hand_len_over_head_h": 0.886,
+  "eye_w_over_face_w": 0.315,
+  "eye_open_h_over_w": 0.56,
+  "eye_gap_over_eye_w": 0.65,
+  "nose_len_over_face_h": 0.336,
+  "mouth_w_over_face_w": 0.321,
+  "mouth_w_over_eye_gap": 1.566
+ }
+}

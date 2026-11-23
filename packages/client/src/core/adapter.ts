@@ -3,7 +3,7 @@
  * draws them and turns the player's keys and clicks into intents with `core.send`. A Unity or Unreal adapter is
  * this same shape in C# or C++ (protocol/ADAPTERS.md).
  */
-import type { Frame, GameEvent, PromptMsg, SpeechMsg, UiModel } from "@millbrook/shared/view";
+import type { Frame, GameEvent, PromptMsg, SpeechMsg, UiModel } from "@garden-of-eden/shared/view";
 import type { Core } from "./index";
 import type { FrameChange } from "./mirror";
 

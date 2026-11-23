@@ -1,0 +1,190 @@
+{
+ "human": {
+  "shapes": {},
+  "heightM": 1.78,
+  "heightF": 1.65,
+  "meshHeightM": 1.78,
+  "meshHeightF": 1.65,
+  "rootScaleM": 1.0,
+  "rootScaleF": 1.0,
+  "skin": [
+   [
+    0.93,
+    0.66,
+    0.52
+   ],
+   [
+    0.62,
+    0.4,
+    0.3
+   ],
+   [
+    0.98,
+    0.78,
+    0.66
+   ]
+  ],
+  "parts": {
+   "ears": [
+    "Part_Ear_L",
+    "Part_Ear_R"
+   ],
+   "nose": [
+    "Part_Nose"
+   ],
+   "extra": []
+  }
+ },
+ "elf": {
+  "shapes": {
+   "Species_Elf": 1.0
+  },
+  "heightM": 1.98,
+  "heightF": 1.835,
+  "meshHeightM": 1.8148,
+  "meshHeightF": 1.6823,
+  "rootScaleM": 1.091,
+  "rootScaleF": 1.0908,
+  "skin": [
+   [
+    0.96,
+    0.8,
+    0.7
+   ],
+   [
+    0.88,
+    0.72,
+    0.6
+   ],
+   [
+    0.92,
+    0.82,
+    0.78
+   ]
+  ],
+  "parts": {
+   "ears": [
+    "Part_Ear_L",
+    "Part_Ear_R"
+   ],
+   "nose": [
+    "Part_Nose"
+   ],
+   "extra": []
+  }
+ },
+ "dwarf": {
+  "shapes": {
+   "Species_Dwarf": 1.0
+  },
+  "heightM": 1.32,
+  "heightF": 1.224,
+  "meshHeightM": 1.6818,
+  "meshHeightF": 1.5589,
+  "rootScaleM": 0.7849,
+  "rootScaleF": 0.7851,
+  "skin": [
+   [
+    0.9,
+    0.6,
+    0.48
+   ],
+   [
+    0.8,
+    0.52,
+    0.4
+   ],
+   [
+    0.95,
+    0.7,
+    0.56
+   ]
+  ],
+  "parts": {
+   "ears": [
+    "Part_Ear_L",
+    "Part_Ear_R"
+   ],
+   "nose": [
+    "Part_Nose"
+   ],
+   "extra": []
+  }
+ },
+ "halfling": {
+  "shapes": {
+   "Species_Halfling": 1.0
+  },
+  "heightM": 1.07,
+  "heightF": 0.992,
+  "meshHeightM": 1.1965,
+  "meshHeightF": 1.1091,
+  "rootScaleM": 0.8943,
+  "rootScaleF": 0.8944,
+  "skin": [
+   [
+    0.94,
+    0.68,
+    0.54
+   ],
+   [
+    0.85,
+    0.58,
+    0.44
+   ],
+   [
+    0.98,
+    0.76,
+    0.62
+   ]
+  ],
+  "parts": {
+   "ears": [
+    "Part_Ear_L",
+    "Part_Ear_R"
+   ],
+   "nose": [
+    "Part_Nose"
+   ],
+   "extra": []
+  }
+ },
+ "orc": {
+  "shapes": {
+   "Species_Orc": 1.0
+  },
+  "heightM": 2.08,
+  "heightF": 1.928,
+  "meshHeightM": 1.8063,
+  "meshHeightF": 1.6743,
+  "rootScaleM": 1.1516,
+  "rootScaleF": 1.1515,
+  "skin": [
+   [
+    0.5,
+    0.66,
+    0.38
+   ],
+   [
+    0.56,
+    0.6,
+    0.5
+   ],
+   [
+    0.42,
+    0.56,
+    0.36
+   ]
+  ],
+  "parts": {
+   "ears": [
+    "Part_Ear_L",
+    "Part_Ear_R"
+   ],
+   "nose": [
+    "Part_Nose"
+   ],
+   "extra": []
+  }
+ }
+}

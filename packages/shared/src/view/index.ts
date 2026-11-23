@@ -5,7 +5,7 @@ export * from "./art.js";
 export * from "./sound.js";
 /** Building templates (G6): how a building is dressed, the same everywhere. */
 export * from "./templates.js";
-/** Regional building styles (G8): a place built the way its people build, with what its land gives. */
+/** Regional building styles (G10): a place built the way its people build, with what its land gives. */
 export * from "./styles.js";
 export type { GameEvent } from "../events.js";
 /** Speech (T14): voices and splitting a reply into sentences to speak, for any adapter that plays `speech`. */

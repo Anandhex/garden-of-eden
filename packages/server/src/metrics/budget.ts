@@ -1,4 +1,4 @@
-import type { AdminBudgetRow, AdminTiming } from "@millbrook/shared";
+import type { AdminBudgetRow, AdminTiming } from "@garden-of-eden/shared";
 import { perfSlack, tickBudgets } from "../budgets.js";
 
 /** Green under this share of a budget, amber up to the budget, red over it. */

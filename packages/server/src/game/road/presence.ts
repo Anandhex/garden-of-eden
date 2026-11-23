@@ -1,4 +1,4 @@
-import { placeAt } from "@millbrook/shared";
+import { placeAt } from "@garden-of-eden/shared";
 import { parseAway, type PeopleStore, type PersonRow } from "../../store/peopleStore.js";
 import type { Realm } from "../realm/types.js";
 import { journeyOf } from "./journeys.js";

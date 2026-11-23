@@ -1,5 +1,5 @@
 import type { DatabaseSync, StatementSync } from "node:sqlite";
-import type { Away } from "@millbrook/shared";
+import type { Away } from "@garden-of-eden/shared";
 import { TABLES } from "./schema.js";
 
 /**

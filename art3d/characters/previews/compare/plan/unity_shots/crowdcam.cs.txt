@@ -1,0 +1,10 @@
+// place the camera at street level looking at the densest cluster of built people
+var bodies = new System.Collections.Generic.List<UnityEngine.Vector3>();
+foreach (var smr in UnityEngine.Object.FindObjectsByType<UnityEngine.SkinnedMeshRenderer>(UnityEngine.FindObjectsSortMode.None)) if (smr.name=="body" && smr.transform.position.y < 200) bodies.Add(smr.transform.root.position + (smr.transform.position - smr.transform.root.position));
+UnityEngine.Vector3 best = UnityEngine.Vector3.zero; int bc = -1;
+foreach (var p in bodies) { int c=0; foreach (var q in bodies) if ((p-q).sqrMagnitude < RAD*RAD) c++; if (c>bc){bc=c;best=p;} }
+UnityEngine.Vector3 cen = UnityEngine.Vector3.zero; int n=0; foreach (var q in bodies) if ((best-q).sqrMagnitude < RAD*RAD){cen+=q;n++;} cen/=UnityEngine.Mathf.Max(1,n);
+var cpos = cam.transform.position; var crot = cam.transform.rotation; var cfov = cam.fieldOfView;
+var dir = (new UnityEngine.Vector3(cpos.x,0,cpos.z) - new UnityEngine.Vector3(cen.x,0,cen.z)).normalized; if (dir.sqrMagnitude<0.1f) dir=UnityEngine.Vector3.back;
+cam.transform.position = cen + dir*DIST + UnityEngine.Vector3.up*HGT; cam.transform.LookAt(cen + UnityEngine.Vector3.up*LOOKY); cam.fieldOfView = FOV;
+info = "cluster " + n + " of " + bodies.Count + " at " + cen;

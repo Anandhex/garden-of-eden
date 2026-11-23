@@ -8,7 +8,7 @@ import { days } from "./long.js";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { createServer, type Server } from "node:http";
 import { fileURLToPath } from "node:url";
-import { type AdminCard, type AdminEvent, type AdminEventsPage, compareAt, CrowdSim } from "@millbrook/shared";
+import { type AdminCard, type AdminEvent, type AdminEventsPage, compareAt, CrowdSim } from "@garden-of-eden/shared";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { classCounts, crowdDay, folkOf } from "../src/admin/folk.js";
 import type { AdminContext } from "../src/admin/context.js";

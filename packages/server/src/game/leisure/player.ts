@@ -289,7 +289,7 @@ export function playerRig(h: LeisureHost, o: { game: string; who: string; bribe?
 }
 
 /** What the player can do for fun where they are (the client's "Games and contests" section). */
-export function leisureView(h: LeisureHost): import("@millbrook/shared").LeisureView | null {
+export function leisureView(h: LeisureHost): import("@garden-of-eden/shared").LeisureView | null {
   const at = here(h);
   if (!at || h.world.player.road || h.world.player.area !== undefined) return null;
   const s = at.realm.settlements[at.site];

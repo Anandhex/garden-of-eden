@@ -1,4 +1,4 @@
-import { CLASS_RANK, type SocialClass } from "@millbrook/shared";
+import { CLASS_RANK, type SocialClass } from "@garden-of-eden/shared";
 import type { PersonRow } from "../../store/peopleStore.js";
 import { outlookOf } from "../people/outlook.js";
 import { traitsOfRow } from "../people/traits.js";

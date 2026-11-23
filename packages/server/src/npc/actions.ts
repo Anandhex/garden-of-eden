@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { config } from "../config.js";
+import { tonguePenalty } from "../game/culture/day.js";
+import type { Realm } from "../game/realm/types.js";
 import { attack, check, modifier, type Rng } from "../game/dice.js";
 import { healingItems, isTooHurtToWork, useHealingItem } from "../game/healing.js";
 import { debtStatus, payDebts } from "../game/debts.js";
@@ -971,10 +973,13 @@ export function socialCheck(kind: SocialKind, attempt: string, ctx: ActionContex
   // The NPC resists with willpower + the same skill, and each failure today makes the next harder.
   const skill = kind === "persuade" ? "speechcraft" : "intimidation";
   const stat = kind === "persuade" ? player.attributes.charisma : player.attributes.strength;
+  // A tongue the player hardly has makes talking anyone round harder (N53's `tonguePenalty`, applied here by N70): up to +4 on persuasion.
+  const realm = (world as { realm?: Realm }).realm;
+  const tongue = kind === "persuade" && realm && config.society.cultures && player.site ? tonguePenalty(realm, player, player.site) : 0;
   const target =
-    10 + modifier(statsOf(persona, state).attributes.willpower) + skillLevel(npcSkills(persona, state), skill) + config.socialFailurePenalty * failures;
+    10 + modifier(statsOf(persona, state).attributes.willpower) + skillLevel(npcSkills(persona, state), skill) + config.socialFailurePenalty * failures + Math.round(5 * tongue);
   const result = check(rng, stat, target, skillLevel(player.skills, skill));
-  const said = `${player.name} tried to ${kind} you: "${attempt}"`;
+  const said = `${player.name} tried to ${kind} you: "${attempt}"${tongue >= 0.5 ? " (you barely share a language: half of it was lost on you)" : tongue >= 0.2 ? " (in a halting version of your tongue)" : ""}`;
   const roll = describeRoll(result);
 
   if (kind === "persuade") {

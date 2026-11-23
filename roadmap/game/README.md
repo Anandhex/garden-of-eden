@@ -1,8 +1,10 @@
 [← Roadmap](../../ROADMAP.md)
 
-# Game track (G1–G8)
+# Game track (G1–G10)
 
 The playable game around the NPCs. G1 can run in parallel with the NPC track once N2 exists. G5 and G6 have build guides in [plans/](plans/); build them in that order, then the [48-day year migration](../living-world/plans/migration-2026-10-23-one-year-ageless-player.md) (✅ part A built 2026-10-23), then N40.
+
+**Where the track stands (audit, 2026-11-16):** G1, G5, G6 and G7 are built. On 2026-11-04 the user set the web looks aside ("not feeling it" with 2.5D) for a desktop client in real 3D, and that is the work in hand: [G8](#g8-the-unity-client), the Unity client, and [G9](#g9-characters-face-and-body), its characters. G2–G4 (game feel, performance, shipping) are still open and were written for the browser; they need a second look for a desktop build (see G8's list).
 
 ---
 
@@ -19,7 +21,7 @@ Browser (Phaser 3 + DOM panels)  ──HTTP, NDJSON stream──▶  Node server
    draws, input, voices                   owns NpcAgent + game state, queue
 ```
 
-- [x] Pick an engine: **Phaser 3** (3.90). The world view is one scene ([`WorldScene.ts`](../../packages/client/src/world/WorldScene.ts)) with textures drawn in code (no image files); the chat, sheet and dialogs stay DOM ([`ui/`](../../packages/client/src/ui)), because text input and long lists are easier there. Keys are read by the page, not Phaser, so typing in the chat never moves you
+- [x] Pick an engine: **Phaser 3** (3.90). The world view is one scene ([`WorldScene.ts`](../../packages/client/src/adapter/web/world/WorldScene.ts)) with textures drawn in code (no image files); the chat, sheet and dialogs stay DOM ([`ui/`](../../packages/client/src/ui)), because text input and long lists are easier there. Keys are read by the page, not Phaser, so typing in the chat never moves you
 - [x] Set up a monorepo: `packages/server`, `packages/client`, `packages/shared` (types). npm workspaces; `shared` is TypeScript source both sides import. The snapshot type in [`protocol.ts`](../../packages/shared/src/protocol.ts) is checked against what the server builds
 - [~] Server: streams NPC text back as newline-delimited JSON from `POST /api/act`, then a final `done` event with the new state. Kept NDJSON over `fetch` instead of SSE (it streams per request, which SSE doesn't), and plain `node:http` instead of Fastify (no dependency needed)
 - [x] **Request queue** ([`queue.ts`](../../packages/server/src/web/queue.ts)): actions, moves and new games take turns instead of a second one getting a 409; a waiting request hears its place in line (`queued`), and past 8 waiting the server answers 429. The combat clock waits for the queue too
@@ -124,7 +126,7 @@ Goal: crisp pixel art now, built so the 2.5D HD look (upright sprites in a lit s
 
 ## G7: Isometric HD-2D
 
-**Status:** 🟡 Built 2026-11-03 (uncommitted), parts A and B. **Build guide:** [plans/g7-isometric-hd2d.md](plans/g7-isometric-hd2d.md) ([Built](plans/g7-isometric-hd2d.md#built-2026-11-03)).
+**Status:** ✅ Built 2026-11-03, parts A and B. Set aside on 2026-11-04 for full 3D ([G8](#g8-the-unity-client)); it stays in the web client as a view. **Build guide:** [plans/g7-isometric-hd2d.md](plans/g7-isometric-hd2d.md) ([Built](plans/g7-isometric-hd2d.md#built-2026-11-03)).
 
 Goal: the world in 2.5D, "HD-2D and isometric mixed": a lit diorama seen from a corner, in Three.js beside Phaser.
 
@@ -139,9 +141,63 @@ Goal: the world in 2.5D, "HD-2D and isometric mixed": a lit diorama seen from a 
 
 **Done when:** the game opens in a lit isometric 2.5D world that plays exactly like the flat one, with height, upper floors and models.
 
-## G8: Regional building styles
+---
 
-**Status:** ✅ Built 2026-11-23 (`tests/g8.test.ts`). No save bump and no schema change: the style is worked out from the realm each frame.
+## G8: The Unity client
+
+**Status:** 🟡 In progress since 2026-11-04. **Art direction:** [plans/g8-art-direction.md](plans/g8-art-direction.md) (the one look everything follows). There is no build guide for the client itself; this section is its record.
+
+Goal: the game as a desktop app in soft stylised 3D (the user's reference: a stylised open world, smooth matte shading, no outlines), drawn by Unity from the same server. The game is called **Garden of Eden**.
+
+**Why Unity:** the machine is an M2 with 8 GB and Unity was installed; Unreal 5 is a poor fit on it. G5 made this a new adapter, not a rewrite: the TypeScript server still decides everything and the client only draws frames and sends intents over `/ws` ([protocol/](../../protocol/README.md)).
+
+**What exists** (`unity/GardenOfEden`, Unity 6000.3 URP, about 12,000 lines of C# in `Assets/Game/`; checked by file on 2026-11-16):
+
+- [x] `Net/`: the connection, the frame mirror, intents, and the UI model parsed from the server (`GameClient`, `Mirror`, `Frame`, `Intents`, `UiModel`)
+- [x] `World/`: ground patches from tiles, buildings from templates with roofs and per-culture architecture styles, props, a horizon ring, occlusion, a light pool
+- [x] `World/Characters/`: people built from a recipe (parts, face, colours by id), creatures, speaking
+- [x] `Look/`: day and night, wind, a grass field, a performance probe
+- [x] `Play/`: the camera rig, keyboard movement (click-to-move was removed at the user's request), and a HUD that draws the server's panels generically (`Hud.RenderSections`), so a new panel needs no client code
+- [x] `Editor/SceneBootstrap`: builds the scene, materials and URP settings from scratch, the same every time
+- [~] The look: characters are being redone (G9, paused 2026-11-22). The world had a G8 pass on 2026-11-22 (below); buildings are still the procedural massing with steeper roofs, not a full G8 redo
+- [ ] Sound: N29's soundscape and the voices (T14) live in the web client; there is no audio script in `Assets/Game/`
+- [x] World look pass (2026-11-22; details in `Assets/Game/World/README.md`, "World look pass"; screenshots in `unity/GardenOfEden/Screenshots/world/`): soft-shaded trees (oak, elm, poplar, fir), bushes and rocks, all code-built (CC0 nature packs are faceted, which the art direction rules out); wind sway and back-light on foliage; foliage dissolves near the camera and between camera and player; painterly ground breakup from world-space noise; SSAO; deeper tinted shadows; a warmer grade; snow cover on ground, roofs and canopies from `ambience.snow`; rain and snow particles; a bluer, readable night; steeper roofs with thick eaves; no towers from 2x3 cottages; no door frames left alone in fields; labels at a steady screen size
+- [x] The hard edge when zoomed out: already gone before this pass (the client asks for a 64×44 view, the horizon ring and fog carry the land to 1.5 km)
+- [ ] Still open in the look: far meadows read as one flat green from the top zoom (grass draws to 48 m; the ground breakup helps only a little); canopy tops lean lime in strong sun; buildings are boxy with plain walls, no per-culture G8 redo yet; street props (fences, carts, barrels, wells, stalls) are still the old flat-shaded boxes; evening and night are dark; the HUD has not been reviewed
+- [ ] Server view gap (not a rule change): land patches stream wider than buildings, so houses at the edge of the land have no body yet (their doors are now hidden until they arrive)
+- [ ] Performance (editor play mode, M2, day, close camera, 2026-11-22): about 121 fps (8.3 ms avg, worst 24 ms), 1.6 M triangles, 364 batches, graphics memory 391 MB; at the start crowd with grass about 87 fps and 4.3 M triangles, of which grass is about 1.4 M and the skinned people about 0.84 M (the characters are the biggest mesh cost)
+- [x] A way to run it written down: `npm run unity:server -w packages/server`, then Play in `Main.unity` (in `Assets/Game/Play/README.md`)
+- [ ] A check against the protocol: a test that the C# message types still match `protocol/schema` (today they are kept in step by hand)
+- [ ] G2–G4 for desktop: content settings, memory with Unity and the model both open on 8 GB (not measured), a packaged build that starts the server
+
+**Rules** (user, 2026-11-04 and 2026-11-16): one agent at a time in the Unity project, never a copy of it; reuse free CC0 assets first and make only what is missing; bought or downloaded packs that don't fit the art direction are placeholders.
+
+**Done when:** a new game can be played start to finish in the Unity client with nothing missing that the web client has (talk, trade, fights, panels, sound), at a steady frame rate on the M2, and it looks like the art direction page.
+
+---
+
+## G9: Characters (face and body)
+
+**Status:** 🟡 Planned 2026-11-16; work package 0 of 9 nearly done. **Build guide:** [plans/g9-characters-face-body-plan.md](plans/g9-characters-face-body-plan.md).
+
+Goal: our own townsfolk, built in Blender (`art3d/characters/`), that match the reference's style, proportions and render quality: one body on one Humanoid rig with blend shapes, and about thirty options each for hair, beards, brows, eyes, mouths, noses and ears, mixed by a hash of the person's id.
+
+- [~] WP0: safety copy and sources (left: `CREDITS.md`, two empty folders)
+- [ ] WP1: comparison harness and baseline (needs the reference image put in place by the user; kept out of git)
+- [ ] WP2–WP3: rebase on the realistic bodies, then the stylise pass
+- [ ] WP4–WP5: face rig, eyes, lashes, teeth; blend shapes and ages
+- [ ] WP6–WP8: species presets, UVs and skin, the part sets
+- [ ] WP9: export, docs, Unity hand-off
+
+**Not planned yet** (each needs its own plan after G9): clothes by class and culture; animation beyond the free CC0 clips; buildings, props and land in the G8 style; creatures and the other peoples (N54's twelve species have data on the server and scripts in `art3d/creatures/`, but no place in a plan).
+
+**Done when:** the plan's stop criteria are met at its user gates, and a street of fifty different people in Unity reads as one cast in one style.
+
+---
+
+## G10: Regional building styles (the web views)
+
+**Status:** ✅ Built 2026-11-23 (`tests/g10.test.ts`). No save bump and no schema change: the style is worked out from the realm each frame.
 
 Goal: towns that look like where they are. Every place used to wear the same thirteen templates in the same straw, plaster and grey shingles; now a place is built the way its people build, with what its land gives them, so a coastal port, a highland village and a forest steading look nothing alike.
 
@@ -158,3 +214,5 @@ Goal: towns that look like where they are. Every place used to wear the same thi
 **Done when:** in one realm at least four looks appear, each place's look names its kingdom's culture and its own land, another people's hold builds its own way, and every styled template wears only frames the packed art has.
 
 Later: building shapes per culture (round towers, stilt houses on the marsh, long halls), not only materials; the wilds' and roads' buildings (waystations, hermits' huts) in the local style.
+
+This is the 2D and 2.5D web views' look. The Unity client (G8) reads the same `style` the server sends on each building (`cultureStyle`), and its 3D buildings follow its own art direction.

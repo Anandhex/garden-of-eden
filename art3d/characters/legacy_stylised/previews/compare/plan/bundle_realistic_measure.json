@@ -1,0 +1,30 @@
+{
+ "feminine": {
+  "height": 1.639,
+  "head_h": 0.221,
+  "heads_tall": 7.425,
+  "head_w_over_h": 0.699,
+  "shoulder_w_over_head_h": 1.578,
+  "waist_w_over_head_h": 1.03,
+  "hip_w_over_head_h": 1.642,
+  "waist_over_hip": 0.627,
+  "crotch_over_height": 0.464,
+  "ear_h_over_head_h": 0.245,
+  "nose_w_over_head_h": 0.345,
+  "eye_set_w_over_head_h": 0.12
+ },
+ "masculine": {
+  "height": 1.69,
+  "head_h": 0.229,
+  "heads_tall": 7.375,
+  "head_w_over_h": 0.687,
+  "shoulder_w_over_head_h": 1.642,
+  "waist_w_over_head_h": 1.281,
+  "hip_w_over_head_h": 1.641,
+  "waist_over_hip": 0.781,
+  "crotch_over_height": 0.451,
+  "ear_h_over_head_h": 0.238,
+  "nose_w_over_head_h": 0.353,
+  "eye_set_w_over_head_h": 0.116
+ }
+}

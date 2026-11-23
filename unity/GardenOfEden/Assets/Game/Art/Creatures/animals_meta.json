@@ -1,0 +1,323 @@
+{
+ "wolf": {
+  "tris": 1962,
+  "bones": 47,
+  "scale_applied": 0.3524,
+  "rig": "Generic (AnimalArmature)",
+  "parts": [
+   "wolf_Body"
+  ],
+  "anims": [
+   "Attack",
+   "Death",
+   "Eat",
+   "Eat_Low",
+   "HitReact_L",
+   "HitReact_R",
+   "Idle",
+   "Idle_2",
+   "Run",
+   "Walk"
+  ],
+  "size_kb": 4197
+ },
+ "hare": {
+  "tris": 1848,
+  "bones": 47,
+  "scale_applied": 0.1035,
+  "rig": "Generic (AnimalArmature, hare proportions)",
+  "parts": [
+   "hare_Body"
+  ],
+  "anims": [
+   "Attack",
+   "Death",
+   "Eat",
+   "Eat_Low",
+   "HitReact_L",
+   "HitReact_R",
+   "Idle",
+   "Idle_2",
+   "Run",
+   "Walk"
+  ],
+  "size_kb": 4197
+ },
+ "dog": {
+  "tris": 1950,
+  "bones": 42,
+  "scale_applied": 0.2233,
+  "rig": "Generic (AnimalArmature)",
+  "parts": [
+   "dog_Body"
+  ],
+  "anims": [
+   "Attack",
+   "Death",
+   "Eat",
+   "Eat_Low",
+   "HitReact_L",
+   "HitReact_R",
+   "Idle",
+   "Idle_2",
+   "Run",
+   "Walk"
+  ],
+  "size_kb": 3753
+ },
+ "fox": {
+  "tris": 1848,
+  "bones": 47,
+  "scale_applied": 0.15,
+  "rig": "Generic (AnimalArmature)",
+  "parts": [
+   "fox_Body"
+  ],
+  "anims": [
+   "Attack",
+   "Death",
+   "Eat",
+   "Eat_Low",
+   "HitReact_L",
+   "HitReact_R",
+   "Idle",
+   "Idle_2",
+   "Run",
+   "Walk"
+  ],
+  "size_kb": 4193
+ },
+ "horse": {
+  "tris": 2182,
+  "bones": 46,
+  "scale_applied": 0.4144,
+  "rig": "Generic (AnimalArmature)",
+  "parts": [
+   "horse_Body"
+  ],
+  "anims": [
+   "Attack",
+   "Attack_Kick",
+   "Death",
+   "Eat",
+   "Eat_Low",
+   "HitReact_L",
+   "HitReact_R",
+   "Idle",
+   "Idle_2",
+   "Run",
+   "Walk"
+  ],
+  "size_kb": 4712
+ },
+ "deer": {
+  "tris": 2098,
+  "bones": 42,
+  "scale_applied": 0.3157,
+  "rig": "Generic (AnimalArmature)",
+  "parts": [
+   "deer_Body"
+  ],
+  "anims": [
+   "Attack",
+   "Attack_Kick",
+   "Death",
+   "Eat",
+   "Eat_Low",
+   "HitReact_L",
+   "HitReact_R",
+   "Idle",
+   "Idle_2",
+   "Run",
+   "Walk"
+  ],
+  "size_kb": 4186
+ },
+ "spider": {
+  "tris": 2712,
+  "bones": 37,
+  "scale_applied": 0.2695,
+  "rig": "Generic (SpiderArmature)",
+  "parts": [
+   "spider_Body"
+  ],
+  "anims": [
+   "Attack",
+   "Death",
+   "Idle",
+   "Jump",
+   "Walk"
+  ],
+  "size_kb": 1543
+ },
+ "adder": {
+  "tris": 1618,
+  "bones": 14,
+  "scale_applied": 0.2484,
+  "rig": "Generic (SnakeArmature)",
+  "parts": [
+   "adder_Body"
+  ],
+  "anims": [
+   "Attack",
+   "Idle",
+   "Slither",
+   "Strike"
+  ],
+  "size_kb": 494
+ },
+ "bear": {
+  "tris": 1962,
+  "bones": 47,
+  "scale_applied": 0.4221,
+  "rig": "Generic (AnimalArmature, bear proportions)",
+  "parts": [
+   "bear_Body"
+  ],
+  "anims": [
+   "Attack",
+   "Death",
+   "Eat",
+   "Eat_Low",
+   "HitReact_L",
+   "HitReact_R",
+   "Idle",
+   "Idle_2",
+   "Run",
+   "Walk"
+  ],
+  "size_kb": 4199
+ },
+ "boar": {
+  "tris": 2318,
+  "bones": 47,
+  "scale_applied": 0.3265,
+  "rig": "Generic (AnimalArmature, boar proportions)",
+  "parts": [
+   "boar_Body",
+   "boar_Tusk_L",
+   "boar_Tusk_R",
+   "boar_Snout",
+   "boar_Mane"
+  ],
+  "anims": [
+   "Attack",
+   "Death",
+   "Eat",
+   "Eat_Low",
+   "HitReact_L",
+   "HitReact_R",
+   "Idle",
+   "Idle_2",
+   "Run",
+   "Walk"
+  ],
+  "size_kb": 4393
+ },
+ "goat": {
+  "tris": 2278,
+  "bones": 42,
+  "scale_applied": 0.2142,
+  "rig": "Generic (AnimalArmature, goat proportions)",
+  "parts": [
+   "goat_Body",
+   "goat_Horn_L",
+   "goat_Horn_R",
+   "goat_Beard"
+  ],
+  "anims": [
+   "Attack",
+   "Attack_Kick",
+   "Death",
+   "Eat",
+   "Eat_Low",
+   "HitReact_L",
+   "HitReact_R",
+   "Idle",
+   "Idle_2",
+   "Run",
+   "Walk"
+  ],
+  "size_kb": 4319
+ },
+ "dragon": {
+  "tris": 3196,
+  "bones": 57,
+  "scale_applied": 1.0741,
+  "rig": "Generic (AnimalArmature + wing bones)",
+  "parts": [
+   "dragon_Body",
+   "dragon_Horn_L",
+   "dragon_Cheek_L",
+   "dragon_Horn_R",
+   "dragon_Cheek_R",
+   "dragon_Spines",
+   "dragon_TailBlade",
+   "dragon_Wings"
+  ],
+  "anims": [
+   "Attack",
+   "Death",
+   "Eat",
+   "Eat_Low",
+   "HitReact_L",
+   "HitReact_R",
+   "Idle",
+   "Idle_2",
+   "Run",
+   "Walk",
+   "Wings_Flap"
+  ],
+  "size_kb": 5866
+ },
+ "crow": {
+  "kind": "bird",
+  "tris": 1430,
+  "bones": 18,
+  "size_kb": 1705,
+  "parts": [
+   "crow_Body",
+   "crow_Neck",
+   "crow_Head",
+   "crow_Beak",
+   "crow_EyeL",
+   "crow_EyeR",
+   "crow_TailF0",
+   "crow_TailF1",
+   "..."
+  ],
+  "anims": [
+   "Idle",
+   "Walk",
+   "Peck",
+   "Fly"
+  ],
+  "span_m": 0.95,
+  "rig": "Generic (generated)"
+ },
+ "heron": {
+  "kind": "bird",
+  "tris": 1510,
+  "bones": 20,
+  "size_kb": 1935,
+  "parts": [
+   "heron_Body",
+   "heron_Neck",
+   "heron_Head",
+   "heron_Beak",
+   "heron_EyeL",
+   "heron_EyeR",
+   "heron_Crest0",
+   "heron_Crest1",
+   "..."
+  ],
+  "anims": [
+   "Idle",
+   "Walk",
+   "Peck",
+   "Fly"
+  ],
+  "span_m": 1.7,
+  "rig": "Generic (generated)"
+ }
+}

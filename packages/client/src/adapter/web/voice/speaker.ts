@@ -3,7 +3,7 @@
  * while the model writes the next. Speech comes from the server's Piper voice when
  * it has one, and from the browser's own speech engine otherwise.
  */
-import { SentenceSplitter, speakable, type NpcVoice, type VoiceInfo } from "@millbrook/shared/view";
+import { SentenceSplitter, speakable, type NpcVoice, type VoiceInfo } from "@garden-of-eden/shared/view";
 import { fetchSpeech, fetchVoiceInfo } from "./http";
 import { pickVoice } from "./pick";
 import { loadPrefs, savePrefs, type VoicePrefs } from "./prefs";

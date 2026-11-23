@@ -237,7 +237,7 @@ export function playerJoinParty(h: MarketHost, partyId: string): Done {
 }
 
 /** What the player sees at the board where they are, and the parties about (the client's "The board" section). */
-export function boardView(h: MarketHost): import("@millbrook/shared").BoardView | null {
+export function boardView(h: MarketHost): import("@garden-of-eden/shared").BoardView | null {
   const realm = h.world.realm;
   const store = h.store;
   if (!realm || !store || h.world.player.road) return null;

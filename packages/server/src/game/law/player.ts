@@ -50,14 +50,16 @@ export function bribeJudge(ctx: LifeCtx, p: PlayerState, caseId: string, amount:
     // An honest judge (or an insulted one): bribery on top.
     store.records.patch<CaseData>(caseId, { data: { record: "the accused tried to bribe the judge" } });
     const s = sentencePlayer(realm, p, "bribery", c.site, day, streamFor(realm.seed, "bribe-judge", caseId));
-    openPlayerCase(ctx, p, "bribery", c.site, day, judge ? [judge.id] : []);
+    // A second case, for the bribe: caught in the act and sentenced on the spot, so it's closed at once and never heard again (N70).
+    const bribery = openPlayerCase(ctx, p, "bribery", c.site, day, judge ? [judge.id] : []);
+    store.records.end(bribery, day, "guilty", { verdict: "guilty", record: `${p.name} offered ${judge?.name ?? "the judge"} ${amount} copper to drop a case, and was sentenced on the spot` });
     return { ok: false, lines: [`${judge?.name ?? "The judge"} looks at the coin and calls the guard. You're charged with bribery.`, ...s.lines], sentence: s };
   }
   return { ok: false, lines: [`${judge?.name ?? "The judge"} pushes the purse back. "Not enough to forget what I've heard."`] };
 }
 
 /** Try the player's case now, by the same weights as anyone's. Guilty: sentenced (N26J's player sentences). */
-export function tryPlayer(ctx: LifeCtx, p: PlayerState, caseId: string, day: number): { verdict: Verdict; sentence?: PlayerSentence } {
+export function tryPlayer(ctx: LifeCtx, p: PlayerState, caseId: string, day: number, opts: { absent?: boolean } = {}): { verdict: Verdict; sentence?: PlayerSentence } {
   const { realm, store } = ctx;
   const c = store.records.get<CaseData>(caseId)!;
   const place = c.site!;
@@ -66,14 +68,16 @@ export function tryPlayer(ctx: LifeCtx, p: PlayerState, caseId: string, day: num
     const w = store.people.get(id);
     if (w) parts.push([`${w.name}'s word (${w.cls}${w.job === "guard" ? ", of the watch" : ""})`, wordWeight(realm, place, w.cls, day) * (w.job === "guard" ? 2 : 1)]);
   }
-  parts.push([`${p.name}'s own word`, -0.5 * wordWeight(realm, place, "commoner", day)]);
+  // Tried in their absence (N70: they stayed away from two court days): nobody speaks for them.
+  if (opts.absent) parts.push([`${p.name} did not come to answer`, 0.2]);
+  else parts.push([`${p.name}'s own word`, -0.5 * wordWeight(realm, place, "commoner", day)]);
   parts.push(["the edge", (unitFor(realm.seed, "trial", caseId) - 0.5) * 0.1]);
   const guilt = parts.reduce((a, [, v]) => a + v, 0);
   const verdict: Verdict = { guilty: guilt >= GUILTY_AT, dropped: false, parts, judge: judgeOf(realm, place)?.id ?? null, guilt };
   store.records.end(caseId, day, verdict.guilty ? "guilty" : "not guilty", { verdict: verdict.guilty ? "guilty" : "not guilty", parts, record: clerksRecord(p.name, c.data.crime, verdict) });
   recordLifeEvent(realm, store, { kind: "trial", actor: "player", site: place, day, key: caseId, details: `${p.name} was tried for ${crimes()[c.data.crime]?.words ?? c.data.crime} and found ${verdict.guilty ? "guilty" : "not guilty"}`, importance: 4, why: clerksRecord(p.name, c.data.crime, verdict) });
   if (!verdict.guilty) return { verdict };
-  return { verdict, sentence: sentencePlayer(realm, p, c.data.crime, place, day, streamFor(realm.seed, "player-trial", caseId)) };
+  return { verdict, sentence: sentencePlayer(realm, p, c.data.crime, place, day, streamFor(realm.seed, "player-trial", caseId), opts.absent ? { fled: true } : {}) };
 }
 
 /** Break someone out of a cell: they go free, and the player has a case for aiding an escape. */

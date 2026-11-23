@@ -5,7 +5,7 @@
  * console says so once). An id with no entry at all falls back by family, so nothing is ever drawn as an empty space.
  * No Phaser here, so the tests can check the manifest.
  */
-import type { ArtId } from "@millbrook/shared/view";
+import type { ArtId } from "@garden-of-eden/shared/view";
 import sheets from "./art/sheets.json" with { type: "json" };
 
 export const GRASS_VARIANTS = 4;

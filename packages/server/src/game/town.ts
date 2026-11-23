@@ -88,7 +88,7 @@ import { dueLater } from "./road/situations.js";
 import { commitTrack, startRoad } from "./road/walk.js";
 import { figureTalkerId, notablePersona, notablesOf } from "./realm/notables.js";
 import { homeRoster, parseTownsfolkId, rosterFor, rosterFromStore, townsfolkPersona, townspersonOfRow } from "./realm/townsfolk.js";
-import { CHAT_MINUTES, CrowdSim, type ChatterMark, type CrowdDay, type CrowdIntent, type CrowdRoster, type Townsperson } from "@millbrook/shared";
+import { CHAT_MINUTES, CrowdSim, type ChatterMark, type CrowdDay, type CrowdIntent, type CrowdRoster, type Townsperson } from "@garden-of-eden/shared";
 import { applyHour, planHour, type HourPlan } from "./chatter/hours.js";
 import { HOSTILE } from "./chatter/types.js";
 import { writeChatterLine } from "./chatter/words.js";
@@ -102,6 +102,7 @@ import { captiveDay, isCaptive, maybeTake } from "./law/taken.js";
 import { chooseSetback, dieAndReturn, leftForDead, mark, sell, slaveDay } from "./setback/setback.js";
 import { borderCheck } from "./magic/player.js";
 import { dayAmong } from "./culture/day.js";
+import { societyArrive, societyPlayerDay } from "./society/player.js";
 import { helpersOf, pickFighters, stillThere } from "./realm/who.js";
 import type { Who } from "./spawning.js";
 import { killFigure, titled } from "./realm/figures.js";
@@ -118,7 +119,7 @@ import { afterPlayerKill, bardSong, deadFigures, notableSweep, recogniseHere } f
 import { nemesisDay, survivedPlayer } from "./nemesis/day.js";
 import { dayWords, nemesesOf } from "./nemesis/model.js";
 import { writeTaunt } from "./nemesis/words.js";
-import type { SituationView } from "@millbrook/shared";
+import type { SituationView } from "@garden-of-eden/shared";
 
 const HEAD = new Set(["ruler", "lord", "mayor", "village head", "elder"]);
 
@@ -1101,7 +1102,9 @@ export class Town {
     arrive(this.world.player, s.id);
     this.world.player.place = "gate";
     const been = siteState(this.world, s.id).visited === true;
-    const lines = this.activate(s.id);
+    // Home after a setback: the story goes ahead of them; or where they fell, their pack still lying there (N49, N70).
+    const back = this.store ? societyArrive(this, s.id) : [];
+    const lines = [...this.activate(s.id), ...back];
     const folk = this.localIds().filter((id) => !this.agents[id]!.state.companion && !parseTownsfolkId(id));
     if (been) return [`You're back in ${s.name}.`, ...lines];
     const head = s.leader ? realm.figures[s.leader] : undefined;
@@ -1246,6 +1249,8 @@ export class Town {
       if (config.society.cultures) dayAmong(realm, this.world.player, this.site());
       // A slave's day of work (N49); mending after being left for dead.
       if (this.store) log.push(...slaveDay({ realm, store: this.store }, this.world.player, d));
+      // The player's own cases on court day, a cell's term served (N70).
+      if (this.store) log.push(...societyPlayerDay(this, d));
       if (this.world.player.chapter?.kind === "recovering" && d - this.world.player.chapter.since >= 2) {
         delete this.world.player.chapter;
         log.push("You're on your feet again.");
@@ -1300,7 +1305,7 @@ export class Town {
     const realm = this.world.realm!;
     const here = this.site();
     ensureLivePeople(realm, this.store!.people, live, day);
-    const result = lifeDay({ realm, store: this.store! }, day, { live, lazy: lazySites(), watched: new Set([here]), player: { site: here, ...(this.world.player.known ? { known: this.world.player.known } : {}) } });
+    const result = lifeDay({ realm, store: this.store!, player: this.world.player }, day, { live, lazy: lazySites(), watched: new Set([here]), player: { site: here, ...(this.world.player.known ? { known: this.world.player.known } : {}) } });
     for (const step of result.steps) {
       if (step.day !== day) continue;
       this.afterSiteStep(step, step.site === here);

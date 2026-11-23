@@ -20,12 +20,13 @@ import {
   type Chat,
   type CrowdPos,
   type Snapshot,
-} from "@millbrook/shared";
-import { dress, OBJECT_IDS, templateById, templateForStyle, TERRAIN_IDS, type Actor, type Frame, type Patch, type ScapeInput } from "@millbrook/shared/view";
+} from "@garden-of-eden/shared";
+import { dress, OBJECT_IDS, templateById, templateForStyle, TERRAIN_IDS, type Actor, type Frame, type Patch, type ScapeInput } from "@garden-of-eden/shared/view";
 import { groundAt } from "../game/road/ground.js";
-import { heightSeed, patchHeights, type HeightCtx, type LandKind } from "./height.js";
+import { heightSeed, patchHeights, patchRelief, type HeightCtx, type LandKind } from "./height.js";
 import type { Land, ViewHost } from "./host.js";
 import { TRADES } from "../game/ambition/kinds.js";
+import { npcGender } from "../world/names.js";
 
 export const PATCH = 16;
 /** Tiles drawn beyond the adapter's viewport on each side. */
@@ -38,6 +39,20 @@ const T = (id: (typeof TERRAIN_IDS)[number]) => TERRAIN_IDS.indexOf(id);
 const O = (id: NonNullable<(typeof OBJECT_IDS)[number]>) => OBJECT_IDS.indexOf(id);
 
 /** A journey's colour by its kind (N26). */
+/** What an engine needs to build a person's body from parts (look.species/sex/age/cls/job/culture), only what is known. */
+function whoLook(w: { species?: string; sex?: string; years?: number; stage?: string; cls?: string; job?: string; culture?: string }): Partial<Actor["look"]> {
+  const out: Partial<Actor["look"]> = {};
+  if (w.species) out.species = w.species;
+  if (w.sex === "female" || w.sex === "f") out.sex = "f";
+  else if (w.sex === "male" || w.sex === "m") out.sex = "m";
+  if (w.stage) out.age = w.stage === "young" ? "child" : (w.stage as "adult" | "elder" | "venerable");
+  else if (w.years !== undefined) out.age = w.years < 16 ? "child" : w.years < 60 ? "adult" : w.years < 80 ? "elder" : "venerable";
+  if (w.cls) out.cls = w.cls;
+  if (w.job) out.job = w.job;
+  if (w.culture) out.culture = w.culture;
+  return out;
+}
+
 export const KIND_COLOR: Record<string, string> = { caravan: "#b5763f", courier: "#d9a441", market: "#9aa86a", kin: "#b58aa0", work: "#a08a6a", officials: "#6a7fa8", patrol: "#4f6fa0", pilgrims: "#c9c3b0", adventurers: "#b5503f", refugees: "#8a7a5f", migrants: "#8a7a5f", coach: "#7a9b57", tourney: "#c0392b" };
 
 /** The art each piece of furniture is drawn with (N32): a straw bed is a bed, a desk a table. */
@@ -102,7 +117,7 @@ function heightCtx(s: Snapshot, land: Land | null, mapId: string): HeightCtx | n
   if (s.inside) return null;
   if (land) return { seed: heightSeed(`road:${land.gates.keys().next().value ?? ""}`), open: true, kind: (x, y) => ROAD_LAND[groundAt(land, x, y)] ?? "land" };
   const tiles = s.map.tiles;
-  return { seed: heightSeed(mapId), open: false, kind: (x, y) => (tiles[y]?.[x] === "water" ? "water" : "land"), pads: s.map.buildings };
+  return { seed: heightSeed(mapId), open: false, kind: (x, y) => (tiles[y]?.[x] === "water" ? "water" : "land"), pads: s.map.buildings, bounds: { w: s.map.w, h: s.map.h } };
 }
 
 /** A road tile as terrain and object art. */
@@ -363,6 +378,8 @@ export function daylight(hour: number, minute: number): number {
 /** The whole frame for the box (patches the adapter has are left out). */
 export function buildFrame(f: FrameInput): Frame {
   const { s, host } = f;
+  const culture = host.cultureStyle?.() ?? undefined;
+  const townSpecies = host.townSpecies?.() ?? "human";
   const box = boxOf(s, f.view);
   const land = s.road ? host.land() : null;
   // Inside a building (N32) the crowd isn't drawn: only the people the interior has in it.
@@ -397,7 +414,7 @@ export function buildFrame(f: FrameInput): Frame {
           objects.push(o);
         }
       }
-      patches.push({ key, x0, y0, w, h, ground, objects, height: patchHeights(heights, x0, y0, w, h) });
+      patches.push({ key, x0, y0, w, h, ground, objects, height: patchHeights(heights, x0, y0, w, h), ...(heights ? { relief: patchRelief(heights, x0, y0, w, h) } : {}) });
     }
   }
 
@@ -407,7 +424,7 @@ export function buildFrame(f: FrameInput): Frame {
   const lights: NonNullable<Frame["lights"]> = [];
   const signs: NonNullable<Frame["signs"]> = [];
   if (!s.road) {
-    // G8: the place's building style (its people's way, its land's walls) and its culture's colours, for painted roofs and awnings.
+    // G10: the place's building style (its people's way, its land's walls) and its culture's colours, for painted roofs and awnings.
     const look = host.buildLook?.() ?? null;
     const paint = (color: string, i: number, kind: string | undefined) => (kind && look?.colours?.length ? look.colours[(i * 7 + 3) % look.colours.length]! : color);
     const inside = new Map<number, number[]>();
@@ -415,6 +432,7 @@ export function buildFrame(f: FrameInput): Frame {
     // A house that is someone's own shop (N40) bears their sign: N31's reserved lots are not built, so a new shop is a house's new use.
     const shops = new Map<number, string>();
     for (const p of sim?.roster.people ?? []) if (p.shop !== undefined && !shops.has(p.shop)) shops.set(p.shop, `${p.name.split(" ")[0]}'s ${TRADES[p.job]?.shop ?? "shop"}`);
+    const style = host.cultureStyle?.() ?? undefined;
     s.map.buildings.forEach((b, i) => {
       if (b.x + b.w < box.x0 || b.x > box.x1 || b.y + b.h < box.y0 || b.y > box.y1) return;
       const who = inside.get(i) ?? [];
@@ -428,7 +446,7 @@ export function buildFrame(f: FrameInput): Frame {
       const template = templateForStyle(b.kind, b.name, `${s.map.id}:${i}`, look?.style);
       // Smoke from the chimney while someone is in with a fire lit: the cold months, or after dark (N31).
       const smoke = who.length > 0 && (light < 0.6 || s.time.season === "winter" || s.time.season === "autumn");
-      buildings.push({ id: i, x: b.x, y: b.y, w: b.w, h: b.h, kind: b.kind ?? "house", color: paint(b.color, i, b.kind), lit, label: sign ?? (b.name && b.name !== "Gate" ? b.name : ""), tip, template, door, ...(smoke ? { smoke: true } : {}) });
+      buildings.push({ id: i, x: b.x, y: b.y, w: b.w, h: b.h, kind: b.kind ?? "house", color: paint(b.color, i, b.kind), lit, label: sign ?? (b.name && b.name !== "Gate" ? b.name : ""), tip, template, door, ...(smoke ? { smoke: true } : {}), ...(style ? { style } : {}) });
       lights.push(...buildingLights(i, template, { ...b, door }, { lit, dark: light < 0.6, occupied: who.length > 0 }));
     });
     for (const e of s.map.exits) {
@@ -445,13 +463,13 @@ export function buildFrame(f: FrameInput): Frame {
   // ---- actors ----
   const actors: Actor[] = [];
   const p = s.player;
-  actors.push({ id: "player", kind: "player", x: s.position.x, y: s.position.y, look: { sprite: "people/player", tint: "#3f7fd0" }, label: `${p.name} (YOU)`, tip: `${p.name}, level ${p.level}`, hp: p.hp / Math.max(1, p.maxHp), flags: [] });
+  actors.push({ id: "player", kind: "player", x: s.position.x, y: s.position.y, look: { sprite: "people/player", tint: "#3f7fd0", ...whoLook({ species: "human", years: 30, culture }) }, label: `${p.name} (YOU)`, tip: `${p.name}, level ${p.level}`, hp: p.hp / Math.max(1, p.maxHp), flags: [] });
   const promoted = new Set<string>();
   if (s.road) {
     for (const t of travellers) {
       if (!inBox(box, Math.round(t.x), Math.round(t.y))) continue;
       promoted.add(t.id);
-      actors.push({ id: t.id, kind: "traveller", x: t.x, y: t.y, look: { sprite: "people/body", tint: KIND_COLOR[t.kind] ?? "#8a7a5f" }, label: t.name, shortLabel: `[${t.kind}]`, tip: `${t.name}, ${t.role} of ${t.from}: ${t.purpose}`, flags: [] });
+      actors.push({ id: t.id, kind: "traveller", x: t.x, y: t.y, look: { sprite: "people/body", tint: KIND_COLOR[t.kind] ?? "#8a7a5f", ...whoLook({ species: "human", years: 30, job: t.role, culture }) }, label: t.name, shortLabel: `[${t.kind}]`, tip: `${t.name}, ${t.role} of ${t.from}: ${t.purpose}`, flags: [] });
     }
   } else {
     for (const n of s.npcs) {
@@ -468,7 +486,7 @@ export function buildFrame(f: FrameInput): Frame {
         kind: n.companion ? "companion" : "npc",
         x: n.x,
         y: n.y,
-        look: { sprite: n.dead ? "fx/grave" : "people/body", tint: n.color },
+        look: { sprite: n.dead ? "fx/grave" : "people/body", tint: n.color, ...whoLook({ species: n.species, sex: npcGender(n.id), stage: n.ageStage, years: n.age, job: n.role, culture }) },
         label: n.dead ? `${n.name} †` : n.name,
         tip: `${n.name} — ${n.role} · ${n.doing}`,
         hp: n.dead ? 1 : n.hp / Math.max(1, n.maxHp),
@@ -482,12 +500,12 @@ export function buildFrame(f: FrameInput): Frame {
     const flags: Actor["flags"] = [];
     if (c.aggressive) flags.push("hostile");
     if (c.engaged) flags.push("engaged");
-    actors.push({ id: c.uid, kind: "creature", x: c.x, y: c.y, look: { sprite: person ? "people/body" : `creature/${["wolf", "bear", "boar", "spider", "horse"].includes(c.kind) ? c.kind : "beast"}`, tint: c.color }, label: `${c.name} [${c.rank}]`, shortLabel: `[${c.rank}]`, tip: `${c.name}, ${c.kind} [${c.rank}], ${c.growth}`, hp: c.hp / Math.max(1, c.maxHp), flags });
+    actors.push({ id: c.uid, kind: "creature", x: c.x, y: c.y, look: { sprite: person ? "people/body" : `creature/${["wolf", "bear", "boar", "spider", "horse"].includes(c.kind) ? c.kind : "beast"}`, tint: c.color, ...(person ? whoLook({ species: "human", years: c.age, job: c.kind }) : { species: c.kind }) }, label: `${c.name} [${c.rank}]`, shortLabel: `[${c.rank}]`, tip: `${c.name}, ${c.kind} [${c.rank}], ${c.growth}`, hp: c.hp / Math.max(1, c.maxHp), flags });
   }
   // A fire in the hearth or the forge of the building the player is in (N32).
   for (const q of s.inside?.furniture ?? []) if (q.kind === "hearth" || q.kind === "forge") lights.push({ id: `in-fire:${q.id}`, x: q.x, y: q.y, kind: "fire", on: true });
   // The people inside the building the player is in (N32): where the interior puts them by what they're doing.
-  for (const q of s.inside?.people ?? []) actors.push({ id: q.id, kind: "folk", x: q.x, y: q.y, look: { sprite: "people/body", size: 0.88 }, label: q.name.split(" ")[0]!, tip: `${q.name}: ${q.doing}`, flags: [] });
+  for (const q of s.inside?.people ?? []) actors.push({ id: q.id, kind: "folk", x: q.x, y: q.y, look: { sprite: "people/body", size: 0.88, ...whoLook({ species: townSpecies, years: 30, culture }) }, label: q.name.split(" ")[0]!, tip: `${q.name}: ${q.doing}`, flags: [] });
   if (sim) {
     pos.forEach((at, i) => {
       if (!at.visible || !inBox(box, at.x, at.y)) return;
@@ -501,7 +519,7 @@ export function buildFrame(f: FrameInput): Frame {
         kind: "folk",
         x: at.x,
         y: at.y,
-        look: { sprite: "people/body", tint: who.color, size: who.job === "child" ? 0.68 : 0.88, ...(CLASS_RANK[who.cls] >= 6 ? { trim: who.cls === "royal" ? "#ffe9a0" : "#f0d8f0" } : {}) },
+        look: { sprite: "people/body", tint: who.color, size: who.job === "child" ? 0.68 : 0.88, ...whoLook({ species: townSpecies, sex: who.gender, years: who.job === "child" ? 8 : who.age, cls: who.cls, job: who.job, culture }), ...(CLASS_RANK[who.cls] >= 6 ? { trim: who.cls === "royal" ? "#ffe9a0" : "#f0d8f0" } : {}) },
         label: who.name.split(" ")[0]!,
         tip: describeFolk(sim, i, at),
         flags,

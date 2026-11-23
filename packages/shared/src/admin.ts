@@ -151,7 +151,7 @@ export interface AdminHealth {
   summary: string[];
 }
 
-export type AdminCardKind = "cast" | "figure" | "townsperson" | "beast" | "player" | "place" | "item";
+export type AdminCardKind = "cast" | "figure" | "townsperson" | "beast" | "player" | "place" | "item" | "society";
 
 /** A group of facts on a card. `rows` are [label, value, ref?]: a ref makes the value a link. */
 export type AdminSection = { title: string; rows: Array<[string, string, string?]> } | { title: string; unavailable: string };

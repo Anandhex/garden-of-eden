@@ -1,4 +1,4 @@
-import { DAY_ENDS, DAY_STARTS, GROUND_NAMES, Ground, STEPS_PER_GAME_MINUTE, describeWalk, partyAt, shortestWay, type RoadNearby, type RoadView, type RoadPlace } from "@millbrook/shared";
+import { DAY_ENDS, DAY_STARTS, GROUND_NAMES, Ground, STEPS_PER_GAME_MINUTE, describeWalk, partyAt, shortestWay, type RoadNearby, type RoadView, type RoadPlace } from "@garden-of-eden/shared";
 import { absoluteHour, advanceMinutes } from "../clock.js";
 import { formatMoney } from "../money.js";
 import { itemKey } from "../items.js";

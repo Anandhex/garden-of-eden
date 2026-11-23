@@ -6,7 +6,7 @@
 import type { IncomingMessage, Server } from "node:http";
 import type { Duplex } from "node:stream";
 import { WebSocketServer, type WebSocket } from "ws";
-import { IntentSchema, PROTOCOL_VERSION, type Intent } from "@millbrook/shared/view";
+import { IntentSchema, PROTOCOL_VERSION, type Intent } from "@garden-of-eden/shared/view";
 import type { ViewHost } from "./host.js";
 import { ViewSession } from "./session.js";
 

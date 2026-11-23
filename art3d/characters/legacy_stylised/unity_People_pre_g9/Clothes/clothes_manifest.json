@@ -1,0 +1,5135 @@
+{
+ "version": 1,
+ "rig": "Armature (55 Humanoid bones, same as export/base_body.fbx)",
+ "body": "../../export/base_body.fbx",
+ "fbxSettings": "forward -Z, up Y, FBX_SCALE_ALL, no leaf bones, shape keys as BlendShapes; Unity: Humanoid rig, Normals = Calculate or Import, Read/Write on",
+ "regions": {
+  "torso": "Mesh_Torso",
+  "arms": "Mesh_Arms",
+  "hands": "Mesh_Hands",
+  "legs": "Mesh_Legs",
+  "feet": "Mesh_Feet"
+ },
+ "slots": {
+  "torso": "replaces/overlays Mesh_Torso",
+  "arms": "Mesh_Arms",
+  "hands": "Mesh_Hands",
+  "legs": "Mesh_Legs",
+  "feet": "Mesh_Feet",
+  "skirt": "hangs from the waist (long ones hide legs)",
+  "overlay": "belts, straps, aprons, cloaks, hood, scarf, pouches",
+  "headwear": "hats/helmets, attach at Socket_Hat (already placed in head space; skinned to Head)"
+ },
+ "materials": {
+  "GC_Tint": {
+   "role": "tint",
+   "baseColour": [
+    0.55,
+    0.5,
+    0.42
+   ],
+   "texture": "textures/detail_weave.png",
+   "tileMetres": 0.07,
+   "tintedBy": "look.tint"
+  },
+  "GC_Quilt": {
+   "role": "tint",
+   "baseColour": [
+    0.55,
+    0.5,
+    0.42
+   ],
+   "texture": "textures/detail_quilt.png",
+   "tileMetres": 0.3,
+   "tintedBy": "look.tint"
+  },
+  "GC_Trim": {
+   "role": "trim",
+   "baseColour": [
+    0.8,
+    0.62,
+    0.28
+   ],
+   "texture": "textures/trim_stitch.png",
+   "tileMetres": 0.06,
+   "tintedBy": "look.trim"
+  },
+  "GC_Leather": {
+   "role": "leather",
+   "baseColour": [
+    0.36,
+    0.23,
+    0.14
+   ],
+   "texture": "textures/detail_leather.png",
+   "tileMetres": 0.14,
+   "tintedBy": "fixed"
+  },
+  "GC_Metal": {
+   "role": "metal",
+   "baseColour": [
+    0.5,
+    0.54,
+    0.6
+   ],
+   "texture": "textures/detail_metal.png",
+   "tileMetres": 0.3,
+   "tintedBy": "fixed"
+  },
+  "GC_Linen": {
+   "role": "linen",
+   "baseColour": [
+    0.86,
+    0.8,
+    0.68
+   ],
+   "texture": "textures/detail_weave.png",
+   "tileMetres": 0.07,
+   "tintedBy": "fixed"
+  },
+  "GC_Stripe": {
+   "role": "tint",
+   "baseColour": [
+    0.55,
+    0.5,
+    0.42
+   ],
+   "texture": "textures/detail_stripes.png",
+   "tileMetres": 0.3,
+   "tintedBy": "look.tint"
+  },
+  "GC_Plaid": {
+   "role": "tint",
+   "baseColour": [
+    0.55,
+    0.5,
+    0.42
+   ],
+   "texture": "textures/detail_plaid.png",
+   "tileMetres": 0.32,
+   "tintedBy": "look.tint"
+  }
+ },
+ "colourRule": "Multiply the material's base colour by look.tint (GC_Tint, GC_Quilt, GC_Linen stays cream) or look.trim (GC_Trim); GC_Leather and GC_Metal are fixed.",
+ "pieces": [
+  {
+   "id": "t_shirt",
+   "name": "Linen shirt",
+   "slot": "torso",
+   "layer": "base",
+   "object": "t_shirt",
+   "hides": [
+    "torso"
+   ],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "farmer",
+    "labourer",
+    "smith",
+    "merchant",
+    "traveller",
+    "child",
+    "elder"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint",
+    "trim"
+   ],
+   "materials": [
+    "GC_Tint",
+    "GC_Trim"
+   ],
+   "verts": 732,
+   "tris": 1334,
+   "shapeKeys": 24,
+   "notes": "",
+   "file": "clothes_torso.fbx",
+   "outfits": [
+    "farmer_highland_m",
+    "farmer_forest_m",
+    "labourer_river_m",
+    "smith_highland_m",
+    "guard_imperial_m",
+    "child_river"
+   ]
+  },
+  {
+   "id": "t_shirt_open",
+   "name": "Open-neck shirt",
+   "slot": "torso",
+   "layer": "base",
+   "object": "t_shirt_open",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "farmer",
+    "merchant",
+    "traveller",
+    "elder"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint",
+    "trim"
+   ],
+   "materials": [
+    "GC_Tint",
+    "GC_Trim"
+   ],
+   "verts": 728,
+   "tris": 1318,
+   "shapeKeys": 24,
+   "notes": "",
+   "file": "clothes_torso.fbx",
+   "outfits": [
+    "merchant_coastal_f",
+    "elder_forest_m"
+   ]
+  },
+  {
+   "id": "t_jerkin",
+   "name": "Leather jerkin",
+   "slot": "torso",
+   "layer": "base",
+   "object": "t_jerkin",
+   "hides": [
+    "torso"
+   ],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "farmer",
+    "labourer",
+    "soldier",
+    "traveller",
+    "smith"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "leather",
+    "trim"
+   ],
+   "materials": [
+    "GC_Trim",
+    "GC_Leather"
+   ],
+   "verts": 732,
+   "tris": 1334,
+   "shapeKeys": 24,
+   "notes": "",
+   "file": "clothes_torso.fbx",
+   "outfits": [
+    "farmer_forest_m",
+    "soldier_river_f",
+    "traveller_forest_m"
+   ]
+  },
+  {
+   "id": "t_bodice",
+   "name": "Laced bodice",
+   "slot": "torso",
+   "layer": "base",
+   "object": "t_bodice",
+   "hides": [
+    "torso"
+   ],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "farmer",
+    "noble",
+    "merchant",
+    "elder",
+    "child"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint",
+    "trim"
+   ],
+   "materials": [
+    "GC_Tint",
+    "GC_Trim"
+   ],
+   "verts": 732,
+   "tris": 1334,
+   "shapeKeys": 24,
+   "notes": "",
+   "file": "clothes_torso.fbx",
+   "outfits": [
+    "farmer_river_f",
+    "noble_imperial_f",
+    "noble_highland_f",
+    "child_highland_f",
+    "elder_coastal_f"
+   ]
+  },
+  {
+   "id": "t_robe_top",
+   "name": "Robe (upper)",
+   "slot": "torso",
+   "layer": "base",
+   "object": "t_robe_top",
+   "hides": [
+    "torso"
+   ],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "priest",
+    "scholar",
+    "noble"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint",
+    "trim"
+   ],
+   "materials": [
+    "GC_Tint",
+    "GC_Trim"
+   ],
+   "verts": 732,
+   "tris": 1334,
+   "shapeKeys": 24,
+   "notes": "",
+   "file": "clothes_torso.fbx",
+   "outfits": [
+    "priest_imperial_m",
+    "priest_forest_f",
+    "scholar_imperial_m"
+   ]
+  },
+  {
+   "id": "t_doublet",
+   "name": "Padded doublet",
+   "slot": "torso",
+   "layer": "base",
+   "object": "t_doublet",
+   "hides": [
+    "torso"
+   ],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "merchant",
+    "noble",
+    "scholar"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint",
+    "trim"
+   ],
+   "materials": [
+    "GC_Tint",
+    "GC_Quilt",
+    "GC_Trim"
+   ],
+   "verts": 732,
+   "tris": 1334,
+   "shapeKeys": 24,
+   "notes": "",
+   "file": "clothes_torso.fbx",
+   "outfits": [
+    "merchant_river_m",
+    "noble_river_m",
+    "scholar_river_f"
+   ]
+  },
+  {
+   "id": "t_deel",
+   "name": "Wrapped deel coat",
+   "slot": "torso",
+   "layer": "base",
+   "object": "t_deel",
+   "hides": [
+    "torso"
+   ],
+   "cultures": [
+    "steppe"
+   ],
+   "classes": [
+    "labourer",
+    "merchant",
+    "noble",
+    "soldier"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint",
+    "trim"
+   ],
+   "materials": [
+    "GC_Tint",
+    "GC_Trim"
+   ],
+   "verts": 732,
+   "tris": 1334,
+   "shapeKeys": 24,
+   "notes": "",
+   "file": "clothes_torso.fbx",
+   "outfits": [
+    "labourer_steppe_m",
+    "merchant_steppe_m",
+    "noble_steppe_m",
+    "soldier_steppe_m"
+   ]
+  },
+  {
+   "id": "t_clavus",
+   "name": "Tunic with stripes",
+   "slot": "torso",
+   "layer": "base",
+   "object": "t_clavus",
+   "hides": [
+    "torso"
+   ],
+   "cultures": [
+    "imperial",
+    "coastal"
+   ],
+   "classes": [
+    "smith",
+    "noble",
+    "scholar"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint",
+    "trim"
+   ],
+   "materials": [
+    "GC_Tint",
+    "GC_Trim"
+   ],
+   "verts": 732,
+   "tris": 1334,
+   "shapeKeys": 24,
+   "notes": "",
+   "file": "clothes_torso.fbx",
+   "outfits": [
+    "smith_imperial_m",
+    "noble_imperial_m"
+   ]
+  },
+  {
+   "id": "t_jersey",
+   "name": "Striped jersey",
+   "slot": "torso",
+   "layer": "base",
+   "object": "t_jersey",
+   "hides": [
+    "torso"
+   ],
+   "cultures": [
+    "coastal"
+   ],
+   "classes": [
+    "labourer",
+    "traveller",
+    "farmer"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint"
+   ],
+   "materials": [
+    "GC_Stripe"
+   ],
+   "verts": 732,
+   "tris": 1334,
+   "shapeKeys": 24,
+   "notes": "",
+   "file": "clothes_torso.fbx",
+   "outfits": [
+    "farmer_coastal_m",
+    "labourer_coastal_f",
+    "traveller_coastal_f"
+   ]
+  },
+  {
+   "id": "t_mail",
+   "name": "Mail hauberk",
+   "slot": "torso",
+   "layer": "base",
+   "object": "t_mail",
+   "hides": [
+    "torso"
+   ],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "guard",
+    "soldier"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "metal",
+    "trim"
+   ],
+   "materials": [
+    "GC_Trim",
+    "GC_Metal"
+   ],
+   "verts": 732,
+   "tris": 1334,
+   "shapeKeys": 24,
+   "notes": "",
+   "file": "clothes_torso.fbx",
+   "outfits": [
+    "guard_highland_m"
+   ]
+  },
+  {
+   "id": "t_breastplate",
+   "name": "Breastplate",
+   "slot": "torso",
+   "layer": "over",
+   "object": "t_breastplate",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "guard",
+    "soldier"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "metal"
+   ],
+   "materials": [
+    "GC_Metal"
+   ],
+   "verts": 366,
+   "tris": 629,
+   "shapeKeys": 21,
+   "notes": "",
+   "file": "clothes_torso.fbx",
+   "outfits": [
+    "guard_imperial_m",
+    "soldier_steppe_m"
+   ]
+  },
+  {
+   "id": "t_vest_quilted",
+   "name": "Quilted vest",
+   "slot": "torso",
+   "layer": "over",
+   "object": "t_vest_quilted",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "farmer",
+    "labourer",
+    "merchant",
+    "traveller",
+    "soldier"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint",
+    "trim"
+   ],
+   "materials": [
+    "GC_Quilt",
+    "GC_Trim"
+   ],
+   "verts": 458,
+   "tris": 787,
+   "shapeKeys": 24,
+   "notes": "",
+   "file": "clothes_torso.fbx",
+   "outfits": [
+    "merchant_coastal_f"
+   ]
+  },
+  {
+   "id": "t_vest_fur",
+   "name": "Fur-trimmed vest",
+   "slot": "torso",
+   "layer": "over",
+   "object": "t_vest_fur",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "forest",
+    "steppe"
+   ],
+   "classes": [
+    "farmer",
+    "traveller",
+    "soldier",
+    "elder"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint"
+   ],
+   "materials": [
+    "GC_Tint"
+   ],
+   "verts": 460,
+   "tris": 790,
+   "shapeKeys": 24,
+   "notes": "",
+   "file": "clothes_torso.fbx",
+   "outfits": [
+    "farmer_highland_m",
+    "elder_forest_m"
+   ]
+  },
+  {
+   "id": "t_rags",
+   "name": "Ragged shirt",
+   "slot": "torso",
+   "layer": "over",
+   "object": "t_rags",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "slave",
+    "elder"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint"
+   ],
+   "materials": [
+    "GC_Tint"
+   ],
+   "verts": 694,
+   "tris": 1158,
+   "shapeKeys": 24,
+   "notes": "",
+   "file": "clothes_torso.fbx",
+   "outfits": [
+    "slave_ragged_m",
+    "slave_ragged_f"
+   ]
+  },
+  {
+   "id": "a_sleeve_long",
+   "name": "Long sleeve",
+   "slot": "arms",
+   "layer": "base",
+   "object": "a_sleeve_long",
+   "hides": [
+    "arms"
+   ],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "farmer",
+    "labourer",
+    "merchant",
+    "traveller",
+    "noble",
+    "soldier",
+    "elder",
+    "child"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint",
+    "trim"
+   ],
+   "materials": [
+    "GC_Tint",
+    "GC_Trim"
+   ],
+   "verts": 682,
+   "tris": 1276,
+   "shapeKeys": 19,
+   "notes": "",
+   "file": "clothes_arms.fbx",
+   "outfits": [
+    "farmer_highland_m",
+    "farmer_forest_m",
+    "labourer_steppe_m",
+    "merchant_steppe_m",
+    "noble_imperial_m",
+    "noble_steppe_m",
+    "priest_forest_f",
+    "soldier_steppe_m",
+    "traveller_forest_m",
+    "elder_forest_m",
+    "elder_coastal_f"
+   ]
+  },
+  {
+   "id": "a_sleeve_fitted",
+   "name": "Fitted sleeve",
+   "slot": "arms",
+   "layer": "base",
+   "object": "a_sleeve_fitted",
+   "hides": [
+    "arms"
+   ],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "merchant",
+    "noble",
+    "scholar",
+    "soldier",
+    "guard"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint",
+    "trim"
+   ],
+   "materials": [
+    "GC_Tint",
+    "GC_Trim"
+   ],
+   "verts": 682,
+   "tris": 1276,
+   "shapeKeys": 19,
+   "notes": "",
+   "file": "clothes_arms.fbx",
+   "outfits": [
+    "merchant_river_m",
+    "guard_imperial_m",
+    "soldier_river_f",
+    "scholar_river_f"
+   ]
+  },
+  {
+   "id": "a_sleeve_short",
+   "name": "Short sleeve",
+   "slot": "arms",
+   "layer": "base",
+   "object": "a_sleeve_short",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "farmer",
+    "labourer",
+    "smith",
+    "child"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint",
+    "trim"
+   ],
+   "materials": [
+    "GC_Tint",
+    "GC_Trim"
+   ],
+   "verts": 270,
+   "tris": 448,
+   "shapeKeys": 19,
+   "notes": "",
+   "file": "clothes_arms.fbx",
+   "outfits": [
+    "farmer_river_f",
+    "farmer_coastal_m",
+    "labourer_coastal_f",
+    "smith_highland_m",
+    "smith_imperial_m",
+    "traveller_coastal_f",
+    "child_river",
+    "child_highland_f"
+   ]
+  },
+  {
+   "id": "a_sleeve_rolled",
+   "name": "Rolled sleeve",
+   "slot": "arms",
+   "layer": "base",
+   "object": "a_sleeve_rolled",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "farmer",
+    "labourer",
+    "smith",
+    "child"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint",
+    "trim"
+   ],
+   "materials": [
+    "GC_Tint",
+    "GC_Trim"
+   ],
+   "verts": 398,
+   "tris": 705,
+   "shapeKeys": 19,
+   "notes": "",
+   "file": "clothes_arms.fbx",
+   "outfits": [
+    "labourer_river_m"
+   ]
+  },
+  {
+   "id": "a_sleeve_wide",
+   "name": "Wide hanging sleeve",
+   "slot": "arms",
+   "layer": "base",
+   "object": "a_sleeve_wide",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "priest",
+    "scholar",
+    "noble"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint",
+    "trim"
+   ],
+   "materials": [
+    "GC_Tint",
+    "GC_Trim"
+   ],
+   "verts": 629,
+   "tris": 1169,
+   "shapeKeys": 19,
+   "notes": "",
+   "file": "clothes_arms.fbx",
+   "outfits": [
+    "noble_highland_f",
+    "priest_imperial_m",
+    "scholar_imperial_m"
+   ]
+  },
+  {
+   "id": "a_sleeve_puffed",
+   "name": "Puffed sleeve",
+   "slot": "arms",
+   "layer": "base",
+   "object": "a_sleeve_puffed",
+   "hides": [
+    "arms"
+   ],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "noble",
+    "merchant",
+    "child"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint",
+    "trim"
+   ],
+   "materials": [
+    "GC_Tint",
+    "GC_Trim"
+   ],
+   "verts": 682,
+   "tris": 1276,
+   "shapeKeys": 19,
+   "notes": "",
+   "file": "clothes_arms.fbx",
+   "outfits": [
+    "merchant_coastal_f",
+    "noble_imperial_f",
+    "noble_river_m"
+   ]
+  },
+  {
+   "id": "a_mail",
+   "name": "Mail sleeve",
+   "slot": "arms",
+   "layer": "base",
+   "object": "a_mail",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "guard",
+    "soldier"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "metal"
+   ],
+   "materials": [
+    "GC_Metal"
+   ],
+   "verts": 429,
+   "tris": 760,
+   "shapeKeys": 19,
+   "notes": "",
+   "file": "clothes_arms.fbx",
+   "outfits": [
+    "guard_highland_m"
+   ]
+  },
+  {
+   "id": "a_rags",
+   "name": "Ragged sleeves",
+   "slot": "arms",
+   "layer": "base",
+   "object": "a_rags",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "slave",
+    "elder"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint"
+   ],
+   "materials": [
+    "GC_Tint"
+   ],
+   "verts": 258,
+   "tris": 409,
+   "shapeKeys": 19,
+   "notes": "",
+   "file": "clothes_arms.fbx",
+   "outfits": [
+    "slave_ragged_m",
+    "slave_ragged_f"
+   ]
+  },
+  {
+   "id": "a_bracer",
+   "name": "Leather bracers",
+   "slot": "arms",
+   "layer": "over",
+   "object": "a_bracer",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "smith",
+    "guard",
+    "soldier",
+    "traveller",
+    "labourer"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "leather"
+   ],
+   "materials": [
+    "GC_Leather"
+   ],
+   "verts": 329,
+   "tris": 561,
+   "shapeKeys": 14,
+   "notes": "",
+   "file": "clothes_arms.fbx",
+   "outfits": [
+    "labourer_river_m",
+    "smith_highland_m",
+    "smith_imperial_m",
+    "soldier_river_f",
+    "traveller_forest_m"
+   ]
+  },
+  {
+   "id": "a_vambrace",
+   "name": "Plate vambraces",
+   "slot": "arms",
+   "layer": "over",
+   "object": "a_vambrace",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "guard",
+    "soldier"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "metal"
+   ],
+   "materials": [
+    "GC_Metal"
+   ],
+   "verts": 432,
+   "tris": 768,
+   "shapeKeys": 15,
+   "notes": "",
+   "file": "clothes_arms.fbx",
+   "outfits": [
+    "guard_imperial_m",
+    "soldier_steppe_m"
+   ]
+  },
+  {
+   "id": "a_pauldron",
+   "name": "Pauldrons",
+   "slot": "arms",
+   "layer": "over",
+   "object": "a_pauldron",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "guard",
+    "soldier"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "metal"
+   ],
+   "materials": [
+    "GC_Metal"
+   ],
+   "verts": 340,
+   "tris": 572,
+   "shapeKeys": 19,
+   "notes": "",
+   "file": "clothes_arms.fbx",
+   "outfits": [
+    "guard_imperial_m"
+   ]
+  },
+  {
+   "id": "h_gloves",
+   "name": "Leather gloves",
+   "slot": "hands",
+   "layer": "base",
+   "object": "h_gloves",
+   "hides": [
+    "hands"
+   ],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "smith",
+    "guard",
+    "soldier",
+    "traveller",
+    "noble",
+    "farmer"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "leather"
+   ],
+   "materials": [
+    "GC_Leather"
+   ],
+   "verts": 948,
+   "tris": 1848,
+   "shapeKeys": 14,
+   "notes": "",
+   "file": "clothes_hands.fbx",
+   "outfits": [
+    "farmer_forest_m",
+    "smith_highland_m",
+    "smith_imperial_m",
+    "noble_river_m",
+    "noble_steppe_m",
+    "guard_highland_m",
+    "soldier_steppe_m",
+    "soldier_river_f",
+    "traveller_forest_m"
+   ]
+  },
+  {
+   "id": "h_mittens",
+   "name": "Fur mittens",
+   "slot": "hands",
+   "layer": "base",
+   "object": "h_mittens",
+   "hides": [
+    "hands"
+   ],
+   "cultures": [
+    "highland",
+    "forest",
+    "steppe"
+   ],
+   "classes": [
+    "farmer",
+    "labourer",
+    "traveller",
+    "elder",
+    "child"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint"
+   ],
+   "materials": [
+    "GC_Tint"
+   ],
+   "verts": 948,
+   "tris": 1848,
+   "shapeKeys": 14,
+   "notes": "",
+   "file": "clothes_hands.fbx",
+   "outfits": [
+    "farmer_highland_m",
+    "labourer_steppe_m"
+   ]
+  },
+  {
+   "id": "h_gauntlets",
+   "name": "Plate gauntlets",
+   "slot": "hands",
+   "layer": "base",
+   "object": "h_gauntlets",
+   "hides": [
+    "hands"
+   ],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "guard",
+    "soldier"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "leather",
+    "metal"
+   ],
+   "materials": [
+    "GC_Leather",
+    "GC_Metal"
+   ],
+   "verts": 1150,
+   "tris": 2251,
+   "shapeKeys": 14,
+   "notes": "",
+   "file": "clothes_hands.fbx",
+   "outfits": [
+    "guard_imperial_m"
+   ]
+  },
+  {
+   "id": "h_wraps",
+   "name": "Wrist wraps",
+   "slot": "hands",
+   "layer": "over",
+   "object": "h_wraps",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "labourer",
+    "traveller",
+    "smith",
+    "slave"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint"
+   ],
+   "materials": [
+    "GC_Stripe"
+   ],
+   "verts": 187,
+   "tris": 284,
+   "shapeKeys": 14,
+   "notes": "",
+   "file": "clothes_hands.fbx",
+   "outfits": [
+    "slave_ragged_m"
+   ]
+  },
+  {
+   "id": "l_trousers",
+   "name": "Loose trousers",
+   "slot": "legs",
+   "layer": "base",
+   "object": "l_trousers",
+   "hides": [
+    "legs"
+   ],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "farmer",
+    "labourer",
+    "smith",
+    "merchant",
+    "guard",
+    "soldier",
+    "traveller",
+    "scholar",
+    "elder",
+    "child"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint",
+    "trim"
+   ],
+   "materials": [
+    "GC_Tint",
+    "GC_Trim"
+   ],
+   "verts": 1184,
+   "tris": 2256,
+   "shapeKeys": 17,
+   "notes": "",
+   "file": "clothes_legs.fbx",
+   "outfits": [
+    "farmer_forest_m",
+    "labourer_river_m",
+    "smith_highland_m",
+    "merchant_river_m",
+    "guard_imperial_m",
+    "scholar_river_f",
+    "traveller_forest_m",
+    "elder_forest_m"
+   ]
+  },
+  {
+   "id": "l_leggings",
+   "name": "Fitted leggings",
+   "slot": "legs",
+   "layer": "base",
+   "object": "l_leggings",
+   "hides": [
+    "legs"
+   ],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "noble",
+    "merchant",
+    "soldier",
+    "scholar",
+    "smith",
+    "child"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint"
+   ],
+   "materials": [
+    "GC_Tint"
+   ],
+   "verts": 1184,
+   "tris": 2256,
+   "shapeKeys": 17,
+   "notes": "",
+   "file": "clothes_legs.fbx",
+   "outfits": [
+    "smith_imperial_m",
+    "noble_imperial_m",
+    "noble_river_m",
+    "soldier_river_f"
+   ]
+  },
+  {
+   "id": "l_breeches",
+   "name": "Knee breeches",
+   "slot": "legs",
+   "layer": "base",
+   "object": "l_breeches",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "farmer",
+    "labourer",
+    "merchant",
+    "traveller"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint",
+    "trim"
+   ],
+   "materials": [
+    "GC_Tint",
+    "GC_Trim"
+   ],
+   "verts": 786,
+   "tris": 1454,
+   "shapeKeys": 17,
+   "notes": "",
+   "file": "clothes_legs.fbx",
+   "outfits": [
+    "farmer_coastal_m",
+    "merchant_coastal_f",
+    "traveller_coastal_f"
+   ]
+  },
+  {
+   "id": "l_baggy",
+   "name": "Baggy trousers",
+   "slot": "legs",
+   "layer": "base",
+   "object": "l_baggy",
+   "hides": [
+    "legs"
+   ],
+   "cultures": [
+    "steppe",
+    "coastal",
+    "imperial"
+   ],
+   "classes": [
+    "labourer",
+    "merchant",
+    "noble",
+    "soldier"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint",
+    "trim"
+   ],
+   "materials": [
+    "GC_Tint",
+    "GC_Trim"
+   ],
+   "verts": 1184,
+   "tris": 2256,
+   "shapeKeys": 17,
+   "notes": "",
+   "file": "clothes_legs.fbx",
+   "outfits": [
+    "labourer_steppe_m",
+    "merchant_steppe_m",
+    "noble_steppe_m",
+    "soldier_steppe_m"
+   ]
+  },
+  {
+   "id": "l_shorts",
+   "name": "Short breeches",
+   "slot": "legs",
+   "layer": "base",
+   "object": "l_shorts",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "child",
+    "labourer",
+    "farmer"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint",
+    "trim"
+   ],
+   "materials": [
+    "GC_Tint",
+    "GC_Trim"
+   ],
+   "verts": 330,
+   "tris": 547,
+   "shapeKeys": 17,
+   "notes": "",
+   "file": "clothes_legs.fbx",
+   "outfits": [
+    "child_river"
+   ]
+  },
+  {
+   "id": "l_greaves",
+   "name": "Plate greaves",
+   "slot": "legs",
+   "layer": "over",
+   "object": "l_greaves",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "guard",
+    "soldier"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "metal"
+   ],
+   "materials": [
+    "GC_Metal"
+   ],
+   "verts": 820,
+   "tris": 1533,
+   "shapeKeys": 13,
+   "notes": "",
+   "file": "clothes_legs.fbx",
+   "outfits": [
+    "guard_imperial_m"
+   ]
+  },
+  {
+   "id": "l_leg_wraps",
+   "name": "Leg wraps",
+   "slot": "legs",
+   "layer": "over",
+   "object": "l_leg_wraps",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "labourer",
+    "traveller",
+    "farmer",
+    "slave",
+    "elder"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint"
+   ],
+   "materials": [
+    "GC_Stripe"
+   ],
+   "verts": 477,
+   "tris": 840,
+   "shapeKeys": 11,
+   "notes": "",
+   "file": "clothes_legs.fbx",
+   "outfits": [
+    "farmer_coastal_m",
+    "slave_ragged_f"
+   ]
+  },
+  {
+   "id": "l_rags",
+   "name": "Ragged trousers",
+   "slot": "legs",
+   "layer": "base",
+   "object": "l_rags",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "slave",
+    "elder"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint"
+   ],
+   "materials": [
+    "GC_Tint"
+   ],
+   "verts": 485,
+   "tris": 817,
+   "shapeKeys": 17,
+   "notes": "",
+   "file": "clothes_legs.fbx",
+   "outfits": [
+    "slave_ragged_m"
+   ]
+  },
+  {
+   "id": "s_skirt_long",
+   "name": "Long skirt",
+   "slot": "skirt",
+   "layer": "over",
+   "object": "s_skirt_long",
+   "hides": [
+    "legs"
+   ],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "farmer",
+    "merchant",
+    "elder",
+    "noble"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint"
+   ],
+   "materials": [
+    "GC_Tint"
+   ],
+   "verts": 360,
+   "tris": 648,
+   "shapeKeys": 17,
+   "notes": "hides legs",
+   "file": "clothes_legs.fbx",
+   "outfits": [
+    "farmer_river_f",
+    "elder_coastal_f"
+   ]
+  },
+  {
+   "id": "s_skirt_short",
+   "name": "Knee-length skirt",
+   "slot": "skirt",
+   "layer": "over",
+   "object": "s_skirt_short",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "farmer",
+    "labourer",
+    "child",
+    "slave"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint",
+    "trim"
+   ],
+   "materials": [
+    "GC_Tint",
+    "GC_Trim"
+   ],
+   "verts": 360,
+   "tris": 648,
+   "shapeKeys": 17,
+   "notes": "",
+   "file": "clothes_legs.fbx",
+   "outfits": [
+    "labourer_coastal_f",
+    "child_highland_f",
+    "slave_ragged_f"
+   ]
+  },
+  {
+   "id": "s_kilt",
+   "name": "Pleated kilt",
+   "slot": "skirt",
+   "layer": "over",
+   "object": "s_kilt",
+   "hides": [],
+   "cultures": [
+    "highland"
+   ],
+   "classes": [
+    "farmer",
+    "guard",
+    "soldier",
+    "smith",
+    "merchant"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint"
+   ],
+   "materials": [
+    "GC_Plaid"
+   ],
+   "verts": 360,
+   "tris": 648,
+   "shapeKeys": 19,
+   "notes": "",
+   "file": "clothes_legs.fbx",
+   "outfits": [
+    "farmer_highland_m",
+    "guard_highland_m"
+   ]
+  },
+  {
+   "id": "s_robe_lower",
+   "name": "Robe (lower)",
+   "slot": "skirt",
+   "layer": "over",
+   "object": "s_robe_lower",
+   "hides": [
+    "legs"
+   ],
+   "cultures": [
+    "imperial",
+    "river",
+    "steppe",
+    "forest",
+    "coastal"
+   ],
+   "classes": [
+    "priest",
+    "scholar",
+    "noble"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint"
+   ],
+   "materials": [
+    "GC_Tint"
+   ],
+   "verts": 360,
+   "tris": 648,
+   "shapeKeys": 19,
+   "notes": "hides legs",
+   "file": "clothes_legs.fbx",
+   "outfits": [
+    "priest_imperial_m",
+    "priest_forest_f",
+    "scholar_imperial_m"
+   ]
+  },
+  {
+   "id": "s_dress_skirt",
+   "name": "Flared dress skirt",
+   "slot": "skirt",
+   "layer": "over",
+   "object": "s_dress_skirt",
+   "hides": [
+    "legs"
+   ],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "noble",
+    "merchant",
+    "elder"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint"
+   ],
+   "materials": [
+    "GC_Tint"
+   ],
+   "verts": 360,
+   "tris": 648,
+   "shapeKeys": 19,
+   "notes": "hides legs",
+   "file": "clothes_legs.fbx",
+   "outfits": [
+    "noble_imperial_f",
+    "noble_highland_f"
+   ]
+  },
+  {
+   "id": "s_tunic_skirt",
+   "name": "Tunic skirt (hip-length hem)",
+   "slot": "skirt",
+   "layer": "over",
+   "object": "s_tunic_skirt",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "labourer",
+    "farmer",
+    "smith",
+    "traveller",
+    "child",
+    "merchant"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint",
+    "trim"
+   ],
+   "materials": [
+    "GC_Tint",
+    "GC_Trim"
+   ],
+   "verts": 360,
+   "tris": 648,
+   "shapeKeys": 19,
+   "notes": "",
+   "file": "clothes_legs.fbx",
+   "outfits": []
+  },
+  {
+   "id": "f_shoes",
+   "name": "Leather shoes",
+   "slot": "feet",
+   "layer": "base",
+   "object": "f_shoes",
+   "hides": [
+    "feet"
+   ],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "merchant",
+    "noble",
+    "scholar",
+    "smith",
+    "farmer",
+    "child"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "leather"
+   ],
+   "materials": [
+    "GC_Leather"
+   ],
+   "verts": 801,
+   "tris": 1542,
+   "shapeKeys": 10,
+   "notes": "",
+   "file": "clothes_feet.fbx",
+   "outfits": [
+    "farmer_river_f",
+    "smith_imperial_m",
+    "merchant_coastal_f",
+    "noble_imperial_f",
+    "noble_highland_f",
+    "scholar_imperial_m",
+    "scholar_river_f",
+    "child_river",
+    "elder_coastal_f"
+   ]
+  },
+  {
+   "id": "f_boots_short",
+   "name": "Short boots",
+   "slot": "feet",
+   "layer": "base",
+   "object": "f_boots_short",
+   "hides": [
+    "feet"
+   ],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "farmer",
+    "labourer",
+    "smith",
+    "merchant",
+    "guard",
+    "soldier",
+    "traveller",
+    "child"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "leather",
+    "trim"
+   ],
+   "materials": [
+    "GC_Trim",
+    "GC_Leather"
+   ],
+   "verts": 1108,
+   "tris": 2156,
+   "shapeKeys": 11,
+   "notes": "",
+   "file": "clothes_feet.fbx",
+   "outfits": [
+    "farmer_highland_m",
+    "farmer_forest_m",
+    "labourer_river_m",
+    "labourer_steppe_m",
+    "smith_highland_m",
+    "merchant_river_m",
+    "guard_highland_m",
+    "soldier_river_f",
+    "traveller_coastal_f",
+    "child_highland_f"
+   ]
+  },
+  {
+   "id": "f_boots_tall",
+   "name": "Tall boots",
+   "slot": "feet",
+   "layer": "base",
+   "object": "f_boots_tall",
+   "hides": [
+    "feet"
+   ],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "noble",
+    "soldier",
+    "guard",
+    "traveller",
+    "merchant"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "leather",
+    "trim"
+   ],
+   "materials": [
+    "GC_Trim",
+    "GC_Leather"
+   ],
+   "verts": 1472,
+   "tris": 2886,
+   "shapeKeys": 11,
+   "notes": "",
+   "file": "clothes_feet.fbx",
+   "outfits": [
+    "merchant_steppe_m",
+    "noble_imperial_m",
+    "noble_river_m",
+    "noble_steppe_m",
+    "guard_imperial_m",
+    "soldier_steppe_m",
+    "traveller_forest_m"
+   ]
+  },
+  {
+   "id": "f_sandals",
+   "name": "Sandals",
+   "slot": "feet",
+   "layer": "base",
+   "object": "f_sandals",
+   "hides": [],
+   "cultures": [
+    "imperial",
+    "coastal",
+    "steppe"
+   ],
+   "classes": [
+    "priest",
+    "labourer",
+    "merchant",
+    "farmer"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "leather"
+   ],
+   "materials": [
+    "GC_Leather"
+   ],
+   "verts": 539,
+   "tris": 854,
+   "shapeKeys": 10,
+   "notes": "",
+   "file": "clothes_feet.fbx",
+   "outfits": [
+    "priest_imperial_m"
+   ]
+  },
+  {
+   "id": "f_sabatons",
+   "name": "Plate sabatons",
+   "slot": "feet",
+   "layer": "base",
+   "object": "f_sabatons",
+   "hides": [
+    "feet"
+   ],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "guard",
+    "soldier"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "metal"
+   ],
+   "materials": [
+    "GC_Metal"
+   ],
+   "verts": 1008,
+   "tris": 1956,
+   "shapeKeys": 11,
+   "notes": "",
+   "file": "clothes_feet.fbx",
+   "outfits": []
+  },
+  {
+   "id": "f_wraps",
+   "name": "Cloth foot wraps",
+   "slot": "feet",
+   "layer": "base",
+   "object": "f_wraps",
+   "hides": [
+    "feet"
+   ],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "labourer",
+    "slave",
+    "priest",
+    "traveller",
+    "elder",
+    "farmer"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint"
+   ],
+   "materials": [
+    "GC_Stripe"
+   ],
+   "verts": 1108,
+   "tris": 2156,
+   "shapeKeys": 11,
+   "notes": "",
+   "file": "clothes_feet.fbx",
+   "outfits": [
+    "farmer_coastal_m",
+    "labourer_coastal_f",
+    "priest_forest_f",
+    "elder_forest_m",
+    "slave_ragged_m"
+   ]
+  },
+  {
+   "id": "o_belt",
+   "name": "Leather belt with buckle",
+   "slot": "overlay",
+   "layer": "over",
+   "object": "o_belt",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "farmer",
+    "labourer",
+    "smith",
+    "merchant",
+    "guard",
+    "soldier",
+    "traveller",
+    "scholar",
+    "child",
+    "noble"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "leather",
+    "metal"
+   ],
+   "materials": [
+    "GC_Leather",
+    "GC_Metal"
+   ],
+   "verts": 116,
+   "tris": 156,
+   "shapeKeys": 19,
+   "notes": "",
+   "file": "clothes_overlays.fbx",
+   "outfits": [
+    "farmer_highland_m",
+    "farmer_coastal_m",
+    "farmer_forest_m",
+    "labourer_river_m",
+    "labourer_coastal_f",
+    "smith_highland_m",
+    "smith_imperial_m",
+    "merchant_river_m",
+    "noble_river_m",
+    "noble_highland_f",
+    "priest_forest_f",
+    "guard_imperial_m",
+    "guard_highland_m",
+    "soldier_river_f",
+    "scholar_imperial_m",
+    "traveller_forest_m",
+    "child_river",
+    "elder_forest_m"
+   ]
+  },
+  {
+   "id": "o_belt_sash",
+   "name": "Wide cloth sash",
+   "slot": "overlay",
+   "layer": "over",
+   "object": "o_belt_sash",
+   "hides": [],
+   "cultures": [
+    "steppe",
+    "coastal",
+    "imperial",
+    "river"
+   ],
+   "classes": [
+    "merchant",
+    "noble",
+    "priest",
+    "labourer"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint"
+   ],
+   "materials": [
+    "GC_Tint"
+   ],
+   "verts": 165,
+   "tris": 240,
+   "shapeKeys": 21,
+   "notes": "",
+   "file": "clothes_overlays.fbx",
+   "outfits": [
+    "labourer_steppe_m",
+    "merchant_coastal_f",
+    "merchant_steppe_m",
+    "noble_imperial_f",
+    "noble_steppe_m",
+    "priest_imperial_m"
+   ]
+  },
+  {
+   "id": "o_bandolier",
+   "name": "Bandolier strap",
+   "slot": "overlay",
+   "layer": "over",
+   "object": "o_bandolier",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "soldier",
+    "traveller",
+    "guard"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "leather"
+   ],
+   "materials": [
+    "GC_Leather"
+   ],
+   "verts": 90,
+   "tris": 112,
+   "shapeKeys": 22,
+   "notes": "",
+   "file": "clothes_overlays.fbx",
+   "outfits": [
+    "soldier_steppe_m",
+    "traveller_forest_m"
+   ]
+  },
+  {
+   "id": "o_apron",
+   "name": "Work apron",
+   "slot": "overlay",
+   "layer": "over",
+   "object": "o_apron",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "farmer",
+    "labourer",
+    "smith",
+    "merchant",
+    "elder"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint",
+    "trim"
+   ],
+   "materials": [
+    "GC_Tint",
+    "GC_Trim"
+   ],
+   "verts": 255,
+   "tris": 360,
+   "shapeKeys": 22,
+   "notes": "",
+   "file": "clothes_overlays.fbx",
+   "outfits": [
+    "farmer_river_f",
+    "labourer_river_m",
+    "smith_highland_m",
+    "smith_imperial_m",
+    "elder_coastal_f"
+   ]
+  },
+  {
+   "id": "o_tabard",
+   "name": "Tabard",
+   "slot": "overlay",
+   "layer": "over",
+   "object": "o_tabard",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "guard",
+    "soldier",
+    "noble"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint",
+    "trim"
+   ],
+   "materials": [
+    "GC_Tint",
+    "GC_Trim"
+   ],
+   "verts": 210,
+   "tris": 336,
+   "shapeKeys": 22,
+   "notes": "",
+   "file": "clothes_overlays.fbx",
+   "outfits": [
+    "guard_imperial_m"
+   ]
+  },
+  {
+   "id": "o_cloak_long",
+   "name": "Long cloak",
+   "slot": "overlay",
+   "layer": "over",
+   "object": "o_cloak_long",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "traveller",
+    "noble",
+    "soldier",
+    "guard",
+    "elder"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint",
+    "trim"
+   ],
+   "materials": [
+    "GC_Tint",
+    "GC_Trim"
+   ],
+   "verts": 338,
+   "tris": 592,
+   "shapeKeys": 19,
+   "notes": "",
+   "file": "clothes_overlays.fbx",
+   "outfits": [
+    "noble_highland_f",
+    "guard_highland_m",
+    "traveller_forest_m",
+    "elder_forest_m"
+   ]
+  },
+  {
+   "id": "o_cape_short",
+   "name": "Short cape",
+   "slot": "overlay",
+   "layer": "over",
+   "object": "o_cape_short",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "noble",
+    "traveller",
+    "merchant",
+    "soldier"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint",
+    "trim"
+   ],
+   "materials": [
+    "GC_Tint",
+    "GC_Trim"
+   ],
+   "verts": 330,
+   "tris": 580,
+   "shapeKeys": 19,
+   "notes": "",
+   "file": "clothes_overlays.fbx",
+   "outfits": [
+    "noble_river_m",
+    "noble_steppe_m",
+    "traveller_coastal_f"
+   ]
+  },
+  {
+   "id": "o_hood",
+   "name": "Hood with cowl",
+   "slot": "overlay",
+   "layer": "over",
+   "object": "o_hood",
+   "hides": [],
+   "cultures": [
+    "forest",
+    "highland",
+    "river",
+    "steppe"
+   ],
+   "classes": [
+    "traveller",
+    "priest",
+    "soldier",
+    "elder",
+    "slave"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint",
+    "trim"
+   ],
+   "materials": [
+    "GC_Tint",
+    "GC_Trim"
+   ],
+   "verts": 612,
+   "tris": 972,
+   "shapeKeys": 60,
+   "notes": "",
+   "file": "clothes_overlays.fbx",
+   "outfits": [
+    "farmer_forest_m",
+    "priest_forest_f"
+   ]
+  },
+  {
+   "id": "o_scarf",
+   "name": "Scarf",
+   "slot": "overlay",
+   "layer": "over",
+   "object": "o_scarf",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "traveller",
+    "merchant",
+    "scholar",
+    "elder",
+    "child"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint"
+   ],
+   "materials": [
+    "GC_Tint"
+   ],
+   "verts": 145,
+   "tris": 208,
+   "shapeKeys": 58,
+   "notes": "",
+   "file": "clothes_overlays.fbx",
+   "outfits": [
+    "labourer_coastal_f",
+    "merchant_river_m",
+    "scholar_river_f",
+    "traveller_coastal_f",
+    "child_highland_f",
+    "elder_forest_m",
+    "elder_coastal_f"
+   ]
+  },
+  {
+   "id": "o_collar_fur",
+   "name": "Fur collar",
+   "slot": "overlay",
+   "layer": "over",
+   "object": "o_collar_fur",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "steppe",
+    "forest",
+    "imperial"
+   ],
+   "classes": [
+    "noble",
+    "merchant",
+    "soldier",
+    "elder"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint"
+   ],
+   "materials": [
+    "GC_Tint"
+   ],
+   "verts": 144,
+   "tris": 216,
+   "shapeKeys": 19,
+   "notes": "",
+   "file": "clothes_overlays.fbx",
+   "outfits": [
+    "merchant_steppe_m",
+    "noble_highland_f",
+    "noble_steppe_m"
+   ]
+  },
+  {
+   "id": "o_pouch",
+   "name": "Belt pouch",
+   "slot": "overlay",
+   "layer": "over",
+   "object": "o_pouch",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "merchant",
+    "farmer",
+    "traveller",
+    "soldier",
+    "noble"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "leather"
+   ],
+   "materials": [
+    "GC_Leather"
+   ],
+   "verts": 16,
+   "tris": 24,
+   "shapeKeys": 16,
+   "notes": "",
+   "file": "clothes_overlays.fbx",
+   "outfits": [
+    "farmer_highland_m",
+    "merchant_river_m",
+    "merchant_coastal_f",
+    "merchant_steppe_m",
+    "soldier_river_f",
+    "traveller_forest_m"
+   ]
+  },
+  {
+   "id": "o_satchel",
+   "name": "Satchel with strap",
+   "slot": "overlay",
+   "layer": "over",
+   "object": "o_satchel",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "scholar",
+    "merchant",
+    "traveller"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "leather"
+   ],
+   "materials": [
+    "GC_Leather"
+   ],
+   "verts": 67,
+   "tris": 88,
+   "shapeKeys": 22,
+   "notes": "",
+   "file": "clothes_overlays.fbx",
+   "outfits": [
+    "scholar_imperial_m",
+    "scholar_river_f",
+    "traveller_coastal_f"
+   ]
+  },
+  {
+   "id": "o_toga_drape",
+   "name": "Draped over-cloth",
+   "slot": "overlay",
+   "layer": "over",
+   "object": "o_toga_drape",
+   "hides": [],
+   "cultures": [
+    "imperial",
+    "coastal"
+   ],
+   "classes": [
+    "noble",
+    "scholar",
+    "priest"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint"
+   ],
+   "materials": [
+    "GC_Tint"
+   ],
+   "verts": 198,
+   "tris": 256,
+   "shapeKeys": 22,
+   "notes": "",
+   "file": "clothes_overlays.fbx",
+   "outfits": [
+    "noble_imperial_m"
+   ]
+  },
+  {
+   "id": "hw_straw_hat",
+   "name": "Wide straw hat",
+   "slot": "headwear",
+   "layer": "over",
+   "object": "hw_straw_hat",
+   "hides": [],
+   "cultures": [
+    "river",
+    "coastal",
+    "imperial"
+   ],
+   "classes": [
+    "farmer",
+    "labourer",
+    "traveller"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint",
+    "trim"
+   ],
+   "materials": [
+    "GC_Tint",
+    "GC_Trim"
+   ],
+   "verts": 504,
+   "tris": 840,
+   "shapeKeys": 30,
+   "notes": "",
+   "file": "clothes_headwear.fbx",
+   "outfits": [
+    "farmer_river_f",
+    "traveller_coastal_f"
+   ]
+  },
+  {
+   "id": "hw_cap_soft",
+   "name": "Soft cap",
+   "slot": "headwear",
+   "layer": "over",
+   "object": "hw_cap_soft",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "farmer",
+    "labourer",
+    "merchant",
+    "child",
+    "noble",
+    "scholar"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint",
+    "trim"
+   ],
+   "materials": [
+    "GC_Tint",
+    "GC_Trim"
+   ],
+   "verts": 313,
+   "tris": 544,
+   "shapeKeys": 30,
+   "notes": "",
+   "file": "clothes_headwear.fbx",
+   "outfits": [
+    "farmer_highland_m",
+    "labourer_river_m",
+    "merchant_river_m",
+    "noble_river_m",
+    "scholar_river_f",
+    "child_river"
+   ]
+  },
+  {
+   "id": "hw_skullcap",
+   "name": "Skullcap",
+   "slot": "headwear",
+   "layer": "over",
+   "object": "hw_skullcap",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "priest",
+    "scholar",
+    "soldier",
+    "elder",
+    "slave"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint",
+    "trim"
+   ],
+   "materials": [
+    "GC_Tint",
+    "GC_Trim"
+   ],
+   "verts": 280,
+   "tris": 504,
+   "shapeKeys": 29,
+   "notes": "",
+   "file": "clothes_headwear.fbx",
+   "outfits": [
+    "farmer_coastal_m",
+    "priest_imperial_m",
+    "soldier_river_f",
+    "scholar_imperial_m",
+    "elder_forest_m",
+    "elder_coastal_f"
+   ]
+  },
+  {
+   "id": "hw_helm_open",
+   "name": "Open helm with nose guard",
+   "slot": "headwear",
+   "layer": "over",
+   "object": "hw_helm_open",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "guard",
+    "soldier"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "metal",
+    "trim"
+   ],
+   "materials": [
+    "GC_Trim",
+    "GC_Metal"
+   ],
+   "verts": 290,
+   "tris": 512,
+   "shapeKeys": 37,
+   "notes": "",
+   "file": "clothes_headwear.fbx",
+   "outfits": [
+    "guard_imperial_m"
+   ]
+  },
+  {
+   "id": "hw_circlet",
+   "name": "Circlet",
+   "slot": "headwear",
+   "layer": "over",
+   "object": "hw_circlet",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "noble"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "metal"
+   ],
+   "materials": [
+    "GC_Metal"
+   ],
+   "verts": 84,
+   "tris": 112,
+   "shapeKeys": 29,
+   "notes": "",
+   "file": "clothes_headwear.fbx",
+   "outfits": [
+    "noble_imperial_m",
+    "noble_imperial_f"
+   ]
+  },
+  {
+   "id": "hw_turban",
+   "name": "Wrapped turban",
+   "slot": "headwear",
+   "layer": "over",
+   "object": "hw_turban",
+   "hides": [],
+   "cultures": [
+    "coastal",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "merchant",
+    "noble",
+    "scholar",
+    "priest"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint",
+    "trim"
+   ],
+   "materials": [
+    "GC_Tint",
+    "GC_Trim"
+   ],
+   "verts": 280,
+   "tris": 504,
+   "shapeKeys": 30,
+   "notes": "",
+   "file": "clothes_headwear.fbx",
+   "outfits": [
+    "merchant_coastal_f"
+   ]
+  },
+  {
+   "id": "hw_fur_cone",
+   "name": "Fur-brimmed pointed cap",
+   "slot": "headwear",
+   "layer": "over",
+   "object": "hw_fur_cone",
+   "hides": [],
+   "cultures": [
+    "steppe",
+    "highland",
+    "forest"
+   ],
+   "classes": [
+    "noble",
+    "merchant",
+    "labourer",
+    "soldier"
+   ],
+   "ages": [
+    "child",
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "tint",
+    "trim"
+   ],
+   "materials": [
+    "GC_Tint",
+    "GC_Trim"
+   ],
+   "verts": 252,
+   "tris": 448,
+   "shapeKeys": 30,
+   "notes": "",
+   "file": "clothes_headwear.fbx",
+   "outfits": [
+    "labourer_steppe_m",
+    "merchant_steppe_m",
+    "noble_steppe_m",
+    "soldier_steppe_m"
+   ]
+  },
+  {
+   "id": "hw_coif",
+   "name": "Mail coif",
+   "slot": "headwear",
+   "layer": "over",
+   "object": "hw_coif",
+   "hides": [],
+   "cultures": [
+    "highland",
+    "river",
+    "coastal",
+    "forest",
+    "steppe",
+    "imperial"
+   ],
+   "classes": [
+    "guard",
+    "soldier"
+   ],
+   "ages": [
+    "adult",
+    "elder"
+   ],
+   "sexes": [
+    "masculine",
+    "feminine"
+   ],
+   "species": [
+    "human",
+    "elf",
+    "dwarf",
+    "halfling",
+    "orc"
+   ],
+   "colourSlots": [
+    "metal"
+   ],
+   "materials": [
+    "GC_Metal"
+   ],
+   "verts": 612,
+   "tris": 1008,
+   "shapeKeys": 61,
+   "notes": "",
+   "file": "clothes_headwear.fbx",
+   "outfits": [
+    "guard_highland_m"
+   ]
+  }
+ ],
+ "outfits": [
+  {
+   "id": "farmer_highland_m",
+   "name": "Highland farmer",
+   "class": "farmer",
+   "culture": "highland",
+   "pieces": [
+    "t_shirt",
+    "a_sleeve_long",
+    "s_kilt",
+    "o_belt",
+    "o_pouch",
+    "f_boots_short",
+    "t_vest_fur",
+    "hw_cap_soft",
+    "h_mittens"
+   ],
+   "tint": "#6b6f4a",
+   "trim": "#8a3b2e",
+   "sex": "masculine",
+   "age": "adult",
+   "note": "",
+   "hidesRegions": [
+    "arms",
+    "feet",
+    "hands",
+    "torso"
+   ],
+   "slots": {
+    "torso": "t_shirt",
+    "arms": "a_sleeve_long",
+    "skirt": "s_kilt",
+    "overlay": "o_pouch",
+    "feet": "f_boots_short",
+    "torso_over": "t_vest_fur",
+    "headwear": "hw_cap_soft",
+    "hands": "h_mittens"
+   }
+  },
+  {
+   "id": "farmer_river_f",
+   "name": "River farmwife",
+   "class": "farmer",
+   "culture": "river",
+   "pieces": [
+    "t_bodice",
+    "a_sleeve_short",
+    "s_skirt_long",
+    "o_apron",
+    "f_shoes",
+    "hw_straw_hat"
+   ],
+   "tint": "#7a6a4a",
+   "trim": "#b08a3a",
+   "sex": "feminine",
+   "age": "adult",
+   "note": "",
+   "hidesRegions": [
+    "feet",
+    "legs",
+    "torso"
+   ],
+   "slots": {
+    "torso": "t_bodice",
+    "arms": "a_sleeve_short",
+    "skirt": "s_skirt_long",
+    "overlay": "o_apron",
+    "feet": "f_shoes",
+    "headwear": "hw_straw_hat"
+   }
+  },
+  {
+   "id": "farmer_coastal_m",
+   "name": "Coastal fisher-farmer",
+   "class": "farmer",
+   "culture": "coastal",
+   "pieces": [
+    "t_jersey",
+    "a_sleeve_short",
+    "l_breeches",
+    "l_leg_wraps",
+    "f_wraps",
+    "hw_skullcap",
+    "o_belt"
+   ],
+   "tint": "#4a5a6a",
+   "trim": "#d8d0b8",
+   "sex": "masculine",
+   "age": "adult",
+   "note": "",
+   "hidesRegions": [
+    "feet",
+    "torso"
+   ],
+   "slots": {
+    "torso": "t_jersey",
+    "arms": "a_sleeve_short",
+    "legs": "l_breeches",
+    "legs_over": "l_leg_wraps",
+    "feet": "f_wraps",
+    "headwear": "hw_skullcap",
+    "overlay": "o_belt"
+   }
+  },
+  {
+   "id": "farmer_forest_m",
+   "name": "Forest homesteader",
+   "class": "farmer",
+   "culture": "forest",
+   "pieces": [
+    "t_jerkin",
+    "t_shirt",
+    "a_sleeve_long",
+    "l_trousers",
+    "f_boots_short",
+    "o_belt",
+    "o_hood",
+    "h_gloves"
+   ],
+   "tint": "#5a6a48",
+   "trim": "#8a5a30",
+   "sex": "any",
+   "age": "adult",
+   "note": "",
+   "hidesRegions": [
+    "arms",
+    "feet",
+    "hands",
+    "legs",
+    "torso"
+   ],
+   "slots": {
+    "torso": "t_shirt",
+    "arms": "a_sleeve_long",
+    "legs": "l_trousers",
+    "feet": "f_boots_short",
+    "overlay": "o_hood",
+    "hands": "h_gloves"
+   }
+  },
+  {
+   "id": "labourer_river_m",
+   "name": "River labourer",
+   "class": "labourer",
+   "culture": "river",
+   "pieces": [
+    "t_shirt",
+    "a_sleeve_rolled",
+    "l_trousers",
+    "o_apron",
+    "f_boots_short",
+    "o_belt",
+    "hw_cap_soft",
+    "a_bracer"
+   ],
+   "tint": "#8a7a5a",
+   "trim": "#5a4630",
+   "sex": "masculine",
+   "age": "adult",
+   "note": "",
+   "hidesRegions": [
+    "feet",
+    "legs",
+    "torso"
+   ],
+   "slots": {
+    "torso": "t_shirt",
+    "arms": "a_sleeve_rolled",
+    "legs": "l_trousers",
+    "overlay": "o_belt",
+    "feet": "f_boots_short",
+    "headwear": "hw_cap_soft",
+    "arms_over": "a_bracer"
+   }
+  },
+  {
+   "id": "labourer_steppe_m",
+   "name": "Steppe herder",
+   "class": "labourer",
+   "culture": "steppe",
+   "pieces": [
+    "t_deel",
+    "a_sleeve_long",
+    "l_baggy",
+    "f_boots_short",
+    "o_belt_sash",
+    "hw_fur_cone",
+    "h_mittens"
+   ],
+   "tint": "#6a4a3a",
+   "trim": "#c0903a",
+   "sex": "masculine",
+   "age": "adult",
+   "note": "",
+   "hidesRegions": [
+    "arms",
+    "feet",
+    "hands",
+    "legs",
+    "torso"
+   ],
+   "slots": {
+    "torso": "t_deel",
+    "arms": "a_sleeve_long",
+    "legs": "l_baggy",
+    "feet": "f_boots_short",
+    "overlay": "o_belt_sash",
+    "headwear": "hw_fur_cone",
+    "hands": "h_mittens"
+   }
+  },
+  {
+   "id": "labourer_coastal_f",
+   "name": "Coastal net-mender",
+   "class": "labourer",
+   "culture": "coastal",
+   "pieces": [
+    "t_jersey",
+    "a_sleeve_short",
+    "s_skirt_short",
+    "f_wraps",
+    "o_belt",
+    "o_scarf"
+   ],
+   "tint": "#5a6a70",
+   "trim": "#c8c0a8",
+   "sex": "feminine",
+   "age": "adult",
+   "note": "",
+   "hidesRegions": [
+    "feet",
+    "torso"
+   ],
+   "slots": {
+    "torso": "t_jersey",
+    "arms": "a_sleeve_short",
+    "skirt": "s_skirt_short",
+    "feet": "f_wraps",
+    "overlay": "o_scarf"
+   }
+  },
+  {
+   "id": "smith_highland_m",
+   "name": "Highland smith",
+   "class": "smith",
+   "culture": "highland",
+   "pieces": [
+    "t_shirt",
+    "a_sleeve_short",
+    "l_trousers",
+    "o_apron",
+    "h_gloves",
+    "a_bracer",
+    "f_boots_short",
+    "o_belt"
+   ],
+   "tint": "#74634a",
+   "trim": "#4a3a2a",
+   "sex": "masculine",
+   "age": "adult",
+   "note": "",
+   "hidesRegions": [
+    "feet",
+    "hands",
+    "legs",
+    "torso"
+   ],
+   "slots": {
+    "torso": "t_shirt",
+    "arms": "a_sleeve_short",
+    "legs": "l_trousers",
+    "overlay": "o_belt",
+    "hands": "h_gloves",
+    "arms_over": "a_bracer",
+    "feet": "f_boots_short"
+   }
+  },
+  {
+   "id": "smith_imperial_m",
+   "name": "Imperial armourer",
+   "class": "smith",
+   "culture": "imperial",
+   "pieces": [
+    "t_clavus",
+    "a_sleeve_short",
+    "l_leggings",
+    "o_apron",
+    "h_gloves",
+    "f_shoes",
+    "o_belt",
+    "a_bracer"
+   ],
+   "tint": "#8a6a4a",
+   "trim": "#7a2a28",
+   "sex": "masculine",
+   "age": "adult",
+   "note": "",
+   "hidesRegions": [
+    "feet",
+    "hands",
+    "legs",
+    "torso"
+   ],
+   "slots": {
+    "torso": "t_clavus",
+    "arms": "a_sleeve_short",
+    "legs": "l_leggings",
+    "overlay": "o_belt",
+    "hands": "h_gloves",
+    "feet": "f_shoes",
+    "arms_over": "a_bracer"
+   }
+  },
+  {
+   "id": "merchant_river_m",
+   "name": "River merchant",
+   "class": "merchant",
+   "culture": "river",
+   "pieces": [
+    "t_doublet",
+    "a_sleeve_fitted",
+    "l_trousers",
+    "f_boots_short",
+    "o_belt",
+    "o_pouch",
+    "hw_cap_soft",
+    "o_scarf"
+   ],
+   "tint": "#3a4a6a",
+   "trim": "#c0a050",
+   "sex": "masculine",
+   "age": "adult",
+   "note": "",
+   "hidesRegions": [
+    "arms",
+    "feet",
+    "legs",
+    "torso"
+   ],
+   "slots": {
+    "torso": "t_doublet",
+    "arms": "a_sleeve_fitted",
+    "legs": "l_trousers",
+    "feet": "f_boots_short",
+    "overlay": "o_scarf",
+    "headwear": "hw_cap_soft"
+   }
+  },
+  {
+   "id": "merchant_coastal_f",
+   "name": "Coastal trader",
+   "class": "merchant",
+   "culture": "coastal",
+   "pieces": [
+    "t_shirt_open",
+    "a_sleeve_puffed",
+    "l_breeches",
+    "f_shoes",
+    "o_belt_sash",
+    "o_pouch",
+    "hw_turban",
+    "t_vest_quilted"
+   ],
+   "tint": "#8a4a3a",
+   "trim": "#d8b048",
+   "sex": "feminine",
+   "age": "adult",
+   "note": "",
+   "hidesRegions": [
+    "arms",
+    "feet"
+   ],
+   "slots": {
+    "torso": "t_shirt_open",
+    "arms": "a_sleeve_puffed",
+    "legs": "l_breeches",
+    "feet": "f_shoes",
+    "overlay": "o_pouch",
+    "headwear": "hw_turban",
+    "torso_over": "t_vest_quilted"
+   }
+  },
+  {
+   "id": "merchant_steppe_m",
+   "name": "Caravan merchant",
+   "class": "merchant",
+   "culture": "steppe",
+   "pieces": [
+    "t_deel",
+    "a_sleeve_long",
+    "l_baggy",
+    "f_boots_tall",
+    "o_belt_sash",
+    "o_pouch",
+    "hw_fur_cone",
+    "o_collar_fur"
+   ],
+   "tint": "#3a5a6a",
+   "trim": "#c0903a",
+   "sex": "masculine",
+   "age": "adult",
+   "note": "",
+   "hidesRegions": [
+    "arms",
+    "feet",
+    "legs",
+    "torso"
+   ],
+   "slots": {
+    "torso": "t_deel",
+    "arms": "a_sleeve_long",
+    "legs": "l_baggy",
+    "feet": "f_boots_tall",
+    "overlay": "o_collar_fur",
+    "headwear": "hw_fur_cone"
+   }
+  },
+  {
+   "id": "noble_imperial_m",
+   "name": "Imperial patrician",
+   "class": "noble",
+   "culture": "imperial",
+   "pieces": [
+    "t_clavus",
+    "a_sleeve_long",
+    "l_leggings",
+    "f_boots_tall",
+    "o_toga_drape",
+    "hw_circlet"
+   ],
+   "tint": "#a89878",
+   "trim": "#6a1f2a",
+   "sex": "masculine",
+   "age": "adult",
+   "note": "",
+   "hidesRegions": [
+    "arms",
+    "feet",
+    "legs",
+    "torso"
+   ],
+   "slots": {
+    "torso": "t_clavus",
+    "arms": "a_sleeve_long",
+    "legs": "l_leggings",
+    "feet": "f_boots_tall",
+    "overlay": "o_toga_drape",
+    "headwear": "hw_circlet"
+   }
+  },
+  {
+   "id": "noble_imperial_f",
+   "name": "Imperial lady",
+   "class": "noble",
+   "culture": "imperial",
+   "pieces": [
+    "t_bodice",
+    "a_sleeve_puffed",
+    "s_dress_skirt",
+    "o_belt_sash",
+    "hw_circlet",
+    "f_shoes"
+   ],
+   "tint": "#5a3a52",
+   "trim": "#c8a048",
+   "sex": "feminine",
+   "age": "adult",
+   "note": "",
+   "hidesRegions": [
+    "arms",
+    "feet",
+    "legs",
+    "torso"
+   ],
+   "slots": {
+    "torso": "t_bodice",
+    "arms": "a_sleeve_puffed",
+    "skirt": "s_dress_skirt",
+    "overlay": "o_belt_sash",
+    "headwear": "hw_circlet",
+    "feet": "f_shoes"
+   }
+  },
+  {
+   "id": "noble_river_m",
+   "name": "River lord",
+   "class": "noble",
+   "culture": "river",
+   "pieces": [
+    "t_doublet",
+    "a_sleeve_puffed",
+    "l_leggings",
+    "f_boots_tall",
+    "o_cape_short",
+    "o_belt",
+    "hw_cap_soft",
+    "h_gloves"
+   ],
+   "tint": "#2f3a5a",
+   "trim": "#c0a050",
+   "sex": "masculine",
+   "age": "adult",
+   "note": "",
+   "hidesRegions": [
+    "arms",
+    "feet",
+    "hands",
+    "legs",
+    "torso"
+   ],
+   "slots": {
+    "torso": "t_doublet",
+    "arms": "a_sleeve_puffed",
+    "legs": "l_leggings",
+    "feet": "f_boots_tall",
+    "overlay": "o_belt",
+    "headwear": "hw_cap_soft",
+    "hands": "h_gloves"
+   }
+  },
+  {
+   "id": "noble_highland_f",
+   "name": "Highland chieftainess",
+   "class": "noble",
+   "culture": "highland",
+   "pieces": [
+    "t_bodice",
+    "a_sleeve_wide",
+    "s_dress_skirt",
+    "o_cloak_long",
+    "o_belt",
+    "f_shoes",
+    "o_collar_fur"
+   ],
+   "tint": "#4a5a48",
+   "trim": "#8a3b2e",
+   "sex": "feminine",
+   "age": "adult",
+   "note": "",
+   "hidesRegions": [
+    "feet",
+    "legs",
+    "torso"
+   ],
+   "slots": {
+    "torso": "t_bodice",
+    "arms": "a_sleeve_wide",
+    "skirt": "s_dress_skirt",
+    "overlay": "o_collar_fur",
+    "feet": "f_shoes"
+   }
+  },
+  {
+   "id": "noble_steppe_m",
+   "name": "Steppe khan",
+   "class": "noble",
+   "culture": "steppe",
+   "pieces": [
+    "t_deel",
+    "a_sleeve_long",
+    "l_baggy",
+    "f_boots_tall",
+    "o_cape_short",
+    "o_collar_fur",
+    "hw_fur_cone",
+    "o_belt_sash",
+    "h_gloves"
+   ],
+   "tint": "#7a2f2a",
+   "trim": "#d0a040",
+   "sex": "masculine",
+   "age": "adult",
+   "note": "",
+   "hidesRegions": [
+    "arms",
+    "feet",
+    "hands",
+    "legs",
+    "torso"
+   ],
+   "slots": {
+    "torso": "t_deel",
+    "arms": "a_sleeve_long",
+    "legs": "l_baggy",
+    "feet": "f_boots_tall",
+    "overlay": "o_belt_sash",
+    "headwear": "hw_fur_cone",
+    "hands": "h_gloves"
+   }
+  },
+  {
+   "id": "priest_imperial_m",
+   "name": "Imperial priest",
+   "class": "priest",
+   "culture": "imperial",
+   "pieces": [
+    "t_robe_top",
+    "a_sleeve_wide",
+    "s_robe_lower",
+    "o_belt_sash",
+    "f_sandals",
+    "hw_skullcap"
+   ],
+   "tint": "#d0c8b0",
+   "trim": "#8a2a30",
+   "sex": "any",
+   "age": "adult",
+   "note": "",
+   "hidesRegions": [
+    "legs",
+    "torso"
+   ],
+   "slots": {
+    "torso": "t_robe_top",
+    "arms": "a_sleeve_wide",
+    "skirt": "s_robe_lower",
+    "overlay": "o_belt_sash",
+    "feet": "f_sandals",
+    "headwear": "hw_skullcap"
+   }
+  },
+  {
+   "id": "priest_forest_f",
+   "name": "Forest druid",
+   "class": "priest",
+   "culture": "forest",
+   "pieces": [
+    "t_robe_top",
+    "a_sleeve_long",
+    "s_robe_lower",
+    "o_hood",
+    "o_belt",
+    "f_wraps"
+   ],
+   "tint": "#5a6a44",
+   "trim": "#a88a3a",
+   "sex": "feminine",
+   "age": "adult",
+   "note": "",
+   "hidesRegions": [
+    "arms",
+    "feet",
+    "legs",
+    "torso"
+   ],
+   "slots": {
+    "torso": "t_robe_top",
+    "arms": "a_sleeve_long",
+    "skirt": "s_robe_lower",
+    "overlay": "o_belt",
+    "feet": "f_wraps"
+   }
+  },
+  {
+   "id": "guard_imperial_m",
+   "name": "Imperial guard",
+   "class": "guard",
+   "culture": "imperial",
+   "pieces": [
+    "t_shirt",
+    "t_breastplate",
+    "a_sleeve_fitted",
+    "a_pauldron",
+    "a_vambrace",
+    "l_trousers",
+    "l_greaves",
+    "f_boots_tall",
+    "h_gauntlets",
+    "o_belt",
+    "o_tabard",
+    "hw_helm_open"
+   ],
+   "tint": "#7a2a2a",
+   "trim": "#c8a048",
+   "sex": "masculine",
+   "age": "adult",
+   "note": "",
+   "hidesRegions": [
+    "arms",
+    "feet",
+    "hands",
+    "legs",
+    "torso"
+   ],
+   "slots": {
+    "torso": "t_shirt",
+    "torso_over": "t_breastplate",
+    "arms": "a_sleeve_fitted",
+    "arms_over": "a_vambrace",
+    "legs": "l_trousers",
+    "legs_over": "l_greaves",
+    "feet": "f_boots_tall",
+    "hands": "h_gauntlets",
+    "overlay": "o_tabard",
+    "headwear": "hw_helm_open"
+   }
+  },
+  {
+   "id": "guard_highland_m",
+   "name": "Highland warden",
+   "class": "guard",
+   "culture": "highland",
+   "pieces": [
+    "t_mail",
+    "a_mail",
+    "s_kilt",
+    "o_belt",
+    "o_cloak_long",
+    "f_boots_short",
+    "h_gloves",
+    "hw_coif"
+   ],
+   "tint": "#4a5a6a",
+   "trim": "#8a3b2e",
+   "sex": "masculine",
+   "age": "adult",
+   "note": "",
+   "hidesRegions": [
+    "feet",
+    "hands",
+    "torso"
+   ],
+   "slots": {
+    "torso": "t_mail",
+    "arms": "a_mail",
+    "skirt": "s_kilt",
+    "overlay": "o_cloak_long",
+    "feet": "f_boots_short",
+    "hands": "h_gloves",
+    "headwear": "hw_coif"
+   }
+  },
+  {
+   "id": "soldier_steppe_m",
+   "name": "Steppe horse-archer",
+   "class": "soldier",
+   "culture": "steppe",
+   "pieces": [
+    "t_deel",
+    "t_breastplate",
+    "a_sleeve_long",
+    "a_vambrace",
+    "l_baggy",
+    "f_boots_tall",
+    "o_bandolier",
+    "hw_fur_cone",
+    "h_gloves"
+   ],
+   "tint": "#5a4a3a",
+   "trim": "#b88a3a",
+   "sex": "masculine",
+   "age": "adult",
+   "note": "",
+   "hidesRegions": [
+    "arms",
+    "feet",
+    "hands",
+    "legs",
+    "torso"
+   ],
+   "slots": {
+    "torso": "t_deel",
+    "torso_over": "t_breastplate",
+    "arms": "a_sleeve_long",
+    "arms_over": "a_vambrace",
+    "legs": "l_baggy",
+    "feet": "f_boots_tall",
+    "overlay": "o_bandolier",
+    "headwear": "hw_fur_cone",
+    "hands": "h_gloves"
+   }
+  },
+  {
+   "id": "soldier_river_f",
+   "name": "River militia",
+   "class": "soldier",
+   "culture": "river",
+   "pieces": [
+    "t_jerkin",
+    "a_sleeve_fitted",
+    "l_leggings",
+    "f_boots_short",
+    "o_belt",
+    "o_pouch",
+    "h_gloves",
+    "hw_skullcap",
+    "a_bracer"
+   ],
+   "tint": "#4a5a48",
+   "trim": "#8a6a3a",
+   "sex": "feminine",
+   "age": "adult",
+   "note": "",
+   "hidesRegions": [
+    "arms",
+    "feet",
+    "hands",
+    "legs",
+    "torso"
+   ],
+   "slots": {
+    "torso": "t_jerkin",
+    "arms": "a_sleeve_fitted",
+    "legs": "l_leggings",
+    "feet": "f_boots_short",
+    "overlay": "o_pouch",
+    "hands": "h_gloves",
+    "headwear": "hw_skullcap",
+    "arms_over": "a_bracer"
+   }
+  },
+  {
+   "id": "scholar_imperial_m",
+   "name": "Imperial scholar",
+   "class": "scholar",
+   "culture": "imperial",
+   "pieces": [
+    "t_robe_top",
+    "a_sleeve_wide",
+    "s_robe_lower",
+    "o_belt",
+    "o_satchel",
+    "f_shoes",
+    "hw_skullcap"
+   ],
+   "tint": "#3a4a5a",
+   "trim": "#c8a048",
+   "sex": "any",
+   "age": "adult",
+   "note": "",
+   "hidesRegions": [
+    "feet",
+    "legs",
+    "torso"
+   ],
+   "slots": {
+    "torso": "t_robe_top",
+    "arms": "a_sleeve_wide",
+    "skirt": "s_robe_lower",
+    "overlay": "o_satchel",
+    "feet": "f_shoes",
+    "headwear": "hw_skullcap"
+   }
+  },
+  {
+   "id": "scholar_river_f",
+   "name": "River scribe",
+   "class": "scholar",
+   "culture": "river",
+   "pieces": [
+    "t_doublet",
+    "a_sleeve_fitted",
+    "l_trousers",
+    "o_scarf",
+    "o_satchel",
+    "f_shoes",
+    "hw_cap_soft"
+   ],
+   "tint": "#5a3a3a",
+   "trim": "#c0a050",
+   "sex": "feminine",
+   "age": "adult",
+   "note": "",
+   "hidesRegions": [
+    "arms",
+    "feet",
+    "legs",
+    "torso"
+   ],
+   "slots": {
+    "torso": "t_doublet",
+    "arms": "a_sleeve_fitted",
+    "legs": "l_trousers",
+    "overlay": "o_satchel",
+    "feet": "f_shoes",
+    "headwear": "hw_cap_soft"
+   }
+  },
+  {
+   "id": "traveller_forest_m",
+   "name": "Forest ranger",
+   "class": "traveller",
+   "culture": "forest",
+   "pieces": [
+    "t_jerkin",
+    "a_sleeve_long",
+    "l_trousers",
+    "f_boots_tall",
+    "o_cloak_long",
+    "o_belt",
+    "o_pouch",
+    "h_gloves",
+    "a_bracer",
+    "o_bandolier"
+   ],
+   "tint": "#566a46",
+   "trim": "#8a5a30",
+   "sex": "masculine",
+   "age": "adult",
+   "note": "",
+   "hidesRegions": [
+    "arms",
+    "feet",
+    "hands",
+    "legs",
+    "torso"
+   ],
+   "slots": {
+    "torso": "t_jerkin",
+    "arms": "a_sleeve_long",
+    "legs": "l_trousers",
+    "feet": "f_boots_tall",
+    "overlay": "o_bandolier",
+    "hands": "h_gloves",
+    "arms_over": "a_bracer"
+   }
+  },
+  {
+   "id": "traveller_coastal_f",
+   "name": "Coastal wanderer",
+   "class": "traveller",
+   "culture": "coastal",
+   "pieces": [
+    "t_jersey",
+    "a_sleeve_short",
+    "l_breeches",
+    "f_boots_short",
+    "o_cape_short",
+    "o_satchel",
+    "hw_straw_hat",
+    "o_scarf"
+   ],
+   "tint": "#4a6a70",
+   "trim": "#d8c8a0",
+   "sex": "feminine",
+   "age": "adult",
+   "note": "",
+   "hidesRegions": [
+    "feet",
+    "torso"
+   ],
+   "slots": {
+    "torso": "t_jersey",
+    "arms": "a_sleeve_short",
+    "legs": "l_breeches",
+    "feet": "f_boots_short",
+    "overlay": "o_scarf",
+    "headwear": "hw_straw_hat"
+   }
+  },
+  {
+   "id": "child_river",
+   "name": "River child",
+   "class": "child",
+   "culture": "river",
+   "pieces": [
+    "t_shirt",
+    "a_sleeve_short",
+    "l_shorts",
+    "f_shoes",
+    "o_belt",
+    "hw_cap_soft"
+   ],
+   "tint": "#8a7a5a",
+   "trim": "#7a4a30",
+   "sex": "any",
+   "age": "child",
+   "note": "",
+   "hidesRegions": [
+    "feet",
+    "torso"
+   ],
+   "slots": {
+    "torso": "t_shirt",
+    "arms": "a_sleeve_short",
+    "legs": "l_shorts",
+    "feet": "f_shoes",
+    "overlay": "o_belt",
+    "headwear": "hw_cap_soft"
+   }
+  },
+  {
+   "id": "child_highland_f",
+   "name": "Highland girl",
+   "class": "child",
+   "culture": "highland",
+   "pieces": [
+    "t_bodice",
+    "a_sleeve_short",
+    "s_skirt_short",
+    "f_boots_short",
+    "o_scarf"
+   ],
+   "tint": "#6a4a52",
+   "trim": "#c0a050",
+   "sex": "feminine",
+   "age": "child",
+   "note": "",
+   "hidesRegions": [
+    "feet",
+    "torso"
+   ],
+   "slots": {
+    "torso": "t_bodice",
+    "arms": "a_sleeve_short",
+    "skirt": "s_skirt_short",
+    "feet": "f_boots_short",
+    "overlay": "o_scarf"
+   }
+  },
+  {
+   "id": "elder_forest_m",
+   "name": "Forest elder",
+   "class": "elder",
+   "culture": "forest",
+   "pieces": [
+    "t_shirt_open",
+    "a_sleeve_long",
+    "l_trousers",
+    "o_cloak_long",
+    "o_scarf",
+    "f_wraps",
+    "o_belt",
+    "hw_skullcap",
+    "t_vest_fur"
+   ],
+   "tint": "#6a6a58",
+   "trim": "#8a5a30",
+   "sex": "masculine",
+   "age": "elder",
+   "note": "",
+   "hidesRegions": [
+    "arms",
+    "feet",
+    "legs"
+   ],
+   "slots": {
+    "torso": "t_shirt_open",
+    "arms": "a_sleeve_long",
+    "legs": "l_trousers",
+    "overlay": "o_belt",
+    "feet": "f_wraps",
+    "headwear": "hw_skullcap",
+    "torso_over": "t_vest_fur"
+   }
+  },
+  {
+   "id": "elder_coastal_f",
+   "name": "Coastal grandmother",
+   "class": "elder",
+   "culture": "coastal",
+   "pieces": [
+    "t_bodice",
+    "a_sleeve_long",
+    "s_skirt_long",
+    "o_apron",
+    "o_scarf",
+    "f_shoes",
+    "hw_skullcap"
+   ],
+   "tint": "#5a6a6a",
+   "trim": "#c8c0a8",
+   "sex": "feminine",
+   "age": "elder",
+   "note": "",
+   "hidesRegions": [
+    "arms",
+    "feet",
+    "legs",
+    "torso"
+   ],
+   "slots": {
+    "torso": "t_bodice",
+    "arms": "a_sleeve_long",
+    "skirt": "s_skirt_long",
+    "overlay": "o_scarf",
+    "feet": "f_shoes",
+    "headwear": "hw_skullcap"
+   }
+  },
+  {
+   "id": "slave_ragged_m",
+   "name": "Ragged bondsman",
+   "class": "slave",
+   "culture": "any",
+   "pieces": [
+    "t_rags",
+    "a_rags",
+    "l_rags",
+    "f_wraps",
+    "h_wraps"
+   ],
+   "tint": "#8a7c62",
+   "trim": "#6a5a44",
+   "sex": "masculine",
+   "age": "adult",
+   "note": "",
+   "hidesRegions": [
+    "feet"
+   ],
+   "slots": {
+    "torso_over": "t_rags",
+    "arms": "a_rags",
+    "legs": "l_rags",
+    "feet": "f_wraps",
+    "hands": "h_wraps"
+   }
+  },
+  {
+   "id": "slave_ragged_f",
+   "name": "Ragged bondswoman",
+   "class": "slave",
+   "culture": "any",
+   "pieces": [
+    "t_rags",
+    "a_rags",
+    "s_skirt_short",
+    "l_leg_wraps"
+   ],
+   "tint": "#80745c",
+   "trim": "#6a5a44",
+   "sex": "feminine",
+   "age": "adult",
+   "note": "",
+   "hidesRegions": [],
+   "slots": {
+    "torso_over": "t_rags",
+    "arms": "a_rags",
+    "skirt": "s_skirt_short",
+    "legs_over": "l_leg_wraps"
+   }
+  }
+ ]
+}

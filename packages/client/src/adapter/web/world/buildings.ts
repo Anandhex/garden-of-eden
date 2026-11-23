@@ -5,7 +5,7 @@
  * is drawn as a plain block, never as nothing.
  */
 import * as Phaser from "phaser";
-import { dress, templateById, templateFor, type Frame } from "@millbrook/shared/view";
+import { dress, templateById, templateFor, type Frame } from "@garden-of-eden/shared/view";
 import type { Core } from "../../../core";
 import { pickFrame, warnMissing, type Pick } from "../art";
 import { DPR, font } from "./actors";

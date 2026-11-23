@@ -16,7 +16,7 @@ import type {
   AdminSearchResult,
   AdminTimeRequest,
   AdminTimeResponse,
-} from "@millbrook/shared";
+} from "@garden-of-eden/shared";
 
 /** The admin page's calls (N17). Everything is a GET except the time controls. */
 

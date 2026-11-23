@@ -1,0 +1,18 @@
+var specs = new GardenOfEden.World.PersonSpec[] {
+  new GardenOfEden.World.PersonSpec { id = REFID, species = "human", sex = "f", age = "adult", cls = "gentry", job = "scholar", culture = "river" },
+};
+float x0 = 0f;
+foreach (var sp in specs) {
+  var ex = stage.transform.Find("ref " + sp.id); if (ex != null) { info += "reuse; "; x0 += 1f; continue; }
+  var t = GardenOfEden.World.PersonFactory.Request(sp);
+  int guard = 0; while (!t.Done && guard++ < 2000) GardenOfEden.World.PersonFactory.Tick(100);
+  var go = GardenOfEden.World.PersonFactory.Create(t.built, stage.transform, "ref " + sp.id);
+  go.transform.localPosition = new UnityEngine.Vector3(x0, 0, 0); go.transform.localRotation = UnityEngine.Quaternion.Euler(0, 20, 0);
+  var an = go.GetComponent<UnityEngine.Animator>(); an.cullingMode = UnityEngine.AnimatorCullingMode.AlwaysAnimate; an.Play("Locomotion", 0, 0.3f);
+  x0 += 1.0f;
+  info += t.built.recipe.describe + " outfit=" + (t.built.recipe.outfit != null ? t.built.recipe.outfit.id : "-") + " hair=" + t.built.recipe.hairObj + " beard=" + t.built.recipe.beardObj + " tris=" + t.built.tris + "; ";
+}
+var sun = UnityEngine.RenderSettings.sun; var sunRot = sun.transform.rotation; var sunCol = sun.color; var sunI = sun.intensity;
+sun.transform.rotation = UnityEngine.Quaternion.LookRotation(new UnityEngine.Vector3(-0.55f, -0.55f, -0.62f)); sun.color = new UnityEngine.Color(1f, 0.88f, 0.74f); sun.intensity = 1.25f;
+var cpos = cam.transform.position; var crot = cam.transform.rotation; var cfov = cam.fieldOfView;
+cam.transform.position = stage.transform.position + new UnityEngine.Vector3(CAMX, CAMY, CAMZ); cam.transform.LookAt(stage.transform.position + new UnityEngine.Vector3(0, LOOKY, 0)); cam.fieldOfView = FOV;

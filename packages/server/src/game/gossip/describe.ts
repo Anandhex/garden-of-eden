@@ -1,4 +1,4 @@
-import { CLASS_RANK, hashStr, type SocialClass } from "@millbrook/shared";
+import { CLASS_RANK, hashStr, type SocialClass } from "@garden-of-eden/shared";
 import type { LifeCtx } from "../people/step.js";
 import { deathWords, parseDeath, type DeathCause } from "../people/death.js";
 import { parseRef } from "./refs.js";

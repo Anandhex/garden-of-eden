@@ -1,0 +1,1 @@
+cam.transform.position = cpos; cam.transform.rotation = crot; cam.fieldOfView = cfov; sun.transform.rotation = sunRot; sun.color = sunCol; sun.intensity = sunI;

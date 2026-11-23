@@ -4,7 +4,7 @@
  * with posts manned by named guards on a rota and the ways round them: rank, papers, a bribe, sneaking.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { canEnter, districtsOf, FOOTPRINT, type District, type Entrant } from "@millbrook/shared";
+import { canEnter, districtsOf, FOOTPRINT, type District, type Entrant } from "@garden-of-eden/shared";
 import { config } from "../src/config.js";
 import { WorldStore } from "../src/game/db.js";
 import { seededRng } from "../src/game/dice.js";
@@ -166,7 +166,11 @@ describe("N26H steps 3–5: homes, access and the ways in", () => {
     const d = m.districts.find((r) => r.district.id === post.district)!.district as District;
     const guard = onDuty(store, post, posts, 4, 23)!;
     const greedy = () => store.people.update(guard.id, { traits: JSON.stringify({ ...traitsOfRow(guard), greed: 1, loyalty: 0 }) });
-    const loyal = () => store.people.update(guard.id, { traits: JSON.stringify({ ...traitsOfRow(guard), greed: 0, loyalty: 1 }) });
+    // Whoever stands the watch on the next day (the rota depends on how many gates the layout has) is the loyal one.
+    const loyal = () => {
+      const next = onDuty(store, post, posts, 5, 23) ?? guard;
+      for (const g of [guard, next]) store.people.update(g.id, { traits: JSON.stringify({ ...traitsOfRow(g), greed: 0, loyalty: 1 }) });
+    };
     greedy();
     const p = { name: "Tester", money: 1000, hp: 30, maxHp: 30, factions: [], papers: [] } as never as Parameters<typeof offerBribe>[2];
     const r = offerBribe(realm, store, p, post, posts, d, 4, 23, seededRng(1));

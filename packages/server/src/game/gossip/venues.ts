@@ -1,4 +1,4 @@
-import { CLASS_RANK, type SocialClass } from "@millbrook/shared";
+import { CLASS_RANK, type SocialClass } from "@garden-of-eden/shared";
 import type { PersonRow } from "../../store/peopleStore.js";
 import { MARKET_EVERY, marketOffsetOf } from "../events-calendar.js";
 import { seedFrom, seededRng } from "../dice.js";

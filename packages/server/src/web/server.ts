@@ -10,8 +10,9 @@ import { maxSkipHours, passUntil, summaryLines, type WakeCondition } from "../ga
 import { follow, unfollow } from "../game/follow/follow.js";
 import { playerWrites } from "../game/follow/letters.js";
 import { enter, householdOf, interiorAt, lockedNow, peopleInside, search, stepInside, take, takeable, type InsideCtx } from "../game/interior/inside.js";
-import { floorTiles, furnitureOn, ITILE, type InsideView, type TileKind } from "@millbrook/shared";
+import { floorTiles, furnitureOn, ITILE, type InsideView, type TileKind } from "@garden-of-eden/shared";
 import { doorOf } from "../view/frame.js";
+import { cultureAt } from "../game/culture/model.js";
 import { marksToDraw } from "../game/marks/rules.js";
 import { animalsNear, huntAnimal, natureView, showToHerbalist, tameStray, useWildItem } from "../game/nature/wild.js";
 import { loadSpecies } from "../game/nature/species.js";
@@ -20,6 +21,7 @@ import { forceGate, offerBribe, onDuty, playerMayEnter, refusal, sneakPast, type
 import { districtAt } from "./districtLayout.js";
 import { surrenderToJustice } from "../game/crime.js";
 import { captiveAct, isCaptive, isHeld } from "../game/law/taken.js";
+import { eatTaboo, societyAct, societyView } from "../game/society/player.js";
 import { reportFind, unreported } from "../game/road/wildPlaces.js";
 import { commutersNear } from "../game/road/commute.js";
 import { fieldStagesIn } from "../game/farm/day.js";
@@ -109,7 +111,7 @@ import { OllamaEmbedder } from "../llm/ollama.js";
 import { forage, playerCraft } from "../game/gathering.js";
 import { destinations } from "../game/realm/travel.js";
 import { roadDataOf } from "../game/road/generateRoads.js";
-import { shortestWay, WALK_PACE } from "@millbrook/shared";
+import { shortestWay, WALK_PACE } from "@garden-of-eden/shared";
 import { topUp } from "../game/road/needs.js";
 import { areaWords, DEN_COLORS, exitTo, exitUnder, PLAIN_VILLAGE, siteMap, type SiteMap } from "./sites.js";
 import { ongoing } from "../game/realm/diplomacy.js";
@@ -127,7 +129,7 @@ import { dismiss } from "../game/party.js";
 import { describeStatuses } from "../game/status.js";
 import { visibleHealth } from "../game/health.js";
 import { describeArcs } from "../npc/arcs.js";
-import { CrowdSim, type CrowdDay, WANDER_MINUTES, DEFAULT_VOICE, MAX_SPEAK_CHARS, speakable, type GameEvent, type NewsItem, type NpcView, type Pos, type Snapshot, type StreamEvent } from "@millbrook/shared";
+import { CrowdSim, type CrowdDay, WANDER_MINUTES, DEFAULT_VOICE, MAX_SPEAK_CHARS, speakable, type GameEvent, type NewsItem, type NpcView, type Pos, type Snapshot, type StreamEvent } from "@garden-of-eden/shared";
 import type { AppliedAction } from "../npc/types.js";
 import { ActionQueue } from "./queue.js";
 import { captureFrame, turnEvents } from "../game/turnEvents.js";
@@ -723,6 +725,7 @@ function snapshot(): Snapshot {
     leisure: leisureView(town),
     board: config.market ? boardView(town) : null,
     items: itemsView(town),
+    society: insideNow ? null : societyView(town, local().filter((id) => !agents[id]!.state.dormant)),
     player: {
       follows: Object.entries(p.follows ?? {}).map(([id, f]) => ({ id, name: f.name, why: f.why, last: f.lastKnown ? `${f.lastKnown.dead ? "dead, heard" : `last known in ${world.realm?.settlements[f.lastKnown.site ?? ""]?.name ?? "parts unknown"}`} (day ${f.lastKnown.day}, ${f.lastKnown.how})` : "not heard of since", news: f.heard.map((h) => `day ${h.day}: ${h.text} (${h.from})`) })),
       letters: (p.letters ?? []).map((l) => ({ from: l.fromName, day: l.written, text: l.text })),
@@ -1170,7 +1173,27 @@ async function act(body: Record<string, unknown>, emit: Emit): Promise<void> {
     }
     return;
   }
-  if (action === "eat") return void emit({ t: "note", kind: "action", text: town.road.eat(String(body.item ?? ""))[0]! });
+  if (action === "eat") {
+    emit({ t: "note", kind: "action", text: town.road.eat(String(body.item ?? ""))[0]! });
+    // Eating what's forbidden here, where people see it, is a taboo broken (N53, N70).
+    for (const text of town.road.onRoad() ? [] : eatTaboo(town, String(body.item ?? ""))) emit({ t: "note", kind: "fail", text });
+    return;
+  }
+  // Society (N70): secrets, the underworld, the law, magic, rumours, customs, the war, a slave's ways out. One action, many ops.
+  if (action === "society") {
+    if (currentFight()) return void emit({ t: "system", text: "Not in the middle of a fight." });
+    const from = town.site();
+    const r = societyAct(town, String(body.op ?? ""), body);
+    for (const text of r.lines) emit({ t: "note", kind: r.ok ? "action" : "fail", text });
+    // An escape lands the player in another place: stand them at its gate.
+    if (town.site() !== from) {
+      world.position = { ...here().start };
+      placeCreatures();
+    }
+    if (r.hours) for (const line of passHours(r.hours)) emit({ t: "system", text: line });
+    for (const text of town.consequences()) emit({ t: "system", text });
+    return;
+  }
   // Something gathered (N28): brewed into a tea, or pressed to a wound.
   if (action === "brew" || action === "apply") {
     for (const text of useWildItem(town, String(body.item ?? ""), action === "brew" ? "brewed" : "applied")) emit({ t: "note", kind: "action", text });
@@ -1963,7 +1986,7 @@ async function runAct(body: Record<string, unknown>, emit: Emit): Promise<void> 
       turnActions = [];
       try {
         // Waiting, opening a chat and fighting creatures need no model.
-        const offline = ["travel", "wait", "open", "hunt", "escape", "equip", "unequip", "look", "retrieve", "raise", "join", "dismiss", "forage", "craft", "sneak", "loot", "payfine", "surrender", "joinguild", "delve", "situation", "camp", "fasttravel", "coach", "joinjourney", "rob", "roadplace", "eat", "drink", "mount", "insult", "confront", "reportfind", "brew", "apply", "tame", "identify", "picklock", "search", "take", "leave", "follow", "unfollow", "write", "waituntil", "incident", "gamble", "contest", "organise", "rig", "rematch", "claimjob", "giveupjob", "joinparty", "giveback"].includes(String(body.action));
+        const offline = ["travel", "wait", "open", "hunt", "escape", "equip", "unequip", "look", "retrieve", "raise", "join", "dismiss", "forage", "craft", "sneak", "loot", "payfine", "surrender", "joinguild", "delve", "situation", "camp", "fasttravel", "coach", "joinjourney", "rob", "roadplace", "eat", "drink", "mount", "insult", "confront", "reportfind", "brew", "apply", "tame", "identify", "picklock", "search", "take", "leave", "follow", "unfollow", "write", "waituntil", "incident", "gamble", "contest", "organise", "rig", "rematch", "claimjob", "giveupjob", "joinparty", "giveback", "society"].includes(String(body.action));
         if (!llmReady && !offline) await checkLlm();
         if (!llmReady && !offline) emit({ t: "error", text: llmError });
         else await act(body, emit);
@@ -2013,6 +2036,8 @@ const viewHost: ViewHost = {
     return journeysNear(realm, landOf(realm).data, road, radius + 10, town.road.minute()).map((x) => x.journey);
   },
   buildLook: () => (world.realm ? buildLookOf(world.realm, town.site()) : null),
+  cultureStyle: () => (world.realm ? cultureAt(world.realm, town.site())?.template ?? null : null),
+  townSpecies: () => world.realm?.settlements[town.site()]?.species ?? null,
   placeName: (id) => world.realm?.settlements[id]?.name ?? id,
   realm: () => (world.realm ? realmView(world.realm, { here: town.site(), heard: (id) => town.siteHere().newsSeen.includes(id), sworn: store.people.swornByFaction() }) : null),
   quoteTraining: (id, skillName, hours) => {
