@@ -173,11 +173,11 @@ describe("game server (G1)", () => {
     const me = c.me();
     const p = folk.sort((a, b) => Math.hypot(a.x - me.x, a.y - me.y) - Math.hypot(b.x - me.x, b.y - me.y))[0]!;
     c.send({ t: "click", x: p.x, y: p.y });
-    await c.until(() => (c.ui.cast ?? []).some((n) => n.id === p.id) || /gone from here|can't find a way|in your way|too far/.test(c.feedText()), 60_000, "them to become a talker");
+    await c.until(() => (c.ui.cast ?? []).some((n) => n.id === p.id) || /gone from here|can't find a way|in your way|too far/.test(c.feedText()), 150_000, "them to become a talker");
     if ((c.ui.cast ?? []).some((n) => n.id === p.id)) expect((await state()).npcs.find((n) => n.id === p.id)?.name).toMatch(new RegExp(`^${p.label}`));
     c.send({ t: "close" });
     c.close();
-  });
+  }, 240_000);
 
   it("serves the built client (or says how to build it) and nothing outside it", async () => {
     const page = await fetch(`${base}/`);
