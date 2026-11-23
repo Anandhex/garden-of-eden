@@ -7,6 +7,8 @@ export * from "./sound.js";
 export * from "./templates.js";
 /** Regional building styles (G8): a place built the way its people build, with what its land gives. */
 export * from "./styles.js";
+/** Regional building shapes (G8): roof forms, heights, footings and stilts from a place's culture, land and wealth. */
+export * from "./shapes.js";
 export type { GameEvent } from "../events.js";
 /** Speech (T14): voices and splitting a reply into sentences to speak, for any adapter that plays `speech`. */
 export { SentenceSplitter, findSentenceEnd, speakable } from "../sentences.js";

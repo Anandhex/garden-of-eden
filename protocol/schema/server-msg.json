@@ -71,6 +71,38 @@
                     "number",
                     "null"
                   ]
+                },
+                "locale": {
+                  "type": "object",
+                  "properties": {
+                    "culture": {
+                      "type": "string"
+                    },
+                    "terrain": {
+                      "type": "string"
+                    },
+                    "wealth": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    "size": {
+                      "type": "string"
+                    },
+                    "colours": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "culture",
+                    "terrain",
+                    "wealth",
+                    "size"
+                  ],
+                  "additionalProperties": false
                 }
               },
               "required": [

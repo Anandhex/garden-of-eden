@@ -1,5 +1,6 @@
 import { moodLine } from "../game/mood/model.js";
 import { buildLookOf } from "../game/culture/look.js";
+import { cultureAt } from "../game/culture/model.js";
 import { startCandidates } from "../game/realm/start.js";
 import { boardView, playerClaim, playerGiveUp, playerJoinParty } from "../game/market/player.js";
 import { giveBack, itemsView } from "../game/items/player.js";
@@ -1994,6 +1995,13 @@ const viewHost: ViewHost = {
   crowd: crowdHere,
   land: () => (world.realm ? landOf(world.realm) : null),
   roadData: () => (world.realm ? roadDataOf(world.realm) : null),
+  locale: () => {
+    if (!world.realm || town.road.onRoad() || world.player.area !== undefined) return null;
+    const site = world.realm.settlements[town.site()];
+    if (!site) return null;
+    const c = cultureAt(world.realm, site.id);
+    return { culture: c?.template ?? "", terrain: site.terrain, wealth: Math.max(0, Math.min(1, site.prosperity / 100)), size: site.kind, ...(c ? { colours: c.colours } : {}) };
+  },
   marks: () => (world.realm && !town.road.onRoad() && world.player.area === undefined ? marksToDraw(world.realm, town.store ?? null, town.site(), world.day, here()) : []),
   fieldStages: (x0, y0, w, h) => (world.realm && town.store ? fieldStagesIn(world.realm, town.store, x0, y0, w, h, world.day) : new Map()),
   commuters: (radius) =>

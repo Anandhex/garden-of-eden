@@ -6,6 +6,7 @@
  */
 import { z } from "zod";
 import { ScapeInputSchema } from "./sound.js";
+import { LocaleSchema } from "./shapes.js";
 
 /** Bumped when a message changes shape; the server refuses a client with another version. */
 export const PROTOCOL_VERSION = 1;
@@ -101,7 +102,8 @@ export type Mark = z.infer<typeof MarkSchema>;
 export const ChatterSchema = z.object({ a: z.string(), b: z.string(), lines: z.tuple([z.string(), z.string()]), hot: z.boolean(), bow: z.boolean() });
 
 export const FrameSchema = z.object({
-  map: z.object({ id: z.string(), name: z.string(), kind: z.enum(["place", "road"]), w: z.number().nullable(), h: z.number().nullable() }),
+  /** `locale` (G8): who built the place and where, so an adapter builds its buildings in the local style (architecture.ts). */
+  map: z.object({ id: z.string(), name: z.string(), kind: z.enum(["place", "road"]), w: z.number().nullable(), h: z.number().nullable(), locale: LocaleSchema.optional() }),
   box: z.object({ x0: z.number(), y0: z.number(), x1: z.number(), y1: z.number() }),
   patches: z.array(PatchSchema).optional(),
   buildings: z.array(BuildingSchema).optional(),

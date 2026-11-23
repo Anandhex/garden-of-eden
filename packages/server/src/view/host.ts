@@ -28,6 +28,8 @@ export interface ViewHost {
   roadData(): RoadData | null;
   /** The fields in a rectangle of the road world (N26G): each plot tile's stage (0..7 growing, 10+ a mark), keyed "x,y". */
   fieldStages?(x0: number, y0: number, w: number, h: number): Map<string, number>;
+  /** Who built the place the player is in and where (G8): its culture, land, wealth and size, for its buildings' style; null on the road or without a realm. */
+  locale?(): import("@millbrook/shared/view").Locale | null;
   /** The marks on the place the player is in (N31): burned houses, scaffolding, graves, banners, empty stalls. */
   marks?(): import("@millbrook/shared/view").Mark[];
   /** The journeys within `radius` tiles of the player on the road now. */

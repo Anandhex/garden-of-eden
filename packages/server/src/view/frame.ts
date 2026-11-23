@@ -525,10 +525,12 @@ export function buildFrame(f: FrameInput): Frame {
 
   // ---- what there is to hear (N29): facts only; the adapter's soundscape() decides the mix ----
   const sound = soundOf(s, sim, pos, land);
+  // ---- the place's regional style (G8): only for a place's own buildings, not the road or an interior ----
+  const locale = s.road || s.inside ? null : (host.locale?.() ?? null);
 
   return {
     sound,
-    map: { id: mapId, name: s.road ? s.road.where : s.map.name, kind: s.road ? "road" : "place", w: s.road ? null : s.map.w, h: s.road ? null : s.map.h },
+    map: { id: mapId, name: s.road ? s.road.where : s.map.name, kind: s.road ? "road" : "place", w: s.road ? null : s.map.w, h: s.road ? null : s.map.h, ...(locale ? { locale } : {}) },
     box,
     patches,
     buildings,
