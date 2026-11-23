@@ -28,6 +28,7 @@ import type { PersonRow } from "../store/peopleStore.js";
 import { materialisePeople } from "../store/materialise.js";
 import { type BoundResult, checkAll } from "./bounds.js";
 import { type Sample, sampleWorld } from "./sample.js";
+import { livenessAverages, livenessDays } from "../game/stories/liveness.js";
 
 /**
  * The long-run runner (N22 step 1): a fresh world from a seed, run a day at a time through the same entry point the
@@ -112,9 +113,29 @@ function endBounds(realm: Realm, store: WorldStore, everyone: boolean): BoundRes
   const n25 = checkLifeBounds(realm, store).map((b) => ({ id: b.name, phase: "N25", ok: everyone ? b.ok : true, detail: everyone ? b.detail : `not judged in a slice run (${b.detail})` }));
   const n33 = checkGossipBounds(realm, store).map((b) => ({ id: b.name, phase: "N33", ok: b.ok, detail: b.detail }));
   const society = checkSocietyBounds(realm, store).map((b) => ({ id: b.name, phase: b.phase, ok: b.ok, detail: b.detail }));
-  return [...n25, ...n33, ...society, ...n26f, ...n26g, ...n26h, ...n26i, ...n27, ...n28, ...n30, ...n31, ...n32, ...n36, ...n41, ...n42, ...n43, ...n44, ...checkRoadBounds(realm, store.people)].map((b) =>
+  const n20 = livenessBounds(store, config.daysPerYear);
+  return [...n20, ...n25, ...n33, ...society, ...n26f, ...n26g, ...n26h, ...n26i, ...n27, ...n28, ...n30, ...n31, ...n32, ...n36, ...n41, ...n42, ...n43, ...n44, ...checkRoadBounds(realm, store.people)].map((b) =>
     // Traffic and news travel with people: where most places don't live as rows (a slice run), there's hardly anyone on the
     // roads to carry it, so don't judge them.
     "phase" in b ? b : (b.name === "news-reaches" || b.name === "roads-not-empty") && !everyone ? { id: b.name, phase: "N26", ok: true, detail: `not judged in a slice run (${b.detail})` } : { id: b.name, phase: "N26", ok: b.ok, detail: b.detail },
   );
+}
+
+/** N20's numbers over the run (N22): the world keeps making chains of consequence every year, and no day stalls. */
+export const LIVENESS = { chainsPerYear: 1, actionsFloor: 3 } as const;
+
+function livenessBounds(store: WorldStore, daysPerYear: number): BoundResult[] {
+  const days = livenessDays(store, 100000).filter((d) => d.day > 2);
+  if (days.length === 0) return [];
+  const years = new Map<number, number>();
+  for (const d of days) years.set(Math.floor((d.day - 1) / daysPerYear), (years.get(Math.floor((d.day - 1) / daysPerYear)) ?? 0) + d.storiesGrew);
+  // The last year is judged only when whole.
+  const whole = [...years].filter(([y]) => (y + 1) * daysPerYear <= days.at(-1)!.day);
+  const thin = whole.filter(([, n]) => n < LIVENESS.chainsPerYear);
+  const low = days.reduce((m, d) => (d.distinctActions < m.distinctActions ? d : m), days[0]!);
+  const avg = livenessAverages(days);
+  return [
+    { id: "chains-each-year", phase: "N20", ok: thin.length === 0, detail: `chains longer than 3 that grew, by year: ${whole.map(([, n]) => n).join(", ") || "(no whole year)"}` },
+    { id: "liveness-floor", phase: "N20", ok: low.distinctActions >= LIVENESS.actionsFloor, detail: `fewest distinct actions in a day: ${low.distinctActions} (day ${low.day}); a day's average: ${avg.distinctActions} actions, ${avg.events} events, ${avg.namedMoved} about named people` },
+  ];
 }

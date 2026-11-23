@@ -34,6 +34,11 @@ export const TABLES = {
   parties: ["id", "leader", "members", "roles", "shares", "formed", "disbanded", "record"],
   notable_items: ["id", "base", "tier", "name", "named_by", "maker", "made_day", "made_site", "holder", "holder_since", "fame", "history", "lost"],
   records: ["id", "kind", "site", "a", "b", "data", "since", "status", "ended"],
+  event_causes: ["ref", "cause"],
+  stories: ["id", "sink", "score", "data", "first_day", "last_day", "open"],
+  metrics_daily: ["day", "data"],
+  drama_log: ["id", "day", "thread", "action", "reason"],
+  callbacks: ["id", "choice", "outcome", "data", "found", "told"],
 } as const;
 export type TableName = keyof typeof TABLES;
 
@@ -62,6 +67,11 @@ export const ORDER_BY: Record<TableName, string> = {
   parties: "id",
   notable_items: "id",
   records: "id",
+  event_causes: "ref, cause",
+  stories: "id",
+  metrics_daily: "day",
+  drama_log: "id",
+  callbacks: "id",
 };
 
 const V1 = `
@@ -302,6 +312,25 @@ const MIGRATIONS: Array<(db: DatabaseSync) => void> = [
       CREATE TABLE IF NOT EXISTS records (id TEXT PRIMARY KEY, kind TEXT NOT NULL, site TEXT, a TEXT, b TEXT, data TEXT NOT NULL, since INTEGER NOT NULL, status TEXT NOT NULL, ended INTEGER);
       CREATE INDEX IF NOT EXISTS records_kind ON records(kind, site);
     `);
+  },
+  // 19: N20 stories, drama and liveness. `event_causes` is each event's causes, a row each, both ways indexed (what caused this, what did
+  // this cause); `stories` the best causal chains (game/stories/detect.ts); `metrics_daily` how alive each day was; `drama_log` every nudge; `callbacks` (N21) the player's choices traced to what they led to; `snapshots` (N23)
+  // the world at the start of a day, gzipped, with its hash (not a table of the export: it holds exports).
+  (db) => {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS event_causes (ref TEXT NOT NULL, cause TEXT NOT NULL, PRIMARY KEY (ref, cause));
+      CREATE INDEX IF NOT EXISTS event_causes_cause ON event_causes(cause);
+      CREATE TABLE IF NOT EXISTS stories (id TEXT PRIMARY KEY, sink TEXT NOT NULL, score REAL NOT NULL, data TEXT NOT NULL, first_day INTEGER NOT NULL, last_day INTEGER NOT NULL, open INTEGER NOT NULL);
+      CREATE INDEX IF NOT EXISTS stories_sink ON stories(sink);
+      CREATE TABLE IF NOT EXISTS metrics_daily (day INTEGER PRIMARY KEY, data TEXT NOT NULL);
+      CREATE TABLE IF NOT EXISTS drama_log (id TEXT PRIMARY KEY, day INTEGER NOT NULL, thread TEXT NOT NULL, action TEXT NOT NULL, reason TEXT NOT NULL);
+      CREATE TABLE IF NOT EXISTS callbacks (id TEXT PRIMARY KEY, choice TEXT NOT NULL, outcome TEXT NOT NULL, data TEXT NOT NULL, found INTEGER NOT NULL, told INTEGER);
+      CREATE TABLE IF NOT EXISTS snapshots (day INTEGER PRIMARY KEY, hash TEXT NOT NULL, data BLOB NOT NULL);
+    `);
+    // Causes already recorded, indexed.
+    const rows = db.prepare("SELECT id, caused_by FROM events WHERE caused_by IS NOT NULL").all() as Array<{ id: string; caused_by: string }>;
+    const put = db.prepare("INSERT OR IGNORE INTO event_causes (ref, cause) VALUES (?, ?)");
+    for (const r of rows) for (const c of JSON.parse(r.caused_by) as string[]) if (c !== r.id) put.run(r.id, c);
   },
 ];
 

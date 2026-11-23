@@ -12,6 +12,10 @@ import { newsChainOf, roadsOf } from "../../admin/roads.js";
 import { search } from "../../admin/search.js";
 import { timeControl } from "../../admin/time.js";
 import { config } from "../../config.js";
+import { stories, storiesWith } from "../../game/stories/detect.js";
+import { chainBack, chainForward } from "../../game/stories/graph.js";
+import { livenessDays } from "../../game/stories/liveness.js";
+import { dramaLog } from "../../game/stories/drama.js";
 import { encodeMbWorld, exportWorld } from "../../store/exchange.js";
 
 /**
@@ -131,6 +135,14 @@ export async function handleAdmin(req: IncomingMessage, res: ServerResponse, ctx
       return send(res, 200, roadsOf(ctx));
     case "gossip":
       return send(res, 200, gossipOverview(ctx));
+    // N20: the best stories, how alive the last days were, the drama manager's nudges, and the whole chain behind (and after) an event.
+    case "stories":
+      return send(res, 200, ctx.store ? { stories: stories(ctx.store, 100), liveness: livenessDays(ctx.store, 30), drama: dramaLog(ctx.store, 50), dramaOn: config.drama } : { stories: [], liveness: [], drama: [], dramaOn: config.drama });
+    case "causes": {
+      const ref = (q.get("ref") ?? "").replace(/^e:/, "");
+      if (!ctx.store || !ref) return send(res, 404, { error: "No such event." });
+      return send(res, 200, { ref, back: chainBack(ctx.store, ref), forward: chainForward(ctx.store, ref), stories: storiesWith(ctx.store, ref).map((x) => x.id) });
+    }
     case "knowers": {
       const k = knowersOf(ctx, q.get("ref") ?? "");
       return k ? send(res, 200, k) : send(res, 404, { error: "Nobody knows that." });

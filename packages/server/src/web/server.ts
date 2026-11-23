@@ -1,4 +1,5 @@
 import { moodLine } from "../game/mood/model.js";
+import { FEED_SCOPES, playerFeed, type FeedScope } from "../game/realm/feed.js";
 import { buildLookOf } from "../game/culture/look.js";
 import { startCandidates } from "../game/realm/start.js";
 import { boardView, playerClaim, playerGiveUp, playerJoinParty } from "../game/market/player.js";
@@ -791,7 +792,7 @@ function snapshot(): Snapshot {
     },
     chronicle: { lore: (world.lore ?? []).slice(-8).map((l) => l.text), log: (world.directorLog ?? []).slice(-8) },
     family: familyLines(),
-    realm: world.realm ? { day: world.realm.day, latest: world.realm.news.filter((n) => town.siteHere().newsSeen.includes(n.id)).at(-1)?.text ?? null, wars: ongoing(world.realm).length } : null,
+    realm: world.realm ? { day: world.realm.day, latest: world.realm.news.filter((n) => town.siteHere().newsSeen.includes(n.id)).at(-1)?.text ?? null, wars: ongoing(world.realm).length, feed: feedOf(world.realm) } : null,
     adventurer: {
       member: inGuild(p),
       fee: GUILD_FEE,
@@ -1982,6 +1983,13 @@ async function runAct(body: Record<string, unknown>, emit: Emit): Promise<void> 
   );
 }
 
+/** N24: the player's feed in its three scopes, only what they know (game/realm/feed.ts). */
+function feedOf(realm: NonNullable<typeof world.realm>): NonNullable<NonNullable<Snapshot["realm"]>["feed"]> {
+  const follow = Object.values(world.player.follows ?? {}).map((f) => f.name);
+  const pick = (scope: FeedScope) => playerFeed(realm, world.player, town.site(), scope, { follow, limit: 12 }).map((x) => ({ day: x.day, learned: x.learned, text: x.text, importance: x.importance }));
+  return { here: pick("here"), kingdom: pick("kingdom"), everywhere: pick("everywhere") };
+}
+
 /** The view layer's way into the game (G5): the socket's sessions see the game only through this. */
 const newsListeners: Array<() => void> = [];
 const viewHost: ViewHost = {
@@ -2081,6 +2089,13 @@ const server = createServer(async (req, res) => {
   try {
     // The game as a whole, read-only: for tests and debugging (the view socket is how a client plays, G5).
     if (req.method === "GET" && url === "/api/state") return json(res, 200, snapshot());
+    // N24: the player's feed, only what they know: ?scope=here|kingdom|everywhere (default everywhere), &minor=1 to drop the floor.
+    if (req.method === "GET" && url === "/api/feed") {
+      const q = new URL(req.url ?? "/", "http://x").searchParams;
+      const scope = (FEED_SCOPES as readonly string[]).includes(q.get("scope") ?? "") ? (q.get("scope") as FeedScope) : "everywhere";
+      const follow = Object.values(world.player.follows ?? {}).map((f) => f.name);
+      return json(res, 200, { scope, items: world.realm ? playerFeed(world.realm, world.player, town.site(), scope, { follow, minor: q.get("minor") === "1" }) : [] });
+    }
 
     // The admin page and its data (N17): this machine only; nothing under /api/admin changes the game except the clock.
     if (req.method === "GET" && (url === "/admin" || url === "/admin/" || url === "/admin.html")) return adminAllowed(req) ? serveStatic("/admin.html", res) : void refuseAdmin(res);

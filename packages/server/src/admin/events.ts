@@ -25,6 +25,9 @@ const numberAfter = (id: string): number => {
   return m ? Number(m[1]) : 0;
 };
 
+/** A cause as an admin ref: a bare event id is `e:<id>`; a prefixed ref (`n:`, `e:`, `dr:`) is itself. */
+const asRef = (c: string): string => (/^[a-z]+:/.test(c) ? c : `e:${c}`);
+
 function fromGame(ctx: AdminContext, e: GameEvent): AdminEvent {
   const people = [refOfId(ctx, e.actor), refOfId(ctx, e.target)].filter((r): r is string => r !== null);
   const world = ctx.world();
@@ -42,7 +45,8 @@ function fromGame(ctx: AdminContext, e: GameEvent): AdminEvent {
     people: [...new Set(people)],
     factions,
     why: e.why ?? null,
-    causedBy: [],
+    causedBy: (e.causedBy ?? []).map(asRef),
+    ledTo: ctx.store ? [...new Set([...ctx.store.effectsOf(e.id), ...ctx.store.effectsOf(`e:${e.id}`)])].map(asRef) : [],
     at: atKey(e.day, e.hour, RANK.game, numberAfter(e.id)),
   };
 }
@@ -65,7 +69,7 @@ function fromNews(realm: Realm, n: RealmNews): AdminEvent {
     people,
     factions,
     why: n.why ?? null,
-    causedBy: [],
+    causedBy: (n.causedBy ?? []).map(asRef),
     at: atKey(n.day, 0, RANK.realm, numberAfter(n.id)),
   };
 }
@@ -122,6 +126,9 @@ function all(ctx: AdminContext, lives = false): AdminEvent[] {
       at: atKey(l.day, 0, RANK.log, i),
     });
   });
+  // N24: when the player learned each thing, by the same refs their knowledge uses.
+  const known = world.player.known ?? {};
+  for (const e of out) e.playerKnows = known[e.ref]?.day ?? null;
   return out;
 }
 
