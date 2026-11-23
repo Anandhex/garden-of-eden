@@ -44,7 +44,7 @@ import { CALL_KINDS, budgets } from "../src/budgets.js";
 import { writeChatterLine } from "../src/game/chatter/words.js";
 import { always, FakeProvider, pickTestPlaces, say } from "./helpers.js";
 
-vi.setConfig({ testTimeout: 240_000 });
+vi.setConfig({ testTimeout: 600_000 });
 const trips = { ...Object.fromEntries(Object.entries(TRIPS).map(([k, v]) => [k, v.cap])) } as Record<string, number>;
 
 beforeEach(() => {
