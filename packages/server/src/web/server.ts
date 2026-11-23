@@ -231,6 +231,7 @@ function startGame(fresh: boolean, start: { seed?: number; start?: string } = {}
   world.position ??= { ...PLAYER_START };
   crowd = null;
   lastTalk = null;
+  heldAt = null;
   for (const key of Object.keys(fallen)) delete fallen[key];
   for (const key of Object.keys(awayUntil)) delete awayUntil[key];
   engaged = null;
@@ -397,7 +398,23 @@ function npcPlace(id: string): PlaceId | null {
  * The tile an NPC stands on now: their spot at the place they're at, if that place is
  * on the map the player is on (N15). The dead lie where they fell (their own spot).
  */
+/** Where the one the player is talking to stood when the talk began: they stay there while it lasts (wandering talkers and townsfolk alike). */
+let heldAt: { id: string; pos: Pos } | null = null;
+
 function npcPos(id: string): { x: number; y: number } | null {
+  const talking = lastTalk?.id === id && absoluteMinute(world) - lastTalk.minute <= TALK_HOLD_MINUTES;
+  const a = agents[id];
+  if (!talking || !a || a.isDead || a.state.outcome === "unconscious" || a.state.inCombat || a.state.companion || town.road.onRoad()) {
+    if (heldAt?.id === id) heldAt = null;
+    return npcPosNow(id);
+  }
+  if (heldAt?.id === id) return heldAt.pos;
+  const pos = npcPosNow(id);
+  heldAt = pos ? { id, pos: { x: pos.x, y: pos.y } } : null;
+  return pos;
+}
+
+function npcPosNow(id: string): { x: number; y: number } | null {
   // On the road (N26): a traveller is where their journey has them, and the dead lie where they fell.
   if (parseTownsfolkId(id) && town.road.onRoad()) return town.road.travellerPos(id);
   if (agents[id]!.state.dormant || !local().includes(id)) return null;
@@ -420,9 +437,8 @@ function npcPos(id: string): { x: number; y: number } | null {
   const base = here().spotAt(place, id) ?? (place === workplaceOf(personas[id]!) ? ownSpot(id) : null);
   if (!base) return null;
   // Nobody stands frozen to one tile all day (N16): a step or two about their spot, every few minutes;
-  // but not while fighting, or while the player is talking to them.
-  const talking = lastTalk?.id === id && absoluteMinute(world) - lastTalk.minute <= TALK_HOLD_MINUTES;
-  if (talking || agents[id]!.state.inCombat || agents[id]!.state.companion) return base;
+  // but not while fighting (npcPos holds whoever the player is talking to where the talk began).
+  if (agents[id]!.state.inCombat || agents[id]!.state.companion) return base;
   const k = Math.floor(absoluteMinute(world) / WANDER_MINUTES);
   return here().wanderSpot(place, id, k, (x, y) => (world.position?.x === x && world.position?.y === y) || presentCreatures().some((c) => c.pos?.x === x && c.pos?.y === y)) ?? base;
 }

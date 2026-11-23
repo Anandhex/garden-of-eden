@@ -226,13 +226,15 @@ describe("G5 playing through the protocol", () => {
   it("frames are small: a step sends only changes, standing still sends only who moved", async () => {
     const c = await fresh();
     c.send({ t: "time", flow: false });
+    await c.until(() => c.ui.header?.time.flows === false, 5000, "time to stop");
     await sleep(500);
     const sizes: number[] = [];
     for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [-1, 0], [1, 0]] as const) {
       const from = c.msgs.length;
       c.send({ t: "step", dx, dy });
       await sleep(400);
-      sizes.push(...c.msgs.slice(from).filter((m) => m.msg.t === "frame").map((m) => m.bytes));
+      // (A whole frame, the screen sent again after a reconnect or a slow moment, isn't a step's.)
+      sizes.push(...c.msgs.slice(from).filter((m) => m.msg.t === "frame" && !m.msg.whole).map((m) => m.bytes));
     }
     expect(sizes.length).toBeGreaterThan(0);
     expect(Math.max(...sizes)).toBeLessThan(8 * 1024);
