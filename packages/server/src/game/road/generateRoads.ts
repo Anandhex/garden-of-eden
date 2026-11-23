@@ -1,4 +1,4 @@
-import { POI_NAMES, markHighRoads, roadsidePlaces } from "@millbrook/shared";
+import { POI_NAMES, markHighRoads, roadsidePlaces } from "@garden-of-eden/shared";
 import {
   type Anchor,
   type Crossing,
@@ -20,7 +20,7 @@ import {
   seedOf,
   tileOf,
   valueNoise,
-} from "@millbrook/shared";
+} from "@garden-of-eden/shared";
 import { seededRng } from "../dice.js";
 import type { Realm, Settlement } from "../realm/types.js";
 

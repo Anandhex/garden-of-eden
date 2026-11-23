@@ -1,4 +1,4 @@
-import type { SituationView } from "@millbrook/shared";
+import type { SituationView } from "@garden-of-eden/shared";
 import { addEmotion } from "../../npc/emotions.js";
 import { remember } from "../../npc/memory.js";
 import { adjust, setGrudge } from "../../npc/relationship.js";

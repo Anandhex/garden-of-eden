@@ -1,4 +1,4 @@
-import { CLASS_RANK, type SocialClass } from "@millbrook/shared";
+import { CLASS_RANK, type SocialClass } from "@garden-of-eden/shared";
 import type { WorldStore } from "../db.js";
 import { feelings } from "../chatter/rel.js";
 import { streamFor } from "../dice.js";

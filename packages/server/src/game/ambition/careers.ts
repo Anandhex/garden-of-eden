@@ -1,4 +1,4 @@
-import { CLASS_RANK, hashStr, type SocialClass } from "@millbrook/shared";
+import { CLASS_RANK, hashStr, type SocialClass } from "@garden-of-eden/shared";
 import { config } from "../../config.js";
 import type { AmbitionRow, CareerStore, JobRow } from "../../store/careerStore.js";
 import type { PersonRow } from "../../store/peopleStore.js";

@@ -1,5 +1,5 @@
 import { allCreatures } from "../game/site.js";
-import type { AdminBudgets, AdminHealth } from "@millbrook/shared";
+import type { AdminBudgets, AdminHealth } from "@garden-of-eden/shared";
 import { ongoing } from "../game/realm/diplomacy.js";
 import { describeRealm } from "../game/realm/view.js";
 import { budgets } from "../budgets.js";

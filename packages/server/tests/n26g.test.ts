@@ -4,7 +4,7 @@
  * fire and the hungry damage them tile by tile; and the place's food is what its plots yield.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { dayOfYear, fieldsOf, growthAt, isMarked, nearestOnSegment, plotCount, STAGE, type Plot } from "@millbrook/shared";
+import { dayOfYear, fieldsOf, growthAt, isMarked, nearestOnSegment, plotCount, STAGE, type Plot } from "@garden-of-eden/shared";
 import { config } from "../src/config.js";
 import { WorldStore } from "../src/game/db.js";
 import { cropFor, loadCrops } from "../src/game/farm/crops.js";

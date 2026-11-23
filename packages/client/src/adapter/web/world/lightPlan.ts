@@ -3,7 +3,7 @@
  * (dawn warm, noon white, dusk orange, night blue; weather dims it), how each kind of light glows, and which few
  * lights get a real Light2D light (the nearest the player that are on; the rest glow without one).
  */
-import type { Frame } from "@millbrook/shared/view";
+import type { Frame } from "@garden-of-eden/shared/view";
 
 export type Rgb = [number, number, number];
 

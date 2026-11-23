@@ -1,4 +1,4 @@
-import { besideRoad, type RoadData, type RoadPoint, type Territory } from "@millbrook/shared";
+import { besideRoad, type RoadData, type RoadPoint, type Territory } from "@garden-of-eden/shared";
 import { territoriesNow } from "./territories.js";
 import type { Rng } from "../dice.js";
 import { fightOnRoad, gangFoe, packFoe } from "../realm/travel.js";

@@ -1,4 +1,4 @@
-import { CLASS_RANK, type SocialClass } from "@millbrook/shared";
+import { CLASS_RANK, type SocialClass } from "@garden-of-eden/shared";
 import type { Skill } from "../../npc/skills.js";
 import type { Attribute } from "../../npc/stats.js";
 import type { PersonRow } from "../../store/peopleStore.js";

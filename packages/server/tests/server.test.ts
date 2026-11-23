@@ -5,7 +5,7 @@
  */
 import { createServer, type Server } from "node:http";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { findPath, type Snapshot } from "@millbrook/shared";
+import { findPath, type Snapshot } from "@garden-of-eden/shared";
 import { ProtocolClient, sleep, startGame, type GameProcess } from "../scripts/game-process.js";
 
 let game: GameProcess;

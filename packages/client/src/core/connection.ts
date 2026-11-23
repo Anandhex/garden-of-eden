@@ -2,7 +2,7 @@
  * Where the server's messages come from (G5): the game's WebSocket (reconnecting with backoff), or a recording
  * (`npm run frames:record`) played back with its own timing, so an adapter can be built with no game running.
  */
-import type { Intent, ServerMsg } from "@millbrook/shared/view";
+import type { Intent, ServerMsg } from "@garden-of-eden/shared/view";
 import type { ConnectionStatus } from "./adapter";
 
 export interface Source {

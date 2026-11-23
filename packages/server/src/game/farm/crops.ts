@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { z } from "zod";
-import type { CropDef } from "@millbrook/shared";
+import type { CropDef } from "@garden-of-eden/shared";
 
 /** The crops (N26G decision 4): data/crops/*.json, checked on load (and by `npm run check-npcs`). */
 export const CropSchema = z

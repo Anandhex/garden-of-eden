@@ -193,7 +193,7 @@ export function deadFigures(creatures: Record<string, Creature>): Array<{ figure
 }
 
 /** The player's things with a history, as far as they know them, and who has a claim on them (the client's section). */
-export function itemsView(h: ItemsHost): import("@millbrook/shared").NotableView[] {
+export function itemsView(h: ItemsHost): import("@garden-of-eden/shared").NotableView[] {
   const realm = h.world.realm;
   const store = h.store;
   if (!realm || !store) return [];

@@ -2,8 +2,9 @@ import { seedFrom, seededRng, type Rng } from "../game/dice.js";
 import { housesOf } from "../game/realm/houses.js";
 import type { Realm, Settlement } from "../game/realm/types.js";
 import { type AreaId, type PlaceId } from "../game/schedule.js";
-import { districtsOf, FOOTPRINT, type CrowdZone, type DistrictKind } from "@millbrook/shared";
+import { districtsOf, FOOTPRINT, type CrowdZone, type DistrictKind } from "@garden-of-eden/shared";
 import { districtAt, districtRects, houseStyleOf, WALLED, type DistrictRect } from "./districtLayout.js";
+import { frontsOf, grow, line, loop, march, OVER_WALL, plazaFronts, smooth, spurTo, stamp, type Canvas, type Front, type Pt, type Rect, type Road, type StampOpts } from "./streets.js";
 import { type Building, type Den, MAP_H, MAP_W, type NpcSpot, PLAYER_START, spriteColor, type Tile } from "./map.js";
 
 /**
@@ -202,10 +203,10 @@ export function siteMap(s0: SiteInfo, area: AreaId = "village", realm?: Realm | 
     const room = kept ? 0 : Math.ceil(housesOf(s) * 0.5);
     let scale = kept ?? 1;
     let v = village(s, areas, realm, rng, scale, room);
-    for (let k = 1; v.short > 0 && k <= 12; k++) {
+    for (let k = 1; v.short > 0 && k <= 16; k++) {
       scale = Math.round(((kept ?? 1) + 0.12 * k) * 100) / 100;
       v = village(s, areas, realm, seededRng(seedFrom(`${s.id}:${at}`)), scale, room);
-    }
+      }
     if (rs) {
       rs.mapScale = scale;
       rs.mapFrozen ??= { buildings: { ...s.buildings }, seat: s.kind === "capital" || (!!s.leader && ["lord", "ruler"].includes(realm?.figures[s.leader]?.role ?? "")), kind: s.kind };
@@ -315,13 +316,29 @@ const HALL: Record<string, string> = { hamlet: "Elder's house", village: "Villag
  * houses, big enough for its thousands of people to walk about in.
  */
 export const VILLAGE_SIZE: Record<string, { w: number; h: number }> = {
-  hamlet: { w: 28, h: 20 },
-  village: { w: 40, h: 28 },
-  // Bigger since N26H: buildings are drawn to their real size, and the quarters need room.
-  town: { w: 66, h: 46 },
-  city: { w: 112, h: 76 },
-  capital: { w: 160, h: 108 },
+  // Open-town layout (3D client, 1 tile = 1.5 m): wide streets, yards between houses, a plaza; buildings keep their real size, so
+  // the maps are bigger instead.
+  hamlet: { w: 56, h: 42 },
+  village: { w: 104, h: 66 },
+  town: { w: 184, h: 130 },
+  city: { w: 300, h: 212 },
+  capital: { w: 520, h: 352 },
 };
+
+/**
+ * How open a place is, in tiles (1 tile = 1.5 m): the width of its main street (the road in from the realm and the
+ * boulevards), of its side lanes and ring streets, and of its alleys; how far a house stands back from the street (a yard with a
+ * footpath to the door); the gap kept between neighbouring buildings; the central square (half-widths) and the parks; and, for
+ * a walled place, how much open ground lies outside the walls for the suburbs along the roads.
+ */
+export const OPENNESS: Record<string, { main: number; lane: number; alley: number; setback: number; gap: number; plaza: { hx: number; hy: number } | null; parks: number; margin: number }> = {
+  hamlet: { main: 4, lane: 3, alley: 3, setback: 2, gap: 3, plaza: null, parks: 0, margin: 0 },
+  village: { main: 4, lane: 3, alley: 3, setback: 2, gap: 2, plaza: null, parks: 0, margin: 0 },
+  town: { main: 5, lane: 3, alley: 2, setback: 1, gap: 2, plaza: { hx: 9, hy: 6 }, parks: 2, margin: 8 },
+  city: { main: 5, lane: 3, alley: 2, setback: 1, gap: 2, plaza: { hx: 12, hy: 8 }, parks: 4, margin: 16 },
+  capital: { main: 5, lane: 3, alley: 2, setback: 1, gap: 2, plaza: { hx: 14, hy: 9 }, parks: 6, margin: 22 },
+};
+
 /** Manors for the gentry and nobles. */
 const MANORS: Record<string, number> = { hamlet: 0, village: 0, town: 2, city: 7, capital: 12 };
 
@@ -338,19 +355,46 @@ interface Lot {
   w: number;
   h: number;
   door: { x: number; y: number };
+  /** The tile outside the door, at the top of the yard's footpath. */
   front: { x: number; y: number };
+  /** The yard's footpath: from `front` out to the street. */
+  walk: Array<{ x: number; y: number }>;
+  /** Which side of which street (or plaza) it is on, and how far along: houses are filled in along a side, so yards stay even. */
+  side: string;
+  pos: number;
 }
 
+const TAU = Math.PI * 2;
+const angDiff = (a: number, b: number) => Math.abs(((a - b + Math.PI * 3) % TAU) - Math.PI);
+
+/**
+ * A settlement's village map, laid out the way such places grow.
+ *
+ * - **Hamlet**: a well on a small green with a ring track round it; the cottages face inward from the ring (the elder's house
+ *   among them), a few short, irregular lanes wander out to the farmsteads.
+ * - **Village**: an oval green with a well, ringed by a lane; the headman's hall faces it, the inn and the temple stand on the
+ *   ring, and a paved market square adjoins it; lanes radiate outward, curving, with cottages along both sides in
+ *   their yards and cross-lanes between them; smiths and mills toward the road, orchards at the outskirts.
+ * - **Town**: a paved central square (hall, temple, market hall and the best inns face it), a second square at the gate,
+ *   main streets from the square to the four gates, a ring road, parks, lanes and alleys growing off them into blocks;
+ *   quarters (crafts, trade, the poor end) laid round the square.
+ * - **City / capital**: the same with walls and the open ground outside them for the suburbs along the roads, the
+ *   castle or palace ward with its boulevard, a cathedral square, more squares, a second ring and diagonal boulevards, noble
+ *   and guild quarters walled off, alleys.
+ */
 function village(s: SiteInfo, areas: AreaId[], realm: Realm | null | undefined, rng: Rng, scale = 1, room = 0): Layout & { short: number } {
   const size = VILLAGE_SIZE[s.kind] ?? VILLAGE_SIZE.village!;
   // A place with more houses than its kind's map holds gets a bigger map (N26H: houses are at their real size).
   const W = Math.round(size.w * scale);
   const H = Math.round(size.h * scale);
   const big = s.kind === "town" || s.kind === "city" || s.kind === "capital";
+  const hamlet = s.kind === "hamlet";
+  const open = OPENNESS[s.kind] ?? OPENNESS.village!;
   const tiles = grid("grass", W, H);
   const set = setter(tiles);
   borderTrees(tiles);
   const reserved = new Uint8Array(W * H);
+  const cv: Canvas = { W, H, tiles, reserved, roads: [], plazas: [] };
   const zones: CrowdZone[] = [];
   const zone = (id: string, kind: string, x0: number, y0: number, x1: number, y1: number, pave = false): CrowdZone => {
     const z = { id, kind, x0: Math.max(1, x0), y0: Math.max(1, y0), x1: Math.min(W - 2, x1), y1: Math.min(H - 2, y1) };
@@ -361,56 +405,242 @@ function village(s: SiteInfo, areas: AreaId[], realm: Realm | null | undefined, 
     zones.push(z);
     return z;
   };
-  // Walls, with gates where the roads go through.
-  const walled = (s.buildings.walls ?? 0) > 0;
-  if (walled) {
-    for (let x = 2; x <= W - 3; x++) {
-      set(x, 2, "wall");
-      set(x, H - 3, "wall");
+  const pave = (r: Rect) => {
+    for (let y = r.y0; y <= r.y1; y++) for (let x = r.x0; x <= r.x1; x++) {
+      if (x < 1 || y < 1 || x > W - 2 || y > H - 2) continue;
+      if (tiles[y]![x] === "grass" || tiles[y]![x] === "tree") set(x, y, "path");
+      reserved[y * W + x] = 1;
     }
-    for (let y = 2; y <= H - 3; y++) {
-      set(2, y, "wall");
-      set(W - 3, y, "wall");
+    cv.plazas.push(r);
+  };
+  // Walls, with the open country outside them (suburbs along the roads).
+  const walled = (s.buildings.walls ?? 0) > 0;
+  const M = walled ? open.margin : 0;
+  const [w0, w1, v0, v1] = [M + 2, W - 3 - M, M + 2, H - 3 - M];
+  if (walled) {
+    for (let x = w0; x <= w1; x++) {
+      set(x, v0, "wall");
+      set(x, v1, "wall");
+    }
+    for (let y = v0; y <= v1; y++) {
+      set(w0, y, "wall");
+      set(w1, y, "wall");
     }
   }
   // Inside the walls (or the trees).
-  const lo = walled ? 3 : 1;
-  const hiX = walled ? W - 4 : W - 2;
-  const hiY = walled ? H - 4 : H - 2;
-  // Roads: east-west through the middle (the west end is the road out to the realm), north-south through the crossroads.
+  const lo = walled ? w0 + 1 : 2;
+  const hiX = walled ? w1 - 1 : W - 3;
+  const hiY = walled ? v1 - 1 : H - 3;
   const mx = Math.floor(W / 2) - 1;
   const my = Math.floor(H / 2);
-  for (let x = 0; x < W; x++) set(x, my, "path");
-  for (let y = 1; y < H - 1; y++) set(mx, y, "path");
-  // Towns and bigger: a grid of streets, and a street round the inside of the walls.
-  const rows = [my];
-  const cols = [mx];
-  if (big) {
-    // Streets far enough apart for buildings at their real size (N26H): a hall or an inn one side, houses the other.
-    for (let r = my - 12; r >= lo + 3; r -= 12) rows.push(r);
-    for (let r = my + 12; r <= hiY - 3; r += 12) rows.push(r);
-    for (let c = mx - 16; c >= lo + 4; c -= 16) cols.push(c);
-    for (let c = mx + 16; c <= hiX - 4; c += 16) cols.push(c);
-    rows.push(lo, hiY);
-    cols.push(lo, hiX);
-    for (const r of rows) for (let x = lo; x <= hiX; x++) set(x, r, "path");
-    for (const c of cols) for (let y = lo; y <= hiY; y++) set(c, y, "path");
-  } else {
-    // Lanes off the road for the cottages and farmsteads (N26H: houses at their real size need the frontage).
-    for (const r of [my - 7, my + 7]) if (r > lo + 2 && r < hiY - 2) {
-      rows.push(r);
-      for (let x = lo + 2; x <= hiX - 2; x++) set(x, r, "path");
-    }
+  const ccx = (lo + hiX) / 2;
+  const ccy = (lo + hiY) / 2;
+  const inner: Rect = { x0: lo + 2, y0: lo + 2, x1: hiX - 2, y1: hiY - 2 };
+  const road = (dense: Pt[], kind: Road["kind"], width: number, o: Partial<StampOpts> = {}) => stamp(cv, dense, { kind, width, ...o });
+  const within = (x: number, y: number) => x >= inner.x0 && y >= inner.y0 && x <= inner.x1 && y <= inner.y1;
+  const eastExit = !realm?.settlements[s.id] && areas.includes("woods");
+
+  // ---- Where each quarter lies, and the castle or palace's ward ----
+  const seatHere = s.mapSeat ?? (s.kind === "capital" || (!!s.leader && ["lord", "ruler"].includes(realm?.figures[s.leader]?.role ?? "")));
+  const districts = districtsOf({ kind: s.kind, name: s.name, buildings: s.buildings, terrain: s.terrain, seat: seatHere });
+  // Small places: the green's centre and the ring round it (decided here, since the quarters are drawn round it).
+  const flip = rng() < 0.5 ? 1 : -1;
+  const gR = { rx: (hamlet ? 6 : 10) + Math.floor(rng() * (hamlet ? 2 : 3)), ry: (hamlet ? 4 : 6) + Math.floor(rng() * (hamlet ? 2 : 3)) };
+  const gC = { x: mx + Math.round((rng() - 0.5) * (hamlet ? 2 : 6)), y: my + Math.round((rng() - 0.5) * (hamlet ? 2 : 6)) };
+  const ringR = { x: gR.rx + 2.6, y: gR.ry + 2.6 };
+  const boxOf = (cx: number, cy: number, rx: number, ry: number): Rect => ({ x0: Math.floor(cx - rx), y0: Math.floor(cy - ry), x1: Math.ceil(cx + rx), y1: Math.ceil(cy + ry) });
+  const rects = districtRects(districts, { lo, hiX, hiY, mx, my, big, green: boxOf(gC.x, gC.y, ringR.x + 6, ringR.y + 6), core: boxOf(gC.x, gC.y, ringR.x + 17, ringR.y + 13) });
+  const dAt = (x: number, y: number) => districtAt(rects, x, y);
+  const ward = rects.find((r) => r.district.kind === "palace" || r.district.kind === "castle");
+  const wardKind = ward ? (ward.district.kind === "palace" ? "palace" : "castle") : null;
+  let comp: { x: number; y: number; w: number; h: number; gate: { x: number; y: number } } | null = null;
+  if (ward && wardKind) {
+    const fp = FOOTPRINT[wardKind]!;
+    const cw = Math.min(fp.compound!.w, ward.x1 - ward.x0 - 3);
+    const ch = Math.min(fp.compound!.h, ward.y1 - ward.y0 - 3);
+    const cx = Math.floor((ward.x0 + ward.x1 - cw) / 2) + 1;
+    const cy = Math.floor((ward.y0 + ward.y1 - ch) / 2) + 1;
+    comp = { x: cx, y: cy, w: cw, h: ch, gate: { x: cx + Math.floor(cw / 2), y: cy + ch - 1 } };
   }
-  // Where folk gather: the square (a paved plaza in a town), the market, the fields, the gate.
-  const square = big ? zone("square", "square", mx - 4, my - 3, mx + 4, my + 3, true) : zone("square", "square", mx + 1, my + 1, mx + 5, my + 2);
-  if (big) set(mx + 2, my - 2, "water"); // the well
-  const market = (s.buildings.market ?? 0) > 0 ? (big ? zone("market", "market", mx + 6, my - 2, mx + 9, my + 2, true) : zone("market", "market", mx - 6, my + 1, mx - 2, my + 2)) : null;
-  const gx = walled ? 3 : 2;
-  zone("gate", "gate", gx, my - 1, gx + 3, my + 1);
+
+  // ---- The plan ----
+  const goals: Record<string, Pt> = {};
+  let square: Rect;
+  let market: Rect | null = null;
+  const hasMarket = (s.buildings.market ?? 0) > 0;
+  const plazaSides: Array<{ id: string; kind: string; r: Rect }> = [];
+  if (!big) {
+    // The green: grass kept open, a well in the middle and trees round the edge; a lane rings it.
+    for (let y = gC.y - gR.ry - 1; y <= gC.y + gR.ry + 1; y++) for (let x = gC.x - gR.rx - 1; x <= gC.x + gR.rx + 1; x++) {
+      if (((x - gC.x) / (gR.rx + 0.4)) ** 2 + ((y - gC.y) / (gR.ry + 0.4)) ** 2 <= 1) reserved[y * W + x] = 1;
+    }
+    set(gC.x, gC.y, "water");
+    for (let i = 0; i < 16; i++) {
+      const a = (i / 16) * TAU + 0.2;
+      if (rng() < 0.5) set(Math.round(gC.x + (gR.rx - 1) * Math.cos(a)), Math.round(gC.y + (gR.ry - 1) * Math.sin(a)), "tree");
+    }
+    // The market square (paved, adjoining the ring) on the side away from the road in: east, north or south.
+    let plazaAng: number | null = null;
+    if (!hamlet) {
+      const hx = hasMarket ? 6 : 4;
+      const hy = hasMarket ? 4 : 3;
+      const side = [0, -Math.PI / 2 * flip, Math.PI / 2 * flip][Math.floor(rng() * 3)]!;
+      plazaAng = side;
+      const r: Rect = side === 0 ? { x0: Math.round(gC.x + ringR.x), y0: gC.y - hy, x1: Math.round(gC.x + ringR.x) + 2 * hx, y1: gC.y + hy } : Math.sin(side) < 0 ? { x0: gC.x - hx, y0: Math.round(gC.y - ringR.y) - 2 * hy, x1: gC.x + hx, y1: Math.round(gC.y - ringR.y) } : { x0: gC.x - hx, y0: Math.round(gC.y + ringR.y), x1: gC.x + hx, y1: Math.round(gC.y + ringR.y) + 2 * hy };
+      pave(r);
+      market = r;
+      plazaSides.push({ id: "market", kind: "market", r });
+    }
+    road(loop(rng, gC.x, gC.y, ringR.x, ringR.y, 2, 0.03), "ring", open.lane);
+    // The road in from the west bends toward the ring; lanes leave the ring like spokes, curving, some short, some long.
+    const ringW = { x: gC.x - ringR.x, y: gC.y };
+    const ctrl: Pt[] = [{ x: 1, y: my }, { x: 8, y: my }];
+    if (ringW.x > 20) ctrl.push({ x: 14, y: my }, { x: (14 + ringW.x) / 2, y: (my + ringW.y) / 2 + (rng() - 0.5) * 4 });
+    ctrl.push(ringW);
+    road(smooth(ctrl), "main", open.main, { over: OVER_WALL });
+    const spokes = hamlet ? 3 + Math.floor(rng() * 2) : 5 + Math.floor(rng() * 3);
+    const turn = rng() * 0.4;
+    for (let k = 1; k < spokes; k++) {
+      const a = Math.PI + (k * TAU) / spokes + (rng() - 0.5) * 0.45 + turn * (k % 2 ? 1 : -1) * 0.5;
+      if (plazaAng !== null && angDiff(a, plazaAng) < 0.5) continue;
+      if (eastExit && angDiff(a, 0) < 0.6) continue;
+      const start = { x: gC.x + ringR.x * Math.cos(a), y: gC.y + ringR.y * Math.sin(a) };
+      const len = hamlet ? 9 + rng() * 8 : 30 + rng() * 20;
+      road(march(rng, start, a, len, 0.07, within), "lane", open.lane);
+    }
+    if (eastExit) {
+      const e0 = { x: gC.x + ringR.x + (market && plazaAng === 0 ? 2 * (hasMarket ? 6 : 4) : 0), y: gC.y };
+      road(smooth([e0, { x: (e0.x + W - 2) / 2, y: (gC.y + my) / 2 + (rng() - 0.5) * 3 }, { x: W - 2, y: my }]), "lane", open.lane, { over: OVER_WALL });
+    }
+    // Square zones: the green is the village square; the market is the paved square.
+    square = { x0: Math.round(gC.x - gR.rx * 0.6), y0: Math.round(gC.y - gR.ry * 0.6), x1: Math.round(gC.x + gR.rx * 0.6), y1: Math.round(gC.y + gR.ry * 0.6) };
+    // Where the leading buildings go: the hall on the green (away from the plaza), the inn toward the road, the temple on the ring.
+    const rp = (a: number, out: number): Pt => ({ x: gC.x + (ringR.x + out) * Math.cos(a), y: gC.y + (ringR.y + out) * Math.sin(a) });
+    let hallA = -Math.PI / 2 * flip;
+    if (plazaAng !== null && angDiff(hallA, plazaAng) < 1) hallA = -hallA;
+    let templeA = hallA + 1.1;
+    if (plazaAng !== null && angDiff(templeA, plazaAng) < 0.7) templeA = hallA - 1.1;
+    const innA = Math.sin(hallA) < 0 ? Math.PI - 0.9 : Math.PI + 0.9;
+    goals.hall = rp(hallA, 2.5);
+    goals.temple = rp(templeA, 2.5);
+    goals.inn = rp(innA, 2.5);
+    goals.guildhall = rp(-hallA, 2.5);
+    goals.smithy = { x: Math.max(16, gC.x - ringR.x - 12), y: my + 4 * flip };
+    goals.far = rp(hallA + Math.PI, 16);
+    if (market) goals.market = { x: (market.x0 + market.x1) / 2 + (plazaAng === 0 ? 8 : 0), y: (market.y0 + market.y1) / 2 + (plazaAng === 0 ? 0 : Math.sin(plazaAng!) * 7) };
+    // Cross-lanes between the spokes, and a few spurs.
+    grow(cv, rng, { kind: "lane", width: open.lane, spacing: hamlet ? [12, 18] : [18, 26], maxLen: hamlet ? 12 : 26, minLen: hamlet ? 5 : 8, deadEnds: true, bend: 0.07, inner, from: (r) => r.kind !== "ring", cap: hamlet ? 3 : 10, skip: (x, y) => ((x - gC.x) / ringR.x) ** 2 + ((y - gC.y) / ringR.y) ** 2 < (hamlet ? 2.2 : 2.6) ** 2 });
+    // Back alleys off the lanes, where the farmsteads and cottages crowd.
+    grow(cv, rng, { kind: "alley", width: 2, spacing: hamlet ? [9, 13] : [10, 15], maxLen: hamlet ? 8 : 16, minLen: 5, deadEnds: true, bend: 0.06, inner, from: (r) => r.kind === "lane", cap: hamlet ? 3 : 14, clear: 4, skip: (x, y) => ((x - gC.x) / ringR.x) ** 2 + ((y - gC.y) / ringR.y) ** 2 < 2.2 ** 2 });
+  } else {
+    const pz = open.plaza!;
+    square = { x0: mx - pz.hx, y0: my - pz.hy, x1: mx + pz.hx, y1: my + pz.hy };
+    pave(square);
+    plazaSides.push({ id: "square", kind: "square", r: square });
+    // Secondary squares along the main streets: at the gate; a craft square south; the temple or cathedral square north.
+    const nSq = (id: string, cx: number, cy: number, hx: number, hy: number) => {
+      const r: Rect = { x0: cx - hx, y0: cy - hy, x1: cx + hx, y1: cy + hy };
+      pave(r);
+      plazaSides.push({ id, kind: "plaza", r });
+      return r;
+    };
+    const gateSq = nSq("plaza_gate", lo + Math.round((mx - lo) * 0.42), my, 5, 3);
+    const northSq = s.kind === "town" ? null : nSq("plaza_north", mx, my - Math.round((my - lo) * 0.46), s.kind === "capital" ? 9 : 7, s.kind === "capital" ? 7 : 5);
+    const southSq = s.kind === "town" ? null : nSq("plaza_south", mx, my + Math.round((hiY - my) * 0.46), 6, 4);
+    const eastSq = s.kind === "capital" ? nSq("plaza_east", mx + Math.round((hiX - mx) * 0.46), my, 6, 4) : null;
+    const rrx = (hiX - lo + 1) / 2 - 9;
+    const rry = (hiY - lo + 1) / 2 - 9;
+    // The main streets: west is the road in (straight, to the exit tile), the others to the gates in the walls and out to the roads.
+    const axis = (from: Pt, to: Pt, wig: number): Pt[] => {
+      const n = Math.max(1, Math.floor(Math.hypot(to.x - from.x, to.y - from.y) / 12));
+      const ctrl: Pt[] = [from];
+      const nx = -(to.y - from.y);
+      const ny = to.x - from.x;
+      const nl = Math.hypot(nx, ny) || 1;
+      for (let i = 1; i < n; i++) {
+        const p = { x: from.x + ((to.x - from.x) * i) / n, y: from.y + ((to.y - from.y) * i) / n };
+        const inside = p.x > w0 - 4 && p.x < w1 + 4 && p.y > v0 - 4 && p.y < v1 + 4;
+        const off = inside || !walled ? 0 : (rng() - 0.5) * 2 * wig;
+        ctrl.push({ x: p.x + (nx / nl) * off, y: p.y + (ny / nl) * off });
+      }
+      ctrl.push(to);
+      return smooth(ctrl);
+    };
+    road(line({ x: 1, y: my }, { x: square.x0 - 1, y: my }), "main", open.main, { over: OVER_WALL });
+    road(axis({ x: square.x1 + 1, y: my }, { x: W - 2, y: my }, 3), "main", open.main, { over: OVER_WALL });
+    road(axis({ x: mx, y: square.y0 - 1 }, { x: mx, y: 1 }, 3), "main", open.main, { over: OVER_WALL });
+    road(axis({ x: mx, y: square.y1 + 1 }, { x: mx, y: H - 2 }, 3), "main", open.main, { over: OVER_WALL });
+    // A ring road inside the walls; in the big cities a second ring round the middle; boulevards across the corners.
+    road(loop(rng, ccx, ccy, rrx, rry, 3.2, 0.025), "ring", open.lane);
+    if (s.kind !== "town") road(loop(rng, mx, my, rrx * 0.5, rry * 0.5, 2.6, 0.03), "ring", open.lane);
+    const ringPt = (t: number, k = 1): Pt => ({ x: ccx + rrx * k * Math.sign(Math.cos(t)) * Math.abs(Math.cos(t)) ** (2 / 3.2), y: ccy + rry * k * Math.sign(Math.sin(t)) * Math.abs(Math.sin(t)) ** (2 / 3.2) });
+    for (const [sx, sy] of [[1, -1], [-1, -1], [1, 1], [-1, 1]] as const) {
+      const from = { x: mx + sx * (pz.hx + 1), y: my + sy * (pz.hy + 1) };
+      if (sx === 1 && sy === -1 && comp) {
+        // The boulevard to the castle's or the palace's gate.
+        const g = comp.gate;
+        road(smooth([from, { x: (from.x + g.x) / 2 + (rng() - 0.5) * 3, y: (from.y + g.y + 8) / 2 }, { x: g.x, y: g.y + 8 }, { x: g.x, y: g.y + 1 }]), "main", open.main, { over: OVER_WALL });
+      } else if (s.kind !== "town") {
+        const to = ringPt(Math.atan2(sy * rry, sx * rrx));
+        road(smooth([from, { x: (from.x + to.x) / 2 + (rng() - 0.5) * 4, y: (from.y + to.y) / 2 + (rng() - 0.5) * 4 }, to]), "main", open.main);
+      }
+    }
+    // Parks: patches kept open (grass, trees, a pond), the streets bending round them.
+    for (let i = 0, tried = 0; i < open.parks && tried < 200; tried++) {
+      const pw = 11 + Math.floor(rng() * 4);
+      const ph = 8 + Math.floor(rng() * 3);
+      const px = lo + 4 + Math.floor(rng() * Math.max(1, hiX - lo - pw - 8));
+      const py = lo + 4 + Math.floor(rng() * Math.max(1, hiY - lo - ph - 8));
+      let free = true;
+      for (let yy = py - 3; yy <= py + ph + 2 && free; yy++) for (let xx = px - 3; xx <= px + pw + 2; xx++) {
+        const t = tiles[yy]?.[xx];
+        if ((t !== "grass" && t !== "tree") || reserved[yy * W + xx]) { free = false; break; }
+      }
+      if (!free || rects.some((r) => WALLED.has(r.district.kind) && px + pw > r.x0 - 2 && px < r.x1 + 2 && py + ph > r.y0 - 2 && py < r.y1 + 2)) continue;
+      i++;
+      const pond = rng() < 0.3;
+      for (let yy = py; yy < py + ph; yy++) for (let xx = px; xx < px + pw; xx++) {
+        reserved[yy * W + xx] = 1;
+        const rim = xx === px || yy === py || xx === px + pw - 1 || yy === py + ph - 1;
+        const mid = Math.abs(xx - (px + pw / 2)) < 2 && Math.abs(yy - (py + ph / 2)) < 1.2;
+        if (pond && mid) set(xx, yy, "water");
+        else if (rim ? rng() < 0.5 && (xx + yy) % 2 === 0 : rng() < 0.08) set(xx, yy, "tree");
+        else if (tiles[yy]![xx] === "tree") set(xx, yy, "grass");
+      }
+    }
+    // The central square's well, trees at its corners; the market is its southern half.
+    set(mx + 3, my - 3, "water");
+    for (const [tx, ty] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) set(mx + tx * (pz.hx - 1), my + ty * (pz.hy - 1), "tree");
+    if (hasMarket) market = { x0: mx - pz.hx + 2, y0: my + 1, x1: mx + pz.hx - 2, y1: my + pz.hy - 1 };
+    // Where each leading building goes: on the central square (hall north, temple east, market hall south, inns west), the
+    // cathedral on its own square, the rest by quarter.
+    const cs = (side: "n" | "e" | "s" | "w", off = 0): Pt => (side === "n" ? { x: mx - 2 + off, y: square.y0 - 5 } : side === "s" ? { x: mx + 3 + off, y: square.y1 + 5 } : side === "e" ? { x: square.x1 + 6, y: my + off } : { x: square.x0 - 6, y: my + off });
+    goals.hall = cs("n");
+    goals.chancellor = cs("s", -4);
+    goals.market = cs("s");
+    goals.temple = northSq ? { x: (northSq.x0 + northSq.x1) / 2, y: northSq.y0 - 5 } : cs("e", -7);
+    goals.cathedral = northSq ? { x: (northSq.x0 + northSq.x1) / 2, y: northSq.y0 - 7 } : cs("e", -7);
+    goals.inn0 = cs("w", -7);
+    goals.inn1 = cs("w", 7);
+    goals.gateInn = { x: (gateSq.x0 + gateSq.x1) / 2, y: gateSq.y0 - 4 };
+    void southSq;
+    void eastSq;
+    // Spurs, so every quarter has a street through it, then lanes and alleys growing off the streets into blocks.
+    for (const r of rects) if (r.district.kind !== "palace" && r.district.kind !== "castle") spurTo(cv, { x: Math.round((r.x0 + r.x1) / 2), y: Math.round((r.y0 + r.y1) / 2) }, open.lane);
+    const nearPlaza = (x: number, y: number, dx: number, dy: number) => cv.plazas.some((r) => x >= r.x0 - dx && x <= r.x1 + dx && y >= r.y0 - dy && y <= r.y1 + dy);
+    const bounds: Rect = { x0: lo + 1, y0: lo + 1, x1: hiX - 1, y1: hiY - 1 };
+    grow(cv, rng, { kind: "lane", width: open.lane, spacing: [16, 24], maxLen: 44, minLen: 10, deadEnds: true, bend: 0.05, inner: bounds, from: (r) => r.kind !== "alley", clear: 8, skip: (x, y) => nearPlaza(x, y, 16, 14) });
+    grow(cv, rng, { kind: "alley", width: open.alley, spacing: [14, 20], maxLen: 26, minLen: 7, deadEnds: true, bend: 0.05, inner: bounds, from: (r) => r.kind !== "alley", clear: 6, skip: (x, y) => nearPlaza(x, y, 10, 9) });
+  }
+  // Where folk gather: the square, the market, the fields, the gate.
+  zone("square", "square", square.x0, square.y0, square.x1, square.y1);
+  if (market) zone("market", "market", market.x0, market.y0, market.x1, market.y1);
+  for (const p of plazaSides) if (p.kind === "plaza") zone(p.id, "plaza", p.r.x0, p.r.y0, p.r.x1, p.r.y1);
+  const gx = walled ? w0 + 1 : 2;
+  zone("gate", "gate", gx, my - 2, gx + 3, my + 2);
   // The fields are outside, in the open country (N26G); inside are only gardens and a pinfold, kept as the "fields" zone.
   const fieldW = big ? 6 : 4;
-  const fields = walled ? zone("fields", "fields", lo + 1, hiY - (big ? 4 : 2), lo + fieldW, hiY - 1) : zone("fields", "fields", 2, H - (big ? 6 : 4), 2 + fieldW, H - 2);
+  const fields = walled ? zone("fields", "fields", lo + 1, hiY - 4, lo + fieldW, hiY - 1) : zone("fields", "fields", 2, H - (big ? 6 : 4), 2 + fieldW, H - 2);
   for (let y = fields.y0; y <= fields.y1; y++) for (let x = fields.x0; x <= fields.x1; x++) if (tiles[y]![x] === "tree") set(x, y, "grass");
   if (s.terrain === "marsh" || s.terrain === "coast") {
     const px = walled ? hiX - 5 : W - 7;
@@ -420,27 +650,22 @@ function village(s: SiteInfo, areas: AreaId[], realm: Realm | null | undefined, 
       reserved[y * W + x] = 1;
     }
   }
-  // The ways out: north up the road, east into the woods. The west road leads to the realm (travel).
+  // The ways out: east into the woods (a world without a realm); the west road leads to the realm (travel).
   const exits: Exit[] = [];
-  // The west road leads out into the realm (N26): walk off the edge and you're on the open road.
   if (realm?.settlements[s.id]) exits.push(exitAt(tiles, 0, my, "realm", "To the open road"));
   else if (areas.includes("woods")) exits.push(exitAt(tiles, W - 1, my, "woods", exitLabel(realm, s, "woods")));
   // The townsfolk who work outside (miners, hunters) still leave by these zones; where they go is the road's (road/commute.ts).
-  zone("exit_road", "exit_road", 1, my - 1, 2, my + 1);
-  zone("exit_woods", "exit_woods", 1, my - 1, 2, my + 1);
+  zone("exit_road", "exit_road", 1, my - 2, 2, my + 2);
+  zone("exit_woods", "exit_woods", 1, my - 2, 2, my + 2);
   if (!exits.some((e) => e.x === W - 1)) set(W - 1, my, "tree");
 
-  // The districts (N26H): where each quarter lies, walls and a gate round the ones that are closed, and the castle or
-  // palace as a compound on the high ground. They go in before the buildings so nothing is built across a wall.
-  const seatHere = s.mapSeat ?? (s.kind === "capital" || (!!s.leader && ["lord", "ruler"].includes(realm?.figures[s.leader]?.role ?? "")));
-  const districts = districtsOf({ kind: s.kind, name: s.name, buildings: s.buildings, terrain: s.terrain, seat: seatHere });
-  const rects = districtRects(districts, { lo, hiX, hiY, mx, my, big });
-  const dAt = (x: number, y: number) => districtAt(rects, x, y);
+  // ---- Walls round the closed quarters, and the castle or palace compound ----
   const gates: Array<{ x: number; y: number; district: string }> = [];
   const compounds: Building[] = [];
+  const doors: Array<{ x: number; y: number; district: string }> = [];
   for (const r of rects) {
-    if (!WALLED.has(r.district.kind) || r.district.kind === "manor" && !big) continue;
-    // A wall a tile inside the quarter's edge, and a gate wherever a street crosses it (not where one runs along it).
+    if (!WALLED.has(r.district.kind) || (r.district.kind === "manor" && !big)) continue;
+    // A wall a tile inside the quarter's edge, and a gate wherever a street crosses it.
     const [x0, y0, x1, y1] = [r.x0 + 1, r.y0 + 1, r.x1 - 1, r.y1 - 1];
     for (let x = x0; x <= x1; x++) for (const y of [y0, y1]) wallOrGate(x, y, r.district.id, "h");
     for (let y = y0 + 1; y < y1; y++) for (const x of [x0, x1]) wallOrGate(x, y, r.district.id, "v");
@@ -452,48 +677,48 @@ function village(s: SiteInfo, areas: AreaId[], realm: Realm | null | undefined, 
     const crosses = side === "h" ? isPath(x, y - 1) && isPath(x, y + 1) : isPath(x - 1, y) && isPath(x + 1, y);
     if (t === "path" && crosses) {
       set(x, y, "door");
-      gates.push({ x, y, district });
+      doors.push({ x, y, district });
     } else if (t !== "water" && t !== "door") set(x, y, "wall");
     reserved[y * W + x] = 1;
   }
+  // A wide street crosses a wall in one gap with one post: the posts are in the middle of each gap.
+  for (const d of doors) {
+    if (gates.some((g) => g.district === d.district && Math.abs(g.x - d.x) <= 3 && Math.abs(g.y - d.y) <= 3)) continue;
+    const gap = doors.filter((o) => o.district === d.district && Math.abs(o.x - d.x) <= 3 && Math.abs(o.y - d.y) <= 3);
+    const mid = gap[Math.floor(gap.length / 2)]!;
+    gates.push({ x: mid.x, y: mid.y, district: d.district });
+  }
   // The castle (a keep in a walled bailey with a gatehouse) or the palace (a compound of courts), in its own ward.
-  const ward = rects.find((r) => r.district.kind === "palace" || r.district.kind === "castle");
-  if (ward) {
-    const kind = ward.district.kind === "palace" ? "palace" : "castle";
-    const fp = FOOTPRINT[kind]!;
-    const cw = Math.min(fp.compound!.w, ward.x1 - ward.x0 - 3);
-    const ch = Math.min(fp.compound!.h, ward.y1 - ward.y0 - 3);
-    const cx = Math.floor((ward.x0 + ward.x1 - cw) / 2) + 1;
-    const cy = Math.floor((ward.y0 + ward.y1 - ch) / 2) + 1;
+  if (ward && wardKind && comp) {
+    const fp = FOOTPRINT[wardKind]!;
+    const { x: cx, y: cy, w: cw, h: ch, gate } = comp;
     for (let y = cy; y < cy + ch; y++) for (let x = cx; x < cx + cw; x++) {
       const edge = x === cx || y === cy || x === cx + cw - 1 || y === cy + ch - 1;
       set(x, y, edge ? "wall" : "path");
       reserved[y * W + x] = 1;
     }
-    const gate = { x: cx + Math.floor(cw / 2), y: cy + ch - 1 };
     set(gate.x, gate.y, "door");
     for (let y = gate.y + 1; y <= Math.min(ward.y1 - 1, gate.y + 3); y++) if (tiles[y]![gate.x] === "grass") set(gate.x, y, "path");
     const bw = Math.min(fp.w, cw - 4);
     const bh = Math.min(fp.h, ch - 5);
-    const keep: Building = { name: kind === "palace" ? "Palace" : "Castle", x: cx + Math.floor((cw - bw) / 2), y: cy + 2, w: bw, h: bh, color: COLORS.palace!, kind, front: { x: gate.x, y: cy + 2 + bh }, district: ward.district.id, compound: { x: cx, y: cy, w: cw, h: ch, gate } };
+    const keep: Building = { name: wardKind === "palace" ? "Palace" : "Castle", x: cx + Math.floor((cw - bw) / 2), y: cy + 2, w: bw, h: bh, color: COLORS.palace!, kind: wardKind, front: { x: gate.x, y: cy + 2 + bh }, district: ward.district.id, compound: { x: cx, y: cy, w: cw, h: ch, gate } };
     compounds.push(keep);
   }
-  // What's built here, most important first; houses fill the rest by size.
+
+  // ---- The buildings ----
   const level = (b: keyof SiteInfo["buildings"]) => s.buildings[b] ?? 0;
-  // Buildings at their real size (N26H decision 3: shared town/districts.ts FOOTPRINT), clamped so the biggest still fit between streets.
-  const tall = big ? 10 : 5;
+  // Buildings at their real size (N26H decision 3: shared town/districts.ts FOOTPRINT); the long side lies along the street.
   const sized = (kind: string, name: string, fpKind = kind): Wanted => {
     const f = FOOTPRINT[fpKind] ?? { w: 4, h: 3 };
-    // Long buildings lie along the street.
     const [w, h] = f.h > f.w ? [f.h, f.w] : [f.w, f.h];
-    return { kind, name, w: Math.min(w, big ? 15 : 12), h: Math.min(h, tall) };
+    return { kind, name, w, h };
   };
   const wanted: Wanted[] = [];
-  if (!compounds.some((c) => c.kind === "palace")) wanted.push(s.kind === "capital" ? sized("palace", "Palace", "hall") : sized("hall", HALL[s.kind] ?? "Hall"));
+  if (!compounds.some((c) => c.kind === "palace")) wanted.push(s.kind === "capital" ? sized("palace", "Palace", "hall") : hamlet ? sized("hall", HALL.hamlet!, "merchant") : sized("hall", HALL[s.kind] ?? "Hall"));
   if (s.kind === "capital") wanted.push(sized("hall", "Lord chancellor's hall"));
   if (s.kind === "capital") wanted.push(sized("temple", "Cathedral", "cathedral"));
   const innNames = [...INNS].sort(() => rng() - 0.5).map((n) => n.replace(/^the /, "").replace(/^./, (c) => c.toUpperCase()));
-  const inns = s.kind === "hamlet" && level("inn") === 0 ? 0 : Math.max(1, Math.min(4, level("inn") + (big ? 1 : 0)));
+  const inns = hamlet && level("inn") === 0 ? 0 : Math.max(1, Math.min(4, level("inn") + (big ? 1 : 0)));
   for (let i = 0; i < inns; i++) wanted.push(sized("inn", innNames[i % innNames.length]!));
   for (let i = 0; i < Math.min(3, level("smithy")); i++) wanted.push(sized("smithy", "Forge"));
   if (market) wanted.push(sized("market", "Market hall"));
@@ -506,54 +731,121 @@ function village(s: SiteInfo, areas: AreaId[], realm: Realm | null | undefined, 
   // Exactly the houses the place has (N25): it only grows when the place builds one, so people keep their homes.
   const houses = housesOf(s);
 
-  // Lots: along every street, either side, door onto the street.
+  // Frontage: along every street and round every square, a building faces the street with a yard and a footpath to its door.
   const built = new Uint8Array(W * H);
-  const fits = (x: number, y: number, w: number, h: number): boolean => {
-    if (x < lo || y < lo || x + w - 1 > hiX || y + h - 1 > hiY) return false;
+  const sb = open.setback;
+  const fronts: Front[] = [];
+  for (const r of cv.roads) fronts.push(...frontsOf(cv, r));
+  cv.plazas.forEach((p, i) => fronts.push(...plazaFronts(i, p)));
+  const gapAt = (x: number, y: number) => {
+    const k = dAt(x, y)?.kind;
+    return big && (k === "slums" || k === "poor_end" || k === "craft" || k === "foreign") ? 1 : open.gap;
+  };
+  const fits = (x: number, y: number, w: number, h: number, gap: number): boolean => {
+    if (x < 2 || y < 2 || x + w - 1 > W - 3 || y + h - 1 > H - 3) return false;
     for (let yy = y; yy < y + h; yy++) for (let xx = x; xx < x + w; xx++) {
       const t = tiles[yy]![xx];
       if ((t !== "grass" && t !== "tree") || reserved[yy * W + xx]) return false;
     }
-    for (let yy = y - 1; yy <= y + h; yy++) for (let xx = x - 1; xx <= x + w; xx++) if (built[yy * W + xx]) return false;
+    // A yard's width of open ground between neighbours, and no street, plaza or wall hard against the building.
+    for (let yy = Math.max(0, y - gap); yy <= Math.min(H - 1, y + h - 1 + gap); yy++) for (let xx = Math.max(0, x - gap); xx <= Math.min(W - 1, x + w - 1 + gap); xx++) {
+      if (built[yy * W + xx]) return false;
+      const inside = xx >= x && xx < x + w && yy >= y && yy < y + h;
+      const near = xx >= x - 1 && xx < x + w + 1 && yy >= y - 1 && yy < y + h + 1;
+      const t = tiles[yy]![xx];
+      if (near && !inside && (t === "path" || t === "wall" || t === "door")) return false;
+    }
     return true;
   };
-  const lotsFor = (w: number, h: number): Lot[] => {
+  // A lot is usable when the building fits and its yard's footpath runs over open ground to the street.
+  const fitsLot = (l: Lot): boolean => fits(l.x, l.y, l.w, l.h, gapAt(l.door.x, l.door.y)) && l.walk.every((p) => { const t = tiles[p.y]?.[p.x]; return (t === "grass" || t === "tree") && !built[p.y * W + p.x]; });
+  /** Lots for a building of this size along every front. `jitter`: plots a little irregular (houses), never smaller than the footprint. */
+  const lotsFor = (w: number, h: number, jitter = false, around?: { at: Pt; r: number }): Lot[] => {
     const out: Lot[] = [];
-    const doorAlong = (a: number, len: number) => a + (len >= 3 ? 1 + Math.floor(rng() * (len - 2)) : Math.floor(rng() * len));
-    for (const r of rows) {
-      for (let x = lo; x + w - 1 <= hiX; x++) {
-        const dx = doorAlong(x, w);
-        out.push({ x, y: r - h, w, h, door: { x: dx, y: r - 1 }, front: { x: dx, y: r } });
-        out.push({ x, y: r + 1, w, h, door: { x: dx, y: r + 1 }, front: { x: dx, y: r } });
+    const base: [number, number] = w >= h ? [w, h] : [h, w];
+    for (const f of fronts) {
+      if (around && Math.abs(f.px - around.at.x) + Math.abs(f.py - around.at.y) > around.r) continue;
+      // A curved street leaves the corner of an axis-aligned building closer than its door: try a deeper yard too.
+      for (const extra of [0, 1, 2]) {
+        let [len, dep] = base;
+        if (jitter) {
+          if (rng() < 0.3) len++;
+          if (rng() < 0.2) dep++;
+        }
+        const yard = sb + extra;
+        const off = len >= 3 ? 1 + Math.floor(rng() * (len - 2)) : Math.floor(rng() * len);
+        const front = { x: f.px + f.dx * yard, y: f.py + f.dy * yard };
+        const door = { x: f.px + f.dx * (yard + 1), y: f.py + f.dy * (yard + 1) };
+        const walk = Array.from({ length: yard }, (_, k) => ({ x: f.px + f.dx * (k + 1), y: f.py + f.dy * (k + 1) }));
+        let x: number, y: number, bw: number, bh: number;
+        if (f.dx !== 0) {
+          bw = dep;
+          bh = len;
+          y = f.py - off;
+          x = f.dx > 0 ? f.px + yard + 1 : f.px - yard - dep;
+        } else {
+          bw = len;
+          bh = dep;
+          x = f.px - off;
+          y = f.dy > 0 ? f.py + yard + 1 : f.py - yard - dep;
+        }
+        out.push({ x, y, w: bw, h: bh, door, front, walk, side: f.side, pos: f.pos });
       }
     }
-    for (const c of cols) {
-      for (let y = lo; y + h - 1 <= hiY; y++) {
-        const dy = doorAlong(y, h);
-        out.push({ x: c - w, y, w, h, door: { x: c - 1, y: dy }, front: { x: c, y: dy } });
-        out.push({ x: c + 1, y, w, h, door: { x: c + 1, y: dy }, front: { x: c, y: dy } });
-      }
-    }
-    return out.filter((l) => tiles[l.front.y]?.[l.front.x] === "path");
+    return out;
+  };
+  // Lots in the order houses fill them: one side of one street at a time from the middle outward (a little shuffled), front to
+  // back, so houses stand at an uneven pitch with their yards between, thick near the centre and thinning toward the edge.
+  const fillCentre = big ? { x: mx, y: my } : gC;
+  const reach = Math.max(W, H) * 0.07;
+  const filling = (lots: Lot[]): Lot[] => {
+    const sides = new Map<string, Lot[]>();
+    for (const l of lots) (sides.get(l.side) ?? sides.set(l.side, []).get(l.side)!).push(l);
+    const ordered = [...sides.entries()].map(([k, v]) => {
+      v.sort((p, q) => p.pos - q.pos);
+      const mid = v[Math.floor(v.length / 2)]!;
+      return { v, r: Math.hypot(mid.front.x - fillCentre.x, (mid.front.y - fillCentre.y) * 1.3) + rng() * reach, k };
+    });
+    return ordered.sort((p, q) => p.r - q.r).flatMap((o) => o.v);
   };
   const buildings: Building[] = [];
   const place = (b: Wanted, lot: Lot) => {
     put(tiles, buildings, { name: b.name, x: lot.x, y: lot.y, w: lot.w, h: lot.h, color: COLORS[b.kind] ?? COLORS.house!, kind: b.kind, front: lot.front }, lot.door);
+    for (const p of lot.walk) set(p.x, p.y, "path");
     for (let y = lot.y; y < lot.y + lot.h; y++) for (let x = lot.x; x < lot.x + lot.w; x++) built[y * W + x] = 1;
   };
   const near = (lot: Lot, at: { x: number; y: number }) => Math.abs(lot.front.x - at.x) + Math.abs(lot.front.y - at.y);
-  // Each building goes to its own quarter where the place has it (N26H decision 1).
+  // Each building goes to its own quarter where the place has it (N26H decision 1), and the leading ones to their squares.
   const HOME_DISTRICT: Record<string, DistrictKind[]> = { manor: ["noble", "manor", "high_street"], temple: ["cathedral", "temple_close"], barracks: ["barracks", "gate"], guildhall: ["guild", "craft"], inn: ["gate", "market", "high_street"], smithy: ["craft", "gate"], market: ["market"], granary: ["craft", "market"], hall: ["market", "high_street", "green"], palace: ["palace", "market"] };
   const centreOf = (kinds: DistrictKind[] | undefined) => {
     const r = kinds?.map((k) => rects.find((x) => x.district.kind === k)).find(Boolean);
     return r ? { x: (r.x0 + r.x1) / 2, y: (r.y0 + r.y1) / 2 } : null;
   };
+  let innsPlaced = 0;
+  const goalOf = (b: Wanted): { at: Pt; spread: number } => {
+    const here = { x: mx, y: my };
+    if (!big) {
+      const g = b.kind === "hall" ? goals.hall : b.kind === "temple" ? (b.name === "Shrine" ? goals.far : goals.temple) : b.kind === "inn" ? goals.inn : b.kind === "smithy" ? goals.smithy : b.kind === "market" ? goals.market : b.kind === "guildhall" ? goals.guildhall : goals.far;
+      return { at: g ?? here, spread: b.kind === "hall" || b.kind === "inn" || b.kind === "temple" ? 0 : 3 };
+    }
+    if (b.name === "Lord chancellor's hall") return { at: goals.chancellor!, spread: 0 };
+    if (b.kind === "hall") return { at: goals.hall!, spread: 0 };
+    if (b.name === "Cathedral") return { at: goals.cathedral!, spread: 0 };
+    if (b.kind === "temple" && b.name === "Temple") return { at: goals.temple!, spread: 0 };
+    if (b.kind === "market") return { at: goals.market!, spread: 0 };
+    if (b.kind === "inn") {
+      const i = innsPlaced++;
+      if (i < 2) return { at: i === 0 ? goals.inn0! : goals.inn1!, spread: 0 };
+      if (i === 2) return { at: goals.gateInn!, spread: 2 };
+    }
+    return { at: centreOf(HOME_DISTRICT[b.kind]) ?? here, spread: b.kind === "manor" ? 6 : 4 };
+  };
   for (const b of wanted) {
-    const goal = (b.kind === "market" && market ? { x: (market.x0 + market.x1) / 2, y: (market.y0 + market.y1) / 2 } : null) ?? centreOf(HOME_DISTRICT[b.name === "Cathedral" ? "temple" : b.kind]) ?? { x: mx, y: my };
-    const spread = b.kind === "manor" ? 6 : b.kind === "palace" || b.kind === "hall" ? 0 : 4;
-    const lots = lotsFor(b.w, b.h).filter((l) => fits(l.x, l.y, l.w, l.h));
+    const { at, spread } = goalOf(b);
+    let lots = lotsFor(b.w, b.h, false, { at, r: 70 }).filter(fitsLot);
+    if (lots.length === 0) lots = lotsFor(b.w, b.h).filter(fitsLot);
     if (lots.length === 0) continue;
-    lots.sort((p, q) => near(p, goal) + rng() * spread - (near(q, goal) + rng() * spread));
+    lots.sort((p, q) => near(p, at) + rng() * spread - (near(q, at) + rng() * spread));
     place(b, lots[0]!);
   }
   // The compounds (castle, palace) go in before the houses, so the houses a place builds later never move their index.
@@ -563,28 +855,37 @@ function village(s: SiteInfo, areas: AreaId[], realm: Realm | null | undefined, 
     set(c.front!.x, c.y + c.h - 1, "door");
   }
   // Houses by the district they stand in (N26H decision 4): hovels in the slums, the poor end and the farmsteads, a craftsman's
-  // house over the shop in the craft lanes, a merchant's on the high street, cottages elsewhere.
+  // house over the shop in the craft lanes, a merchant's on the high street, cottages elsewhere; outside the walls, the suburbs
+  // are poor.
   let made = 0;
   const styles = ["merchant", "craft", "cottage", "hovel"] as const;
-  const styleLots = styles.map((st) => ({ st, lots: lotsFor(FOOTPRINT[st]!.w, FOOTPRINT[st]!.h).sort(() => rng() - 0.5) }));
-  const longest = Math.max(...styleLots.map((x) => x.lots.length));
-  for (let i = 0; i < longest && made < houses; i++) {
-    for (const { st, lots } of styleLots) {
-      const lot = lots[i];
-      if (!lot || made >= houses) continue;
-      if (houseStyleOf(dAt(lot.door.x, lot.door.y)?.kind) !== st || !fits(lot.x, lot.y, lot.w, lot.h)) continue;
-      place({ kind: "house", name: "", w: lot.w, h: lot.h }, lot);
-      buildings[buildings.length - 1]!.style = st;
-      made++;
-    }
+  const styleAt = (l: Lot): (typeof styles)[number] => {
+    const d = dAt(l.door.x, l.door.y);
+    if (d) return houseStyleOf(d.kind);
+    return (l.x * 7 + l.y * 13) % 3 === 0 ? "cottage" : "hovel";
+  };
+  // Each kind of house fills its own quarters from the middle outward; the kinds take turns by their share of the place.
+  const SHARE: Record<(typeof styles)[number], number> = big ? { merchant: 0.22, craft: 0.28, cottage: 0.3, hovel: 0.2 } : { merchant: 0.1, craft: 0.1, cottage: 0.65, hovel: 0.25 };
+  const queues = styles.map((st) => ({ st, lots: filling(lotsFor(FOOTPRINT[st]!.w, FOOTPRINT[st]!.h, true).filter((l) => styleAt(l) === st)), i: 0, n: 0 }));
+  while (made < houses) {
+    const live = queues.filter((q) => q.i < q.lots.length);
+    if (live.length === 0) break;
+    live.sort((p, q) => (p.n + 1) / SHARE[p.st] - (q.n + 1) / SHARE[q.st]);
+    const q = live[0]!;
+    const lot = q.lots[q.i++]!;
+    if (!fitsLot(lot) || (big && rng() < 0.08)) continue;
+    place({ kind: "house", name: "", w: lot.w, h: lot.h }, lot);
+    buildings[buildings.length - 1]!.style = q.st;
+    q.n++;
+    made++;
   }
   // Still short: any house that fits, anywhere (a small place has room to spare; a crowded one builds where it can).
   for (const st of ["hovel", "cottage"] as const) {
     if (made >= houses) break;
-    for (const lot of lotsFor(FOOTPRINT[st]!.w, FOOTPRINT[st]!.h).sort(() => rng() - 0.5)) {
+    for (const lot of filling(lotsFor(FOOTPRINT[st]!.w, FOOTPRINT[st]!.h, true))) {
       if (made >= houses) break;
       const dk = dAt(lot.door.x, lot.door.y)?.kind;
-      if (!fits(lot.x, lot.y, lot.w, lot.h) || (dk && (WALLED.has(dk) || dk === "noble"))) continue;
+      if (!fitsLot(lot) || (dk && (WALLED.has(dk) || dk === "noble"))) continue;
       place({ kind: "house", name: "", w: lot.w, h: lot.h }, lot);
       buildings[buildings.length - 1]!.style = st;
       made++;
@@ -594,13 +895,62 @@ function village(s: SiteInfo, areas: AreaId[], realm: Realm | null | undefined, 
   let spare = 0;
   if (room > 0) for (const st of ["cottage", "hovel"] as const) for (const lot of lotsFor(FOOTPRINT[st]!.w, FOOTPRINT[st]!.h)) {
     if (spare >= room) break;
-    if (fits(lot.x, lot.y, lot.w, lot.h)) {
+    if (fitsLot(lot)) {
       spare++;
       for (let y = lot.y; y < lot.y + lot.h; y++) for (let x = lot.x; x < lot.x + lot.w; x++) built[y * W + x] = 1;
     }
   }
-  // Every building knows its district.
-  for (const b of buildings) b.district ??= dAt(b.front?.x ?? b.x, b.front?.y ?? b.y)?.id ?? districts[0]!.id;
+  // Every building knows its district (outside the walls: the poor quarter, or the gate's).
+  const outside = districts.find((d) => d.kind === "poor_end" || d.kind === "slums" || d.kind === "farmsteads") ?? districts.find((d) => d.kind === "gate") ?? districts[0]!;
+  for (const b of buildings) b.district ??= dAt(b.front?.x ?? b.x, b.front?.y ?? b.y)?.id ?? outside.id;
+  // Trees along the main streets, on the grass between the street and the houses (never on a footpath or against a door).
+  for (const r of cv.roads) {
+    if (r.kind !== "main") continue;
+    for (let i = 2; i < r.samples.length - 2; i += 4) for (const sgn of [1, -1]) {
+      const sp = r.samples[i]!;
+      const nx = -sp.ty * sgn;
+      const ny = sp.tx * sgn;
+      const [dx, dy] = Math.abs(nx) >= Math.abs(ny) ? [Math.sign(nx), 0] : [0, Math.sign(ny)];
+      let px = sp.x;
+      let py = sp.y;
+      for (let k = 0; k < r.width + 3 && tiles[py + dy]?.[px + dx] === "path"; k++) {
+        px += dx;
+        py += dy;
+      }
+      const x = px + dx;
+      const y = py + dy;
+      if (tiles[y]?.[x] !== "grass" || reserved[y * W + x] || built[y * W + x]) continue;
+      let ok = true;
+      let paths = 0;
+      for (let yy = -1; yy <= 1; yy++) for (let xx = -1; xx <= 1; xx++) {
+        const t = tiles[y + yy]?.[x + xx];
+        if (t === "door") ok = false;
+        if (t === "path" && (xx === 0 || yy === 0) && (xx || yy)) paths++;
+      }
+      if (ok && paths <= 1) set(x, y, "tree");
+    }
+  }
+  // Orchards at the outskirts of a village or hamlet: rows of fruit trees in a patch of ground clear of everything.
+  if (!big) {
+    for (let i = 0, tried = 0; i < (hamlet ? 1 : 3) && tried < 80; tried++) {
+      const ow = 9 + Math.floor(rng() * 5);
+      const oh = 6 + Math.floor(rng() * 3);
+      const ox = 4 + Math.floor(rng() * Math.max(1, W - ow - 8));
+      const oy = 4 + Math.floor(rng() * Math.max(1, H - oh - 8));
+      if (Math.hypot((ox + ow / 2 - gC.x) / 1.4, oy + oh / 2 - gC.y) < (hamlet ? 12 : 20)) continue;
+      let free = true;
+      for (let yy = oy - 2; yy <= oy + oh + 1 && free; yy++) for (let xx = ox - 2; xx <= ox + ow + 1; xx++) {
+        const t = tiles[yy]?.[xx];
+        if ((t !== "grass" && t !== "tree") || reserved[yy * W + xx] || built[yy * W + xx]) { free = false; break; }
+      }
+      if (!free) continue;
+      i++;
+      for (let yy = oy; yy < oy + oh; yy++) for (let xx = ox; xx < ox + ow; xx++) {
+        reserved[yy * W + xx] = 1;
+        if ((xx - ox) % 3 === 1 && (yy - oy) % 3 === 1) set(xx, yy, "tree");
+      }
+    }
+  }
   // A few trees where nothing's built, more in the forest; none against a door or a path.
   const trees = (s.terrain === "forest" ? 18 : s.terrain === "plains" ? 4 : 9) * (big ? 2 : 1);
   for (let i = 0; i < trees; i++) {
@@ -617,10 +967,10 @@ function village(s: SiteInfo, areas: AreaId[], realm: Realm | null | undefined, 
   const inn = at(first("inn"));
   const smithy = at(first("smithy"));
   const hall = at(first("palace") ?? first("hall"));
-  const sq: Anchor = { x: big ? mx + 1 : mx + 2, y: my + 1, location: `the square of ${s.name}`, nearby: ["the well", hall ? `the ${hall.building.toLowerCase()}` : "a few stalls", "folk passing"] };
+  const sq: Anchor = { x: big ? mx + 1 : Math.floor((square.x0 + square.x1) / 2) + 1, y: big ? my + 1 : Math.floor((square.y0 + square.y1) / 2) + 1, location: `the square of ${s.name}`, nearby: ["the well", hall ? `the ${hall.building.toLowerCase()}` : "a few stalls", "folk passing"] };
   const placeAnchors: Partial<Record<PlaceId, Anchor>> = {
     square: sq,
-    gate: ({ x: walled ? 4 : 3, y: my - 1, location: `the ${walled ? "gate" : "edge"} of ${s.name}`, nearby: [walled ? "the town gate" : "the road in", "a milestone"] }),
+    gate: ({ x: gx + 2, y: my - 1, location: `the ${walled ? "gate" : "edge"} of ${s.name}`, nearby: [walled ? "the town gate" : "the road in", "a milestone"] }),
     inn: inn ? ({ x: inn.x, y: inn.y, location: `outside ${inn.building}, the inn of ${s.name}`, nearby: [`${inn.building}'s door`, "a hanging inn sign"] }) : sq,
     forge: smithy ? ({ x: smithy.x, y: smithy.y, location: `the smithy of ${s.name}`, nearby: ["an anvil", "a glowing forge"] }) : sq,
   };
@@ -630,13 +980,13 @@ function village(s: SiteInfo, areas: AreaId[], realm: Realm | null | undefined, 
   const dens: Record<string, Den> = {
     square: sqDen,
     villager: sqDen,
-    gate_road: { x0: 5, y0: my - 1, x1: 10, y1: my + 1 },
+    gate_road: walled ? { x0: Math.max(1, w0 - 9), y0: my - 2, x1: Math.max(2, w0 - 2), y1: my + 2 } : { x0: 5, y0: my - 2, x1: 10, y1: my + 2 },
     paddock,
     horse: paddock,
   };
   // Each district is a zone too, so the crowd and the player's map know which quarter a tile is in (N26H).
   for (const r of rects) zones.push({ id: r.district.id, kind: `district:${r.district.kind}`, x0: r.x0, y0: r.y0, x1: r.x1, y1: r.y1 });
-  return { name: s.name, tiles, buildings, anchors: placeAnchors, fallback: "square", dens, exits, start: { x: PLAYER_START.x, y: my }, zones, districts: rects, gates, short: Math.max(0, houses - made) + Math.max(0, room - spare) };
+  return { name: s.name, tiles, buildings, anchors: placeAnchors, fallback: "square", dens, exits, start: { x: walled ? Math.max(PLAYER_START.x, w0 - 3) : PLAYER_START.x, y: my }, zones, districts: rects, gates, short: Math.max(0, houses - made) + Math.max(0, room - spare) };
 }
 
 // ---- The localities ----

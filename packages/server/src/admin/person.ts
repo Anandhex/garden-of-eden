@@ -3,8 +3,8 @@ import { seasonOf, weatherAtSite } from "../game/weather.js";
 import { plotsOf } from "../game/farm/fields.js";
 import { plotTiles } from "../game/farm/day.js";
 import { findCreature } from "../game/site.js";
-import type { AdminCard, AdminHour, AdminPinned, AdminSection } from "@millbrook/shared";
-import { CLASS_WORDS, JOB_INFO } from "@millbrook/shared";
+import type { AdminCard, AdminHour, AdminPinned, AdminSection } from "@garden-of-eden/shared";
+import { CLASS_WORDS, JOB_INFO } from "@garden-of-eden/shared";
 import { knowsEvent } from "../game/events.js";
 import { ageOn } from "../game/life.js";
 import { formatMoney } from "../game/money.js";
@@ -38,6 +38,7 @@ import { leisureOf } from "../game/leisure/events.js";
 import { gradeRecord } from "../game/market/grades.js";
 import { historyOf, itemName, legendOf, notableRef } from "../game/items/notable.js";
 import { events } from "./events.js";
+import { personSocietySections, placeSocietySections, societyCard } from "./society.js";
 import { classCounts, crowdDay, folkOf, townsperson } from "./folk.js";
 import { playerCard } from "./player.js";
 import { nameOfRef, parseRef, refOfId } from "./refs.js";
@@ -449,6 +450,8 @@ function townspersonCard(ctx: AdminContext, id: string): AdminCard | null {
     ...(row ? [knowsSection(ctx, row)] : []),
     ...(row ? socialSections(ctx, row) : []),
     ...(row ? choiceSections(ctx, row.id) : []),
+    // Stages 4–5 (N70): feuds, secrets, faith, gift, soldiering, cases.
+    ...(row ? personSocietySections(ctx, row) : []),
     ...(row && !(persona && state) ? [ambitionSection(ctx, row.id)] : []),
     ...(row && !row.persona ? [outlookSection(ctx, row, world.realm!.settlements[row.site]?.leader ? world.realm!.figures[world.realm!.settlements[row.site]!.leader!] : undefined)] : []),
     ...(row && row.persona ? [] : [{ title: "Needs, emotions, goals", unavailable: "N25: townsfolk's needs and feelings are worked out by code (their outlook is above); they get a full set of their own once they talk to the player" } as AdminSection]),
@@ -617,6 +620,8 @@ function placeCard(ctx: AdminContext, id: string): AdminCard | null {
       ...factions.filter((f) => f.seat === id).map((f) => factionSection(ctx, f)),
       fieldsSection(ctx, s),
       watchSection(ctx, s),
+      // Stages 4–5 (N70): its culture, faith, den, court and cells, residents of other peoples, levy.
+      ...placeSocietySections(ctx, id),
       { title: "Lately", rows: events(ctx, { site: id, limit: 15 }).events.map((e): [string, string] => [`Day ${e.day}`, `${e.text}${e.why ? ` (why: ${e.why})` : ""}`]) },
     ],
   };
@@ -715,6 +720,8 @@ export function card(ctx: AdminContext, ref: string): AdminCard | null {
       return placeCard(ctx, p.id);
     case "item":
       return itemCard(ctx, p.id);
+    case "society":
+      return societyCard(ctx);
   }
 }
 

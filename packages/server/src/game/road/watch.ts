@@ -1,4 +1,4 @@
-import { WALK_PACE, type RoadData } from "@millbrook/shared";
+import { WALK_PACE, type RoadData } from "@garden-of-eden/shared";
 import type { PeopleStore, PersonRow } from "../../store/peopleStore.js";
 import { streamFor } from "../dice.js";
 import { sink, transfer } from "../realm/ledger.js";

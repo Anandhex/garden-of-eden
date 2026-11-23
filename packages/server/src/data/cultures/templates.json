@@ -29,7 +29,7 @@
     {
       "id": "coastal", "family": "south", "terrain": ["coast", "marsh"],
       "female": ["Marisa", "Delphine", "Oriel", "Sabela", "Nerea", "Liora", "Calla", "Ondine", "Perla", "Thessa"],
-      "male": ["Corin", "Davio", "Ennis", "Lucan", "Marro", "Nerio", "Orsin", "Pell", "Silvan", "Tobin"],
+      "male": ["Corin", "Davio", "Ennis", "Lucan", "Marro", "Nerio", "Orsin", "Silvan", "Tobin"],
       "familyA": ["Sal", "Mar", "Port", "Vel", "Cor", "Bel"], "familyB": ["vari", "ena", "ucci", "aro", "ezzo", "inna"],
       "greetings": { "up": "The tide favour you, {title}.", "even": "Fair winds!", "down": "What's your business?" },
       "honorifics": { "noble": "Excellence", "gentry": "Master", "clergy": "Holy one", "default": "friend" },

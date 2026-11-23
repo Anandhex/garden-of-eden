@@ -1,6 +1,6 @@
-import type { InteractionKind } from "@millbrook/shared";
+import type { InteractionKind } from "@garden-of-eden/shared";
 
-export { HOSTILE, INTERACTIONS, isInteraction, type InteractionKind } from "@millbrook/shared";
+export { HOSTILE, INTERACTIONS, isInteraction, type InteractionKind } from "@garden-of-eden/shared";
 
 /** One exchange between two people (N37): `a` did it to `b`. */
 export interface Interaction {

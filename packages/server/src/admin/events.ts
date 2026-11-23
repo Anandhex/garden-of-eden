@@ -1,4 +1,4 @@
-import { type AdminEvent, type AdminEventQuery, type AdminEventsPage, atKey, compareAt } from "@millbrook/shared";
+import { type AdminEvent, type AdminEventQuery, type AdminEventsPage, atKey, compareAt } from "@garden-of-eden/shared";
 import type { GameEvent } from "../game/events.js";
 import type { DirectorPush, Realm, RealmNews } from "../game/realm/types.js";
 import type { AdminContext } from "./context.js";

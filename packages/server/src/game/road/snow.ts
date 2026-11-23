@@ -1,4 +1,4 @@
-import { closedRoads, type RoadData, type RoadPath } from "@millbrook/shared";
+import { closedRoads, type RoadData, type RoadPath } from "@garden-of-eden/shared";
 import { config } from "../../config.js";
 import type { Realm } from "../realm/types.js";
 import { shortest } from "./paths.js";

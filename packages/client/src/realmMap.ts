@@ -3,7 +3,7 @@
  * the game's Realm tab (N13.9) and the admin page (N17), so both draw the same map.
  * The admin page adds a layer on top: packs, war fronts and pinned places.
  */
-import type { AdminMapLayer, RealmView } from "@millbrook/shared";
+import type { AdminMapLayer, RealmView } from "@garden-of-eden/shared";
 import { el } from "./dom";
 import "./realmMap.css";
 

@@ -5,7 +5,7 @@
  * the label layer above everything, so roofs and trees never hide them.
  */
 import * as Phaser from "phaser";
-import type { Actor as ActorData } from "@millbrook/shared/view";
+import type { Actor as ActorData } from "@garden-of-eden/shared/view";
 import type { Core } from "../../../core";
 import { framesOf, hasFrame, lookOf, PERSON_LAYERS, pickFrame, textureFor, warnMissing, type Pick } from "../art";
 import { DEPTH, sortDepth } from "./depth";

@@ -1,4 +1,4 @@
-import { homeDistrict, type SocialClass } from "@millbrook/shared";
+import { homeDistrict, type SocialClass } from "@garden-of-eden/shared";
 import { siteMap } from "../../web/sites.js";
 import type { PersonRow } from "../../store/peopleStore.js";
 import { speciesOf } from "../../world/species.js";
@@ -15,7 +15,7 @@ import { ageFrom } from "./rules.js";
 import type { LifeCtx } from "./step.js";
 import { sendArrival } from "../realm/arrivals.js";
 import { outlookOf } from "./outlook.js";
-import { WALK_PACE, type Journey, type Traveller } from "@millbrook/shared";
+import { WALK_PACE, type Journey, type Traveller } from "@garden-of-eden/shared";
 import { roadDataOf } from "../road/generateRoads.js";
 import { departureOn, launch } from "../road/journeys.js";
 import { shortest } from "../road/paths.js";

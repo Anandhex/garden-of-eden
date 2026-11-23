@@ -1,4 +1,4 @@
-import { JOB_INFO, type Job } from "@millbrook/shared";
+import { JOB_INFO, type Job } from "@garden-of-eden/shared";
 import { AMBITION_DEFAULTS, type AmbitionRow } from "../../store/careerStore.js";
 import type { PersonRow } from "../../store/peopleStore.js";
 import type { NpcPersona } from "../../npc/types.js";

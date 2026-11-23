@@ -1,7 +1,7 @@
 import { MAGIC_SCHOOLS, policyAt } from "../realm/policy.js";
 import { readFileSync } from "node:fs";
 import { z } from "zod";
-import { seedOf } from "@millbrook/shared";
+import { seedOf } from "@garden-of-eden/shared";
 import type { Rng } from "../dice.js";
 import type { Figure, Realm } from "../realm/types.js";
 

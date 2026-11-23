@@ -4,7 +4,7 @@
  * is rolled the first time anyone touches the building, hidden things and a talker's secret letter among it; going into
  * a home uninvited is trespass, and whoever inside sees it shouts for the guard.
  */
-import { CrowdSim, interiorOf, interiorWalkable } from "@millbrook/shared";
+import { CrowdSim, interiorOf, interiorWalkable } from "@garden-of-eden/shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { config } from "../src/config.js";
 import { loadCreatureTemplates } from "../src/game/creatures.js";

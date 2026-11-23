@@ -18,7 +18,7 @@ export interface SecretData {
   /** Who it would harm to have it known (the one who hides it), and anyone else in it. */
   about: string;
   others?: string[];
-  /** Words: "Ada Reed is seeing Tom Hale behind her husband's back". */
+  /** Words: "Ada Reed is seeing Tom Fenn behind her husband's back". */
   text: string;
   /** 1..10: what it would cost them to have it out. */
   weight: number;

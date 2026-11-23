@@ -1,4 +1,4 @@
-import { buildTimeline, graphOf, journeyLine, type JourneyRoad, type RoadData } from "@millbrook/shared";
+import { buildTimeline, graphOf, journeyLine, type JourneyRoad, type RoadData } from "@garden-of-eden/shared";
 import { formatMoney } from "../money.js";
 import type { Town } from "../town.js";
 import { landOf } from "./ground.js";

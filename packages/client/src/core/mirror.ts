@@ -2,7 +2,7 @@
  * The latest of what the server sent (G5): the frame applied change by change (actors, the patch cache, buildings,
  * lights, signs) and the UI model panel by panel. No rules: it only keeps what it was told.
  */
-import { OBJECT_IDS, TERRAIN_IDS, type Actor, type Frame, type Patch, type UiModel } from "@millbrook/shared/view";
+import { OBJECT_IDS, TERRAIN_IDS, type Actor, type Frame, type Patch, type UiModel } from "@garden-of-eden/shared/view";
 
 export interface FrameChange {
   /** A new map (or the first frame): everything was replaced. */

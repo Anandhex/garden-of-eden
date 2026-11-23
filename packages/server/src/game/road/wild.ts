@@ -1,4 +1,4 @@
-import { Ground, wildlifeAt, type Wild } from "@millbrook/shared";
+import { Ground, wildlifeAt, type Wild } from "@garden-of-eden/shared";
 import { spawnCreature, type Creature } from "../creatures.js";
 import { streamFor } from "../dice.js";
 import type { Town } from "../town.js";

@@ -294,7 +294,7 @@ export function packAtlas(sheet: string, frames: Frame[], maxW = 1024): Atlas {
   const W = Math.max(4, Math.ceil(width / 4) * 4);
   const H = Math.max(4, Math.ceil((y + shelf) / 4) * 4);
   const rgba = new Uint8Array(W * H * 4);
-  const json: Atlas["json"] = { frames: {}, meta: { app: "millbrook art/pack.ts", version: "1", image: `${sheet}.png`, format: "RGBA8888", size: { w: W, h: H }, scale: "1" } };
+  const json: Atlas["json"] = { frames: {}, meta: { app: "garden-of-eden art/pack.ts", version: "1", image: `${sheet}.png`, format: "RGBA8888", size: { w: W, h: H }, scale: "1" } };
   for (const f of frames) {
     const at = spots.get(f.name)!;
     for (let py = 0; py < f.h; py++) {

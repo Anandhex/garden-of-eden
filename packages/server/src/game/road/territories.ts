@@ -1,4 +1,4 @@
-import { inTerritory, territoriesOf, type RoadData, type RoadPoint, type Territory } from "@millbrook/shared";
+import { inTerritory, territoriesOf, type RoadData, type RoadPoint, type Territory } from "@garden-of-eden/shared";
 import type { Realm } from "../realm/types.js";
 import { roadDataOf } from "./generateRoads.js";
 

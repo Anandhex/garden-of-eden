@@ -1,0 +1,367 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec7544721277f4ec9bb38c4a47fd4a57, type: 3}
+  m_Name: CharacterManifest
+  m_EditorClassIdentifier: GardenOfEden.World::GardenOfEden.World.CharacterManifest
+  bodies:
+  - id: rogue
+    kind: 0
+    prefab: {fileID: 4318742882067974164, guid: 43290900486fd4642a12246364be48a7, type: 3}
+    walkSpeed: 1.4
+    runSpeed: 4
+    armed: 1
+    height: 1.75
+    radius: 0.3
+    clothes: []
+    pants: []
+    trim: []
+    hair: []
+    skin: []
+    tintRenderers:
+    - _Body
+    - _ArmLeft
+    - _ArmRight
+    - _LegLeft
+    - _LegRight
+  - id: rogue_hooded
+    kind: 0
+    prefab: {fileID: 1326185212828801052, guid: 66d608e2a7b3c4fc5ab832891a2d38f3, type: 3}
+    walkSpeed: 1.4
+    runSpeed: 4
+    armed: 0
+    height: 1.75
+    radius: 0.3
+    clothes: []
+    pants: []
+    trim: []
+    hair: []
+    skin: []
+    tintRenderers:
+    - _Body
+    - _ArmLeft
+    - _ArmRight
+    - _LegLeft
+    - _LegRight
+  - id: rogue_hooded_bandit
+    kind: 0
+    prefab: {fileID: 4198458445000201170, guid: c5009f79a5d9b479aa4b1503d2a59146, type: 3}
+    walkSpeed: 1.4
+    runSpeed: 4
+    armed: 1
+    height: 1.75
+    radius: 0.3
+    clothes: []
+    pants: []
+    trim: []
+    hair: []
+    skin: []
+    tintRenderers:
+    - _Body
+    - _ArmLeft
+    - _ArmRight
+    - _LegLeft
+    - _LegRight
+  - id: knight_guard
+    kind: 0
+    prefab: {fileID: 6918573792676075370, guid: b18d727e35ead4f0cacefd9d43bb4e8e, type: 3}
+    walkSpeed: 1.4
+    runSpeed: 4
+    armed: 1
+    height: 1.75
+    radius: 0.3
+    clothes: []
+    pants: []
+    trim: []
+    hair: []
+    skin: []
+    tintRenderers:
+    - _Body
+    - _ArmLeft
+    - _ArmRight
+    - _LegLeft
+    - _LegRight
+  - id: knight_noble
+    kind: 0
+    prefab: {fileID: 1054359724685369379, guid: 199c31597ac7b43b29180c72f0ed7398, type: 3}
+    walkSpeed: 1.4
+    runSpeed: 4
+    armed: 0
+    height: 1.75
+    radius: 0.3
+    clothes: []
+    pants: []
+    trim: []
+    hair: []
+    skin: []
+    tintRenderers:
+    - _Body
+    - _ArmLeft
+    - _ArmRight
+    - _LegLeft
+    - _LegRight
+  - id: barbarian_raider
+    kind: 0
+    prefab: {fileID: 8258054170780160660, guid: 8a88c0d8e5291491fb442a1a44f66fb0, type: 3}
+    walkSpeed: 1.4
+    runSpeed: 4
+    armed: 1
+    height: 1.75
+    radius: 0.3
+    clothes: []
+    pants: []
+    trim: []
+    hair: []
+    skin: []
+    tintRenderers:
+    - _Body
+    - _ArmLeft
+    - _ArmRight
+    - _LegLeft
+    - _LegRight
+  - id: barbarian_worker
+    kind: 0
+    prefab: {fileID: 8827828032944370442, guid: be20f925442614bdc9ed072a9369e3a8, type: 3}
+    walkSpeed: 1.4
+    runSpeed: 4
+    armed: 0
+    height: 1.75
+    radius: 0.3
+    clothes: []
+    pants: []
+    trim: []
+    hair: []
+    skin: []
+    tintRenderers:
+    - _Body
+    - _ArmLeft
+    - _ArmRight
+    - _LegLeft
+    - _LegRight
+  - id: mage_elder
+    kind: 0
+    prefab: {fileID: 246006790859411234, guid: ac33e939da66f4d26841c8d6e00b4981, type: 3}
+    walkSpeed: 1.4
+    runSpeed: 4
+    armed: 0
+    height: 1.75
+    radius: 0.3
+    clothes: []
+    pants: []
+    trim: []
+    hair: []
+    skin: []
+    tintRenderers:
+    - _Body
+    - _ArmLeft
+    - _ArmRight
+    - _LegLeft
+    - _LegRight
+  - id: mage_noble
+    kind: 0
+    prefab: {fileID: 3727280555101578735, guid: 21ec314e453fa4b61ab408fb90d60654, type: 3}
+    walkSpeed: 1.4
+    runSpeed: 4
+    armed: 0
+    height: 1.75
+    radius: 0.3
+    clothes: []
+    pants: []
+    trim: []
+    hair: []
+    skin: []
+    tintRenderers:
+    - _Body
+    - _ArmLeft
+    - _ArmRight
+    - _LegLeft
+    - _LegRight
+  - id: man_casual
+    kind: 0
+    prefab: {fileID: 6416659068834314136, guid: 460702991b3a04b59a0657190e042b2a, type: 3}
+    walkSpeed: 1.2070096
+    runSpeed: 3.1186981
+    armed: 0
+    height: 1.75
+    radius: 0.3
+    clothes:
+    - Shirt
+    pants:
+    - Pants
+    trim:
+    - Socks
+    hair:
+    - Hair
+    skin:
+    - Skin
+    tintRenderers: []
+  - id: man_suit
+    kind: 0
+    prefab: {fileID: 5410638314187922859, guid: 3e0b0289efff84bfd852692e274c6b20, type: 3}
+    walkSpeed: 1.2070096
+    runSpeed: 3.1186981
+    armed: 0
+    height: 1.78
+    radius: 0.3
+    clothes:
+    - Shirt
+    pants:
+    - Pants
+    trim:
+    - Details
+    hair:
+    - Hair
+    skin:
+    - Skin
+    tintRenderers: []
+  - id: woman_casual
+    kind: 0
+    prefab: {fileID: 3521414521768774314, guid: 558b9041317754a1582634fefe7995c6, type: 3}
+    walkSpeed: 1.1905526
+    runSpeed: 3.076176
+    armed: 0
+    height: 1.66
+    radius: 0.3
+    clothes:
+    - Shirt
+    pants:
+    - Pants
+    trim:
+    - Shoes
+    hair:
+    - Hair
+    - HairBase
+    skin:
+    - Skin
+    tintRenderers: []
+  - id: casual_character
+    kind: 0
+    prefab: {fileID: 4926157637077256313, guid: 3231eaec90c554d54995c20a91c50827, type: 3}
+    walkSpeed: 0.9641711
+    runSpeed: 2.894592
+    armed: 0
+    height: 1.72
+    radius: 0.3
+    clothes:
+    - LightBrown
+    pants:
+    - LightBlue
+    trim:
+    - Red_Dark
+    hair:
+    - Hair
+    skin:
+    - Skin
+    - Skin_Darker
+    tintRenderers: []
+  - id: character_animated
+    kind: 0
+    prefab: {fileID: 7736153805168445124, guid: c19795832d71a4d00acb79e205d8259d, type: 3}
+    walkSpeed: 1.4
+    runSpeed: 4
+    armed: 1
+    height: 1.75
+    radius: 0.3
+    clothes:
+    - Shirt
+    pants:
+    - Pants
+    trim:
+    - UnderShirt
+    hair:
+    - Hair
+    skin:
+    - Skin
+    tintRenderers: []
+  - id: horse
+    kind: 1
+    prefab: {fileID: 306610673139932400, guid: c25ae6bbc068343e28721bec107dd840, type: 3}
+    walkSpeed: 1.1
+    runSpeed: 3.0078592
+    armed: 0
+    height: 2.15
+    radius: 1.2347234
+    clothes: []
+    pants: []
+    trim: []
+    hair: []
+    skin: []
+    tintRenderers: []
+  - id: donkey
+    kind: 1
+    prefab: {fileID: 2103508369676170346, guid: aca887e9980ec4f8bbe0715957b9607c, type: 3}
+    walkSpeed: 1.1
+    runSpeed: 3.0591216
+    armed: 0
+    height: 1.55
+    radius: 0.9123155
+    clothes: []
+    pants: []
+    trim: []
+    hair: []
+    skin: []
+    tintRenderers: []
+  - id: bull
+    kind: 1
+    prefab: {fileID: 7061040417752063635, guid: 1ebc92ad0a1a94b8b91d99aaa8401bfe, type: 3}
+    walkSpeed: 1.1
+    runSpeed: 3
+    armed: 0
+    height: 1.75
+    radius: 1.2642123
+    clothes: []
+    pants: []
+    trim: []
+    hair: []
+    skin: []
+    tintRenderers: []
+  - id: deer
+    kind: 1
+    prefab: {fileID: 7311308147578245156, guid: 166fed01ee7a841b5bbcc0acfe17b71b, type: 3}
+    walkSpeed: 1.1
+    runSpeed: 3
+    armed: 0
+    height: 1.55
+    radius: 0.7600077
+    clothes: []
+    pants: []
+    trim: []
+    hair: []
+    skin: []
+    tintRenderers: []
+  - id: stag
+    kind: 1
+    prefab: {fileID: 693803196264630100, guid: e7dfcf90140ba41359ab9b001d363bc9, type: 3}
+    walkSpeed: 1.1
+    runSpeed: 3.0339153
+    armed: 0
+    height: 1.95
+    radius: 1.0642822
+    clothes: []
+    pants: []
+    trim: []
+    hair: []
+    skin: []
+    tintRenderers: []
+  - id: wolf
+    kind: 1
+    prefab: {fileID: 1581823243429109123, guid: 76d5e5e0531d24c1aaccafa50c68ab14, type: 3}
+    walkSpeed: 1.1
+    runSpeed: 3
+    armed: 0
+    height: 0.95
+    radius: 0.7920218
+    clothes: []
+    pants: []
+    trim: []
+    hair: []
+    skin: []
+    tintRenderers: []

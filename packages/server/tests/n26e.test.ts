@@ -8,7 +8,7 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { isOnTheRoad, placeAt, stopsOf, type Journey } from "@millbrook/shared";
+import { isOnTheRoad, placeAt, stopsOf, type Journey } from "@garden-of-eden/shared";
 import { config } from "../src/config.js";
 import { WorldStore } from "../src/game/db.js";
 import { parseAway, type PersonRow } from "../src/store/peopleStore.js";

@@ -1,5 +1,5 @@
 import { findCreature } from "../game/site.js";
-import type { AdminCardKind } from "@millbrook/shared";
+import type { AdminCardKind } from "@garden-of-eden/shared";
 import { titled } from "../game/realm/figures.js";
 import { parseTownsfolkId } from "../game/realm/townsfolk.js";
 import type { AdminContext } from "./context.js";
@@ -20,12 +20,14 @@ const PREFIX: Record<string, AdminCardKind> = { cast: "cast", figure: "figure", 
 
 export function parseRef(ref: string): ParsedRef | null {
   if (ref === "player") return { kind: "player", id: "player" };
+  // The Society card (N70): the realm's Stages 4–5 state on one card.
+  if (ref === "society") return { kind: "society", id: "realm" };
   const at = ref.indexOf(":");
   const kind = at > 0 ? PREFIX[ref.slice(0, at)] : undefined;
   return kind ? { kind, id: ref.slice(at + 1) } : null;
 }
 
-export const refFor = (kind: AdminCardKind, id: string): string => (kind === "player" ? "player" : `${Object.entries(PREFIX).find(([, k]) => k === kind)![0]}:${id}`);
+export const refFor = (kind: AdminCardKind, id: string): string => (kind === "player" ? "player" : kind === "society" ? "society" : `${Object.entries(PREFIX).find(([, k]) => k === kind)![0]}:${id}`);
 
 /** The ref for an id as events write it (an actor or target): the player, a cast member, a townsperson, a figure or a creature. */
 export function refOfId(ctx: AdminContext, raw: string): string | null {
@@ -62,6 +64,8 @@ export function siteOfRef(ctx: AdminContext, ref: string): string | null {
     }
     case "beast":
       return findCreature(world, p.id)?.site ?? null;
+    case "society":
+      return null;
   }
 }
 
@@ -91,5 +95,7 @@ export function nameOfRef(ctx: AdminContext, ref: string): string {
       return findCreature(world, p.id)?.creature.name ?? p.id;
     case "item":
       return ctx.town().store?.notables.get(p.id)?.name ?? p.id;
+    case "society":
+      return "Society";
   }
 }

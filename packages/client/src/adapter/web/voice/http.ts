@@ -2,7 +2,7 @@
  * The voice endpoints (T14), plain HTTP beside the socket (G5 decision 10): audio is a binary blob, not a JSON
  * message. What a line says comes over the socket; this only turns it into sound in the NPC's Piper voice.
  */
-import type { VoiceInfo } from "@millbrook/shared/view";
+import type { VoiceInfo } from "@garden-of-eden/shared/view";
 
 export async function fetchVoiceInfo(): Promise<VoiceInfo> {
   try {

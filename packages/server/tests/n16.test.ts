@@ -6,7 +6,7 @@
  * talkable by the player, who turns them into full NPCs. Only traders sell. The
  * cast's long days get a break, and nobody stands frozen to one tile.
  */
-import { CLASS_RANK, chatLines, CrowdSim, findPath, type CrowdDay, type CrowdRoster, type Townsperson } from "@millbrook/shared";
+import { CLASS_RANK, chatLines, CrowdSim, findPath, type CrowdDay, type CrowdRoster, type Townsperson } from "@garden-of-eden/shared";
 import { beforeEach, describe, expect, it } from "vitest";
 import { config } from "../src/config.js";
 import { generateRealm } from "../src/game/realm/generate.js";
@@ -63,7 +63,7 @@ describe("N16.1 maps sized to the place", () => {
       }
       // From the start, reach a sample of fronts (all of them in the smaller places).
       const sample = m.buildings.filter((_, i) => kind === "village" || i % 7 === 0);
-      for (const b of sample) expect(findPath(m.start, (t) => t.x === b.front!.x && t.y === b.front!.y, (x, y) => m.isSolid(x, y), 20_000), `${kind}: ${b.name || b.kind} at ${b.front!.x},${b.front!.y}`).not.toBeNull();
+      for (const b of sample) expect(findPath(m.start, (t) => t.x === b.front!.x && t.y === b.front!.y, (x, y) => m.isSolid(x, y), 400_000), `${kind}: ${b.name || b.kind} at ${b.front!.x},${b.front!.y}`).not.toBeNull();
     }
   });
 

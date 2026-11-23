@@ -1,0 +1,8 @@
+Quaternius models (Quaternius, https://quaternius.com)
+License: Creative Commons Zero (CC0 1.0), https://creativecommons.org/publicdomain/zero/1.0/
+Free for personal, educational and commercial use; no credit required (credited anyway in Assets/Game/Art/CREDITS.md).
+
+The models were fetched from Poly Pizza (https://poly.pizza), where each is listed as "Quaternius, CC0":
+  Man_Casual (Man), Woman_Casual, Man_Suit (Man in Suit), Casual_Character (Casual Character), Character_Animated,
+  Horse, Deer, Stag, Donkey, Bull, Pig, Wolf.
+They were converted from glTF (GLB) to FBX with Blender 4.3 (no changes to the meshes, rigs or animation clips).

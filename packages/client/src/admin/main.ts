@@ -4,7 +4,7 @@
  * too), and health. Read-only; the time controls in the header are the one exception.
  * Imported only by admin.html, so the game's bundle never carries it.
  */
-import type { AdminClock, AdminTimeRequest } from "@millbrook/shared";
+import type { AdminClock, AdminTimeRequest } from "@garden-of-eden/shared";
 import { $ } from "../dom";
 import { api } from "./api";
 import { nav } from "./nav";
@@ -15,6 +15,7 @@ import { OverviewView } from "./views/overview";
 import { PinnedView } from "./views/pinned";
 import { RoadsView } from "./views/roads";
 import { SearchView } from "./views/search";
+import { SocietyView } from "./views/society";
 import type { View } from "./views/types";
 
 const POLL_MS = 2000;
@@ -26,6 +27,7 @@ const views: Record<string, View> = {
   pinned: new PinnedView(),
   roads: new RoadsView(),
   gossip: new GossipView(),
+  society: new SocietyView(),
   health: new HealthView(),
 };
 let tab = "overview";

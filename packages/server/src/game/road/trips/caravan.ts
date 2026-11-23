@@ -1,4 +1,4 @@
-import { WALK_PACE } from "@millbrook/shared";
+import { WALK_PACE } from "@garden-of-eden/shared";
 import { tradeTreaties } from "../../realm/economy.js";
 import { pick } from "../../realm/names.js";
 import { nearby, roundPath, shortest } from "../paths.js";

@@ -1,4 +1,4 @@
-import { Ground, offRoad, seedOf, tileOf, wildPoisNear, type RoadData, type RoadNearby, type RoadPlace, type WildPoi } from "@millbrook/shared";
+import { Ground, offRoad, seedOf, tileOf, wildPoisNear, type RoadData, type RoadNearby, type RoadPlace, type WildPoi } from "@garden-of-eden/shared";
 import { check, streamFor } from "../dice.js";
 import { recordEvent } from "../events.js";
 import { formatMoney } from "../money.js";

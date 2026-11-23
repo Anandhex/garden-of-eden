@@ -1,5 +1,5 @@
 {
-  "name": "@millbrook/client",
+  "name": "@garden-of-eden/client",
   "version": "0.1.0",
   "private": true,
   "description": "The browser game: Phaser 3 world view and the DOM side panels",
@@ -9,7 +9,7 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@millbrook/shared": "0.1.0",
+    "@garden-of-eden/shared": "0.1.0",
     "phaser": "3.90.0",
     "three": "0.187.0"
   },

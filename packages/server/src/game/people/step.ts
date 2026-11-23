@@ -1,4 +1,4 @@
-import { CLASS_RANK, type SocialClass } from "@millbrook/shared";
+import { CLASS_RANK, type SocialClass } from "@garden-of-eden/shared";
 import { config } from "../../config.js";
 import { parseAway, type PersonRow } from "../../store/peopleStore.js";
 import { awaySite } from "../road/journeys.js";
@@ -36,6 +36,8 @@ import { traitsOfRow } from "./traits.js";
 export interface LifeCtx {
   realm: Realm;
   store: WorldStore;
+  /** The player, when the day is lived in a game (N70: a rumour traced back in the place they're in names them). Never read by a rule. */
+  player?: import("../../npc/types.js").PlayerState;
 }
 
 /** Someone who died today, with what the rest of the game needs to know. */

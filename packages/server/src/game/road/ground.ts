@@ -1,4 +1,4 @@
-import { CHUNK, Ground, chunkAt, chunkOf, cumulative, isSolidGround, project, type Chunk, type Footprint, type RoadData, type RoadPath, type RoadPlace, type RoadPoint } from "@millbrook/shared";
+import { CHUNK, Ground, chunkAt, chunkOf, cumulative, isSolidGround, project, type Chunk, type Footprint, type RoadData, type RoadPath, type RoadPlace, type RoadPoint } from "@garden-of-eden/shared";
 import type { Realm } from "../realm/types.js";
 import { roadDataOf } from "./generateRoads.js";
 

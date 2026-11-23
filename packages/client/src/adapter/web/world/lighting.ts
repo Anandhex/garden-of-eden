@@ -5,7 +5,7 @@
  * are not lit, so they stay readable at night.
  */
 import * as Phaser from "phaser";
-import type { Frame } from "@millbrook/shared/view";
+import type { Frame } from "@garden-of-eden/shared/view";
 import { pickFrame } from "../art";
 import { DEPTH } from "./depth";
 import { ambientOf, darkness, flicker, LIGHT_LOOK, nearestLights, rgbToInt, type Rgb } from "./lightPlan";

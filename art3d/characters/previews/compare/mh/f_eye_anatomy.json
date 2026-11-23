@@ -1,0 +1,11 @@
+{
+ "opening_w_mm": 23.6,
+ "opening_h_mm": 8.6,
+ "w_over_h": 2.75,
+ "tilt_deg": 6.2,
+ "iris_covered_top_mm": 0.7,
+ "iris_lower_lid_mm": 1.1,
+ "upper_peak_offset_mm": -0.5,
+ "lower_low_offset_mm": -2.5,
+ "brow_gap_above_lid_mm": 17.0
+}

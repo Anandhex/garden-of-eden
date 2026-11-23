@@ -7,7 +7,7 @@
  * sent to the server; what it means is the server's to decide.
  */
 import * as Phaser from "phaser";
-import type { Frame, GameEvent } from "@millbrook/shared/view";
+import type { Frame, GameEvent } from "@garden-of-eden/shared/view";
 import type { Core, FrameChange } from "../../../core";
 import { shortCoins } from "../../../dom";
 import { SHEET_NAMES, sheetsLoaded } from "../art";

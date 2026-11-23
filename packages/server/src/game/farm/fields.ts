@@ -1,4 +1,4 @@
-import { fieldsOf, PER_HEAD, plotAt, plotCount, seedOf, type Plot } from "@millbrook/shared";
+import { fieldsOf, PER_HEAD, plotAt, plotCount, seedOf, type Plot } from "@garden-of-eden/shared";
 import type { WorldStore } from "../db.js";
 import type { PersonRow } from "../../store/peopleStore.js";
 import type { PlotRow } from "../../store/farmStore.js";

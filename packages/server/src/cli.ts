@@ -4,13 +4,14 @@ import { areasOf, areaWords, PLAIN_VILLAGE, siteMap } from "./web/sites.js";
 import { AREA_WALK_MINUTES } from "./web/map.js";
 import { describeFactions, describeRealm, describeSettlement } from "./game/realm/view.js";
 import { joinGuild, playerDelve } from "./game/realm/wilds.js";
-import { CLASSES, CLASS_WORDS, CrowdSim, JOB_INFO } from "@millbrook/shared";
+import { CLASSES, CLASS_WORDS, CrowdSim, JOB_INFO } from "@garden-of-eden/shared";
 import { weatherOn, whereOf } from "./game/weather.js";
 import { crowdDayAt, townEventsOn } from "./game/events-calendar.js";
 import { createInterface } from "node:readline/promises";
 import { argv, stdin, stdout } from "node:process";
+import { societyAct, societyView } from "./game/society/player.js";
 import { config } from "./config.js";
-import { describeEvent, type EventFrame } from "@millbrook/shared";
+import { describeEvent, type EventFrame } from "@garden-of-eden/shared";
 import { captureFrame, turnEvents } from "./game/turnEvents.js";
 import { advanceMinutes, formatTime } from "./game/clock.js";
 import {
@@ -232,7 +233,8 @@ console.log(
     `  Social web: /steal <item>, /sneak, /loot <npc> [item], /choose <option>, /incident <n> (the first hour), /gamble [game] [stake] [cheat], /contest [game] [bet n|watch], /organise, /rematch <name>, /board, /claim <n>, /joinparty <n>, /payfine, /surrender, /join <faction>, /factions, /reputation\n` +
     `  Fighting: /subdue, /ability <name>, /dismiss (a companion), /party. Work: /forage, /craft <item>, /raise <attribute>. The world: /chronicle, /family, /propose\n` +
     `  The realm: /realm [place], /factions all, /news, /joinguild, /delve [dungeon], /routes, /travel <place>\n` +
-    `  The townsfolk: /people [class|job|name] (who lives here and who's out), /meet <name> (talk to one of them)\n`,
+    `  The townsfolk: /people [class|job|name] (who lives here and who's out), /meet <name> (talk to one of them)\n` +
+    `  Society: /society (what can be done here), /society <op> [key=value…] [words]: pry, sellsecret secret=<id>, blackmail secret=<id>, expose secret=<id>, market, buy offer=<id>, joinguild, inform, breakout, bribejudge case=<id> amount=<n>, learn spell=<id>, cast spell=<id>, plant <who> <claim>, voice <who> <claim>, frame <who>, custom custom=<id>, taboo taboo=<id>, enlist, escape, ransom, recover\n`,
 );
 
 /** Write an NPC's death to the permanent record, so quitting (or a crash) can't undo it. */
@@ -1116,6 +1118,40 @@ while (!world.player.death) {
     const witnesses = present().filter((a) => a !== who).map((a) => a.persona.id);
     console.log(`  ${lootBody(who.persona, who.state, world, witnesses, loot[2]?.trim()).message}`);
     printConsequences();
+    persist();
+    continue;
+  }
+  // Society (N70): the same ops as the web's `society` action, on the person you're with.
+  if (line === "/society" || line.startsWith("/society ")) {
+    const rest = line.slice("/society".length).trim();
+    if (!rest) {
+      const v = societyView(town, [npc.persona.id]);
+      if (v?.offer) console.log(`  Waiting on your word: ${v.offer.text} (/society confirm or /society cancel)`);
+      for (const sec of v?.sections ?? []) {
+        console.log(`  ${sec.title}:`);
+        for (const r of sec.rows) console.log(`    ${r.text}${r.actions?.length ? ` [${r.actions.map((x) => `${x.op}${Object.entries(x.args ?? {}).map(([k, val]) => ` ${k}=${val}`).join("")}${x.enabled ? "" : " (not now)"}`).join("; ")}]` : ""}`);
+      }
+      const them = v?.people[npc.persona.id];
+      if (them) console.log(`  ${npc.persona.name}: ${[...them.lines, ...them.tools.map((x) => x.op)].join("; ")}`);
+      continue;
+    }
+    const [op, ...words] = rest.split(/\s+/);
+    const args: Record<string, unknown> = { npc: npc.persona.id };
+    const free: string[] = [];
+    for (const w of words) {
+      const m = /^(\w+)=(.*)$/.exec(w);
+      if (m) args[m[1]!] = m[2];
+      else free.push(w);
+    }
+    if (free.length > 0) args.text ??= free.join(" ");
+    let r = societyAct(town, op!, args);
+    for (const l of r.lines) console.log(`  ${l}`);
+    if (r.confirm) {
+      r = societyAct(town, (await yes("Go ahead?")) ? "confirm" : "cancel");
+      for (const l of r.lines) console.log(`  ${l}`);
+    }
+    if (r.hours) for (const entry of passAll(r.hours)) console.log(`  ${entry}`);
+    for (const l of town.consequences()) console.log(`  [${l}]`);
     persist();
     continue;
   }

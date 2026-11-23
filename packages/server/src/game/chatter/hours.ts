@@ -1,4 +1,4 @@
-import { CHAT_MINUTES, hashStr, markKey, type ChatterMark, type CrowdDay, type CrowdSim, type InteractionKind } from "@millbrook/shared";
+import { CHAT_MINUTES, hashStr, markKey, type ChatterMark, type CrowdDay, type CrowdSim, type InteractionKind } from "@garden-of-eden/shared";
 import { config } from "../../config.js";
 import { timed } from "../../metrics/timing.js";
 import { streamFor } from "../dice.js";

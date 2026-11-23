@@ -1,4 +1,4 @@
-import type { Journey } from "@millbrook/shared";
+import type { Journey } from "@garden-of-eden/shared";
 import type { PersonRow } from "../../store/peopleStore.js";
 import { seedFrom, streamFor } from "../dice.js";
 import type { LifeCtx } from "../people/step.js";

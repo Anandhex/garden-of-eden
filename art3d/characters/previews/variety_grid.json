@@ -1,0 +1,129 @@
+[
+ {
+  "name": "tall_thin",
+  "shapes": {
+   "Thin": 0.8,
+   "Height_Legs": 1.0,
+   "Neck_Long": 0.6,
+   "Face_Long": 0.5
+  }
+ },
+ {
+  "name": "short_heavy",
+  "shapes": {
+   "Heavy": 0.9,
+   "Belly": 0.4,
+   "Face_Short": 0.6,
+   "Cheeks_Full": 0.7,
+   "Legs_Thick": 0.3
+  }
+ },
+ {
+  "name": "muscular",
+  "shapes": {
+   "Muscle": 1.0,
+   "Shoulders": 0.8,
+   "Chest_Muscle": 0.8,
+   "Jaw_Square": 0.8,
+   "Arms_Thick": 0.3,
+   "Brow_Ridge": 0.7
+  }
+ },
+ {
+  "name": "old_man",
+  "shapes": {
+   "Age_Old": 1.0,
+   "Thin": 0.3,
+   "Cheekbones": 0.6,
+   "Chin_Long": 0.4,
+   "Forehead_High": 0.5
+  }
+ },
+ {
+  "name": "old_woman",
+  "shapes": {
+   "Sex": 1.0,
+   "Age_Old": 0.9,
+   "Heavy": 0.3,
+   "Belly": 0.3,
+   "Cheeks_Full": 0.3
+  }
+ },
+ {
+  "name": "curvy_woman",
+  "shapes": {
+   "Sex": 1.0,
+   "Breast": 0.8,
+   "Waist_Slim": 0.8,
+   "Hips": 0.8,
+   "Butt": 0.7,
+   "Lips_Full": 0.7,
+   "Eye_Big": 0.7
+  }
+ },
+ {
+  "name": "broad_shoulders",
+  "shapes": {
+   "Shoulders": 1.0,
+   "Waist_Slim": 0.6,
+   "Chest_Muscle": 0.5,
+   "Height_Legs": 0.4,
+   "Jaw_Wide": 0.4
+  }
+ },
+ {
+  "name": "child",
+  "shapes": {
+   "Child": 1.0,
+   "Eye_Big": 0.8,
+   "Cheeks_Full": 0.5
+  }
+ },
+ {
+  "name": "long_face",
+  "shapes": {
+   "Face_Long": 1.0,
+   "Chin_Long": 0.7,
+   "Chin_Pointed": 0.4,
+   "Nose_Bridge": 0.5,
+   "Ears_Back": 0.6,
+   "Thin": 0.3
+  }
+ },
+ {
+  "name": "round_face",
+  "shapes": {
+   "Face_Short": 0.8,
+   "Cheeks_Full": 1.0,
+   "Jaw_Wide": 0.4,
+   "Eye_Big": 0.5,
+   "Lips_Full": 0.5,
+   "Heavy": 0.4
+  }
+ },
+ {
+  "name": "slim_woman",
+  "shapes": {
+   "Sex": 1.0,
+   "Thin": 0.6,
+   "Height_Legs": 0.8,
+   "Neck_Long": 0.8,
+   "Chin_Pointed": 0.7,
+   "Cheekbones": 0.7,
+   "Eye_Spacing": 0.5
+  }
+ },
+ {
+  "name": "stout_woman",
+  "shapes": {
+   "Sex": 1.0,
+   "Heavy": 0.8,
+   "Breast": 0.6,
+   "Hips": 0.6,
+   "Butt": 0.5,
+   "Waist_Wide": 0.4,
+   "Face_Short": 0.4,
+   "Mouth_Wide": 0.4
+  }
+ }
+]

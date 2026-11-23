@@ -1,4 +1,4 @@
-import type { AdminClock, AdminMapLayer, AdminOverview, ClassCounts } from "@millbrook/shared";
+import type { AdminClock, AdminMapLayer, AdminOverview, ClassCounts } from "@garden-of-eden/shared";
 import { ongoing } from "../game/realm/diplomacy.js";
 import type { Party, Realm } from "../game/realm/types.js";
 import { describeRealm, realmView } from "../game/realm/view.js";

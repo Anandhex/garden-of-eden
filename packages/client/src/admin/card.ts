@@ -1,4 +1,4 @@
-import type { AdminCard, AdminEvent, AdminSection } from "@millbrook/shared";
+import type { AdminCard, AdminEvent, AdminSection } from "@garden-of-eden/shared";
 import { el } from "../dom";
 import { nav } from "./nav";
 import { pins } from "./pins";

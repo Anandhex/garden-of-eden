@@ -3,7 +3,7 @@
  * world state, so they live in this browser (localStorage), never in the save and never
  * on the server (a POST would make the admin view able to write).
  */
-const KEY = "millbrook-admin-pins";
+const KEY = "garden-of-eden-admin-pins";
 const listeners: Array<() => void> = [];
 let memory: string[] | null = null;
 

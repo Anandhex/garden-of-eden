@@ -1,5 +1,5 @@
 import type { DatabaseSync, StatementSync } from "node:sqlite";
-import type { FieldEvent, FieldEventKind } from "@millbrook/shared";
+import type { FieldEvent, FieldEventKind } from "@garden-of-eden/shared";
 
 /**
  * Fields (N26G): who holds each plot and how it's fenced (`plots`), what was sown where (`sowings`), and what happened to it

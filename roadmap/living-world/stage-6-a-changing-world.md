@@ -4,6 +4,8 @@
 
 Nature, disease and disaster, and a map that grows new places and new kingdoms.
 
+> **Not started** (audit, 2026-11-16). What exists: the outbreak state (`game/epidemic/model.ts`, read by N50's and N51's blame rules; nothing starts an outbreak), policy keys for later laws in `realm/policy.ts`, and switches in `config.society` (`ecology`, `epidemics`, `disasters`, `exploration`, `newKingdoms`) that nothing reads.
+
 ## N60: Ecology
 
 **Status:** ⬜ Planned

@@ -8,7 +8,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { ART_IDS, CREATURE_IDS, dress, FrameSchema, OBJECT_IDS, TEMPLATE_IDS, TEMPLATES, templateFor, TERRAIN_IDS, WINDOW_TILES, type Frame } from "@millbrook/shared/view";
+import { ART_IDS, CREATURE_IDS, dress, FrameSchema, OBJECT_IDS, TEMPLATE_IDS, TEMPLATES, templateFor, TERRAIN_IDS, WINDOW_TILES, type Frame } from "@garden-of-eden/shared/view";
 import { decodePng } from "../../../art/png.js";
 import { packAll } from "../../../art/pack.js";
 import { Mirror } from "../../client/src/core/mirror.js";

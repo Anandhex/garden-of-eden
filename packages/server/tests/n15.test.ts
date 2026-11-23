@@ -6,7 +6,7 @@
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { findPath } from "@millbrook/shared";
+import { findPath } from "@garden-of-eden/shared";
 import { beforeEach, describe, expect, it } from "vitest";
 import { config } from "../src/config.js";
 import { WorldStore } from "../src/game/db.js";

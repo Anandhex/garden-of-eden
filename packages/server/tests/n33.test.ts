@@ -1,4 +1,4 @@
-import { CLASS_RANK, type SocialClass } from "@millbrook/shared";
+import { CLASS_RANK, type SocialClass } from "@garden-of-eden/shared";
 /**
  * N33: gossip for everyone. Every person keeps a short list of what they know (a row per item, how accurate their version is, who told
  * them); people who are together pass items on; news enters a place only by someone arriving with it; and a townsperson who becomes a

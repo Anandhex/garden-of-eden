@@ -1,4 +1,4 @@
-import { WALK_PACE } from "@millbrook/shared";
+import { WALK_PACE } from "@garden-of-eden/shared";
 import { MARKET_EVERY, marketOffsetOf } from "../../events-calendar.js";
 import { DAY_TILES, placesWithin, roundPath, shortest } from "../paths.js";
 import { REACH_DAYS, TRIPS } from "./config.js";

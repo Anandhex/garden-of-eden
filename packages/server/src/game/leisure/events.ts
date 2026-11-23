@@ -1,4 +1,4 @@
-import { seasonDay } from "@millbrook/shared";
+import { seasonDay } from "@garden-of-eden/shared";
 import { config } from "../../config.js";
 import type { PersonRow } from "../../store/peopleStore.js";
 import { addGrievance } from "../chatter/grievance.js";

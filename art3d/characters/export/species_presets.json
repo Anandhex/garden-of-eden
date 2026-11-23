@@ -1,0 +1,202 @@
+{
+ "human": {
+  "shapes": {},
+  "heightM": 1.78,
+  "heightF": 1.65,
+  "meshHeightM": 1.78,
+  "meshHeightF": 1.65,
+  "rootScaleM": 1.0,
+  "rootScaleF": 1.0,
+  "skin": [
+   [
+    0.93,
+    0.66,
+    0.52
+   ],
+   [
+    0.62,
+    0.4,
+    0.3
+   ],
+   [
+    0.98,
+    0.78,
+    0.66
+   ]
+  ],
+  "parts": {
+   "ears": [
+    "Part_Ear_L",
+    "Part_Ear_R"
+   ],
+   "nose": [
+    "Part_Nose"
+   ],
+   "extra": []
+  }
+ },
+ "elf": {
+  "shapes": {
+   "Species_Elf": 1.0
+  },
+  "heightM": 1.98,
+  "heightF": 1.835,
+  "meshHeightM": 1.8498,
+  "meshHeightF": 1.7198,
+  "rootScaleM": 1.0704,
+  "rootScaleF": 1.0672,
+  "skin": [
+   [
+    0.96,
+    0.8,
+    0.7
+   ],
+   [
+    0.88,
+    0.72,
+    0.6
+   ],
+   [
+    0.92,
+    0.82,
+    0.78
+   ]
+  ],
+  "parts": {
+   "ears": [
+    "Part_Ear_Elf_A_L",
+    "Part_Ear_Elf_A_R"
+   ],
+   "earVariants": [
+    "A",
+    "B",
+    "C"
+   ],
+   "nose": [
+    "Part_Nose_Elf"
+   ],
+   "extra": []
+  }
+ },
+ "dwarf": {
+  "shapes": {
+   "Species_Dwarf": 1.0
+  },
+  "heightM": 1.32,
+  "heightF": 1.224,
+  "meshHeightM": 1.706,
+  "meshHeightF": 1.576,
+  "rootScaleM": 0.7737,
+  "rootScaleF": 0.7764,
+  "skin": [
+   [
+    0.9,
+    0.6,
+    0.48
+   ],
+   [
+    0.8,
+    0.52,
+    0.4
+   ],
+   [
+    0.95,
+    0.7,
+    0.56
+   ]
+  ],
+  "parts": {
+   "ears": [
+    "Part_Ear_L",
+    "Part_Ear_R"
+   ],
+   "nose": [
+    "Part_Nose_Dwarf"
+   ],
+   "extra": []
+  }
+ },
+ "halfling": {
+  "shapes": {
+   "Species_Halfling": 1.0
+  },
+  "heightM": 1.07,
+  "heightF": 0.992,
+  "meshHeightM": 1.6774,
+  "meshHeightF": 1.5474,
+  "rootScaleM": 0.6379,
+  "rootScaleF": 0.641,
+  "skin": [
+   [
+    0.94,
+    0.68,
+    0.54
+   ],
+   [
+    0.85,
+    0.58,
+    0.44
+   ],
+   [
+    0.98,
+    0.76,
+    0.62
+   ]
+  ],
+  "parts": {
+   "ears": [
+    "Part_Ear_L",
+    "Part_Ear_R"
+   ],
+   "nose": [
+    "Part_Nose"
+   ],
+   "extra": []
+  }
+ },
+ "orc": {
+  "shapes": {
+   "Species_Orc": 1.0
+  },
+  "heightM": 2.08,
+  "heightF": 1.928,
+  "meshHeightM": 1.7476,
+  "meshHeightF": 1.6176,
+  "rootScaleM": 1.1902,
+  "rootScaleF": 1.192,
+  "skin": [
+   [
+    0.5,
+    0.66,
+    0.38
+   ],
+   [
+    0.56,
+    0.6,
+    0.5
+   ],
+   [
+    0.42,
+    0.56,
+    0.36
+   ]
+  ],
+  "parts": {
+   "ears": [
+    "Part_Ear_L",
+    "Part_Ear_R"
+   ],
+   "nose": [
+    "Part_Nose_Orc"
+   ],
+   "extra": [
+    "Part_Tusk_A_L",
+    "Part_Tusk_A_R"
+   ],
+   "tuskVariants": [
+    "A",
+    "B"
+   ]
+  }
+ }
+}

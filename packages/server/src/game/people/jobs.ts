@@ -1,4 +1,4 @@
-import type { Job, SocialClass } from "@millbrook/shared";
+import type { Job, SocialClass } from "@garden-of-eden/shared";
 import type { Rng } from "../dice.js";
 
 /**

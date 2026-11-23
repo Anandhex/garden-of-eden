@@ -1,4 +1,4 @@
-import { Ground, isSolidGround, type RoadPoint, type Territory } from "@millbrook/shared";
+import { Ground, isSolidGround, type RoadPoint, type Territory } from "@garden-of-eden/shared";
 import { type Creature, spawnCreature } from "../creatures.js";
 import { streamFor, type Rng } from "../dice.js";
 import type { Life } from "../life.js";

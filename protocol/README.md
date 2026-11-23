@@ -25,7 +25,7 @@ The server decides:
 
 If an adapter would need an `if` about the game, the server sends the answer instead. A test guards this for the
 web client: no file under `packages/client/src/core` or `packages/client/src/adapter` imports anything from
-`@millbrook/shared` except its `view` entry, and none uses `CrowdSim`, `findPath`, `chunkAt`, `partyAt` and the
+`@garden-of-eden/shared` except its `view` entry, and none uses `CrowdSim`, `findPath`, `chunkAt`, `partyAt` and the
 like.
 
 ## The connection

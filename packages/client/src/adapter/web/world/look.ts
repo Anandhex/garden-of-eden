@@ -7,7 +7,7 @@ export interface LookPrefs {
   blur: boolean;
 }
 
-const KEY = "millbrook-look";
+const KEY = "garden-of-eden-look";
 const DEFAULTS: LookPrefs = { atmosphere: true, blur: true };
 
 export function lookPrefs(search = typeof location === "undefined" ? "" : location.search): LookPrefs {

@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import type { AdminCardKind, AdminEventQuery, AdminSource, AdminTimeRequest } from "@millbrook/shared";
+import type { AdminCardKind, AdminEventQuery, AdminSource, AdminTimeRequest } from "@garden-of-eden/shared";
 import { card, crowdOf, pinned } from "../../admin/person.js";
 import { choicesView } from "../../admin/choices.js";
 import type { AdminContext } from "../../admin/context.js";
@@ -143,7 +143,7 @@ export async function handleAdmin(req: IncomingMessage, res: ServerResponse, ctx
       // The whole world as one file (N18): read-only, like every other GET here.
       if (!ctx.store) return send(res, 404, { error: "This world has no database to export." });
       const body = encodeMbWorld(exportWorld(ctx.world(), ctx.store));
-      res.writeHead(200, { "content-type": "application/gzip", "content-length": body.length, "content-disposition": `attachment; filename="millbrook-day${ctx.world().day}.mbworld"`, "cache-control": "no-store" });
+      res.writeHead(200, { "content-type": "application/gzip", "content-length": body.length, "content-disposition": `attachment; filename="garden-of-eden-day${ctx.world().day}.mbworld"`, "cache-control": "no-store" });
       res.end(body);
       return true;
     }

@@ -35,6 +35,8 @@ export interface Chapter {
   worked: number;
   /** The place they came from, to go home to. */
   home: string;
+  /** A prisoner's last day in the cell (N70: a lock-up sentence from the player's own trial). */
+  until?: number;
 }
 
 /** Days of labour before the chief lets a useful captive go. */

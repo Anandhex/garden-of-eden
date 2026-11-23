@@ -1,4 +1,4 @@
-import { canEnter, CLASS_RANK, type District, type Entrant, type SocialClass, type Verdict } from "@millbrook/shared";
+import { canEnter, CLASS_RANK, type District, type Entrant, type SocialClass, type Verdict } from "@garden-of-eden/shared";
 import type { PlayerState } from "../../npc/types.js";
 import { skillLevel } from "../../npc/skills.js";
 import type { PersonRow } from "../../store/peopleStore.js";

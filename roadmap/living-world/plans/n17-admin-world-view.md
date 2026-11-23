@@ -22,7 +22,7 @@
 
 ## Decisions made in this plan
 
-1. **A separate page, same server.** `client/admin.html` is a second Vite entry (`build.rollupOptions.input: { main: "index.html", admin: "admin.html" }`), served at `/admin`. It shares `@millbrook/shared` types and can reuse `CrowdLayer`/SVG drawing code by import, but has no game controls.
+1. **A separate page, same server.** `client/admin.html` is a second Vite entry (`build.rollupOptions.input: { main: "index.html", admin: "admin.html" }`), served at `/admin`. It shares `@garden-of-eden/shared` types and can reuse `CrowdLayer`/SVG drawing code by import, but has no game controls.
 2. **Read-only means GET-only.** All admin data comes from `GET /api/admin/*`. Any other method on `/api/admin/*` answers 405. Pure functions in `server/src/admin/` take `(world, town, store)` and return plain data; they never write. A test hashes the world before and after calling every admin endpoint (see Tests).
 3. **The admin page is local-only.** It answers only when the request comes from `127.0.0.1`/`::1`, or when `ADMIN=on`. It shows the truth (spoilers) and future interventions will be powerful; it must never be reachable from another machine by accident.
 4. **Pins are not in the save.** They live in `saves/admin.json` (or the browser's localStorage; see below). The done-when says nothing on the admin page changes the save, and pins are admin state, not world state.

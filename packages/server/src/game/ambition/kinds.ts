@@ -1,4 +1,4 @@
-import type { Job } from "@millbrook/shared";
+import type { Job } from "@garden-of-eden/shared";
 
 /**
  * What people want from their lives (N40): the kinds of ambition, each with its ladder of rungs and the words it is spoken of in. Code picks

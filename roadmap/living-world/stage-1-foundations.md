@@ -124,7 +124,7 @@ See the world, keep it fast and stable, and know what the player knows. Everythi
 
 ## N22: Long-run balance tests
 
-**Status:** ⬜ Planned
+**Status:** 🟨 Cut built 2026-10-24 (`src/balance/`, `npm run sim:years`, `tests/n22.test.ts`): the bounds runner, break switches, and bounds added by each built phase up to N51.
 
 **Implementation plan:** [plans/n22-long-run-balance.md](plans/n22-long-run-balance.md)
 
@@ -132,10 +132,10 @@ See the world, keep it fast and stable, and know what the player knows. Everythi
 
 **The rules:** seeded 5- and 10-year runs over several seeds, with no model calls, checked against bounds. Every new phase adds its own bounds (N13 had to be tuned down from 41 factions; this makes that automatic).
 
-- [ ] `sim:years` runs a realm for N years over K seeds and reports N20's liveness metrics and realm totals
-- [ ] Bounds: no species or kingdom dies out by default; kingdom count stays within the cap (N64); population, food and prosperity stay in bands; famine, plague and war aren't permanent; factions neither explode nor vanish; at least some long causal chains every year
-- [ ] Runs in CI on a few seeds, and nightly on more
-- [ ] Tests, README, this roadmap
+- [~] `sim:years` runs a realm for N years over K seeds and reports N20's liveness metrics and realm totals — *`sim:years` runs N years over K seeds and reports realm totals; N20's liveness metrics don't exist yet*
+- [~] Bounds: no species or kingdom dies out by default; kingdom count stays within the cap (N64); population, food and prosperity stay in bands; famine, plague and war aren't permanent; factions neither explode nor vanish; at least some long causal chains every year — *bounds for the built phases (road, farm, leisure, market, items, nemesis, N45–N51); none for N52–N55; the species, kingdom-cap and causal-chain bounds wait for N54, N64 and N20*
+- [~] Runs in CI on a few seeds, and nightly on more — *`npm test` in CI runs N22's short check (three seeds, two years); there is no nightly job*
+- [~] Tests, README, this roadmap — *tests ✅; README partly*
 
 - **Done when:** ten years over ten seeds stay inside every bound, and a deliberately broken setting (no famine relief, no war fatigue) is caught by the check.
 

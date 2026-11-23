@@ -4,7 +4,7 @@
  * prices follow the stores; the crowd's day follows the light; high roads close with snow and open again; four
  * festivals a year fill the square; and the map shows the season.
  */
-import { CrowdSim, closedRoads, daylight, overrideWeather, regionOf, roadClosed, seasonAt, seasonDay, shortestWay, weatherAt, yearFraction, yearNumber, type CrowdDay } from "@millbrook/shared";
+import { CrowdSim, closedRoads, daylight, overrideWeather, regionOf, roadClosed, seasonAt, seasonDay, shortestWay, weatherAt, yearFraction, yearNumber, type CrowdDay } from "@garden-of-eden/shared";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { config } from "../src/config.js";
 import { crowdDayAt, festivalOn, priceFactor, storesFactor, townEventsOn } from "../src/game/events-calendar.js";

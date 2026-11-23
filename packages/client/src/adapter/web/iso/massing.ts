@@ -5,7 +5,7 @@
  * inset in the building's rectangle; a template with no roof (a camp's fire, a cart) stands its tiles up as sprites.
  * Also here: stepping someone in a doorway out of the box, and whether a building hides the player from the camera.
  */
-import { sliceAxis, WINDOW_TILES, type BuildingTemplate, type Dressed } from "@millbrook/shared/view";
+import { sliceAxis, WINDOW_TILES, type BuildingTemplate, type Dressed } from "@garden-of-eden/shared/view";
 import { FRAMES } from "../art.js";
 import { PITCH } from "./camera.js";
 

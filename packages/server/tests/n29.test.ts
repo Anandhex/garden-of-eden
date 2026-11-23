@@ -2,8 +2,8 @@
  * N29: the frame carries the facts of what can be heard (where, the hour, the weather, the crowd near by what they do,
  * the buildings near, hostiles near, the mood, the day's events); the adapter's `soundscape()` makes the mix from them.
  */
-import { CrowdSim } from "@millbrook/shared";
-import { soundscape } from "@millbrook/shared/view";
+import { CrowdSim } from "@garden-of-eden/shared";
+import { soundscape } from "@garden-of-eden/shared/view";
 import { describe, expect, it } from "vitest";
 import { generateRealm } from "../src/game/realm/generate.js";
 import { pickStartSite } from "../src/game/realm/start.js";

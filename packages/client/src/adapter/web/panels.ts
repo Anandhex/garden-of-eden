@@ -3,7 +3,7 @@
  * laid out in the DOM from the server's UI model. Every sentence and every button comes from the server; this
  * only decides where they go. Text is only ever inserted with textContent.
  */
-import { DEFAULT_VOICE, type Intent, type NpcVoice, type PromptMsg, type RealmView, type SpeechMsg, type UiAction, type UiModel } from "@millbrook/shared/view";
+import { DEFAULT_VOICE, type Intent, type NpcVoice, type PromptMsg, type RealmView, type SpeechMsg, type UiAction, type UiModel } from "@garden-of-eden/shared/view";
 import type { Core } from "../../core";
 import { $, el } from "../../dom";
 import { drawRealmMap, realmLegend } from "../../realmMap";
@@ -11,7 +11,7 @@ import { micSupported, PushToTalk } from "./voice/mic";
 import { speaker } from "./voice/speaker";
 
 type Section = UiModel["sheet"]["tabs"][number]["sections"][number];
-const TAB_KEY = "millbrook-tab";
+const TAB_KEY = "garden-of-eden-tab";
 
 export class Panels {
   private tab = (() => {

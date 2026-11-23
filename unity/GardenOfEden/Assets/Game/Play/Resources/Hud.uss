@@ -1,0 +1,76 @@
+/* Soft parchment look. Unity USS has no box-shadow or gap, so depth is faked with borders and margins. */
+.hud-root { position: absolute; left: 0; top: 0; right: 0; bottom: 0; color: rgb(58, 42, 28); font-size: 15px; }
+.bubbles { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
+
+.panel {
+    background-color: rgba(247, 238, 220, 0.94);
+    border-radius: 12px;
+    border-width: 1px;
+    border-color: rgb(196, 170, 128);
+    border-bottom-width: 3px;
+    border-bottom-color: rgba(120, 90, 50, 0.55);
+    padding: 8px 12px;
+}
+.title { font-size: 18px; -unity-font-style: bold; margin-bottom: 2px; }
+.dim { color: rgb(120, 100, 78); }
+.row-wrap { flex-direction: row; flex-wrap: wrap; align-items: center; }
+
+.header { position: absolute; left: 12px; top: 10px; right: 12px; flex-direction: row; flex-wrap: wrap; align-items: center; }
+.header-place { font-size: 18px; -unity-font-style: bold; margin-right: 14px; }
+.header-text { margin-right: 12px; }
+
+.banner { position: absolute; left: 25%; right: 25%; top: 64px; -unity-text-align: middle-center; background-color: rgba(232, 196, 150, 0.96); }
+.roadbar { position: absolute; left: 12px; top: 64px; flex-direction: row; flex-wrap: wrap; align-items: center; max-width: 45%; }
+
+.feed { position: absolute; left: 12px; bottom: 14px; width: 38%; min-width: 280px; }
+.feed-line {
+    background-color: rgba(247, 238, 220, 0.82);
+    border-radius: 8px; padding: 3px 9px; margin-top: 3px; align-self: flex-start;
+    white-space: normal; transition-property: opacity; transition-duration: 0.4s;
+}
+.feed-line.danger { color: rgb(150, 50, 36); }
+
+.prompt { position: absolute; bottom: 22px; left: 50%; translate: -50% 0; font-size: 17px; -unity-font-style: bold; display: none; }
+.prompt.danger { color: rgb(160, 52, 36); }
+.prompt.fight { color: rgb(160, 52, 36); }
+
+.chat { position: absolute; right: 12px; top: 64px; bottom: 14px; width: 380px; display: none; }
+.chat-log { flex-grow: 1; margin: 6px 0; }
+.chat-line-you { color: rgb(70, 90, 60); margin-top: 4px; -unity-font-style: italic; }
+.chat-line-npc { margin-top: 4px; white-space: normal; }
+.chat-line-note { color: rgb(120, 100, 78); margin-top: 4px; white-space: normal; }
+.input-row { flex-direction: row; align-items: center; margin-top: 6px; }
+.chat-mode { width: 110px; margin-right: 4px; }
+.chat-line { flex-grow: 1; margin-right: 4px; }
+
+.btn {
+    background-color: rgb(232, 214, 180); color: rgb(58, 42, 28);
+    border-radius: 8px; border-width: 1px; border-color: rgb(176, 148, 104);
+    padding: 4px 10px; margin: 2px 4px 2px 0;
+}
+.btn:hover { background-color: rgb(243, 228, 198); }
+.btn:disabled { opacity: 0.45; }
+.btn.yes { background-color: rgb(180, 206, 150); border-color: rgb(120, 150, 92); }
+.btn.danger { background-color: rgb(226, 168, 150); border-color: rgb(170, 100, 84); }
+.btn.ghost { background-color: rgba(0, 0, 0, 0); }
+.btn.selected { border-color: rgb(110, 76, 36); border-width: 2px; }
+
+.sheet { position: absolute; left: 50%; top: 80px; translate: -50% 0; width: 640px; max-width: 92%; max-height: 75%; display: none; }
+.sheet-body { margin-top: 6px; }
+.section-title { font-size: 16px; -unity-font-style: bold; margin-top: 10px; border-bottom-width: 1px; border-color: rgb(196, 170, 128); }
+.ui-row { flex-direction: row; align-items: center; flex-wrap: wrap; margin-top: 2px; }
+.ui-row-text { flex-grow: 1; white-space: normal; flex-shrink: 1; }
+.ui-row-value { margin-left: 10px; margin-right: 6px; -unity-font-style: bold; }
+.bar { width: 90px; height: 8px; border-radius: 4px; background-color: rgba(120, 90, 50, 0.25); margin-right: 8px; }
+.bar-fill { height: 100%; border-radius: 4px; background-color: rgb(150, 120, 60); }
+
+.scrim { position: absolute; left: 0; top: 0; right: 0; bottom: 0; background-color: rgba(30, 22, 12, 0.45); align-items: center; justify-content: center; display: none; }
+.card { width: 520px; max-width: 90%; max-height: 80%; padding: 14px 18px; }
+.card-body { white-space: normal; margin: 6px 0 10px 0; }
+
+.bubble {
+    position: absolute; max-width: 320px; white-space: normal;
+    background-color: rgba(252, 246, 232, 0.97); border-radius: 12px;
+    border-width: 1px; border-color: rgb(176, 148, 104); border-bottom-width: 3px;
+    padding: 5px 10px; font-size: 14px;
+}

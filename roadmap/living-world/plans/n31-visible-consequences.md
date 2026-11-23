@@ -63,7 +63,7 @@ export interface Mark { id: string; kind: MarkKind; x: number; y: number; w: num
 
 ### Step 6: the browser layer
 - `client/src/world/MarksLayer.ts`: burned/ruin overlays on building sprites, scaffolding, grave tiles with hover, banners, empty stalls; lit windows and smoke from who's home (in `CrowdLayer` or a small `HomesLayer`).
-- Textures in [`textures.ts`](../../../packages/client/src/world/textures.ts).
+- Textures in [`textures.ts`](../../../packages/client/src/adapter/web/world/textures.ts).
 - Play: force a raid with the admin (or wait for one), walk the town, watch it rebuild with fast-forward.
 
 ### Step 7: admin and docs

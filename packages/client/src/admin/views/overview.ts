@@ -1,4 +1,4 @@
-import type { AdminClock, AdminOverview } from "@millbrook/shared";
+import type { AdminClock, AdminOverview } from "@garden-of-eden/shared";
 import { coins, el, emptyP } from "../../dom";
 import { drawRealmMap, realmLegend } from "../../realmMap";
 import { api } from "../api";

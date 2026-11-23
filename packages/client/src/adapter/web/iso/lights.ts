@@ -5,7 +5,7 @@
  * flicker), and every one that is on glows with a soft halo. Three.js divides light by π, so intensities are in π.
  */
 import * as THREE from "three";
-import type { Frame } from "@millbrook/shared/view";
+import type { Frame } from "@garden-of-eden/shared/view";
 import { ambientOf, darkness, flicker, LIGHT_LOOK, nearestLights, type Rgb } from "../world/lightPlan";
 import type { IsoCtx } from "./ctx";
 

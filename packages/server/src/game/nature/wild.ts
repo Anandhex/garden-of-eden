@@ -1,4 +1,4 @@
-import { CHUNK, Ground, animalsInChunk, countryAt, plantsInChunk, seedOf, stageOf, tileOf, yearFraction, type AnimalGroup, type NatureCtx, type PlantPatch } from "@millbrook/shared";
+import { CHUNK, Ground, animalsInChunk, countryAt, plantsInChunk, seedOf, stageOf, tileOf, yearFraction, type AnimalGroup, type NatureCtx, type PlantPatch } from "@garden-of-eden/shared";
 import { config } from "../../config.js";
 import { check, streamFor } from "../dice.js";
 import { recordEvent } from "../events.js";
@@ -535,7 +535,7 @@ export function herbalistHaul(realm: Realm, site: string, person: string, day: n
 // ---------- for the browser ----------
 
 /** What the player's panels show of fauna and flora: never the true name of a mistaken gathering. */
-export function natureView(p: PlayerState, site: string | null, store: { people: { loadSite(site: string, detail: "coarse"): unknown } } | null): NonNullable<import("@millbrook/shared").PlayerView["nature"]> {
+export function natureView(p: PlayerState, site: string | null, store: { people: { loadSite(site: string, detail: "coarse"): unknown } } | null): NonNullable<import("@garden-of-eden/shared").PlayerView["nature"]> {
   const n = natureOf(p);
   const entries = Object.entries(n.seen)
     .map(([id, s]) => {

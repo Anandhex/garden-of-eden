@@ -8,7 +8,7 @@
 
 ## What exists
 
-- **No game sound at all.** The only audio is speech: [`voice/speaker.ts`](../../../packages/client/src/voice/speaker.ts) plays Piper or system voices through `new Audio(url)` / `speechSynthesis`. Voice prefs are in [`voice/prefs.ts`](../../../packages/client/src/voice/prefs.ts) (localStorage).
+- **No game sound at all.** The only audio is speech: [`voice/speaker.ts`](../../../packages/client/src/adapter/web/voice/speaker.ts) plays Piper or system voices through `new Audio(url)` / `speechSynthesis`. Voice prefs are in [`voice/prefs.ts`](../../../packages/client/src/adapter/web/voice/prefs.ts) (localStorage).
 - **What the client knows each frame:** the clock (`store.ts`), the site map and its buildings (`SiteMap` with `kind` per building: smithy, inn, temple, market…), the crowd's positions and activities (`CrowdSim` in [`shared/crowd.ts`](../../../packages/shared/src/crowd.ts): who is working, chatting, at the market), weather (sent in the state; `weatherOn(day)` in [`weather.ts`](../../../packages/server/src/game/weather.ts): clear, cloudy, rain, storm, snow, fog…), road chunks with biome tiles (`chunkAt`), travellers (`travellers.ts`), and realm packs near the player (their ground, N26 `threats.ts`).
 - Today's town events ([`events-calendar.ts`](../../../packages/server/src/game/events-calendar.ts): market day, festival, raid night) are in the state the client gets.
 

@@ -1,4 +1,4 @@
-import type { AdminBudgets, AdminClock } from "@millbrook/shared";
+import type { AdminBudgets, AdminClock } from "@garden-of-eden/shared";
 import { el, emptyP } from "../../dom";
 import { api } from "../api";
 import type { View } from "./types";

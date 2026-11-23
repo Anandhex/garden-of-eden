@@ -6,7 +6,7 @@
  * unknown is a plain block in its colour, never nothing; a roofless one (a camp's fire) stands as sprites.
  */
 import * as THREE from "three";
-import { dress, TEMPLATES, templateFor, type Frame } from "@millbrook/shared/view";
+import { dress, TEMPLATES, templateFor, type Frame } from "@garden-of-eden/shared/view";
 import { ART_TILE, warnMissing } from "../art";
 import { hexColor, lighten, pixelTexture, sheetMaterial, spriteGeometry } from "./atlas";
 import { Billboards, type Standing } from "./billboards";

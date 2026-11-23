@@ -3,7 +3,7 @@
  * start town in grief (its talk turns to it, fewer go out of an evening, drink costs more, strangers get a cooler welcome,
  * people's reviews are darker) and it fades over weeks; a festival after a good harvest makes it glad.
  */
-import { CrowdSim, chatLines, MOOD_TALK, type CrowdDay } from "@millbrook/shared";
+import { CrowdSim, chatLines, MOOD_TALK, type CrowdDay } from "@garden-of-eden/shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { config } from "../src/config.js";
 import { festivalOn, priceFactor } from "../src/game/events-calendar.js";

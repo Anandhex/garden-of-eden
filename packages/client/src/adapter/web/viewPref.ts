@@ -1,10 +1,10 @@
 /**
- * Which world view this browser draws (G7): 2.5D or flat. It is this browser's setting (`millbrook-view`);
+ * Which world view this browser draws (G7): 2.5D or flat. It is this browser's setting (`garden-of-eden-view`);
  * `?view=iso|flat` on the address overrides it for a visit. No imports, so the tests can read it.
  */
 export type ViewKind = "iso" | "flat";
 
-const KEY = "millbrook-view";
+const KEY = "garden-of-eden-view";
 export const DEFAULT_VIEW: ViewKind = "iso";
 
 /** The view to draw: `?view=` first, then the saved setting, then the default (2.5D). */

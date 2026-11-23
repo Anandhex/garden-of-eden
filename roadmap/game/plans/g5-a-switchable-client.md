@@ -14,14 +14,14 @@ The server owns every rule, but the browser still works out a lot of the world, 
 
 | File | What the browser decides today | Where it goes |
 |---|---|---|
-| [`crowd.ts`](../../../packages/client/src/crowd.ts) | Runs the whole shared `CrowdSim` (1,236 lines) every game minute to place every townsperson; works out who is nearest (`nearestFolk`), who is a full NPC (`promoted`), who stands on a tile (`folkAt`); writes `describeFolk` and `gossipBubble` text | server frame builder |
+| [`crowd.ts`](../../../packages/shared/src/crowd.ts) | Runs the whole shared `CrowdSim` (1,236 lines) every game minute to place every townsperson; works out who is nearest (`nearestFolk`), who is a full NPC (`promoted`), who stands on a tile (`folkAt`); writes `describeFolk` and `gossipBubble` text | server frame builder |
 | [`roadData.ts`](../../../packages/client/src/roadData.ts) | Builds the open-road terrain from noise (`chunkAt`, 64×64 chunks) and decides what is solid (`solidAt`) | server frame builder (the server already has `chunkAt` in `game/road/ground.ts`) |
 | [`travellers.ts`](../../../packages/client/src/travellers.ts) | Fetches journeys and places the people on the road (`journeyLine`, `partyAt`), finds the nearest traveller | server frame builder (the server already places them in `admin/roads.ts`) |
 | [`game.ts`](../../../packages/client/src/game.ts) | Decides what a click means (`clickTile`: fight, loot with a confirm, talk, or walk), what E talks to (`nearestTalker`), talk range, "too far" lines, pathfinding (`findPath`, `playerPath`), route planning on the road (`routeTo`, `shortestWay`), the auto-walk loop (`autoWalk`), walking away ends the chat | server intents |
 | [`simulate.ts`](../../../packages/client/src/simulate.ts) | The Simulate loop (hours per tick, pause between ticks), when the game pauses for a fight (`heldBy`) | server clocks |
 | [`main.ts`](../../../packages/client/src/main.ts) | The time-flow ticker (a game minute every few seconds, and when it pauses), the fight poll (500 ms), the "is Ollama up yet" poll (15 s), the key map | server clocks; the key map stays (input is the adapter's job) |
 | [`store.ts`](../../../packages/client/src/store.ts) | Chat logs per NPC, which news was already shown (`lastNewsId`), the fight countdown | server session |
-| [`world/WorldScene.ts`](../../../packages/client/src/world/WorldScene.ts), [`CrowdLayer.ts`](../../../packages/client/src/world/CrowdLayer.ts) | Mostly drawing, but also calls `findPath` to animate a walker round obstacles, picks which crowd chats to show, checks `isHostile` and `CLASS_RANK` | drawing stays; the rules go to the frame |
+| [`world/WorldScene.ts`](../../../packages/client/src/adapter/web/world/WorldScene.ts), [`CrowdLayer.ts`](../../../packages/client/src/world/CrowdLayer.ts) | Mostly drawing, but also calls `findPath` to animate a walker round obstacles, picks which crowd chats to show, checks `isHostile` and `CLASS_RANK` | drawing stays; the rules go to the frame |
 
 The transport is plain HTTP: `GET /api/state`, `POST /api/move`, `POST /api/act` (an NDJSON stream), `POST /api/tick`, `GET /api/crowd`, `GET /api/road/data`, `GET /api/road/journeys`, `GET /api/realm`, `POST /api/speak`, `GET /api/voice`, `GET /api/quote`, `POST /api/new` ([`web/server.ts`](../../../packages/server/src/web/server.ts)). The client pulls, so it needs timers to see anything change.
 
@@ -40,7 +40,7 @@ Good news: positions are already in world units (tiles; travellers are fractiona
 9. **Panels are data, not HTML.** The UI model says what each panel holds (`header`, `sheet` tabs, `chat`, `feed`, `modal`, `realm`, `roadbar`), with actions as `{ id, label, enabled, intent }`. Each adapter draws panels its own way (DOM, Unity UI Toolkit, UMG). The realm map stays `RealmView` data that the adapter draws.
 10. **Voice.** Speech arrives as text deltas with the NPC's voice id. An adapter either plays the server's Piper audio (`POST /api/speak` stays as plain HTTP, since a binary blob doesn't belong on the JSON socket) or uses its platform's own text-to-speech. The microphone (speech to text) is the adapter's, and it produces a `say` intent.
 11. **The admin page is out of scope.** It is a web tool for the developer. It keeps its HTTP API and may keep using `CrowdSim` in `admin/follow.ts`.
-12. **The web client splits in two:** `client/src/core/` (connect, keep the latest frame and UI model, send intents: engine-free TypeScript and the reference for other engines, target under 400 lines) and `client/src/adapter/web/` (Phaser world plus DOM panels). `core/` imports from `@millbrook/shared` **only `view/*`**, and a test enforces it.
+12. **The web client splits in two:** `client/src/core/` (connect, keep the latest frame and UI model, send intents: engine-free TypeScript and the reference for other engines, target under 400 lines) and `client/src/adapter/web/` (Phaser world plus DOM panels). `core/` imports from `@garden-of-eden/shared` **only `view/*`**, and a test enforces it.
 
 ## Data shapes
 
@@ -159,7 +159,7 @@ Delete `game.ts`, `simulate.ts`, `store.ts` and `api.ts` (their remains are in `
 
 ### Step 8: guard the line, and a recorder
 
-- `client/tests/imports.test.ts` (or in the server's vitest run): no file under `client/src/core` or `client/src/adapter` imports anything from `@millbrook/shared` but `view/*` and `GameEvent`; specifically none of `CrowdSim`, `findPath`, `chunkAt`, `partyAt`, `journeyLine`, `shortestWay`, `tileDistance`, `isHostile`, `CLASS_RANK`.
+- `client/tests/imports.test.ts` (or in the server's vitest run): no file under `client/src/core` or `client/src/adapter` imports anything from `@garden-of-eden/shared` but `view/*` and `GameEvent`; specifically none of `CrowdSim`, `findPath`, `chunkAt`, `partyAt`, `journeyLine`, `shortestWay`, `tileDistance`, `isHostile`, `CLASS_RANK`.
 - `npm run frames:record -- <minutes>` writes every server message of a scripted session to `protocol/recordings/*.jsonl`; `core` can replay a file instead of a socket (`?replay=<file>`). G6 and any Unity or Unreal prototype develop against recordings without running the brain.
 
 ### Step 9: a second adapter, to prove it
@@ -259,7 +259,7 @@ Every step is built. The browser runs no simulation, terrain, placement, pathfin
 - **Shared code moved, not deleted.** The client keeps [`dom.ts`](../../../packages/client/src/dom.ts) and
   [`realmMap.ts`](../../../packages/client/src/realmMap.ts) at `src/`, because the admin page uses them too. The
   view package re-exports the speech helpers (`SentenceSplitter`, `speakable`, the voice types), so adapters
-  import only `@millbrook/shared/view`.
+  import only `@garden-of-eden/shared/view`.
 
 **Not done here, and why:**
 - No Unity spike; the plan marked it optional.

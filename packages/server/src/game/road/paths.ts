@@ -1,4 +1,4 @@
-import { graphOf, tilesFrom, type RoadData } from "@millbrook/shared";
+import { graphOf, tilesFrom, type RoadData } from "@garden-of-eden/shared";
 import type { Rng } from "../dice.js";
 import type { Realm, Settlement } from "../realm/types.js";
 

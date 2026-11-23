@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { z } from "zod";
-import type { AnimalSpec, PlantSpec } from "@millbrook/shared";
+import type { AnimalSpec, PlantSpec } from "@garden-of-eden/shared";
 import { ITEMS } from "../items.js";
 import { ILLNESSES } from "../health.js";
 
