@@ -102,7 +102,7 @@ export function ensurePlaceLore(realm: Realm, world: Pick<WorldSnapshot, "lore">
     const at = (world.lore ?? []).findIndex((x) => x.id === e.id);
     if (at >= 0) {
       world.lore![at] = { ...world.lore![at]!, text: e.text, ...(e.aliases.length > 0 ? { aliases: e.aliases } : {}) };
-      setDynamicLore(world.lore);
+      setDynamicLore(world.lore, world);
     } else addLore(world, e);
     for (const v of folk) learnLore(v.state, e.id, "certain");
   }
