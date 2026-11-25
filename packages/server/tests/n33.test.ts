@@ -35,6 +35,7 @@ import { TAX_DAYS } from "../src/game/realm/politics.js";
 import { pickStartSite } from "../src/game/realm/start.js";
 import { journeysOf } from "../src/game/road/journeys.js";
 import { TRIPS } from "../src/game/road/trips/config.js";
+import { FAIR } from "../src/game/leisure/events.js";
 import { rumourToShare, shareRumour } from "../src/game/rumours.js";
 import { loadCreatureTemplates } from "../src/game/creatures.js";
 import { loadWorld, newWorld, SAVE_VERSION, saveWorld } from "../src/game/save.js";
@@ -63,6 +64,7 @@ vi.mock("../src/game/gossip/refs.js", async (importOriginal) => {
 });
 const slack = () => Number(process.env.PERF_SLACK ?? 1);
 const trips = { ...Object.fromEntries(Object.entries(TRIPS).map(([k, v]) => [k, v.cap])) } as Record<string, number>;
+const fairGoers = FAIR.perPlace;
 
 beforeEach(() => {
   config.peopleLazy = "";
@@ -70,6 +72,7 @@ beforeEach(() => {
   config.realm = true;
   config.realmSeed = undefined;
   for (const k of Object.keys(TRIPS)) (TRIPS as Record<string, { cap: number }>)[k]!.cap = trips[k]!;
+  (FAIR as { perPlace: number }).perPlace = fairGoers;
 });
 
 function world(seed = 1, spec = "all") {
@@ -83,6 +86,8 @@ function world(seed = 1, spec = "all") {
 
 const noRoads = () => {
   for (const k of Object.keys(TRIPS)) (TRIPS as Record<string, { cap: number }>)[k]!.cap = 0;
+  // Fair-goers travel too (N41), outside the trip caps.
+  (FAIR as { perPlace: number }).perPlace = 0;
 };
 
 const stepOf = (site: string, day: number, deaths: SiteStep["deaths"] = []): SiteStep => ({ site, day, alive: 0, births: [], deaths, marriages: [], grownUp: [], events: [] });
@@ -301,6 +306,7 @@ describe("N33 step 4: news enters with people", () => {
 
     // With them it does, and every row there came from a person who had it before: a traveller of another place, or someone in the liege town who had it from one.
     for (const key of Object.keys(TRIPS)) (TRIPS as Record<string, { cap: number }>)[key]!.cap = trips[key]!;
+    (FAIR as { perPlace: number }).perPlace = fairGoers;
     w = world(2);
     advanceWorld(w.realm, w.store, dies, { live: w.live });
     k = killAt(w, w.start, dies, notable(w));
