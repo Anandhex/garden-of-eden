@@ -156,7 +156,7 @@ export function trialsDay(ctx: LifeCtx, site: string, day: number, sentence: (ro
     if (store.records.has(id) || !e.target) continue;
     store.records.put<CaseData>({ id, kind: "case", site, a: e.actor, b: e.target, since: day, status: "open", ended: null, data: { crime: "theft", accused: e.target, accuser: e.actor, witnesses: [e.actor], event: e.id, false: true } });
   }
-  for (const c of store.records.open<CaseData>("case", (x) => x.site === site && x.data.accused !== "player")) {
+  for (const c of store.records.openAt<CaseData>("case", site, (x) => x.data.accused !== "player")) {
     const accused = store.people.get(c.data.accused);
     if (!accused || accused.death !== null) {
       store.records.end(c.id, day, "lapsed");

@@ -74,7 +74,7 @@ export function useDay(ctx: LifeCtx, site: string, day: number): { demands: numb
     if (knower) out.silenced += answer(ctx, id, subject, knower, day) === "silence" ? 1 : 0;
   }
   // Demands falling due: paid again, or weighed again once patience runs out.
-  for (const d of store.records.open<DemandData>("demand", (x) => x.site === site && x.data.answer === "pay" && x.data.by !== "player")) {
+  for (const d of store.records.openAt<DemandData>("demand", site, (x) => x.data.answer === "pay" && x.data.by !== "player")) {
     if (day - (d.data.last ?? d.since) < d.data.every) continue;
     const subject = store.people.get(d.data.of);
     const knower = store.people.get(d.data.by);

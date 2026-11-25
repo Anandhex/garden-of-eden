@@ -140,7 +140,7 @@ export function feudsDay(ctx: LifeCtx, step: Pick<SiteStep, "site" | "grownUp" |
 
   // ---- Flares, endings ----
   const wed = (step.marriages ?? []).map(([h, w]) => [famOf.get(h), famOf.get(w)] as const);
-  for (const f of store.records.open<FeudData>("feud", (x) => x.site === site)) {
+  for (const f of store.records.openAt<FeudData>("feud", site)) {
     const [fa, fb] = f.data.names;
     const A = fam.get(fa) ?? [];
     const B = fam.get(fb) ?? [];

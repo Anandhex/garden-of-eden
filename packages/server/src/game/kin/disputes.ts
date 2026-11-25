@@ -105,7 +105,7 @@ function householdOf(ctx: LifeCtx, r: PersonRow): string[] {
 export function disputesDay(ctx: LifeCtx, site: string, day: number, moveShop: (from: PersonRow, to: PersonRow, d: Dispute) => void): Dispute[] {
   const { realm, store } = ctx;
   const out: Dispute[] = [];
-  for (const d of store.records.open<DisputeData>("dispute", (x) => x.site === site && !x.data.figures)) {
+  for (const d of store.records.openAt<DisputeData>("dispute", site, (x) => !x.data.figures)) {
     if (day - d.since < DISPUTE_DAYS) continue;
     const [aId, bId] = d.data.claimants as [string, string];
     const a = store.people.get(aId);

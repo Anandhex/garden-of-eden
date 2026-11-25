@@ -73,9 +73,9 @@ export const secretsAbout = (store: Pick<WorldStore, "records">, who: string): S
  */
 export function secretsHeldAt(store: Pick<WorldStore, "knowledge" | "records" | "people">, site: string): Map<string, KnownSecret[]> {
   const out = new Map<string, KnownSecret[]>();
-  const secrets = store.records.open<SecretData>("secret", (s) => s.site === site && !s.data.exposed);
+  const secrets = store.records.openAt<SecretData>("secret", site, (s) => !s.data.exposed);
   if (secrets.length === 0) return out;
-  const demands = store.records.open<DemandData>("demand", (d) => d.site === site);
+  const demands = store.records.openAt<DemandData>("demand", site);
   for (const s of secrets) {
     const about = store.people.get(s.data.about);
     if (!about || about.death !== null) continue;

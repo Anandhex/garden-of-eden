@@ -74,7 +74,7 @@ export function rumoursDay(ctx: LifeCtx, site: string, day: number, player?: Pla
   const { realm, store } = ctx;
   const events: string[] = [];
   const grown = (store.people.loadSite(site, "full") as PersonRow[]).filter((r) => r.death === null && r.job !== "child");
-  for (const f of store.records.open<FabricationData>("fabrication", (x) => x.site === site)) {
+  for (const f of store.records.openAt<FabricationData>("fabrication", site)) {
     const who = believers(ctx, f.id);
     const moved = new Set(f.data.moved ?? []);
     for (const b of who) {

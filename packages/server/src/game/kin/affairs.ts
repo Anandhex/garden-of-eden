@@ -91,7 +91,7 @@ export function affairsDay(ctx: LifeCtx, step: Pick<SiteStep, "site" | "births">
   }
 
   // ---- Affairs seen, told, heard by the spouse ----
-  for (const s of store.records.open<AffairData>("secret", (x) => x.site === site && x.data.what === "affair" && !x.data.ended)) {
+  for (const s of store.records.openAt<AffairData>("secret", site, (x) => x.data.what === "affair" && !x.data.ended)) {
     const a = byId.get(s.data.about) ?? store.people.get(s.data.about);
     const lover = s.data.others?.[0] ? store.people.get(s.data.others[0]) : null;
     const spouse = store.people.get(s.data.spouse);

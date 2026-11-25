@@ -50,7 +50,7 @@ export function crimeSecrets(ctx: LifeCtx, site: string, day: number): string[] 
 /** A household's servants come to know its secrets. Returns how many learned something. */
 export function servantsLearn(ctx: LifeCtx, site: string, day: number): number {
   const { realm, store } = ctx;
-  const secrets = store.records.open<SecretData>("secret", (s) => s.site === site);
+  const secrets = store.records.openAt<SecretData>("secret", site);
   if (secrets.length === 0) return 0;
   const rows = (store.people.loadSite(site, "full") as PersonRow[]).filter((r) => r.death === null && !r.away);
   const byHome = new Map<number, PersonRow[]>();

@@ -31,6 +31,11 @@ export class RecordStore {
   private readonly statements = new Map<string, StatementSync>();
   private rows: Map<string, RecordRow> | null = null;
   private byKind: Map<string, Set<string>> | null = null;
+  /**
+   * Ids by kind and place. A place's day asks for its own secrets, demands, feuds and soldiers: reading every record of the kind in the
+   * realm (and parsing each) for each place grew with the realm's past, to a sixth of a whole-realm day by its third year.
+   */
+  private byKindSite: Map<string, Set<string>> | null = null;
 
   constructor(private readonly db: DatabaseSync) {}
 
@@ -43,12 +48,14 @@ export class RecordStore {
   dropCache(): void {
     this.rows = null;
     this.byKind = null;
+    this.byKindSite = null;
   }
 
   private all(): Map<string, RecordRow> {
     if (!this.rows) {
       this.rows = new Map((this.sql("SELECT * FROM records ORDER BY id").all() as unknown as RecordRow[]).map((r) => [r.id, { ...r }]));
       this.byKind = new Map();
+      this.byKindSite = new Map();
       for (const r of this.rows.values()) this.index(r);
     }
     return this.rows;
@@ -58,6 +65,15 @@ export class RecordStore {
     let s = this.byKind!.get(r.kind);
     if (!s) this.byKind!.set(r.kind, (s = new Set()));
     s.add(r.id);
+    const k = siteKey(r.kind, r.site);
+    let at = this.byKindSite!.get(k);
+    if (!at) this.byKindSite!.set(k, (at = new Set()));
+    at.add(r.id);
+  }
+
+  private unindex(r: RecordRow): void {
+    this.byKind!.get(r.kind)?.delete(r.id);
+    this.byKindSite!.get(siteKey(r.kind, r.site))?.delete(r.id);
   }
 
   get<T = Record<string, unknown>>(id: string): Rec<T> | undefined {
@@ -72,7 +88,22 @@ export class RecordStore {
   /** Every record of a kind, in id order, optionally filtered. */
   list<T = Record<string, unknown>>(kind: string, filter?: (r: Rec<T>) => boolean): Array<Rec<T>> {
     const rows = this.all();
-    const ids = [...(this.byKind!.get(kind) ?? [])].sort();
+    return this.listOf(rows, [...(this.byKind!.get(kind) ?? [])], filter);
+  }
+
+  /** Every record of a kind at a place, in id order, optionally filtered (what `list` with `r.site === site` gives, read by the place). */
+  listAt<T = Record<string, unknown>>(kind: string, site: string, filter?: (r: Rec<T>) => boolean): Array<Rec<T>> {
+    const rows = this.all();
+    return this.listOf(rows, [...(this.byKindSite!.get(siteKey(kind, site)) ?? [])], filter);
+  }
+
+  /** Records of a kind at a place still open. */
+  openAt<T = Record<string, unknown>>(kind: string, site: string, filter?: (r: Rec<T>) => boolean): Array<Rec<T>> {
+    return this.listAt<T>(kind, site, (r) => r.ended === null && (!filter || filter(r)));
+  }
+
+  private listOf<T>(rows: Map<string, RecordRow>, unsorted: string[], filter?: (r: Rec<T>) => boolean): Array<Rec<T>> {
+    const ids = unsorted.sort();
     const out: Array<Rec<T>> = [];
     for (const id of ids) {
       const r = parse<T>(rows.get(id)!);
@@ -93,6 +124,8 @@ export class RecordStore {
 
   put<T>(r: Rec<T>): void {
     const row: RecordRow = { ...r, data: JSON.stringify(r.data ?? {}) };
+    const was = this.all().get(row.id);
+    if (was) this.unindex(was);
     this.all().set(row.id, row);
     this.index(row);
     this.sql(`INSERT OR REPLACE INTO records (${COLS.join(", ")}) VALUES (${COLS.map(() => "?").join(", ")})`).run(...(COLS.map((c) => row[c] ?? null) as Array<string | number | null>));
@@ -116,10 +149,12 @@ export class RecordStore {
     const r = this.all().get(id);
     if (!r) return;
     this.rows!.delete(id);
-    this.byKind!.get(r.kind)?.delete(id);
+    this.unindex(r);
     this.sql("DELETE FROM records WHERE id = ?").run(id);
   }
 }
+
+const siteKey = (kind: string, site: string | null): string => `${kind}\u0000${site ?? ""}`;
 
 function parse<T>(r: RecordRow): Rec<T> {
   return { ...r, data: (r.data ? JSON.parse(r.data) : {}) as T };
