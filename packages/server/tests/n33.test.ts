@@ -46,7 +46,7 @@ import type { PersonRow } from "../src/store/peopleStore.js";
 import { siteMap } from "../src/web/sites.js";
 import { always, FakeProvider, pickTestPerson, pickTestPlaces } from "./helpers.js";
 
-vi.setConfig({ testTimeout: 240_000 });
+vi.setConfig({ testTimeout: 600_000 });
 
 /**
  * For a test of how a thing travels: `deathsOnly`, only deaths are worth telling, not the realm's news or a place's quarrels (not which

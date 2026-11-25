@@ -7,7 +7,7 @@ import type { JournalEntry, PlayerState } from "../npc/types.js";
  * once, by id; a later note with the same id updates it (a lie found out, a
  * promise kept).
  */
-export const JOURNAL_KINDS = ["secret", "love", "fear", "promise", "name", "quest", "lie", "favour", "rumour", "family"] as const;
+export const JOURNAL_KINDS = ["secret", "love", "fear", "promise", "name", "quest", "lie", "favour", "rumour", "family", "consequence"] as const;
 export type JournalKind = (typeof JOURNAL_KINDS)[number];
 
 /** Add a note, or update the one with the same id. Returns true if it's new. */

@@ -1,4 +1,5 @@
 import type { DirectorPush, Realm, RealmNews } from "./types.js";
+import { causesFor } from "../stories/cause.js";
 
 /**
  * The day a place first heard a piece of news, or null while it has not (N26 Part E): where it happened it is known at once;
@@ -28,10 +29,11 @@ export const MAX_PUSHES = 80;
  * so each place hears it when a traveller brings it (`reachesAt`, game/road/exchange.ts).
  * `names`: proper names in it, for the lore's invented-name check.
  */
-export function realmNews(realm: Realm, day: number, at: string | null, kind: string, text: string, importance: number, names: string[] = [], extra: { why?: string; people?: string[] } = {}): void {
+export function realmNews(realm: Realm, day: number, at: string | null, kind: string, text: string, importance: number, names: string[] = [], extra: { why?: string; people?: string[]; causedBy?: string[] } = {}): void {
   const all = [...new Set([...names, ...namesIn(realm, text)])];
   const people = [...new Set([...(extra.people ?? []), ...peopleNamed(realm, all)])];
   const id = `rn${realm.next++}`;
+  const causedBy = causesFor(`n:${id}`, extra.causedBy);
   if (at && realm.settlements[at]) hear(realm, at, id, day);
   realm.news.push({
     id,
@@ -43,6 +45,7 @@ export function realmNews(realm: Realm, day: number, at: string | null, kind: st
     names: all,
     ...(people.length > 0 ? { people } : {}),
     ...(extra.why ? { why: extra.why } : {}),
+    ...(causedBy ? { causedBy } : {}),
   });
   if (realm.news.length > MAX_NEWS) {
     // Drop the least important delivered (or old) one first.

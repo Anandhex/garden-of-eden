@@ -193,7 +193,31 @@ function parseFoot(s: string | undefined, w: number, h: number): [number, number
   return [x!, y!];
 }
 
-const RESERVED = new Set(["foot", "mirror", "split", "wang", "over", "base", "edge", "rim", "seed"]);
+const RESERVED = new Set(["foot", "mirror", "split", "wang", "over", "base", "edge", "rim", "seed", "recolor", "swap"]);
+
+/**
+ * `swap=ab,cd`: palette colour `a` becomes `b` and `c` becomes `d`, all at once (so `ab,ba` trades two colours). Used by
+ * `recolor=` to make a new material from an old one: the same pixels in other colours (slate from shingles, brick from stone).
+ */
+function swapper(spec: string, pal: Map<string, PaletteEntry>, where: string): (px: Uint8Array) => Uint8Array {
+  const key = (c: ArrayLike<number>) => `${c[0]},${c[1]},${c[2]},${c[3]}`;
+  const map = new Map<string, readonly number[]>();
+  for (const pair of spec.split(",")) {
+    const [a, b] = [...pair];
+    const from = a ? pal.get(a) : undefined;
+    const to = b ? pal.get(b) : undefined;
+    if (pair.length !== 2 || !from || !to) throw new Error(`${where}: swap=${spec} needs pairs of palette colours, like qK,Qq`);
+    map.set(key(from.rgba), to.rgba);
+  }
+  return (px) => {
+    const out = px.slice();
+    for (let at = 0; at < out.length; at += 4) {
+      const to = map.get(key(px.subarray(at, at + 4)));
+      if (to) out.set(to, at);
+    }
+    return out;
+  };
+}
 
 /** An overlay on an earlier frame: `.` keeps the base pixel, `,` clears it, and the last row repeats to the bottom. */
 function overlay(s: Source, base: Frame, pal: Map<string, PaletteEntry>): Uint8Array {
@@ -234,6 +258,18 @@ export function makeFrames(pal: Map<string, PaletteEntry>, sources: Source[]): F
       wangTiles(over.px, base.px, edge, rim, Number(s.opts.seed ?? s.name.length)).forEach((px, mask) =>
         add({ name: `${s.name}_${mask}`, sheet: s.sheet, w: TILE_PX, h: TILE_PX, px, foot: [TILE_PX / 2, TILE_PX], props: { ...props, wang: s.name, mask: String(mask) } }),
       );
+      continue;
+    }
+    if (s.opts.recolor) {
+      // `== buildings/slate_ recolor=buildings/shingle_ swap=...`: a name ending in `_` copies the whole family (every
+      // earlier frame named `<from><rest>` becomes `<name><rest>`); otherwise the one frame.
+      const where = `${s.sheet}.txt:${s.line}`;
+      const swap = swapper(s.opts.swap ?? "", pal, where);
+      const from = s.opts.recolor;
+      const family = s.name.endsWith("_") && from.endsWith("_");
+      const parts = family ? frames.filter((f) => f.name.startsWith(from)) : byName.has(from) ? [byName.get(from)!] : [];
+      if (parts.length === 0) throw new Error(`${where}: ${s.name} recolours ${from}, which isn't an earlier frame${family ? " family" : ""}`);
+      for (const p of parts) add({ ...p, name: family ? s.name + p.name.slice(from.length) : s.name, px: swap(p.px), props: { ...p.props, ...props } });
       continue;
     }
     if (s.opts.mirror) {

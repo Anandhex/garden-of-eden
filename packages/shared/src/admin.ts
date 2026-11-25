@@ -34,8 +34,12 @@ export interface AdminEvent {
   factions: string[];
   /** The reason behind it: the director's reason, a war's cause, an NPC's choice (N38 later). */
   why: string | null;
-  /** The events that caused it (empty until N20). */
+  /** The events that caused it (N20). */
   causedBy: string[];
+  /** What it led to (N20), by ref: the other way along the same links. */
+  ledTo?: string[];
+  /** The day the player learned of it (N24: the gap between the truth and what they know), or null while they don't know it. */
+  playerKnows?: number | null;
   /** Where it sits in the stream, for the cursor: "day:hour:rank:n". */
   at: string;
 }

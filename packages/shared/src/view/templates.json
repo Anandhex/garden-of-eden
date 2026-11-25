@@ -1077,6 +1077,14 @@
  "windows": {
   "buildings/plaster_win": "fx/window_glow",
   "buildings/stone_win": "fx/window_glow_arch",
-  "buildings/plank_win": "fx/window_glow_small"
+  "buildings/plank_win": "fx/window_glow_small",
+  "buildings/white_win": "fx/window_glow",
+  "buildings/daub_win": "fx/window_glow",
+  "buildings/ochre_win": "fx/window_glow",
+  "buildings/log_win": "fx/window_glow_small",
+  "buildings/skin_win": "fx/window_glow_small",
+  "buildings/brick_win": "fx/window_glow_arch",
+  "buildings/sand_win": "fx/window_glow_arch",
+  "buildings/darkstone_win": "fx/window_glow_arch"
  }
 }

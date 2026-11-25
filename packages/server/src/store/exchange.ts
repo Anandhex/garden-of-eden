@@ -5,6 +5,8 @@ import { z } from "zod";
 import type { WorldStore } from "../game/db.js";
 import { MIN_SAVE_VERSION, SAVE_VERSION, SaveSchema, saveWorld, type SavedWorld } from "../game/save.js";
 import { TABLES, type TableName } from "./schema.js";
+import { checksOf, type Check } from "../game/share/snapshots.js";
+import { chronicleOf, type ChronicleEntry } from "../game/share/chronicle.js";
 
 /**
  * Exporting and importing a world (N18): one gzip of one JSON document, `.mbworld`,
@@ -25,12 +27,18 @@ export interface MbWorld {
   exportedDay: number;
   world: SavedWorld;
   tables: Record<TableName, Array<Record<string, unknown>>>;
+  /** The world hash at the start of each snapshot day (N23): an importer replaying checks itself against these. */
+  checks?: Check[];
+  /** The realm's history as recorded text, the truth (N23): the same file on every machine. */
+  chronicle?: ChronicleEntry[];
 }
 
 /** The world and its tables as one document. Embedding vectors in `memories` are included (recall must replay the same), and they are large. */
 export function exportWorld(world: SavedWorld, store: WorldStore): MbWorld {
   const tables = Object.fromEntries((Object.keys(TABLES) as TableName[]).map((t) => [t, store.dumpTable(t)])) as MbWorld["tables"];
-  return { format: FORMAT, version: FORMAT_VERSION, saveVersion: SAVE_VERSION, exportedDay: world.day, world, tables };
+  const checks = checksOf(store);
+  const chronicle = world.realm ? chronicleOf(world.realm, store, { view: "truth" }) : [];
+  return { format: FORMAT, version: FORMAT_VERSION, saveVersion: SAVE_VERSION, exportedDay: world.day, world, tables, ...(checks.length ? { checks } : {}), ...(chronicle.length ? { chronicle } : {}) };
 }
 
 export const encodeMbWorld = (doc: MbWorld): Buffer => gzipSync(JSON.stringify(doc));
@@ -63,7 +71,19 @@ export function parseMbWorld(raw: unknown): MbWorld {
     if (!rows.success) throw new ImportError(`Table ${table} is not sound: ${rows.error.issues[0]?.path.join(".")} ${rows.error.issues[0]?.message}`);
     tables[table] = rows.data;
   }
-  return { format: FORMAT, version: head.data.version, saveVersion: SAVE_VERSION, exportedDay: Number(doc.exportedDay), world: doc.world as SavedWorld, tables };
+  const extra = raw as { checks?: unknown; chronicle?: unknown };
+  const checks = z.array(z.object({ day: z.number().int(), hash: z.string() })).safeParse(extra.checks);
+  const chronicle = z.array(z.object({ day: z.number().int(), kind: z.string(), text: z.string(), chain: z.array(z.string()).optional() })).safeParse(extra.chronicle);
+  return {
+    format: FORMAT,
+    version: head.data.version,
+    saveVersion: SAVE_VERSION,
+    exportedDay: Number(doc.exportedDay),
+    world: doc.world as SavedWorld,
+    tables,
+    ...(checks.success ? { checks: checks.data } : {}),
+    ...(chronicle.success ? { chronicle: chronicle.data as ChronicleEntry[] } : {}),
+  };
 }
 
 export function decodeMbWorld(buf: Buffer): MbWorld {

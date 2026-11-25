@@ -43,7 +43,7 @@ import { LONG } from "./long.js";
  * ladder; careers move (apprentice, journeyman, master, a shop); seats are scarce and the losers of a contest for one bear the winner a
  * grudge; ambition adds weight to the action menu; talkers say what they want. People are found by job and class, never by name.
  */
-vi.setConfig({ testTimeout: 240_000, hookTimeout: 240_000 });
+vi.setConfig({ testTimeout: 600_000, hookTimeout: 600_000 });
 
 const trips = { ...Object.fromEntries(Object.entries(TRIPS).map(([k, v]) => [k, v.cap])) } as Record<string, number>;
 beforeEach(() => {

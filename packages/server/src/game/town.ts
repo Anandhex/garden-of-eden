@@ -1,4 +1,6 @@
 import { collectLetters, letterText, lettersOf, writeLetter } from "./follow/letters.js";
+import { tellCallbacks } from "./stories/callbacks.js";
+import { learnAt } from "./realm/feed.js";
 import { overhear } from "./follow/follow.js";
 import { fisherHaul, herbalistHaul } from "./nature/wild.js";
 import { config } from "../config.js";
@@ -1138,6 +1140,8 @@ export class Town {
     this.world.atWar = atWar(realm, realm.settlements[site]!);
     log.push(...applyArrivals(realm, this.world, site, folk, Object.keys(this.templates), (f, n, k, kind) => this.raidersFrom(f, n, k, kind)));
     log.push(...deliverNews(realm, this.world, site, folk));
+    // N24: arriving, the player learns everything that has reached this place (their feed reads only what they know).
+    learnAt(realm, this.world.player, site, this.world.day);
     // Arriving (N34): letters waiting here, and what people here know of those the player follows.
     if (this.store) log.push(...collectLetters(realm, this.store, this.world.player, site, this.world.day), ...overhear(realm, this.store, this.world.player, site, this.world.day));
     this.stockHaunts();
@@ -1271,6 +1275,8 @@ export class Town {
       log.push(...applyArrivals(realm, this.world, site, this.members(), Object.keys(this.templates), (f, n, k, kind) => this.raidersFrom(f, n, k, kind)));
       const before2 = new Set(siteState(this.world, site).newsSeen);
       log.push(...deliverNews(realm, this.world, site, this.members()));
+      // N24: news that reached the player's place today is theirs (on the road they hear it only from those they meet).
+      if (!this.world.player.road) learnAt(realm, this.world.player, site, d);
       // Big news from away, retold by the model in the background (code's words stand if it fails).
       if (config.director) {
         for (const n of realm.news.filter((x) => siteState(this.world, site).newsSeen.includes(x.id) && !before2.has(x.id) && x.importance >= RETELL_IMPORTANCE && x.at !== site)) {
@@ -1299,11 +1305,13 @@ export class Town {
     const realm = this.world.realm!;
     const here = this.site();
     ensureLivePeople(realm, this.store!.people, live, day);
-    const result = lifeDay({ realm, store: this.store!, player: this.world.player }, day, { live, lazy: lazySites(), watched: new Set([here]) });
+    const result = lifeDay({ realm, store: this.store!, player: this.world.player }, day, { live, lazy: lazySites(), watched: new Set([here]), player: { site: here, ...(this.world.player.known ? { known: this.world.player.known } : {}) } });
     for (const step of result.steps) {
       if (step.day !== day) continue;
       this.afterSiteStep(step, step.site === here);
     }
+    // A choice of the player's that led somewhere they now know of goes in their journal (N21).
+    if (config.stories) tellCallbacks(realm, this.store!, this.world.player, day, (id) => this.store!.people.get(id)?.name ?? realm.figures[id]?.name ?? this.personas[id]?.name ?? "someone");
     this.syncCareerRoles();
   }
 

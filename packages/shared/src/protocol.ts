@@ -459,7 +459,13 @@ export interface Snapshot {
   /** Marriages, courtships, children on the way and children born in play (N11.3), in words. */
   family: string[];
   /** The wider realm (N13) in brief, or null in worlds without one; the whole of it goes to clients as `ui.realm` (RealmView). */
-  realm: { day: number; latest: string | null; wars: number } | null;
+  realm: {
+    day: number;
+    latest: string | null;
+    wars: number;
+    /** N24: the news the player knows, by scope (here, this place's kingdom, everywhere), newest first, each above its scope's floor. */
+    feed?: Record<"here" | "kingdom" | "everywhere", Array<{ day: number; learned: number; text: string; importance: number }>>;
+  } | null;
   /**
    * The player's guild membership and the dungeons in reach (N13.6). One is delved
    * from its mouth (N15): `here` when the player stands there, else `mouth` says where it is.

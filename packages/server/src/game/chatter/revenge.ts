@@ -36,13 +36,25 @@ export const REVENGE = {
   faded: 0.15,
   /** The share of the weight settled that the target now holds against the avenger. */
   backlash: 0.5,
-  /** Days someone just paid back is left alone: others with a grudge against them wait, and their grudge cools meanwhile. */
+  /** Days someone just paid back is left alone (others with a grudge against them wait, and their grudge cools meanwhile), and days
+   * someone who just took revenge waits before taking the next. */
   respite: 7,
 } as const;
 
+/**
+ * Is this event a revenge itself (its own key is `vendetta:`), not an event that only names one (a crime's secret, a blackmail, a trial
+ * whose ids embed the revenge's id)?
+ */
+export const isVendettaEvent = (id: string): boolean => /^l\d+-\d+-[a-z-]+-vendetta:/.test(id);
+
 /** Was `who` the target of someone's revenge in the last REVENGE.respite days (today included)? */
 function paidBackLately(store: LifeCtx["store"], who: string, day: number): boolean {
-  return store.eventsAbout(who, 30).some((e) => e.target === who && e.id.includes("vendetta:") && e.kind !== "new-goal" && e.day > day - REVENGE.respite);
+  return store.eventsAbout(who, 30).some((e) => e.target === who && isVendettaEvent(e.id) && e.kind !== "new-goal" && e.day > day - REVENGE.respite);
+}
+
+/** Did `who` take revenge on someone in the last REVENGE.respite days? One paid back is enough for a while: the next grudge waits and cools. */
+function tookRevengeLately(store: LifeCtx["store"], who: string, day: number): boolean {
+  return store.eventsAbout(who, 30).some((e) => e.actor === who && isVendettaEvent(e.id) && e.kind !== "new-goal" && e.day > day - REVENGE.respite);
 }
 
 /** How much hatred a person needs to hold against one other before they want revenge: the proud and hot-tempered need less, the forgiving more. */
@@ -127,7 +139,7 @@ export function vendettaDay(ctx: LifeCtx, site: string, day: number): VendettaRe
       if (goal.since < day && left >= REVENGE.actAt) {
         const target = store.people.get(goal.target);
         // They can only reach someone of their own place; if the other has gone away, the goal waits (it fades as the hatred does).
-        if (target && target.death === null && target.site === row.site && !target.away && !row.away && !paidBackLately(store, target.id, day)) {
+        if (target && target.death === null && target.site === row.site && !target.away && !row.away && !paidBackLately(store, target.id, day) && !tookRevengeLately(store, row.id, day)) {
           actOnVendetta(ctx, row, target, goal, live.filter((g) => g.against === target.id), day);
           out.acted++;
           continue;
@@ -160,7 +172,7 @@ export function vendettaDay(ctx: LifeCtx, site: string, day: number): VendettaRe
       day,
       details: `${row.name} wants revenge on ${target.name} (${reason}) and means to ${planWords(plan)}`,
       importance: 3,
-      key: `vendetta:${worst}`,
+      key: `vendetta:${row.id}:${worst}`,
       causedBy: eventIds(gs),
       why: `their grievances against ${target.name} weigh ${(Math.round(hate.get(worst)! * 100) / 100).toFixed(2)}, more than they can bear (${need.toFixed(2)})`,
     });
@@ -180,7 +192,7 @@ function actOnVendetta(ctx: LifeCtx, me: PersonRow, them: PersonRow, goal: Goal,
   const rng = streamFor(realm.seed, "vendetta", me.id, them.id, day);
   const causes = eventIds(grievances);
   const weight = grievances.reduce((s, g) => s + weightOn(g, day), 0);
-  const base = { actor: me.id, target: them.id, site: me.site, day, key: `vendetta:${them.id}`, causedBy: causes, why: goal.reason ?? "an old wrong" } as const;
+  const base = { actor: me.id, target: them.id, site: me.site, day, key: `vendetta:${me.id}:${them.id}`, causedBy: causes, why: goal.reason ?? "an old wrong" } as const;
   let backlash: number = REVENGE.backlash;
   let eventId: string | null = null;
   const tell = (ids: string[], id: string, accuracy: number) => {

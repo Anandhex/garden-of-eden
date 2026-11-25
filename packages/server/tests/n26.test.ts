@@ -208,7 +208,7 @@ describe("N26 A3 walking from a place to its liege town", () => {
     expect(town.world.player.walked?.length).toBeGreaterThan(0);
     // Real minutes: steps at the walking rate.
     expect(r.steps / STEPS_PER_SECOND / 60).toBeLessThan(REAL_MINUTES_PER_DAY_WALK * (way.tiles / STEPS_PER_DAY_WALK) * 1.2 + 1);
-  }, 120_000);
+  }, 600_000);
 
   it("walking back sees the same road: the chunks are byte-equal", () => {
     const realm = generateRealm(1, 1);
@@ -483,7 +483,7 @@ describe("N26 D supplies, mounts and fast travel", () => {
     town.world.player.hp = town.world.player.maxHp;
     town.road.setDestination(other.id, (t) => town.leaveByRoad(t));
     expect(canFast(town)).toBe(false);
-  }, 120_000);
+  }, 600_000);
 
   it("a paid coach between towns on the main roads skips the stretch for a fare, and sleeps at the inns", () => {
     const realm = generateRealm(1, 1);

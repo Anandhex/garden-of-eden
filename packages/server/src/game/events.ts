@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { WorldSnapshot } from "../npc/types.js";
+import { causesFor } from "./stories/cause.js";
 
 /**
  * The event log (N5, N12.1): everything meaningful that happens, written by code,
@@ -184,6 +185,8 @@ export const EVENT_KINDS = [
   "disaster",
   "founded",
   "kingdom-born",
+  // Stories (N20–N21): the player told that something they did led to something notable
+  "callback-told",
 ] as const;
 export type EventKind = (typeof EVENT_KINDS)[number];
 
@@ -270,13 +273,17 @@ export function recordEvent(
   event: Omit<GameEvent, "id" | "day" | "hour" | "where"> & { where?: string },
 ): GameEvent {
   const witnesses = event.witnesses ?? defaultWitnesses(world, event);
+  // The sequence is in the save, so the same run gives the same ids (N18).
+  const id = `e${world.day}-${world.hour}-${(world.nextEventSeq = (world.nextEventSeq ?? 0) + 1)}`;
+  // Its causes: the ones given, then the scope's (N20), never itself or anything later.
+  const causedBy = causesFor(id, event.causedBy);
   const full: GameEvent = {
-    // The sequence is in the save, so the same run gives the same ids (N18).
-    id: `e${world.day}-${world.hour}-${(world.nextEventSeq = (world.nextEventSeq ?? 0) + 1)}`,
+    id,
     day: world.day,
     hour: world.hour,
     where: event.where ?? world.location,
     ...event,
+    ...(causedBy ? { causedBy } : {}),
     ...(event.place ?? world.player?.place ? { place: event.place ?? world.player!.place } : {}),
     witnesses,
     knownBy: [...new Set([...(event.knownBy ?? []), ...witnesses])],

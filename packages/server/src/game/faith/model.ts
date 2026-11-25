@@ -4,6 +4,7 @@ import type { PersonRow } from "../../store/peopleStore.js";
 import { config } from "../../config.js";
 import { seededRng, unitFor } from "../dice.js";
 import { foundFaction } from "../realm/factions.js";
+import { makeFigure } from "../realm/figures.js";
 import type { Realm, RealmFaction } from "../realm/types.js";
 
 /**
@@ -94,8 +95,10 @@ export function ensureFaiths(realm: Realm, day: number): FaithState {
   for (const k of Object.values(realm.kingdoms).sort((a, b) => a.id.localeCompare(b.id))) {
     if (k.fallen) continue;
     if (faithFactions(realm).some((f) => f.kind === "order" && (f.seat ? realm.settlements[f.seat]?.kingdom === k.id : false))) continue;
-    const founder = founderAt(k.capital);
-    if (!founder) continue;
+    // A capital with nobody free to found it (a new people's kingdom has only its ruler) gets a priest of its own people.
+    const founder =
+      founderAt(k.capital) ??
+      makeFigure(realm, seededRng(Math.floor(unitFor(realm.seed, "church-founder", k.id) * 2 ** 31)), { role: "priest", home: k.capital, tier: "C", age: 45, species: k.species ?? "human" }, day);
     used.add(founder.id);
     const fac = foundFaction(realm, seededRng(Math.floor(unitFor(realm.seed, "church", k.id) * 2 ** 31)), { kind: "order", founder, seat: k.capital, creed: "", why: `the faith of ${k.name}` }, day);
     delete fac.charter;

@@ -29,6 +29,7 @@
     "replay": "tsx packages/server/scripts/replay.ts",
     "world:export": "tsx packages/server/scripts/world.ts export",
     "world:import": "tsx packages/server/scripts/world.ts import",
+    "world:chronicle": "tsx packages/server/scripts/world.ts chronicle",
     "bench:storage": "tsx packages/server/scripts/bench-storage.ts",
     "bench:busy": "tsx --env-file-if-exists=.env packages/server/scripts/bench-busy.ts",
     "bench:traits": "tsx packages/server/scripts/bench-traits.ts",

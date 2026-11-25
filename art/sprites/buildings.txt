@@ -887,3 +887,37 @@ kDddddddddddddDk
 kDOOOOOOOOOOOODk
 kDooooooooooooDk
 kkkkkkkkkkkkkkkk
+
+# ---- G10: regional materials ----
+# A place is built the way its people build, with what its land gives (packages/shared/src/view/styles.ts). Each
+# material is an older one in other colours: `recolor=<family>_` copies every frame of the family (roof rows, walls,
+# windows, side walls, gables), `swap=` trades palette colours. A window stays a window (it is still lit after dark).
+# roofs
+== buildings/reed_ recolor=buildings/thatch_ swap=ap,Aa,zA,Zz
+== buildings/turf_ recolor=buildings/thatch_ swap=aG,Ag,zf,ZF
+== buildings/hide_ recolor=buildings/thatch_ swap=ap,AP,zu,ZU
+== buildings/slate_ recolor=buildings/shingle_ swap=qK,Qq,rQ,Rr
+== buildings/tile_ recolor=buildings/shingle_ swap=qm,QM,rE,Rj
+== buildings/bark_ recolor=buildings/shingle_ swap=qd,QD,ro,RO
+== buildings/felt_ recolor=buildings/canvas_ swap=Qp,Ru,rP,wN
+== buildings/yurt_ recolor=buildings/tent_ swap=Ru,rP,wN
+# walls
+== buildings/white_ recolor=buildings/plaster_ swap=Dr,UW,QR,qQ
+== buildings/white_door recolor=buildings/door_wood swap=Dr,UW,QR,qQ
+== buildings/daub_ recolor=buildings/plaster_ swap=wU,Uu,QP,qp
+== buildings/daub_door recolor=buildings/door_wood swap=wU,Uu,QP,qp
+== buildings/ochre_ recolor=buildings/plaster_ swap=wN,Un,QE,qM
+== buildings/ochre_door recolor=buildings/door_wood swap=wN,Un,QE,qM
+== buildings/log_ recolor=buildings/plank_ swap=dk,Dd,oD,Oo
+== buildings/log_door recolor=buildings/door_barn swap=dk,Dd,oD,Oo
+== buildings/skin_ recolor=buildings/plank_ swap=dp,DP,ou,OU
+== buildings/skin_door recolor=buildings/door_barn swap=dp,DP,ou,OU
+== buildings/brick_ recolor=buildings/stone_ swap=Km,qm,QM,rE,RU
+== buildings/brick_door recolor=buildings/door_stone swap=Km,qm,QM,rE,RU
+== buildings/brick_forge recolor=buildings/forge_mouth swap=Km,qm,QM
+== buildings/sand_ recolor=buildings/stone_ swap=Kp,qp,QP,ru,RU
+== buildings/sand_door recolor=buildings/door_stone swap=Kp,qp,QP,ru,RU
+== buildings/sand_forge recolor=buildings/forge_mouth swap=Kp,qp,QP
+== buildings/darkstone_ recolor=buildings/stone_ swap=Kk,qk,QK,rq,RQ
+== buildings/darkstone_door recolor=buildings/door_stone swap=Kk,qk,QK,rq,RQ
+== buildings/darkstone_forge recolor=buildings/forge_mouth swap=Kk,qk,QK

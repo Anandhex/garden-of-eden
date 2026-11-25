@@ -1,0 +1,47 @@
+name: Nightly
+
+# N22: the long runs. Ten seeds for ten years against every balance bound (src/balance/bounds.ts), and the tests'
+# long versions (LONG=1, tests/long.ts). Too slow for every push; CI runs three seeds for two years (tests/n22.test.ts).
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+jobs:
+  balance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        seeds: ["1,2", "3,4", "5,6", "7,8", "9,10"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run sim:years
+        env:
+          YEARS: "10"
+          SEEDS: ${{ matrix.seeds }}
+
+  long-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx vitest run --shard=${{ matrix.shard }}/8
+        env:
+          LONG: "1"

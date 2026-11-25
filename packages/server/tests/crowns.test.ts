@@ -45,11 +45,15 @@ describe("crowns keep their courts", () => {
 
   it("over a year the crowns don't wither to a handful", () => {
     const realm = generateRealm(3, 1);
+    // Other peoples' kingdoms (N54) are one hold: their court is its ruler and a captain, so they are held to the size they began at.
+    advanceRealm(realm, 2, seededRng(3));
+    const live = (k: (typeof realm.kingdoms)[string]) => realm.factions[k.crown]!.members.filter((m) => realm.figures[m]?.alive).length;
+    const began = Object.fromEntries(Object.values(realm.kingdoms).map((k) => [k.id, live(k)]));
     advanceRealm(realm, 49, seededRng(3));
     for (const k of Object.values(realm.kingdoms)) {
       const crown = realm.factions[k.crown]!;
       if (crown.dissolved) continue;
-      expect(crown.members.filter((m) => realm.figures[m]?.alive).length, crown.name).toBeGreaterThanOrEqual(6);
+      expect(live(k), crown.name).toBeGreaterThanOrEqual(Math.min(6, began[k.id] ?? 6));
     }
   });
 

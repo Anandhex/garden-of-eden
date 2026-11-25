@@ -110,15 +110,18 @@ describe("N35 step 3: a season skip and what was heard", () => {
     const season0 = Math.floor((t.world.day - 1) / 12);
     let r = passUntil(t, { maxHours: maxSkipHours(), conditions: [{ kind: "season" }] });
     const heard = [...r.heard];
+    // Each skip's list is short; one cut by danger is followed by another, each with its own list.
+    const lengths = [r.heard.length];
     for (let k = 0; k < 5 && r.stoppedBy?.kind === "danger"; k++) {
       r = passUntil(t, { maxHours: maxSkipHours(), conditions: [{ kind: "season" }] });
       heard.push(...r.heard);
+      lengths.push(r.heard.length);
     }
+    for (const n of lengths) expect(n).toBeLessThanOrEqual(12);
     r = { ...r, heard };
     expect(r.stoppedBy?.kind).toBe("season");
     expect(Math.floor((t.world.day - 1) / 12)).toBe(season0 + 1);
     expect(r.heard.length).toBeGreaterThan(0);
-    expect(r.heard.length).toBeLessThanOrEqual(12);
     expect(r.heard[0]!.followed).toBe(true);
     const words = summaryLines(r).join(" ");
     expect(words).toContain("What you heard");
