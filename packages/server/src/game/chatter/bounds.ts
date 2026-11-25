@@ -10,6 +10,7 @@ import { temperOf } from "./person.js";
 import { MAX_RELS } from "./rel.js";
 import { weightOn } from "./grievance.js";
 import { HOSTILE } from "./types.js";
+import { isVendettaEvent } from "./revenge.js";
 
 /**
  * N37's balance bounds (N22 gathers them into one list; until then tests read this). Run once the realm has been going a while.
@@ -51,7 +52,7 @@ export function checkChatterBounds(realm: Realm, store: Pick<WorldStore, "social
   out.push({ name: "grievances-settle", ok: old.length < 20 || gone / old.length >= 0.6, detail: `${gone} of ${old.length} grievances over a year old are settled or have faded by half` });
 
   const season = seasonDays();
-  const revenge = store.dumpTable("events").filter((e) => String(e.id).includes("vendetta:") && Number(e.day) > day - season);
+  const revenge = store.dumpTable("events").filter((e) => isVendettaEvent(String(e.id)) && Number(e.day) > day - season);
   const bySite = new Map<string, number>();
   for (const e of revenge) bySite.set(String(e.site), (bySite.get(String(e.site)) ?? 0) + (String(e.kind) === "new-goal" ? 0 : 1));
   let worst = "";

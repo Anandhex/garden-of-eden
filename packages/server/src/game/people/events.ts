@@ -2,6 +2,7 @@ import type { WorldStore } from "../db.js";
 import { streamFor } from "../dice.js";
 import type { EventKind, GameEvent } from "../events.js";
 import type { Realm } from "../realm/types.js";
+import { causesFor } from "../stories/cause.js";
 
 /**
  * Events of townsfolk lives (N25): births, deaths, marriages, moves. Written straight to the database's
@@ -41,8 +42,11 @@ export interface LifeEventInput {
 export function recordLifeEvent(realm: Realm, store: Pick<WorldStore, "archiveEvent">, e: LifeEventInput): GameEvent {
   const hour = e.hour ?? hourFor(realm, e.key ?? e.actor, e.day, e.kind);
   const kingdom = realm.settlements[e.site]?.kingdom ?? undefined;
+  const id = `l${e.day}-${hour}-${e.kind}-${e.key ?? e.actor}`;
+  // Its causes: the ones given, then whatever scope it was recorded in (N20), never itself or anything later.
+  const causedBy = causesFor(id, e.causedBy);
   const event: GameEvent = {
-    id: `l${e.day}-${hour}-${e.kind}-${e.key ?? e.actor}`,
+    id,
     day: e.day,
     hour,
     kind: e.kind,
@@ -52,7 +56,7 @@ export function recordLifeEvent(realm: Realm, store: Pick<WorldStore, "archiveEv
     importance: Math.max(0, Math.min(10, e.importance)),
     witnesses: e.witnesses ?? [],
     knownBy: e.witnesses ?? [],
-    ...(e.causedBy && e.causedBy.length > 0 ? { causedBy: e.causedBy } : {}),
+    ...(causedBy ? { causedBy } : {}),
     ...(e.why ? { why: e.why } : {}),
     site: e.site,
     ...(kingdom ? { kingdom } : {}),

@@ -2,8 +2,8 @@
  "frames": {
   "buildings/thatch_top_m": {
    "frame": {
-    "x": 132,
-    "y": 264,
+    "x": 594,
+    "y": 660,
     "w": 64,
     "h": 64
    },
@@ -22,8 +22,8 @@
   },
   "buildings/thatch_mid_m": {
    "frame": {
-    "x": 726,
-    "y": 198,
+    "x": 198,
+    "y": 660,
     "w": 64,
     "h": 64
    },
@@ -42,8 +42,8 @@
   },
   "buildings/thatch_near_m": {
    "frame": {
-    "x": 924,
-    "y": 198,
+    "x": 396,
+    "y": 660,
     "w": 64,
     "h": 64
    },
@@ -62,8 +62,8 @@
   },
   "buildings/thatch_top_l": {
    "frame": {
-    "x": 66,
-    "y": 264,
+    "x": 528,
+    "y": 660,
     "w": 64,
     "h": 64
    },
@@ -82,8 +82,8 @@
   },
   "buildings/thatch_top_r": {
    "frame": {
-    "x": 198,
-    "y": 264,
+    "x": 660,
+    "y": 660,
     "w": 64,
     "h": 64
    },
@@ -102,8 +102,8 @@
   },
   "buildings/thatch_mid_l": {
    "frame": {
-    "x": 660,
-    "y": 198,
+    "x": 132,
+    "y": 660,
     "w": 64,
     "h": 64
    },
@@ -122,8 +122,8 @@
   },
   "buildings/thatch_mid_r": {
    "frame": {
-    "x": 792,
-    "y": 198,
+    "x": 264,
+    "y": 660,
     "w": 64,
     "h": 64
    },
@@ -142,8 +142,8 @@
   },
   "buildings/thatch_near_l": {
    "frame": {
-    "x": 858,
-    "y": 198,
+    "x": 330,
+    "y": 660,
     "w": 64,
     "h": 64
    },
@@ -162,8 +162,8 @@
   },
   "buildings/thatch_near_r": {
    "frame": {
-    "x": 0,
-    "y": 264,
+    "x": 462,
+    "y": 660,
     "w": 64,
     "h": 64
    },
@@ -182,8 +182,8 @@
   },
   "buildings/shingle_top_m": {
    "frame": {
-    "x": 660,
-    "y": 132,
+    "x": 66,
+    "y": 528,
     "w": 64,
     "h": 64
    },
@@ -202,8 +202,8 @@
   },
   "buildings/shingle_mid_m": {
    "frame": {
-    "x": 264,
-    "y": 132,
+    "x": 660,
+    "y": 462,
     "w": 64,
     "h": 64
    },
@@ -222,8 +222,8 @@
   },
   "buildings/shingle_near_m": {
    "frame": {
-    "x": 462,
-    "y": 132,
+    "x": 858,
+    "y": 462,
     "w": 64,
     "h": 64
    },
@@ -242,8 +242,8 @@
   },
   "buildings/shingle_top_l": {
    "frame": {
-    "x": 594,
-    "y": 132,
+    "x": 0,
+    "y": 528,
     "w": 64,
     "h": 64
    },
@@ -262,8 +262,8 @@
   },
   "buildings/shingle_top_r": {
    "frame": {
-    "x": 726,
-    "y": 132,
+    "x": 132,
+    "y": 528,
     "w": 64,
     "h": 64
    },
@@ -282,8 +282,8 @@
   },
   "buildings/shingle_mid_l": {
    "frame": {
-    "x": 198,
-    "y": 132,
+    "x": 594,
+    "y": 462,
     "w": 64,
     "h": 64
    },
@@ -302,8 +302,8 @@
   },
   "buildings/shingle_mid_r": {
    "frame": {
-    "x": 330,
-    "y": 132,
+    "x": 726,
+    "y": 462,
     "w": 64,
     "h": 64
    },
@@ -322,8 +322,8 @@
   },
   "buildings/shingle_near_l": {
    "frame": {
-    "x": 396,
-    "y": 132,
+    "x": 792,
+    "y": 462,
     "w": 64,
     "h": 64
    },
@@ -342,8 +342,8 @@
   },
   "buildings/shingle_near_r": {
    "frame": {
-    "x": 528,
-    "y": 132,
+    "x": 924,
+    "y": 462,
     "w": 64,
     "h": 64
    },
@@ -362,8 +362,8 @@
   },
   "buildings/canvas_top_m": {
    "frame": {
-    "x": 528,
-    "y": 0,
+    "x": 660,
+    "y": 66,
     "w": 64,
     "h": 64
    },
@@ -382,8 +382,8 @@
   },
   "buildings/canvas_mid_m": {
    "frame": {
-    "x": 132,
-    "y": 0,
+    "x": 264,
+    "y": 66,
     "w": 64,
     "h": 64
    },
@@ -402,8 +402,8 @@
   },
   "buildings/canvas_near_m": {
    "frame": {
-    "x": 330,
-    "y": 0,
+    "x": 462,
+    "y": 66,
     "w": 64,
     "h": 64
    },
@@ -422,8 +422,8 @@
   },
   "buildings/canvas_top_l": {
    "frame": {
-    "x": 462,
-    "y": 0,
+    "x": 594,
+    "y": 66,
     "w": 64,
     "h": 64
    },
@@ -442,8 +442,8 @@
   },
   "buildings/canvas_top_r": {
    "frame": {
-    "x": 594,
-    "y": 0,
+    "x": 726,
+    "y": 66,
     "w": 64,
     "h": 64
    },
@@ -462,8 +462,8 @@
   },
   "buildings/canvas_mid_l": {
    "frame": {
-    "x": 66,
-    "y": 0,
+    "x": 198,
+    "y": 66,
     "w": 64,
     "h": 64
    },
@@ -482,8 +482,8 @@
   },
   "buildings/canvas_mid_r": {
    "frame": {
-    "x": 198,
-    "y": 0,
+    "x": 330,
+    "y": 66,
     "w": 64,
     "h": 64
    },
@@ -502,8 +502,8 @@
   },
   "buildings/canvas_near_l": {
    "frame": {
-    "x": 264,
-    "y": 0,
+    "x": 396,
+    "y": 66,
     "w": 64,
     "h": 64
    },
@@ -522,8 +522,8 @@
   },
   "buildings/canvas_near_r": {
    "frame": {
-    "x": 396,
-    "y": 0,
+    "x": 528,
+    "y": 66,
     "w": 64,
     "h": 64
    },
@@ -542,8 +542,8 @@
   },
   "buildings/plaster_m": {
    "frame": {
-    "x": 858,
-    "y": 66,
+    "x": 132,
+    "y": 396,
     "w": 64,
     "h": 64
    },
@@ -562,8 +562,8 @@
   },
   "buildings/plaster_l": {
    "frame": {
-    "x": 792,
-    "y": 66,
+    "x": 66,
+    "y": 396,
     "w": 64,
     "h": 64
    },
@@ -582,8 +582,8 @@
   },
   "buildings/plaster_r": {
    "frame": {
-    "x": 924,
-    "y": 66,
+    "x": 198,
+    "y": 396,
     "w": 64,
     "h": 64
    },
@@ -602,8 +602,8 @@
   },
   "buildings/plaster_win": {
    "frame": {
-    "x": 66,
-    "y": 132,
+    "x": 330,
+    "y": 396,
     "w": 64,
     "h": 64
    },
@@ -622,8 +622,8 @@
   },
   "buildings/door_wood": {
    "frame": {
-    "x": 0,
-    "y": 66,
+    "x": 132,
+    "y": 198,
     "w": 64,
     "h": 64
    },
@@ -642,8 +642,8 @@
   },
   "buildings/stone_m": {
    "frame": {
-    "x": 264,
-    "y": 198,
+    "x": 726,
+    "y": 594,
     "w": 64,
     "h": 64
    },
@@ -662,8 +662,8 @@
   },
   "buildings/stone_l": {
    "frame": {
-    "x": 198,
-    "y": 198,
+    "x": 660,
+    "y": 594,
     "w": 64,
     "h": 64
    },
@@ -682,8 +682,8 @@
   },
   "buildings/stone_r": {
    "frame": {
-    "x": 330,
-    "y": 198,
+    "x": 792,
+    "y": 594,
     "w": 64,
     "h": 64
    },
@@ -702,8 +702,8 @@
   },
   "buildings/stone_win": {
    "frame": {
-    "x": 462,
-    "y": 198,
+    "x": 924,
+    "y": 594,
     "w": 64,
     "h": 64
    },
@@ -722,8 +722,8 @@
   },
   "buildings/door_stone": {
    "frame": {
-    "x": 924,
-    "y": 0,
+    "x": 66,
+    "y": 198,
     "w": 64,
     "h": 64
    },
@@ -742,8 +742,8 @@
   },
   "buildings/forge_mouth": {
    "frame": {
-    "x": 66,
-    "y": 66,
+    "x": 792,
+    "y": 198,
     "w": 64,
     "h": 64
    },
@@ -762,8 +762,8 @@
   },
   "buildings/plank_m": {
    "frame": {
-    "x": 462,
-    "y": 66,
+    "x": 726,
+    "y": 330,
     "w": 64,
     "h": 64
    },
@@ -782,8 +782,8 @@
   },
   "buildings/plank_l": {
    "frame": {
-    "x": 396,
-    "y": 66,
+    "x": 660,
+    "y": 330,
     "w": 64,
     "h": 64
    },
@@ -802,8 +802,8 @@
   },
   "buildings/plank_r": {
    "frame": {
-    "x": 528,
-    "y": 66,
+    "x": 792,
+    "y": 330,
     "w": 64,
     "h": 64
    },
@@ -822,8 +822,8 @@
   },
   "buildings/plank_win": {
    "frame": {
-    "x": 660,
-    "y": 66,
+    "x": 924,
+    "y": 330,
     "w": 64,
     "h": 64
    },
@@ -841,26 +841,6 @@
    }
   },
   "buildings/door_barn": {
-   "frame": {
-    "x": 858,
-    "y": 0,
-    "w": 64,
-    "h": 64
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 64,
-    "h": 64
-   },
-   "sourceSize": {
-    "w": 64,
-    "h": 64
-   }
-  },
-  "buildings/stall_m": {
    "frame": {
     "x": 0,
     "y": 198,
@@ -880,7 +860,267 @@
     "h": 64
    }
   },
+  "buildings/stall_m": {
+   "frame": {
+    "x": 462,
+    "y": 594,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
   "buildings/stall_l": {
+   "frame": {
+    "x": 396,
+    "y": 594,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/stall_r": {
+   "frame": {
+    "x": 528,
+    "y": 594,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/stall_goods": {
+   "frame": {
+    "x": 330,
+    "y": 594,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/tent_front": {
+   "frame": {
+    "x": 0,
+    "y": 660,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/tent_side": {
+   "frame": {
+    "x": 66,
+    "y": 660,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/campfire": {
+   "frame": {
+    "x": 132,
+    "y": 66,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/cart_l": {
+   "frame": {
+    "x": 792,
+    "y": 66,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/cart_r": {
+   "frame": {
+    "x": 858,
+    "y": 66,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/loot": {
+   "frame": {
+    "x": 66,
+    "y": 330,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/heap": {
+   "frame": {
+    "x": 924,
+    "y": 198,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/wall_face": {
+   "frame": {
+    "x": 924,
+    "y": 726,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/wall_top": {
+   "frame": {
+    "x": 0,
+    "y": 792,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/door": {
    "frame": {
     "x": 924,
     "y": 132,
@@ -900,49 +1140,9 @@
     "h": 64
    }
   },
-  "buildings/stall_r": {
-   "frame": {
-    "x": 66,
-    "y": 198,
-    "w": 64,
-    "h": 64
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 64,
-    "h": 64
-   },
-   "sourceSize": {
-    "w": 64,
-    "h": 64
-   }
-  },
-  "buildings/stall_goods": {
+  "buildings/gate": {
    "frame": {
     "x": 858,
-    "y": 132,
-    "w": 64,
-    "h": 64
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 64,
-    "h": 64
-   },
-   "sourceSize": {
-    "w": 64,
-    "h": 64
-   }
-  },
-  "buildings/tent_front": {
-   "frame": {
-    "x": 528,
     "y": 198,
     "w": 64,
     "h": 64
@@ -960,10 +1160,10 @@
     "h": 64
    }
   },
-  "buildings/tent_side": {
+  "buildings/porch": {
    "frame": {
-    "x": 594,
-    "y": 198,
+    "x": 396,
+    "y": 396,
     "w": 64,
     "h": 64
    },
@@ -980,70 +1180,10 @@
     "h": 64
    }
   },
-  "buildings/campfire": {
-   "frame": {
-    "x": 0,
-    "y": 0,
-    "w": 64,
-    "h": 64
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 64,
-    "h": 64
-   },
-   "sourceSize": {
-    "w": 64,
-    "h": 64
-   }
-  },
-  "buildings/cart_l": {
-   "frame": {
-    "x": 660,
-    "y": 0,
-    "w": 64,
-    "h": 64
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 64,
-    "h": 64
-   },
-   "sourceSize": {
-    "w": 64,
-    "h": 64
-   }
-  },
-  "buildings/cart_r": {
-   "frame": {
-    "x": 726,
-    "y": 0,
-    "w": 64,
-    "h": 64
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 64,
-    "h": 64
-   },
-   "sourceSize": {
-    "w": 64,
-    "h": 64
-   }
-  },
-  "buildings/loot": {
+  "buildings/plaster_side": {
    "frame": {
     "x": 264,
-    "y": 66,
+    "y": 396,
     "w": 64,
     "h": 64
    },
@@ -1060,10 +1200,10 @@
     "h": 64
    }
   },
-  "buildings/heap": {
+  "buildings/plaster_gable": {
    "frame": {
-    "x": 198,
-    "y": 66,
+    "x": 0,
+    "y": 396,
     "w": 64,
     "h": 64
    },
@@ -1080,7 +1220,507 @@
     "h": 64
    }
   },
-  "buildings/wall_face": {
+  "buildings/stone_side": {
+   "frame": {
+    "x": 858,
+    "y": 594,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/stone_gable": {
+   "frame": {
+    "x": 594,
+    "y": 594,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/plank_side": {
+   "frame": {
+    "x": 858,
+    "y": 330,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/plank_gable": {
+   "frame": {
+    "x": 594,
+    "y": 330,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/stairs": {
+   "frame": {
+    "x": 264,
+    "y": 594,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/reed_top_m": {
+   "frame": {
+    "x": 924,
+    "y": 396,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/reed_mid_m": {
+   "frame": {
+    "x": 528,
+    "y": 396,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/reed_near_m": {
+   "frame": {
+    "x": 726,
+    "y": 396,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/reed_top_l": {
+   "frame": {
+    "x": 858,
+    "y": 396,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/reed_top_r": {
+   "frame": {
+    "x": 0,
+    "y": 462,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/reed_mid_l": {
+   "frame": {
+    "x": 462,
+    "y": 396,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/reed_mid_r": {
+   "frame": {
+    "x": 594,
+    "y": 396,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/reed_near_l": {
+   "frame": {
+    "x": 660,
+    "y": 396,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/reed_near_r": {
+   "frame": {
+    "x": 792,
+    "y": 396,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/turf_top_m": {
+   "frame": {
+    "x": 792,
+    "y": 726,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/turf_mid_m": {
+   "frame": {
+    "x": 396,
+    "y": 726,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/turf_near_m": {
+   "frame": {
+    "x": 594,
+    "y": 726,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/turf_top_l": {
+   "frame": {
+    "x": 726,
+    "y": 726,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/turf_top_r": {
+   "frame": {
+    "x": 858,
+    "y": 726,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/turf_mid_l": {
+   "frame": {
+    "x": 330,
+    "y": 726,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/turf_mid_r": {
+   "frame": {
+    "x": 462,
+    "y": 726,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/turf_near_l": {
+   "frame": {
+    "x": 528,
+    "y": 726,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/turf_near_r": {
+   "frame": {
+    "x": 660,
+    "y": 726,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/hide_top_m": {
+   "frame": {
+    "x": 462,
+    "y": 264,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/hide_mid_m": {
+   "frame": {
+    "x": 66,
+    "y": 264,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/hide_near_m": {
    "frame": {
     "x": 264,
     "y": 264,
@@ -1100,7 +1740,107 @@
     "h": 64
    }
   },
-  "buildings/wall_top": {
+  "buildings/hide_top_l": {
+   "frame": {
+    "x": 396,
+    "y": 264,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/hide_top_r": {
+   "frame": {
+    "x": 528,
+    "y": 264,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/hide_mid_l": {
+   "frame": {
+    "x": 0,
+    "y": 264,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/hide_mid_r": {
+   "frame": {
+    "x": 132,
+    "y": 264,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/hide_near_l": {
+   "frame": {
+    "x": 198,
+    "y": 264,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/hide_near_r": {
    "frame": {
     "x": 330,
     "y": 264,
@@ -1120,30 +1860,10 @@
     "h": 64
    }
   },
-  "buildings/door": {
-   "frame": {
-    "x": 792,
-    "y": 0,
-    "w": 64,
-    "h": 64
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 64,
-    "h": 64
-   },
-   "sourceSize": {
-    "w": 64,
-    "h": 64
-   }
-  },
-  "buildings/gate": {
+  "buildings/slate_top_m": {
    "frame": {
     "x": 132,
-    "y": 66,
+    "y": 594,
     "w": 64,
     "h": 64
    },
@@ -1160,50 +1880,10 @@
     "h": 64
    }
   },
-  "buildings/porch": {
-   "frame": {
-    "x": 132,
-    "y": 132,
-    "w": 64,
-    "h": 64
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 64,
-    "h": 64
-   },
-   "sourceSize": {
-    "w": 64,
-    "h": 64
-   }
-  },
-  "buildings/plaster_side": {
-   "frame": {
-    "x": 0,
-    "y": 132,
-    "w": 64,
-    "h": 64
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 64,
-    "h": 64
-   },
-   "sourceSize": {
-    "w": 64,
-    "h": 64
-   }
-  },
-  "buildings/plaster_gable": {
+  "buildings/slate_mid_m": {
    "frame": {
     "x": 726,
-    "y": 66,
+    "y": 528,
     "w": 64,
     "h": 64
    },
@@ -1220,7 +1900,647 @@
     "h": 64
    }
   },
-  "buildings/stone_side": {
+  "buildings/slate_near_m": {
+   "frame": {
+    "x": 924,
+    "y": 528,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/slate_top_l": {
+   "frame": {
+    "x": 66,
+    "y": 594,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/slate_top_r": {
+   "frame": {
+    "x": 198,
+    "y": 594,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/slate_mid_l": {
+   "frame": {
+    "x": 660,
+    "y": 528,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/slate_mid_r": {
+   "frame": {
+    "x": 792,
+    "y": 528,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/slate_near_l": {
+   "frame": {
+    "x": 858,
+    "y": 528,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/slate_near_r": {
+   "frame": {
+    "x": 0,
+    "y": 594,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/tile_top_m": {
+   "frame": {
+    "x": 198,
+    "y": 726,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/tile_mid_m": {
+   "frame": {
+    "x": 792,
+    "y": 660,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/tile_near_m": {
+   "frame": {
+    "x": 0,
+    "y": 726,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/tile_top_l": {
+   "frame": {
+    "x": 132,
+    "y": 726,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/tile_top_r": {
+   "frame": {
+    "x": 264,
+    "y": 726,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/tile_mid_l": {
+   "frame": {
+    "x": 726,
+    "y": 660,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/tile_mid_r": {
+   "frame": {
+    "x": 858,
+    "y": 660,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/tile_near_l": {
+   "frame": {
+    "x": 924,
+    "y": 660,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/tile_near_r": {
+   "frame": {
+    "x": 66,
+    "y": 726,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/bark_top_m": {
+   "frame": {
+    "x": 462,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/bark_mid_m": {
+   "frame": {
+    "x": 66,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/bark_near_m": {
+   "frame": {
+    "x": 264,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/bark_top_l": {
+   "frame": {
+    "x": 396,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/bark_top_r": {
+   "frame": {
+    "x": 528,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/bark_mid_l": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/bark_mid_r": {
+   "frame": {
+    "x": 132,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/bark_near_l": {
+   "frame": {
+    "x": 198,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/bark_near_r": {
+   "frame": {
+    "x": 330,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/felt_top_m": {
+   "frame": {
+    "x": 660,
+    "y": 198,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/felt_mid_m": {
+   "frame": {
+    "x": 264,
+    "y": 198,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/felt_near_m": {
+   "frame": {
+    "x": 462,
+    "y": 198,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/felt_top_l": {
+   "frame": {
+    "x": 594,
+    "y": 198,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/felt_top_r": {
+   "frame": {
+    "x": 726,
+    "y": 198,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/felt_mid_l": {
+   "frame": {
+    "x": 198,
+    "y": 198,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/felt_mid_r": {
+   "frame": {
+    "x": 330,
+    "y": 198,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/felt_near_l": {
    "frame": {
     "x": 396,
     "y": 198,
@@ -1240,9 +2560,9 @@
     "h": 64
    }
   },
-  "buildings/stone_gable": {
+  "buildings/felt_near_r": {
    "frame": {
-    "x": 132,
+    "x": 528,
     "y": 198,
     "w": 64,
     "h": 64
@@ -1260,10 +2580,30 @@
     "h": 64
    }
   },
-  "buildings/plank_side": {
+  "buildings/yurt_front": {
+   "frame": {
+    "x": 528,
+    "y": 792,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/yurt_side": {
    "frame": {
     "x": 594,
-    "y": 66,
+    "y": 792,
     "w": 64,
     "h": 64
    },
@@ -1280,9 +2620,769 @@
     "h": 64
    }
   },
-  "buildings/plank_gable": {
+  "buildings/white_m": {
+   "frame": {
+    "x": 264,
+    "y": 792,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/white_l": {
+   "frame": {
+    "x": 198,
+    "y": 792,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/white_r": {
    "frame": {
     "x": 330,
+    "y": 792,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/white_win": {
+   "frame": {
+    "x": 462,
+    "y": 792,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/white_side": {
+   "frame": {
+    "x": 396,
+    "y": 792,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/white_gable": {
+   "frame": {
+    "x": 132,
+    "y": 792,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/white_door": {
+   "frame": {
+    "x": 66,
+    "y": 792,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/daub_m": {
+   "frame": {
+    "x": 660,
+    "y": 132,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/daub_l": {
+   "frame": {
+    "x": 594,
+    "y": 132,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/daub_r": {
+   "frame": {
+    "x": 726,
+    "y": 132,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/daub_win": {
+   "frame": {
+    "x": 858,
+    "y": 132,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/daub_side": {
+   "frame": {
+    "x": 792,
+    "y": 132,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/daub_gable": {
+   "frame": {
+    "x": 528,
+    "y": 132,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/daub_door": {
+   "frame": {
+    "x": 462,
+    "y": 132,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/ochre_m": {
+   "frame": {
+    "x": 330,
+    "y": 330,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/ochre_l": {
+   "frame": {
+    "x": 264,
+    "y": 330,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/ochre_r": {
+   "frame": {
+    "x": 396,
+    "y": 330,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/ochre_win": {
+   "frame": {
+    "x": 528,
+    "y": 330,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/ochre_side": {
+   "frame": {
+    "x": 462,
+    "y": 330,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/ochre_gable": {
+   "frame": {
+    "x": 198,
+    "y": 330,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/ochre_door": {
+   "frame": {
+    "x": 132,
+    "y": 330,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/log_m": {
+   "frame": {
+    "x": 792,
+    "y": 264,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/log_l": {
+   "frame": {
+    "x": 726,
+    "y": 264,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/log_r": {
+   "frame": {
+    "x": 858,
+    "y": 264,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/log_win": {
+   "frame": {
+    "x": 0,
+    "y": 330,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/log_side": {
+   "frame": {
+    "x": 924,
+    "y": 264,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/log_gable": {
+   "frame": {
+    "x": 660,
+    "y": 264,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/log_door": {
+   "frame": {
+    "x": 594,
+    "y": 264,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/skin_m": {
+   "frame": {
+    "x": 396,
+    "y": 528,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/skin_l": {
+   "frame": {
+    "x": 330,
+    "y": 528,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/skin_r": {
+   "frame": {
+    "x": 462,
+    "y": 528,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/skin_win": {
+   "frame": {
+    "x": 594,
+    "y": 528,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/skin_side": {
+   "frame": {
+    "x": 528,
+    "y": 528,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/skin_gable": {
+   "frame": {
+    "x": 264,
+    "y": 528,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/skin_door": {
+   "frame": {
+    "x": 198,
+    "y": 528,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/brick_m": {
+   "frame": {
+    "x": 858,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/brick_l": {
+   "frame": {
+    "x": 792,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/brick_r": {
+   "frame": {
+    "x": 924,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/brick_win": {
+   "frame": {
+    "x": 66,
     "y": 66,
     "w": 64,
     "h": 64
@@ -1300,9 +3400,389 @@
     "h": 64
    }
   },
-  "buildings/stairs": {
+  "buildings/brick_side": {
    "frame": {
-    "x": 792,
+    "x": 0,
+    "y": 66,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/brick_gable": {
+   "frame": {
+    "x": 726,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/brick_door": {
+   "frame": {
+    "x": 594,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/brick_forge": {
+   "frame": {
+    "x": 660,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/sand_m": {
+   "frame": {
+    "x": 330,
+    "y": 462,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/sand_l": {
+   "frame": {
+    "x": 264,
+    "y": 462,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/sand_r": {
+   "frame": {
+    "x": 396,
+    "y": 462,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/sand_win": {
+   "frame": {
+    "x": 528,
+    "y": 462,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/sand_side": {
+   "frame": {
+    "x": 462,
+    "y": 462,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/sand_gable": {
+   "frame": {
+    "x": 198,
+    "y": 462,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/sand_door": {
+   "frame": {
+    "x": 66,
+    "y": 462,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/sand_forge": {
+   "frame": {
+    "x": 132,
+    "y": 462,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/darkstone_m": {
+   "frame": {
+    "x": 198,
+    "y": 132,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/darkstone_l": {
+   "frame": {
+    "x": 132,
+    "y": 132,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/darkstone_r": {
+   "frame": {
+    "x": 264,
+    "y": 132,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/darkstone_win": {
+   "frame": {
+    "x": 396,
+    "y": 132,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/darkstone_side": {
+   "frame": {
+    "x": 330,
+    "y": 132,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/darkstone_gable": {
+   "frame": {
+    "x": 66,
+    "y": 132,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/darkstone_door": {
+   "frame": {
+    "x": 924,
+    "y": 66,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   }
+  },
+  "buildings/darkstone_forge": {
+   "frame": {
+    "x": 0,
     "y": 132,
     "w": 64,
     "h": 64
@@ -1328,7 +3808,7 @@
   "format": "RGBA8888",
   "size": {
    "w": 988,
-   "h": 328
+   "h": 856
   },
   "scale": "1"
  }

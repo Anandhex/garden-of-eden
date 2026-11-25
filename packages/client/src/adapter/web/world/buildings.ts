@@ -5,7 +5,7 @@
  * is drawn as a plain block, never as nothing.
  */
 import * as Phaser from "phaser";
-import { dress, TEMPLATES, templateFor, type Frame } from "@garden-of-eden/shared/view";
+import { dress, templateById, templateFor, type Frame } from "@garden-of-eden/shared/view";
 import type { Core } from "../../../core";
 import { pickFrame, warnMissing, type Pick } from "../art";
 import { DPR, font } from "./actors";
@@ -75,7 +75,7 @@ export class BuildingLayer {
     const at = (x: number, y: number) => ({ x: (x - o.x) * TILE, y: (y - o.y) * TILE });
     for (const b of list) {
       const id = b.template ?? templateFor(b.kind, b.label, `${m.map?.id}:${b.id}`);
-      const t = TEMPLATES[id];
+      const t = templateById(id);
       const door = b.door !== undefined ? b.door : findDoor(m, b);
       if (!t) {
         warnMissing(`template/${id}`);

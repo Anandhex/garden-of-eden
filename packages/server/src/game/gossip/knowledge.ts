@@ -76,6 +76,8 @@ export interface Learned {
  * (or know it better), false if they had it as well or forgot it at once because they hold too much that matters more.
  */
 export function learn(ctx: LifeCtx, who: string, ref: string, o: Learned): boolean {
+  // Gossip off: nobody learns anything, whichever system saw it happen (feuds, faith, armies... not only the gossip day).
+  if (!config.gossip) return false;
   const k = ctx.store.knowledge;
   const had = k.get(who, ref);
   if (had && had.accuracy >= o.accuracy) return false;

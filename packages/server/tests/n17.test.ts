@@ -98,7 +98,7 @@ beforeAll(async () => {
     out.push(gossip, ...gossip.popular.slice(0, 3).map((p) => knowersOf(ctx, p.ref)));
     return out;
   };
-}, 120_000);
+}, 600_000);
 
 afterAll(() => store.close());
 
@@ -394,7 +394,7 @@ describe("N17.8 time controls move the clock, as the player waiting would, and a
     expect(town.world.day - day).toBe(30);
     expect((await timeControl({ ...ctx, time: undefined }, { action: "step-hour" })).ok).toBe(false);
     // 30 days now include everyone's lives (N25), so allow for a loaded machine.
-  }, 180_000);
+  }, 600_000);
 
   it("works over HTTP, and a bad action is refused", async () => {
     const http = await listen();

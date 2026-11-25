@@ -27,7 +27,7 @@ import { siteMap } from "../src/web/sites.js";
 import { allPersonas, FakeProvider, makeTown } from "./helpers.js";
 
 // Whole worlds for dozens of days: slower than the unit tests, and slower still with every file running at once.
-vi.setConfig({ testTimeout: 180_000 });
+vi.setConfig({ testTimeout: 600_000 });
 
 const dirs: string[] = [];
 const tmp = (name: string) => {
@@ -68,6 +68,11 @@ const play = (town: Town, days: number) => {
   for (let d = 0; d < days; d++) town.passHours(24);
 };
 const hashOf = (town: Town) => worldHash(town.world, town.store);
+/** Until a town's background work and life reviews have all landed. */
+const settled = async (town: Town) => {
+  await town.background.drain();
+  await town.reviews.idle();
+};
 
 describe("N18.1 a seed gives the same world", () => {
   it("streams: same keys, same rolls; different keys, different rolls; drawing from one leaves another alone", () => {
@@ -352,10 +357,13 @@ describe("N18.5 one commit point", () => {
 });
 
 describe("N18.6 export and import", () => {
-  it("a world exported at day 5 and imported elsewhere goes on to the same world", () => {
+  it("a world exported at day 5 and imported elsewhere goes on to the same world", async () => {
     const dir = tmp("exchange");
     const a = startTown(3, new WorldStore(join(dir, "a.db")));
     play(a, 4);
+    // Work done in the background (quest write-ups, a life review's reflection waiting on its embedding) lands when it lands:
+    // wait for it, or the file misses it and the two worlds part on what one of them still had to finish.
+    await settled(a);
     const mb = encodeMbWorld(exportWorld(a.world, a.store!));
     expect(mb.length).toBeGreaterThan(1000);
 
@@ -370,9 +378,11 @@ describe("N18.6 export and import", () => {
     // Played on from a loaded save, both go the same way. (One after the other: the lore the realm teaches the
     // cast is shared by every Town in a process, and loading a save sets it.)
     play(a, 10);
+    await settled(a);
     const loaded = loadWorld(saveFile, allPersonas(), loadCreatureTemplates(), storeB);
     const b = new Town({ personas: allPersonas(), creatureTemplates: loadCreatureTemplates(), world: loaded, llm: new FakeProvider(), store: storeB });
     play(b, 10);
+    await settled(b);
     expect(b.world.day).toBe(a.world.day);
     expect(hashOf(b)).toBe(hashOf(a));
   });

@@ -1,4 +1,6 @@
 import { moodLine } from "../game/mood/model.js";
+import { FEED_SCOPES, playerFeed, type FeedScope } from "../game/realm/feed.js";
+import { buildLookOf } from "../game/culture/look.js";
 import { startCandidates } from "../game/realm/start.js";
 import { boardView, playerClaim, playerGiveUp, playerJoinParty } from "../game/market/player.js";
 import { giveBack, itemsView } from "../game/items/player.js";
@@ -229,6 +231,7 @@ function startGame(fresh: boolean, start: { seed?: number; start?: string } = {}
   world.position ??= { ...PLAYER_START };
   crowd = null;
   lastTalk = null;
+  heldAt = null;
   for (const key of Object.keys(fallen)) delete fallen[key];
   for (const key of Object.keys(awayUntil)) delete awayUntil[key];
   engaged = null;
@@ -395,7 +398,23 @@ function npcPlace(id: string): PlaceId | null {
  * The tile an NPC stands on now: their spot at the place they're at, if that place is
  * on the map the player is on (N15). The dead lie where they fell (their own spot).
  */
+/** Where the one the player is talking to stood when the talk began: they stay there while it lasts (wandering talkers and townsfolk alike). */
+let heldAt: { id: string; pos: Pos } | null = null;
+
 function npcPos(id: string): { x: number; y: number } | null {
+  const talking = lastTalk?.id === id && absoluteMinute(world) - lastTalk.minute <= TALK_HOLD_MINUTES;
+  const a = agents[id];
+  if (!talking || !a || a.isDead || a.state.outcome === "unconscious" || a.state.inCombat || a.state.companion || town.road.onRoad()) {
+    if (heldAt?.id === id) heldAt = null;
+    return npcPosNow(id);
+  }
+  if (heldAt?.id === id) return heldAt.pos;
+  const pos = npcPosNow(id);
+  heldAt = pos ? { id, pos: { x: pos.x, y: pos.y } } : null;
+  return pos;
+}
+
+function npcPosNow(id: string): { x: number; y: number } | null {
   // On the road (N26): a traveller is where their journey has them, and the dead lie where they fell.
   if (parseTownsfolkId(id) && town.road.onRoad()) return town.road.travellerPos(id);
   if (agents[id]!.state.dormant || !local().includes(id)) return null;
@@ -418,9 +437,8 @@ function npcPos(id: string): { x: number; y: number } | null {
   const base = here().spotAt(place, id) ?? (place === workplaceOf(personas[id]!) ? ownSpot(id) : null);
   if (!base) return null;
   // Nobody stands frozen to one tile all day (N16): a step or two about their spot, every few minutes;
-  // but not while fighting, or while the player is talking to them.
-  const talking = lastTalk?.id === id && absoluteMinute(world) - lastTalk.minute <= TALK_HOLD_MINUTES;
-  if (talking || agents[id]!.state.inCombat || agents[id]!.state.companion) return base;
+  // but not while fighting (npcPos holds whoever the player is talking to where the talk began).
+  if (agents[id]!.state.inCombat || agents[id]!.state.companion) return base;
   const k = Math.floor(absoluteMinute(world) / WANDER_MINUTES);
   return here().wanderSpot(place, id, k, (x, y) => (world.position?.x === x && world.position?.y === y) || presentCreatures().some((c) => c.pos?.x === x && c.pos?.y === y)) ?? base;
 }
@@ -793,7 +811,7 @@ function snapshot(): Snapshot {
     },
     chronicle: { lore: (world.lore ?? []).slice(-8).map((l) => l.text), log: (world.directorLog ?? []).slice(-8) },
     family: familyLines(),
-    realm: world.realm ? { day: world.realm.day, latest: world.realm.news.filter((n) => town.siteHere().newsSeen.includes(n.id)).at(-1)?.text ?? null, wars: ongoing(world.realm).length } : null,
+    realm: world.realm ? { day: world.realm.day, latest: world.realm.news.filter((n) => town.siteHere().newsSeen.includes(n.id)).at(-1)?.text ?? null, wars: ongoing(world.realm).length, feed: feedOf(world.realm) } : null,
     adventurer: {
       member: inGuild(p),
       fee: GUILD_FEE,
@@ -2004,6 +2022,13 @@ async function runAct(body: Record<string, unknown>, emit: Emit): Promise<void> 
   );
 }
 
+/** N24: the player's feed in its three scopes, only what they know (game/realm/feed.ts). */
+function feedOf(realm: NonNullable<typeof world.realm>): NonNullable<NonNullable<Snapshot["realm"]>["feed"]> {
+  const follow = Object.values(world.player.follows ?? {}).map((f) => f.name);
+  const pick = (scope: FeedScope) => playerFeed(realm, world.player, town.site(), scope, { follow, limit: 12 }).map((x) => ({ day: x.day, learned: x.learned, text: x.text, importance: x.importance }));
+  return { here: pick("here"), kingdom: pick("kingdom"), everywhere: pick("everywhere") };
+}
+
 /** The view layer's way into the game (G5): the socket's sessions see the game only through this. */
 const newsListeners: Array<() => void> = [];
 const viewHost: ViewHost = {
@@ -2026,6 +2051,7 @@ const viewHost: ViewHost = {
     if (!realm || !road) return [];
     return journeysNear(realm, landOf(realm).data, road, radius + 10, town.road.minute()).map((x) => x.journey);
   },
+  buildLook: () => (world.realm ? buildLookOf(world.realm, town.site()) : null),
   cultureStyle: () => (world.realm ? cultureAt(world.realm, town.site())?.template ?? null : null),
   townSpecies: () => world.realm?.settlements[town.site()]?.species ?? null,
   placeName: (id) => world.realm?.settlements[id]?.name ?? id,
@@ -2104,6 +2130,13 @@ const server = createServer(async (req, res) => {
   try {
     // The game as a whole, read-only: for tests and debugging (the view socket is how a client plays, G5).
     if (req.method === "GET" && url === "/api/state") return json(res, 200, snapshot());
+    // N24: the player's feed, only what they know: ?scope=here|kingdom|everywhere (default everywhere), &minor=1 to drop the floor.
+    if (req.method === "GET" && url === "/api/feed") {
+      const q = new URL(req.url ?? "/", "http://x").searchParams;
+      const scope = (FEED_SCOPES as readonly string[]).includes(q.get("scope") ?? "") ? (q.get("scope") as FeedScope) : "everywhere";
+      const follow = Object.values(world.player.follows ?? {}).map((f) => f.name);
+      return json(res, 200, { scope, items: world.realm ? playerFeed(world.realm, world.player, town.site(), scope, { follow, minor: q.get("minor") === "1" }) : [] });
+    }
 
     // The admin page and its data (N17): this machine only; nothing under /api/admin changes the game except the clock.
     if (req.method === "GET" && (url === "/admin" || url === "/admin/" || url === "/admin.html")) return adminAllowed(req) ? serveStatic("/admin.html", res) : void refuseAdmin(res);

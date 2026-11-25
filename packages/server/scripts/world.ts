@@ -6,6 +6,8 @@
  *   npm run world:import -- worlds/day20.mbworld          # into a new save: saves/imported/world.json + world.db
  *   npm run world:import -- worlds/day20.mbworld --to saves/world.json --force   # over the current world
  *
+ *   npm run world:chronicle -- worlds/day20.mbworld --out chronicle.html [--view player]   # the realm's history, one static page (N23)
+ *
  * Stop the game first: it holds saves/.lock while it plays.
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -16,19 +18,32 @@ import { WorldStore } from "../src/game/db.js";
 import { loadWorld } from "../src/game/save.js";
 import { ImportError, importWorld, readMbWorld, writeMbWorld, exportWorld } from "../src/store/exchange.js";
 import { acquireSaveLock } from "../src/store/lock.js";
+import { TABLES, type TableName } from "../src/store/schema.js";
+import { chronicleHtml, chronicleOf } from "../src/game/share/chronicle.js";
 
 
 const [command, file, ...rest] = process.argv.slice(2);
 const flag = (name: string) => rest.includes(`--${name}`);
 const option = (name: string) => rest[rest.indexOf(`--${name}`) + 1];
 
-if (!file || (command !== "export" && command !== "import")) {
-  console.error("Usage: world.ts export <out.mbworld> [--pretty] | world.ts import <file.mbworld> [--to <save.json>] [--force]");
+if (!file || (command !== "export" && command !== "import" && command !== "chronicle")) {
+  console.error("Usage: world.ts export <out.mbworld> [--pretty] | world.ts import <file.mbworld> [--to <save.json>] [--force] | world.ts chronicle <file.mbworld> [--out <page.html>] [--view truth|player]");
   process.exit(1);
 }
 
 try {
-  if (command === "export") {
+  if (command === "chronicle") {
+    const doc = readMbWorld(file);
+    if (!doc.world.realm) throw new ImportError("This world has no realm to chronicle.");
+    const store = new WorldStore(":memory:");
+    for (const t of Object.keys(TABLES) as TableName[]) store.replaceTable(t, TABLES[t], doc.tables[t]);
+    const view = option("view") === "player" ? "player" : "truth";
+    const entries = chronicleOf(doc.world.realm, store, { view, ...(doc.world.player.known ? { known: doc.world.player.known } : {}) });
+    const out = flag("out") ? option("out")! : file.replace(/\.mbworld$/, "") + `.${view}.html`;
+    writeFileSync(out, chronicleHtml(view === "player" ? `The road of ${doc.world.player.name}` : "A chronicle of the realm", entries, view));
+    console.log(`${entries.length} entries to ${out}.`);
+    store.close();
+  } else if (command === "export") {
     acquireSaveLock(config.saveFile);
     if (!existsSync(config.saveFile)) throw new ImportError(`There is no world at ${config.saveFile}.`);
     const store = new WorldStore(config.dbFile);

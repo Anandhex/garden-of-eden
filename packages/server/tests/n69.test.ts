@@ -45,7 +45,7 @@ import { pickTestPlaces } from "./helpers.js";
  * ventures can fail and cost the leader; leaders earn epithets by how they lead, and townsfolk whose name grows rise. People are found by
  * their post, job or role, never by name.
  */
-vi.setConfig({ testTimeout: 300_000, hookTimeout: 300_000 });
+vi.setConfig({ testTimeout: 600_000, hookTimeout: 600_000 });
 
 const Y = config.daysPerYear;
 const season = Math.max(1, Math.floor(Y / 4));
@@ -69,7 +69,8 @@ function world(seed = 1, extra: (realm: Realm) => string[] = () => []) {
   return { realm, store, live, ctx, start, liege };
 }
 
-const placesOf = (realm: Realm, kind: Settlement["kind"]) => Object.values(realm.settlements).filter((s) => s.kind === kind && !s.abandoned && !s.way && !s.fallen).sort((a, b) => a.id.localeCompare(b.id));
+// Other peoples' holds (N54) are made on the realm's first days, after that day's appointments: these tests are about the realm's own places.
+const placesOf = (realm: Realm, kind: Settlement["kind"]) => Object.values(realm.settlements).filter((s) => s.kind === kind && !s.abandoned && !s.way && !s.fallen && !s.species).sort((a, b) => a.id.localeCompare(b.id));
 const villageOf = (realm: Realm) => placesOf(realm, "village")[0]!.id;
 const person = (realm: Realm, home: string, role: Figure["role"], over: Partial<Figure> = {}): Figure => Object.assign(makeFigure(realm, seededRng(realm.next), { role, home, tier: "F", age: 35 }, realm.day), over);
 

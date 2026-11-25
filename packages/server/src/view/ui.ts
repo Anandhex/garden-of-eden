@@ -390,6 +390,19 @@ function realmTab(s: Snapshot, st: UiState): Section[] {
       for (const n of f.news.slice(-2)) t.p(`· ${n}`);
     }
   }
+  // News the player has heard (N24): only what has reached them, here, in this kingdom, and from everywhere.
+  const feed = s.realm.feed;
+  if (feed) {
+    const ago = (d: number) => (d === s.realm!.day ? "today" : `day ${d}`);
+    for (const [scope, title] of [["here", `News of ${s.site.name}`], ["kingdom", "News of the kingdom"], ["everywhere", "News from everywhere"]] as const) {
+      // A wider scope holds the narrower ones: list only what the narrower lists didn't.
+      const shown = new Set(scope === "here" ? [] : [...feed.here, ...(scope === "everywhere" ? feed.kingdom : [])].map((x) => x.text));
+      const items = feed[scope].filter((x) => !shown.has(x.text)).slice(0, 6);
+      if (items.length === 0) continue;
+      t.h(title);
+      for (const x of items) t.kv(x.text, x.learned === x.day ? ago(x.day) : `${ago(x.day)}, heard ${ago(x.learned)}`);
+    }
+  }
   if (s.player.letters?.length) {
     t.h("Letters");
     for (const l of s.player.letters.slice(-5).reverse()) t.p(`From ${l.from}, day ${l.day}: "${l.text}"`);

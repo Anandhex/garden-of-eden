@@ -68,6 +68,8 @@ export function judgeHarvest(realm: Realm, s: Settlement, day: number): "poor" |
   h.yield = verdict;
   h.after = Math.round(s.food * 10) / 10;
   h.share = Math.round(share * 100) / 100;
+  // A waystation (an inn on the road) has no fields of its own worth news; one in every stretch of road would crowd out the places that do.
+  if (s.way) return verdict;
   if (verdict === "poor") realmNews(realm, day, s.id, "harvest", `A poor harvest at ${s.name}: the granaries are thin going into winter.`, 4, [s.name]);
   else if (verdict === "good" && s.kind !== "hamlet") realmNews(realm, day, s.id, "harvest", `A bumper harvest at ${s.name}: the barns are full.`, 3, [s.name]);
   return verdict;

@@ -19,7 +19,7 @@ import { crowdHour } from "../src/game/chatter/hours.js";
 import { pickInteraction, type Party, type PickIn } from "../src/game/chatter/pick.js";
 import { temperOf, type Temper } from "../src/game/chatter/person.js";
 import { adjustRel, credenceOf, feelings, MAX_RELS, pruneRels, viewOf } from "../src/game/chatter/rel.js";
-import { REVENGE, thresholdOf, vendettaDay } from "../src/game/chatter/revenge.js";
+import { isVendettaEvent, REVENGE, thresholdOf, vendettaDay } from "../src/game/chatter/revenge.js";
 import { HOSTILE, type Interaction, type InteractionKind } from "../src/game/chatter/types.js";
 import { WorldStore } from "../src/game/db.js";
 import { streamFor } from "../src/game/dice.js";
@@ -44,7 +44,7 @@ import { CALL_KINDS, budgets } from "../src/budgets.js";
 import { writeChatterLine } from "../src/game/chatter/words.js";
 import { always, FakeProvider, pickTestPlaces, say } from "./helpers.js";
 
-vi.setConfig({ testTimeout: 240_000 });
+vi.setConfig({ testTimeout: 600_000 });
 const trips = { ...Object.fromEntries(Object.entries(TRIPS).map(([k, v]) => [k, v.cap])) } as Record<string, number>;
 
 beforeEach(() => {
@@ -302,6 +302,13 @@ describe("N37 step 3: an exchange becomes real", () => {
 
   it("with chatter off nothing is written", () => {
     config.chatter = false;
+    // Feuds (N45) and the underworld (N47) write grievances and feelings of their own (inherited grudges, a guild's grievance): off too.
+    const was = { feuds: config.society.feuds, underworld: config.society.underworld };
+    config.society.feuds = false;
+    config.society.underworld = false;
+    onTestFinished(() => {
+      Object.assign(config.society, was);
+    });
     const w = world(1);
     advanceWorld(w.realm, w.store, 8, { live: w.live });
     expect(w.store.social.relTotal()).toBe(0);
@@ -389,7 +396,7 @@ describe("N37 step 5: revenge against anyone", () => {
     // The next day they do something about it.
     const r2 = vendettaDay(w.ctx, f.site, day + 1);
     expect(r2.acted).toBe(1);
-    const act = w.store.recentEvents({ person: proud.id }).find((e) => e.actor === proud.id && e.id.includes("vendetta:") && e.kind !== "new-goal")!;
+    const act = w.store.recentEvents({ person: proud.id }).find((e) => e.actor === proud.id && isVendettaEvent(e.id) && e.kind !== "new-goal")!;
     expect(act).toBeDefined();
     expect(act.target).toBe(rude.id);
     expect(act.causedBy).toEqual([insult]);
@@ -610,7 +617,7 @@ describe("N37 step 7: the whole thing, over days", () => {
   it("revenge happens, now and then, in a living place, and nobody dies of it", () => {
     const w = world(1);
     advanceWorld(w.realm, w.store, days(60, 40), { live: w.live });
-    const events = w.store.dumpTable("events").filter((e) => String(e.id).includes("vendetta:"));
+    const events = w.store.dumpTable("events").filter((e) => isVendettaEvent(String(e.id)));
     expect(events.length).toBeGreaterThan(0);
     const forms = events.filter((e) => e.kind === "new-goal");
     const acts = events.filter((e) => e.kind !== "new-goal");

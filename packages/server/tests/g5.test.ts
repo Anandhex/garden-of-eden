@@ -226,16 +226,38 @@ describe("G5 playing through the protocol", () => {
   it("frames are small: a step sends only changes, standing still sends only who moved", async () => {
     const c = await fresh();
     c.send({ t: "time", flow: false });
+    await c.until(() => c.ui.header?.time.flows === false, 5000, "time to stop");
     await sleep(500);
     const sizes: number[] = [];
+    const big: string[] = [];
+    const havePatches = new Set(c.msgs.flatMap((m) => (m.msg.t === "frame" ? (m.msg.frame.patches ?? []).map((p) => p.key) : [])));
     for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [-1, 0], [1, 0]] as const) {
       const from = c.msgs.length;
       c.send({ t: "step", dx, dy });
       await sleep(400);
-      sizes.push(...c.msgs.slice(from).filter((m) => m.msg.t === "frame").map((m) => m.bytes));
+      // (A whole frame, the screen sent again after a reconnect or a slow moment, isn't a step's.)
+      for (const m of c.msgs.slice(from)) {
+        if (m.msg.t !== "frame") continue;
+        // A whole frame starts the client over (it has only what that frame brings).
+        if (m.msg.whole) {
+          havePatches.clear();
+          for (const p of m.msg.frame.patches ?? []) havePatches.add(p.key);
+          continue;
+        }
+        // Land the step brings into view comes as new 16×16 patches (a couple of KB each, more where the land has relief):
+        // each one once, never one the client already has. The rest of the frame is what must stay small.
+        for (const p of m.msg.frame.patches ?? []) {
+          expect(havePatches.has(p.key), `patch ${p.key} sent again`).toBe(false);
+          havePatches.add(p.key);
+        }
+        const bytes = m.bytes - (m.msg.frame.patches ? JSON.stringify(m.msg.frame.patches).length : 0);
+        sizes.push(bytes);
+        // What a frame over the limit carries, key by key (bytes), so a failure says what was resent.
+        if (bytes >= 8 * 1024) big.push(`${m.bytes} B at seq ${m.msg.seq}: ${Object.entries(m.msg.frame).map(([k, v]) => `${k} ${JSON.stringify(v ?? null).length}${Array.isArray(v) ? ` (${v.length})` : v && typeof v === "object" ? ` {${Object.entries(v).map(([kk, vv]) => `${kk} ${JSON.stringify(vv ?? null).length}${Array.isArray(vv) ? `/${vv.length}` : ""}`).join(", ")}}` : ""}`).join("; ")}`);
+      }
     }
     expect(sizes.length).toBeGreaterThan(0);
-    expect(Math.max(...sizes)).toBeLessThan(8 * 1024);
+    expect(Math.max(...sizes), big.join("\n")).toBeLessThan(8 * 1024);
     // A minute passing with the player still: no terrain, and no actor sent whole unless it changed more than its place.
     const from = c.msgs.length;
     c.send({ t: "act", action: "wait", args: { hours: 1 } });

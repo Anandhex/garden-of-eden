@@ -45,9 +45,10 @@ export interface SocietyRealmOptions {
 
 export function societyRealmDay(realm: Realm, day: number, rng: (step: string) => Rng, opts: SocietyRealmOptions = {}): void {
   void rng;
+  // Other peoples first: a kingdom they found on this day has its laws written down below, the same day as everyone else's.
+  timed("society.peoples", () => peoplesRealmDay(realm, day));
   timed("society.policy", () => policyRealmDay(realm, day));
   timed("society.cultures", () => cultureRealmDay(realm, day));
-  timed("society.peoples", () => peoplesRealmDay(realm, day));
   timed("society.armies", () => armiesRealmDay(realm, day));
   timed("society.estates", () => figureEstatesDay(realm, day, opts.store));
   timed("society.faith", () => faithRealmDay(realm, day));

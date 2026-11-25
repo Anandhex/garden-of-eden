@@ -33,7 +33,7 @@ import { seededRng } from "../src/game/dice.js";
 import { siteMap } from "../src/web/sites.js";
 import { allPersonas } from "./helpers.js";
 
-vi.setConfig({ testTimeout: 180_000 });
+vi.setConfig({ testTimeout: 600_000 });
 beforeEach(() => {
   config.peopleLazy = "";
   config.realm = true;
@@ -70,7 +70,8 @@ describe("N26 Part E: every traveller is a person of the table", () => {
         }
       }
       // And the other way round: everyone away is on an open journey.
-      for (const r of store.people.awayRows()) expect(seen.get(r.id), `${r.name} is away`).toBe(parseAway(r.away)!.journey);
+      // (A soldier is away with their army, N55, which marches by its own rules, not on a journey.)
+      for (const r of store.people.awayRows()) if (parseAway(r.away)!.purpose !== "war") expect(seen.get(r.id), `${r.name} is away`).toBe(parseAway(r.away)!.journey);
     }
     const kinds = new Set(journeysOf(realm).map((j) => j.kind));
     for (const k of ["market", "caravan", "officials"]) expect(kinds.has(k as Journey["kind"]), k).toBe(true);

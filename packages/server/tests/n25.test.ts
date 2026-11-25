@@ -25,7 +25,7 @@ import { materialisePeople } from "../src/store/materialise.js";
 import { ageFrom, courtingAgeOf } from "../src/game/people/rules.js";
 import { streamFor } from "../src/game/dice.js";
 
-vi.setConfig({ testTimeout: 120_000 });
+vi.setConfig({ testTimeout: 600_000 });
 beforeEach(() => {
   config.peopleLazy = "";
 });

@@ -55,7 +55,8 @@ const cache = new WeakMap<RoadData, Map<string, Plot[]>>();
 export function fieldsOf(o: FieldsInput, data: RoadData): Plot[] {
   let byKey = cache.get(data);
   if (!byKey) cache.set(data, (byKey = new Map()));
-  const key = `${o.site}:${plotCount(o)}:${o.terrain}`;
+  // Everything the layout reads: a place that grows or falls (its kind) is laid out again, not served a stale layout.
+  const key = `${o.site}:${plotCount(o)}:${o.terrain}:${o.kind}`;
   const hit = byKey.get(key);
   if (hit) return hit;
   const fp = data.footprints.find((f) => f.id === o.site);

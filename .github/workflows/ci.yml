@@ -4,8 +4,13 @@ on:
   push:
   pull_request:
 
+# A newer push to the same branch makes an older run moot.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  test:
+  check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,5 +23,23 @@ jobs:
       # T5: every NPC file and template through the schema and the authoring lint.
       - run: npm run check-npcs
       - run: npm run build
-      # Unit and server tests only: live tests and the bench scripts need Ollama (and Piper), so they stay out of CI.
-      - run: npm test
+
+  # The suite simulates whole realms for weeks: on one runner it takes about two hours. Split over shards it takes
+  # a fraction of that. Live tests and the bench scripts need Ollama (and Piper), so they stay out of CI.
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # n17 checks the built client never mentions the admin API.
+      - run: npm run build
+      - run: npx vitest run --shard=${{ matrix.shard }}/8

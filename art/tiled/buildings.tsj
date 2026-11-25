@@ -5,13 +5,13 @@
  "name": "buildings",
  "image": "buildings.png",
  "imagewidth": 1024,
- "imageheight": 320,
+ "imageheight": 768,
  "tilewidth": 64,
  "tileheight": 64,
  "margin": 0,
  "spacing": 0,
  "columns": 16,
- "tilecount": 66,
+ "tilecount": 190,
  "tiles": [
   {
    "id": 0,
@@ -740,6 +740,1386 @@
      "name": "art",
      "type": "string",
      "value": "buildings/stairs"
+    }
+   ]
+  },
+  {
+   "id": 66,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/reed_top_m"
+    }
+   ]
+  },
+  {
+   "id": 67,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/reed_mid_m"
+    }
+   ]
+  },
+  {
+   "id": 68,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/reed_near_m"
+    }
+   ]
+  },
+  {
+   "id": 69,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/reed_top_l"
+    }
+   ]
+  },
+  {
+   "id": 70,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/reed_top_r"
+    }
+   ]
+  },
+  {
+   "id": 71,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/reed_mid_l"
+    }
+   ]
+  },
+  {
+   "id": 72,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/reed_mid_r"
+    }
+   ]
+  },
+  {
+   "id": 73,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/reed_near_l"
+    }
+   ]
+  },
+  {
+   "id": 74,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/reed_near_r"
+    }
+   ]
+  },
+  {
+   "id": 75,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/turf_top_m"
+    }
+   ]
+  },
+  {
+   "id": 76,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/turf_mid_m"
+    }
+   ]
+  },
+  {
+   "id": 77,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/turf_near_m"
+    }
+   ]
+  },
+  {
+   "id": 78,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/turf_top_l"
+    }
+   ]
+  },
+  {
+   "id": 79,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/turf_top_r"
+    }
+   ]
+  },
+  {
+   "id": 80,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/turf_mid_l"
+    }
+   ]
+  },
+  {
+   "id": 81,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/turf_mid_r"
+    }
+   ]
+  },
+  {
+   "id": 82,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/turf_near_l"
+    }
+   ]
+  },
+  {
+   "id": 83,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/turf_near_r"
+    }
+   ]
+  },
+  {
+   "id": 84,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/hide_top_m"
+    }
+   ]
+  },
+  {
+   "id": 85,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/hide_mid_m"
+    }
+   ]
+  },
+  {
+   "id": 86,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/hide_near_m"
+    }
+   ]
+  },
+  {
+   "id": 87,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/hide_top_l"
+    }
+   ]
+  },
+  {
+   "id": 88,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/hide_top_r"
+    }
+   ]
+  },
+  {
+   "id": 89,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/hide_mid_l"
+    }
+   ]
+  },
+  {
+   "id": 90,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/hide_mid_r"
+    }
+   ]
+  },
+  {
+   "id": 91,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/hide_near_l"
+    }
+   ]
+  },
+  {
+   "id": 92,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/hide_near_r"
+    }
+   ]
+  },
+  {
+   "id": 93,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/slate_top_m"
+    }
+   ]
+  },
+  {
+   "id": 94,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/slate_mid_m"
+    }
+   ]
+  },
+  {
+   "id": 95,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/slate_near_m"
+    }
+   ]
+  },
+  {
+   "id": 96,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/slate_top_l"
+    }
+   ]
+  },
+  {
+   "id": 97,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/slate_top_r"
+    }
+   ]
+  },
+  {
+   "id": 98,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/slate_mid_l"
+    }
+   ]
+  },
+  {
+   "id": 99,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/slate_mid_r"
+    }
+   ]
+  },
+  {
+   "id": 100,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/slate_near_l"
+    }
+   ]
+  },
+  {
+   "id": 101,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/slate_near_r"
+    }
+   ]
+  },
+  {
+   "id": 102,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/tile_top_m"
+    }
+   ]
+  },
+  {
+   "id": 103,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/tile_mid_m"
+    }
+   ]
+  },
+  {
+   "id": 104,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/tile_near_m"
+    }
+   ]
+  },
+  {
+   "id": 105,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/tile_top_l"
+    }
+   ]
+  },
+  {
+   "id": 106,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/tile_top_r"
+    }
+   ]
+  },
+  {
+   "id": 107,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/tile_mid_l"
+    }
+   ]
+  },
+  {
+   "id": 108,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/tile_mid_r"
+    }
+   ]
+  },
+  {
+   "id": 109,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/tile_near_l"
+    }
+   ]
+  },
+  {
+   "id": 110,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/tile_near_r"
+    }
+   ]
+  },
+  {
+   "id": 111,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/bark_top_m"
+    }
+   ]
+  },
+  {
+   "id": 112,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/bark_mid_m"
+    }
+   ]
+  },
+  {
+   "id": 113,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/bark_near_m"
+    }
+   ]
+  },
+  {
+   "id": 114,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/bark_top_l"
+    }
+   ]
+  },
+  {
+   "id": 115,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/bark_top_r"
+    }
+   ]
+  },
+  {
+   "id": 116,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/bark_mid_l"
+    }
+   ]
+  },
+  {
+   "id": 117,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/bark_mid_r"
+    }
+   ]
+  },
+  {
+   "id": 118,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/bark_near_l"
+    }
+   ]
+  },
+  {
+   "id": 119,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/bark_near_r"
+    }
+   ]
+  },
+  {
+   "id": 120,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/felt_top_m"
+    }
+   ]
+  },
+  {
+   "id": 121,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/felt_mid_m"
+    }
+   ]
+  },
+  {
+   "id": 122,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/felt_near_m"
+    }
+   ]
+  },
+  {
+   "id": 123,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/felt_top_l"
+    }
+   ]
+  },
+  {
+   "id": 124,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/felt_top_r"
+    }
+   ]
+  },
+  {
+   "id": 125,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/felt_mid_l"
+    }
+   ]
+  },
+  {
+   "id": 126,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/felt_mid_r"
+    }
+   ]
+  },
+  {
+   "id": 127,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/felt_near_l"
+    }
+   ]
+  },
+  {
+   "id": 128,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/felt_near_r"
+    }
+   ]
+  },
+  {
+   "id": 129,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/yurt_front"
+    },
+    {
+     "name": "door",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 130,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/yurt_side"
+    }
+   ]
+  },
+  {
+   "id": 131,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/white_m"
+    }
+   ]
+  },
+  {
+   "id": 132,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/white_l"
+    }
+   ]
+  },
+  {
+   "id": 133,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/white_r"
+    }
+   ]
+  },
+  {
+   "id": 134,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/white_win"
+    },
+    {
+     "name": "window",
+     "type": "bool",
+     "value": true
+    },
+    {
+     "name": "glow",
+     "type": "string",
+     "value": "fx/window_glow"
+    }
+   ]
+  },
+  {
+   "id": 135,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/white_side"
+    }
+   ]
+  },
+  {
+   "id": 136,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/white_gable"
+    }
+   ]
+  },
+  {
+   "id": 137,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/white_door"
+    },
+    {
+     "name": "door",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 138,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/daub_m"
+    }
+   ]
+  },
+  {
+   "id": 139,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/daub_l"
+    }
+   ]
+  },
+  {
+   "id": 140,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/daub_r"
+    }
+   ]
+  },
+  {
+   "id": 141,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/daub_win"
+    },
+    {
+     "name": "window",
+     "type": "bool",
+     "value": true
+    },
+    {
+     "name": "glow",
+     "type": "string",
+     "value": "fx/window_glow"
+    }
+   ]
+  },
+  {
+   "id": 142,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/daub_side"
+    }
+   ]
+  },
+  {
+   "id": 143,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/daub_gable"
+    }
+   ]
+  },
+  {
+   "id": 144,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/daub_door"
+    },
+    {
+     "name": "door",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 145,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/log_m"
+    }
+   ]
+  },
+  {
+   "id": 146,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/log_l"
+    }
+   ]
+  },
+  {
+   "id": 147,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/log_r"
+    }
+   ]
+  },
+  {
+   "id": 148,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/log_win"
+    },
+    {
+     "name": "window",
+     "type": "bool",
+     "value": true
+    },
+    {
+     "name": "glow",
+     "type": "string",
+     "value": "fx/window_glow_small"
+    }
+   ]
+  },
+  {
+   "id": 149,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/log_side"
+    }
+   ]
+  },
+  {
+   "id": 150,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/log_gable"
+    }
+   ]
+  },
+  {
+   "id": 151,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/log_door"
+    },
+    {
+     "name": "door",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 152,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/skin_m"
+    }
+   ]
+  },
+  {
+   "id": 153,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/skin_l"
+    }
+   ]
+  },
+  {
+   "id": 154,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/skin_r"
+    }
+   ]
+  },
+  {
+   "id": 155,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/skin_win"
+    },
+    {
+     "name": "window",
+     "type": "bool",
+     "value": true
+    },
+    {
+     "name": "glow",
+     "type": "string",
+     "value": "fx/window_glow_small"
+    }
+   ]
+  },
+  {
+   "id": 156,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/skin_side"
+    }
+   ]
+  },
+  {
+   "id": 157,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/skin_gable"
+    }
+   ]
+  },
+  {
+   "id": 158,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/skin_door"
+    },
+    {
+     "name": "door",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 159,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/brick_m"
+    }
+   ]
+  },
+  {
+   "id": 160,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/brick_l"
+    }
+   ]
+  },
+  {
+   "id": 161,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/brick_r"
+    }
+   ]
+  },
+  {
+   "id": 162,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/brick_win"
+    },
+    {
+     "name": "window",
+     "type": "bool",
+     "value": true
+    },
+    {
+     "name": "glow",
+     "type": "string",
+     "value": "fx/window_glow_arch"
+    }
+   ]
+  },
+  {
+   "id": 163,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/brick_side"
+    }
+   ]
+  },
+  {
+   "id": 164,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/brick_gable"
+    }
+   ]
+  },
+  {
+   "id": 165,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/brick_door"
+    },
+    {
+     "name": "door",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 166,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/brick_forge"
+    },
+    {
+     "name": "forge",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 167,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/sand_m"
+    }
+   ]
+  },
+  {
+   "id": 168,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/sand_l"
+    }
+   ]
+  },
+  {
+   "id": 169,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/sand_r"
+    }
+   ]
+  },
+  {
+   "id": 170,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/sand_win"
+    },
+    {
+     "name": "window",
+     "type": "bool",
+     "value": true
+    },
+    {
+     "name": "glow",
+     "type": "string",
+     "value": "fx/window_glow_arch"
+    }
+   ]
+  },
+  {
+   "id": 171,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/sand_side"
+    }
+   ]
+  },
+  {
+   "id": 172,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/sand_gable"
+    }
+   ]
+  },
+  {
+   "id": 173,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/sand_door"
+    },
+    {
+     "name": "door",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 174,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/sand_forge"
+    },
+    {
+     "name": "forge",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 175,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/darkstone_m"
+    }
+   ]
+  },
+  {
+   "id": 176,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/darkstone_l"
+    }
+   ]
+  },
+  {
+   "id": 177,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/darkstone_r"
+    }
+   ]
+  },
+  {
+   "id": 178,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/darkstone_win"
+    },
+    {
+     "name": "window",
+     "type": "bool",
+     "value": true
+    },
+    {
+     "name": "glow",
+     "type": "string",
+     "value": "fx/window_glow_arch"
+    }
+   ]
+  },
+  {
+   "id": 179,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/darkstone_side"
+    }
+   ]
+  },
+  {
+   "id": 180,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/darkstone_gable"
+    }
+   ]
+  },
+  {
+   "id": 181,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/darkstone_door"
+    },
+    {
+     "name": "door",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 182,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/darkstone_forge"
+    },
+    {
+     "name": "forge",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 183,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/ochre_m"
+    }
+   ]
+  },
+  {
+   "id": 184,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/ochre_l"
+    }
+   ]
+  },
+  {
+   "id": 185,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/ochre_r"
+    }
+   ]
+  },
+  {
+   "id": 186,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/ochre_win"
+    },
+    {
+     "name": "window",
+     "type": "bool",
+     "value": true
+    },
+    {
+     "name": "glow",
+     "type": "string",
+     "value": "fx/window_glow"
+    }
+   ]
+  },
+  {
+   "id": 187,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/ochre_side"
+    }
+   ]
+  },
+  {
+   "id": 188,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/ochre_gable"
+    }
+   ]
+  },
+  {
+   "id": 189,
+   "properties": [
+    {
+     "name": "art",
+     "type": "string",
+     "value": "buildings/ochre_door"
+    },
+    {
+     "name": "door",
+     "type": "bool",
+     "value": true
     }
    ]
   }

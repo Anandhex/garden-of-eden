@@ -64,9 +64,9 @@ interface Cached {
 }
 const cache = new WeakMap<Realm, Cached>();
 
-/** The realm's road data, made once (and again if its roads or settlements change). */
+/** The realm's road data, made once (and again if anything it is built from changes: the places, their kind and land, mines, roads). */
 export function roadDataOf(realm: Realm): RoadData {
-  const key = `${realm.seed}:${Object.values(realm.settlements).map((s) => `${s.id}${s.pos.x},${s.pos.y}[${[...s.roads].sort().join(",")}]${s.way ? "w" : ""}`).join(";")}`;
+  const key = `${realm.seed}:${Object.values(realm.settlements).map((s) => `${s.id}${s.pos.x},${s.pos.y}:${s.kind}:${s.terrain}${(s.buildings.mine ?? 0) > 0 ? "m" : ""}[${[...s.roads].sort().join(",")}]${s.way ? "w" : ""}`).join(";")}`;
   const hit = cache.get(realm);
   if (hit && hit.key === key) return hit.data;
   const data = buildRoadData(realm);

@@ -1670,6 +1670,1190 @@
     16
    ]
   },
+  "buildings/reed_top_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/reed_mid_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/reed_near_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/reed_top_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/reed_top_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/reed_mid_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/reed_mid_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/reed_near_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/reed_near_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/turf_top_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/turf_mid_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/turf_near_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/turf_top_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/turf_top_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/turf_mid_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/turf_mid_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/turf_near_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/turf_near_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/hide_top_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/hide_mid_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/hide_near_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/hide_top_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/hide_top_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/hide_mid_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/hide_mid_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/hide_near_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/hide_near_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/slate_top_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/slate_mid_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/slate_near_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/slate_top_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/slate_top_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/slate_mid_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/slate_mid_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/slate_near_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/slate_near_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/tile_top_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/tile_mid_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/tile_near_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/tile_top_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/tile_top_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/tile_mid_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/tile_mid_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/tile_near_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/tile_near_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/bark_top_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/bark_mid_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/bark_near_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/bark_top_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/bark_top_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/bark_mid_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/bark_mid_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/bark_near_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/bark_near_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/felt_top_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/felt_mid_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/felt_near_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/felt_top_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/felt_top_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/felt_mid_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/felt_mid_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/felt_near_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/felt_near_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/yurt_front": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "door": true
+   }
+  },
+  "buildings/yurt_side": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/white_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/white_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/white_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/white_win": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "window": true,
+    "glow": "fx/window_glow"
+   }
+  },
+  "buildings/white_side": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/white_gable": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/white_door": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "door": true
+   }
+  },
+  "buildings/daub_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/daub_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/daub_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/daub_win": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "window": true,
+    "glow": "fx/window_glow"
+   }
+  },
+  "buildings/daub_side": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/daub_gable": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/daub_door": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "door": true
+   }
+  },
+  "buildings/ochre_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/ochre_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/ochre_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/ochre_win": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "window": true,
+    "glow": "fx/window_glow"
+   }
+  },
+  "buildings/ochre_side": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/ochre_gable": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/ochre_door": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "door": true
+   }
+  },
+  "buildings/log_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/log_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/log_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/log_win": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "window": true,
+    "glow": "fx/window_glow_small"
+   }
+  },
+  "buildings/log_side": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/log_gable": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/log_door": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "door": true
+   }
+  },
+  "buildings/skin_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/skin_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/skin_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/skin_win": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "window": true,
+    "glow": "fx/window_glow_small"
+   }
+  },
+  "buildings/skin_side": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/skin_gable": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/skin_door": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "door": true
+   }
+  },
+  "buildings/brick_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/brick_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/brick_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/brick_win": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "window": true,
+    "glow": "fx/window_glow_arch"
+   }
+  },
+  "buildings/brick_side": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/brick_gable": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/brick_door": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "door": true
+   }
+  },
+  "buildings/brick_forge": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "forge": true
+   }
+  },
+  "buildings/sand_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/sand_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/sand_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/sand_win": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "window": true,
+    "glow": "fx/window_glow_arch"
+   }
+  },
+  "buildings/sand_side": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/sand_gable": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/sand_door": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "door": true
+   }
+  },
+  "buildings/sand_forge": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "forge": true
+   }
+  },
+  "buildings/darkstone_m": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/darkstone_l": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/darkstone_r": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/darkstone_win": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "window": true,
+    "glow": "fx/window_glow_arch"
+   }
+  },
+  "buildings/darkstone_side": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/darkstone_gable": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ]
+  },
+  "buildings/darkstone_door": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "door": true
+   }
+  },
+  "buildings/darkstone_forge": {
+   "sheet": "buildings",
+   "w": 16,
+   "h": 16,
+   "foot": [
+    8,
+    16
+   ],
+   "props": {
+    "forge": true
+   }
+  },
   "props/tree_0": {
    "sheet": "props",
    "w": 20,
