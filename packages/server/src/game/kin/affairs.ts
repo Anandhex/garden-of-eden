@@ -61,8 +61,15 @@ export function affairsDay(ctx: LifeCtx, step: Pick<SiteStep, "site" | "births">
   };
 
   // ---- Affairs begun ----
+  // Who is in an affair now (`affairOf` for everyone at once: asked per person and per candidate, a scan of every secret each time was a
+  // fifth of a whole-realm day).
+  const inAffair = new Set<string>();
+  for (const s of store.records.open<AffairData>("secret", (x) => x.data.what === "affair" && !x.data.ended)) {
+    inAffair.add(s.data.about);
+    if (s.data.others?.[0]) inAffair.add(s.data.others[0]);
+  }
   for (const r of rows) {
-    if (!r.spouse || !isGrown(r.species, ageFrom(r.born_day, day)) || affairOf(ctx, r.id)) continue;
+    if (!r.spouse || !isGrown(r.species, ageFrom(r.born_day, day)) || inAffair.has(r.id)) continue;
     const t = temperOf(r);
     const cold = marriageWarmth(ctx, r, r.spouse, day);
     if (cold > 0) continue;
@@ -70,12 +77,13 @@ export function affairsDay(ctx: LifeCtx, step: Pick<SiteStep, "site" | "births">
     if (unitFor(realm.seed, "affair", r.id, day) >= p) continue;
     // Whom: someone they are warm to, of the other sex, grown, not kin, not their spouse; else nobody.
     const lover = rows
-      .filter((x) => x.id !== r.id && x.id !== r.spouse && x.gender !== r.gender && x.job !== "child" && !closeKin(parentsOf, r.id, x.id, 2) && !affairOf(ctx, x.id))
+      .filter((x) => x.id !== r.id && x.id !== r.spouse && x.gender !== r.gender && x.job !== "child" && !closeKin(parentsOf, r.id, x.id, 2) && !inAffair.has(x.id))
       .map((x) => ({ x, w: viewOf(store, r.id, x.id, day).affection + 30 * unitFor(realm.seed, "lover", r.id, x.id) - 8 * Math.abs(temperOf(x).rank - t.rank) }))
       .sort((a, b) => b.w - a.w || a.x.id.localeCompare(b.x.id))[0]?.x;
     if (!lover) continue;
     const data: AffairData = { what: "affair", about: r.id, others: [lover.id], spouse: r.spouse, text: `${r.name} is seeing ${lover.name} behind their spouse's back`, weight: 6 };
     const sec = addSecret(store, { site, day, key: `${r.id}:${day}`, data });
+    inAffair.add(r.id).add(lover.id);
     knowSecret(ctx, r.id, sec.id, day, "did");
     knowSecret(ctx, lover.id, sec.id, day, "did");
     adjustRel(store, r.id, lover.id, { affection: 20 }, day);

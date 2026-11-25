@@ -51,6 +51,45 @@ const segDist = (pts: Array<{ x: number; y: number }>, p: { x: number; y: number
 
 const cache = new WeakMap<RoadData, Map<string, Plot[]>>();
 
+/**
+ * Layouts that outlive the road data they were made from. The road data is made again whenever anything in the realm it is built from
+ * changes (a mine dug anywhere, the centaur herd moving on), and every place's fields were then laid out again: a tenth of a whole-realm
+ * day. A layout reads only the footprints, roads and rivers near enough to its rings, so it is kept with the region it looked at and what
+ * was in it, and served again while that is unchanged.
+ */
+interface Laid {
+  key: string;
+  region: { x0: number; y0: number; x1: number; y1: number };
+  sig: string;
+  plots: Plot[];
+}
+const laid = new Map<string, Laid[]>();
+const KEEP_LAID = 4;
+
+const meets = (a: { x0: number; y0: number; x1: number; y1: number }, b: { x0: number; y0: number; x1: number; y1: number }, pad = 0) =>
+  a.x0 - pad <= b.x1 && a.x1 + pad >= b.x0 && a.y0 - pad <= b.y1 && a.y1 + pad >= b.y0;
+const boxOf = (pts: ReadonlyArray<{ x: number; y: number }>) => {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const p of pts) {
+    x0 = Math.min(x0, p.x);
+    y0 = Math.min(y0, p.y);
+    x1 = Math.max(x1, p.x);
+    y1 = Math.max(y1, p.y);
+  }
+  return { x0, y0, x1, y1 };
+};
+
+/** What a layout of `site` over `region` reads from the road data, as a string: equal strings, the same layout. */
+function regionSig(data: RoadData, site: string, region: Laid["region"]): string {
+  const parts: string[] = [];
+  for (const f of data.footprints) if (f.id === site || meets(f, region)) parts.push(`f${f.id}:${f.x0},${f.y0},${f.x1},${f.y1}`);
+  for (const rd of data.roads) if (!rd.id.startsWith("spur:") && meets(boxOf(rd.pts), region)) parts.push(`r${rd.id}:${rd.pts.map((p) => `${p.x},${p.y}`).join(" ")}`);
+  data.rivers.forEach((rv, i) => {
+    if (meets(boxOf(rv.pts), region, rv.half + 40)) parts.push(`v${i}:${rv.half}:${rv.pts.map((p) => `${p.x},${p.y}`).join(" ")}`);
+  });
+  return parts.join("|");
+}
+
 /** The plots of a place. */
 export function fieldsOf(o: FieldsInput, data: RoadData): Plot[] {
   let byKey = cache.get(data);
@@ -59,6 +98,11 @@ export function fieldsOf(o: FieldsInput, data: RoadData): Plot[] {
   const key = `${o.site}:${plotCount(o)}:${o.terrain}:${o.kind}`;
   const hit = byKey.get(key);
   if (hit) return hit;
+  for (const l of laid.get(o.site) ?? []) {
+    if (l.key !== key || regionSig(data, o.site, l.region) !== l.sig) continue;
+    byKey.set(key, l.plots);
+    return l.plots;
+  }
   const fp = data.footprints.find((f) => f.id === o.site);
   const want = plotCount(o);
   const out: Plot[] = [];
@@ -93,11 +137,14 @@ export function fieldsOf(o: FieldsInput, data: RoadData): Plot[] {
   const hills = o.terrain === "hills" || o.terrain === "forest";
   const orchard = o.kind !== "hamlet";
   let n = 0;
+  /** How far out from the footprint the rings looked. */
+  let reach = 0;
   for (let ring = 0; ring < MAX_RINGS && n < want; ring++) {
     // Infields are strips in open country; further out, and in hills and woods, closes and paddocks.
     const outer = ring >= 3 || hills;
     const size = outer ? CLOSE : STRIP;
     const m = 3 + ring * (STRIP.h + GAP);
+    reach = m + size.h + size.w;
     const box = { x0: fp.x0 - m - size.h, y0: fp.y0 - m - size.h, x1: fp.x1 + m, y1: fp.y1 + m };
     const cands: Rect[] = [];
     // Along the top and bottom: strips run north-south; along the sides: east-west.
@@ -123,6 +170,10 @@ export function fieldsOf(o: FieldsInput, data: RoadData): Plot[] {
     }
   }
   byKey.set(key, out);
+  // Kept with what it read: the rings' reach, and past it the verges, a neighbour's edge and a river's banks (regionSig pads for those).
+  const pad = reach + VERGE + GAP + 8;
+  const region = { x0: fp.x0 - pad, y0: fp.y0 - pad, x1: fp.x1 + pad, y1: fp.y1 + pad };
+  laid.set(o.site, [{ key, region, sig: regionSig(data, o.site, region), plots: out }, ...(laid.get(o.site) ?? []).filter((l) => l.key !== key)].slice(0, KEEP_LAID));
   return out;
 }
 
