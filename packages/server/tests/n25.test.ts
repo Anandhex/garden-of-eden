@@ -229,7 +229,8 @@ describe("N25.5 the whole realm is within budget and in balance", () => {
     expect(stats.deathRate).toBeGreaterThan(5);
     expect(stats.deathRate).toBeLessThan(60);
     expect(stats.married / stats.courting).toBeGreaterThan(0.4);
-    const sum = Object.values(realm.settlements).filter((s) => !s.abandoned).reduce((a, s) => a + s.population, 0);
+    // Places whose people were rolled (another people's home, made after the roster, keeps its number: lifeDay).
+    const sum = Object.values(realm.settlements).filter((s) => !s.abandoned && store.people.count(s.id) > 0).reduce((a, s) => a + s.population, 0);
     expect(sum).toBe(store.dumpTable("people").filter((r) => r.death === null && !realm.settlements[String(r.site)]?.abandoned).length);
     for (const s of Object.values(realm.settlements)) if (s.kind === "capital") expect(s.population).toBeGreaterThan(500);
     for (const b of checkLifeBounds(realm, store)) expect(b.ok, `${b.name}: ${b.detail}`).toBe(true);
