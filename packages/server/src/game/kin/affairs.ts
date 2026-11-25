@@ -49,6 +49,20 @@ export function affairOf(ctx: Pick<LifeCtx, "store">, who: string): ReturnType<L
   return ctx.store.records.open<AffairData>("secret", (s) => s.data.what === "affair" && !s.data.ended && (s.data.about === who || s.data.others?.[0] === who))[0];
 }
 
+/** Everyone in an affair now, worked out once for the records as they stand (each place's day asks; the records rarely change between). */
+const affairsHeld = new WeakMap<object, { version: string; who: ReadonlySet<string> }>();
+function inAffairs(records: LifeCtx["store"]["records"]): ReadonlySet<string> {
+  const hit = affairsHeld.get(records);
+  if (hit && hit.version === records.versionOf("secret")) return hit.who;
+  const who = new Set<string>();
+  for (const s of records.open<AffairData>("secret", (x) => x.data.what === "affair" && !x.data.ended)) {
+    who.add(s.data.about);
+    if (s.data.others?.[0]) who.add(s.data.others[0]);
+  }
+  affairsHeld.set(records, { version: records.versionOf("secret"), who });
+  return who;
+}
+
 export function affairsDay(ctx: LifeCtx, step: Pick<SiteStep, "site" | "births">, day: number): string[] {
   const { realm, store } = ctx;
   const site = step.site;
@@ -63,11 +77,7 @@ export function affairsDay(ctx: LifeCtx, step: Pick<SiteStep, "site" | "births">
   // ---- Affairs begun ----
   // Who is in an affair now (`affairOf` for everyone at once: asked per person and per candidate, a scan of every secret each time was a
   // fifth of a whole-realm day).
-  const inAffair = new Set<string>();
-  for (const s of store.records.open<AffairData>("secret", (x) => x.data.what === "affair" && !x.data.ended)) {
-    inAffair.add(s.data.about);
-    if (s.data.others?.[0]) inAffair.add(s.data.others[0]);
-  }
+  const inAffair = new Set(inAffairs(store.records));
   for (const r of rows) {
     if (!r.spouse || !isGrown(r.species, ageFrom(r.born_day, day)) || inAffair.has(r.id)) continue;
     const t = temperOf(r);

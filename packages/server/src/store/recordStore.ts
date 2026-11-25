@@ -36,6 +36,15 @@ export class RecordStore {
    * realm (and parsing each) for each place grew with the realm's past, to a sixth of a whole-realm day by its third year.
    */
   private byKindSite: Map<string, Set<string>> | null = null;
+  /** Go up with every change to a kind (and every drop of what is held), so a caller can keep something it worked out from them. */
+  private epoch = 0;
+  private versions = new Map<string, number>();
+  versionOf(kind: string): string {
+    return `${this.epoch}:${this.versions.get(kind) ?? 0}`;
+  }
+  private bump(kind: string): void {
+    this.versions.set(kind, (this.versions.get(kind) ?? 0) + 1);
+  }
 
   constructor(private readonly db: DatabaseSync) {}
 
@@ -49,6 +58,7 @@ export class RecordStore {
     this.rows = null;
     this.byKind = null;
     this.byKindSite = null;
+    this.epoch++;
   }
 
   private all(): Map<string, RecordRow> {
@@ -125,6 +135,8 @@ export class RecordStore {
   put<T>(r: Rec<T>): void {
     const row: RecordRow = { ...r, data: JSON.stringify(r.data ?? {}) };
     const was = this.all().get(row.id);
+    this.bump(row.kind);
+    if (was && was.kind !== row.kind) this.bump(was.kind);
     if (was) this.unindex(was);
     this.all().set(row.id, row);
     this.index(row);
@@ -150,6 +162,7 @@ export class RecordStore {
     if (!r) return;
     this.rows!.delete(id);
     this.unindex(r);
+    this.bump(r.kind);
     this.sql("DELETE FROM records WHERE id = ?").run(id);
   }
 }

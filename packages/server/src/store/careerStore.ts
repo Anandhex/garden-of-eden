@@ -53,6 +53,8 @@ export class CareerStore {
    */
   private byJob: Map<string, Set<string>> | null = null;
   private jobKeys: string[] | null = null;
+  /** `lastHeld` answers by job, forgotten when someone takes up or leaves that job (ambitions ask it for every seat, every day). */
+  private held_ = new Map<string, { ever: boolean; left: number | null }>();
 
   constructor(private readonly db: DatabaseSync, private readonly people: PeopleStore) {}
 
@@ -68,6 +70,7 @@ export class CareerStore {
     this.open = null;
     this.byJob = null;
     this.jobKeys = null;
+    this.held_.clear();
   }
 
   transaction<T>(fn: () => T): T {
@@ -129,6 +132,7 @@ export class CareerStore {
   startJob(who: string, job: string, site: string, day: number): void {
     if (this.openJobs(who).some((j) => j.job === job)) return;
     this.sql("INSERT INTO jobs_held (who, job, site, from_day, to_day) VALUES (?, ?, ?, ?, NULL)").run(who, job, site, day);
+    this.held_.delete(job);
     this.openRows().set(who, [...this.openJobs(who), { who, job, site, from_day: day, to_day: null }]);
     if (this.byJob) {
       let holders = this.byJob.get(job);
@@ -145,6 +149,7 @@ export class CareerStore {
     const now = this.openJobs(who);
     if (!now.some((j) => j.job === job)) return;
     this.sql("UPDATE jobs_held SET to_day = ? WHERE who = ? AND job = ? AND to_day IS NULL").run(day, who, job);
+    this.held_.delete(job);
     const left = now.filter((j) => j.job !== job);
     if (left.length > 0) this.openRows().set(who, left);
     else this.openRows().delete(who);
@@ -205,8 +210,12 @@ export class CareerStore {
 
   /** The last day a job was left (a seat falling vacant), or null if nobody ever left it; and whether anyone ever held it. */
   lastHeld(job: string): { ever: boolean; left: number | null } {
+    const hit = this.held_.get(job);
+    if (hit) return { ...hit };
     const r = this.sql("SELECT COUNT(*) AS n, MAX(to_day) AS left FROM jobs_held WHERE job = ?").get(job) as { n: number; left: number | null };
-    return { ever: Number(r.n) > 0, left: r.left === null ? null : Number(r.left) };
+    const out = { ever: Number(r.n) > 0, left: r.left === null ? null : Number(r.left) };
+    this.held_.set(job, out);
+    return { ...out };
   }
 
   /** Counts for the admin and the bounds. */
