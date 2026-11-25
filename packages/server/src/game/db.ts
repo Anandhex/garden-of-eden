@@ -270,31 +270,31 @@ export class WorldStore {
 
   /** The kind, actor, details and place of every event of these kinds after a day (balance reports: the numbers of births, deaths and weddings). */
   eventsOfKinds(kinds: readonly string[], afterDay: number): Array<{ kind: string; actor: string; details: string; site: string | null; day: number }> {
-    return this.db.prepare(`SELECT kind, actor, details, site, day FROM events WHERE day > ? AND kind IN (${kinds.map(() => "?").join(", ")})`).all(afterDay, ...kinds) as Array<{ kind: string; actor: string; details: string; site: string | null; day: number }>;
+    return this.sql(`SELECT kind, actor, details, site, day FROM events WHERE day > ? AND kind IN (${kinds.map(() => "?").join(", ")})`).all(afterDay, ...kinds) as Array<{ kind: string; actor: string; details: string; site: string | null; day: number }>;
   }
 
   /** A place's events of some kinds on a day, whole (N26J: the crimes seen there that day). */
   eventsAt(site: string, day: number, kinds: readonly string[]): GameEvent[] {
-    const rows = this.db.prepare(`SELECT * FROM events WHERE site = ? AND day = ? AND kind IN (${kinds.map(() => "?").join(", ")}) ORDER BY hour, seq, rowid`).all(site, day, ...kinds) as Array<Record<string, unknown>>;
+    const rows = this.sql(`SELECT * FROM events WHERE site = ? AND day = ? AND kind IN (${kinds.map(() => "?").join(", ")}) ORDER BY hour, seq, rowid`).all(site, day, ...kinds) as Array<Record<string, unknown>>;
     return rows.map(rowToEvent);
   }
 
   /** The deeds townsfolk chose to do on a day in a place (N38): who did what to whom, in the order they were made. */
   choiceDeeds(site: string, day: number): Array<{ kind: string; actor: string; target: string }> {
-    return this.db.prepare(`SELECT kind, actor, target FROM events WHERE site = ? AND day = ? AND id LIKE '%-choice:%' ORDER BY hour, id`).all(site, day) as Array<{ kind: string; actor: string; target: string }>;
+    return this.sql(`SELECT kind, actor, target FROM events WHERE site = ? AND day = ? AND id LIKE '%-choice:%' ORDER BY hour, id`).all(site, day) as Array<{ kind: string; actor: string; target: string }>;
   }
 
   /** The latest `limit` events involving someone (as actor or target), oldest first. */
   eventsAbout(who: string, limit = 100): GameEvent[] {
-    const rows = this.db
-      .prepare(`SELECT * FROM (SELECT *, rowid AS rid FROM events WHERE actor = ? OR target = ? ORDER BY day DESC, hour DESC, seq DESC, rowid DESC LIMIT ?) ORDER BY day, hour, seq, rid`)
+    const rows = this
+      .sql(`SELECT * FROM (SELECT *, rowid AS rid FROM events WHERE actor = ? OR target = ? ORDER BY day DESC, hour DESC, seq DESC, rowid DESC LIMIT ?) ORDER BY day, hour, seq, rid`)
       .all(who, who, limit) as Array<Record<string, unknown>>;
     return rows.map(rowToEvent);
   }
 
   /** One event from the archive. */
   eventById(id: string): GameEvent | null {
-    const row = this.db.prepare("SELECT * FROM events WHERE id = ?").get(id) as Record<string, unknown> | undefined;
+    const row = this.sql("SELECT * FROM events WHERE id = ?").get(id) as Record<string, unknown> | undefined;
     return row ? rowToEvent(row) : null;
   }
 
