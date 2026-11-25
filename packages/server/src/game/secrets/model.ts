@@ -82,7 +82,7 @@ export function secretsHeldAt(store: Pick<WorldStore, "knowledge" | "records" | 
     for (const k of store.knowledge.holders(secretRef(s.id))) {
       if (k.who === s.data.about || (s.data.others ?? []).includes(k.who) || k.who === "player") continue;
       const list = out.get(k.who) ?? [];
-      list.push({ id: s.id, about: about.id, aboutName: about.name, what: s.data.what, text: s.data.text, weight: s.data.weight, demanding: demands.some((d) => d.data.secret === s.id && d.data.by === k.who) });
+      list.push({ id: s.id, about: about.id, aboutName: about.name, what: s.data.what, text: s.data.text, weight: s.data.weight, demanding: demands.some((d) => d.data.secret === s.id && d.data.by === k.who), claimed: demands.some((d) => d.data.secret === s.id) });
       out.set(k.who, list);
     }
   }

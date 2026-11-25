@@ -119,9 +119,13 @@ export function checkSocietyBounds(realm: Realm, store: WorldStore): SocietyBoun
   }
   out.push({ name: "levies-bounded", phase: "N55", ok: over.length === 0, detail: over.length === 0 ? `${peekArmies(realm).length} armies, every levy under a fifth of the fighting-age` : `levies over a fifth of the fighting-age: ${over.slice(0, 5).join(", ")}` });
   const serving = store.records.list<SoldierData>("soldier", (s) => s.data.status === "serving");
+  // Soldiers go home in their home place's own day (war/armies.ts). A place whose people are worked out only when something touches it
+  // (one a journey reached, outside the live places) is as of its last day worked out: judged by that day, not the realm's, the war may
+  // not have ended there yet. It sends them home when it is next caught up, the same as if it had run every day.
   const stale = serving.filter((s) => {
     const w = realm.wars.find((x) => x.id === s.data.war);
-    return !w || (w.end !== undefined && day - w.end > 2);
+    const asOf = s.site ? Math.min(day, store.people.seq(s.site).stepped || day) : day;
+    return !w || (w.end !== undefined && asOf - w.end > 2);
   });
   out.push({ name: "nobody-serves-an-ended-war", phase: "N55", ok: stale.length === 0, detail: `${serving.length} soldiers serving, ${stale.length} of them in a war that ended` });
   return out;

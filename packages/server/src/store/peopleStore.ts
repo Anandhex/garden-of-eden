@@ -313,6 +313,30 @@ export class PeopleStore {
     return out;
   }
 
+  /**
+   * The living townsfolk who hold each faith (N50) but are not sworn to it as a faction, changes not yet written included (a faith's
+   * following is its believers: `countRows`). Risers are left out, as in `swornByFaction`. For views and the realm's count, not a step.
+   */
+  believersByFaith(): Map<string, number> {
+    const rows = this.sql("SELECT id, faction, json_extract(faith, '$.faith') AS belief FROM people WHERE faith IS NOT NULL AND death IS NULL AND figure IS NULL").all() as Array<{ id: string; faction: string | null; belief: string | null }>;
+    const of = new Map<string, string>();
+    for (const r of rows) if (r.belief && r.belief !== r.faction) of.set(r.id, r.belief);
+    for (const r of this.dirty.values()) {
+      of.delete(r.id);
+      if (r.death !== null || r.figure !== null || !r.faith) continue;
+      let belief: string | undefined;
+      try {
+        belief = (JSON.parse(r.faith) as { faith?: string }).faith;
+      } catch {
+        belief = undefined;
+      }
+      if (belief && belief !== r.faction) of.set(r.id, belief);
+    }
+    const out = new Map<string, number>();
+    for (const faith of of.values()) out.set(faith, (out.get(faith) ?? 0) + 1);
+    return out;
+  }
+
   /** The living townsfolk sworn to a faction (N69), changes not yet written included; risers are left out (they count as figures). */
   ofFaction(faction: string): PersonRow[] {
     const ids = new Set((this.sql("SELECT id FROM people WHERE faction = ? AND death IS NULL").all(faction) as Array<{ id: string }>).map((r) => r.id));

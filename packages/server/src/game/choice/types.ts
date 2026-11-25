@@ -163,6 +163,12 @@ export interface KnownSecret {
   weight: number;
   /** They already demand something on it. */
   demanding: boolean;
+  /**
+   * Someone (they or another) already has a demand open on it: the one it's about is being squeezed over it already, and is not
+   * squeezed twice for one secret. Without this, a crime the whole street knew of was a demand from each of them, and the silencing
+   * that answers some demands a killing each (N22's blackmail-rare: 44 demands on one theft).
+   */
+  claimed?: boolean;
 }
 
 /** What a chosen action did to the world, through the host. */

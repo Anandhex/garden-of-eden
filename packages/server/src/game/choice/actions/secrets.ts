@@ -15,7 +15,7 @@ export const blackmail: ActionDef = {
   id: "blackmail",
   grain: "day",
   who: "townsfolk",
-  available: (ctx) => (ctx.secrets ?? []).filter((s) => !s.demanding && them(ctx, s.about)).map((s) => ({ action: "blackmail", target: s.about, item: s.id })),
+  available: (ctx) => (ctx.secrets ?? []).filter((s) => !s.demanding && !s.claimed && them(ctx, s.about)).map((s) => ({ action: "blackmail", target: s.about, item: s.id })),
   score: (ctx, o) => {
     const s = secretOf(ctx, o)!;
     const t = them(ctx, s.about)!;
