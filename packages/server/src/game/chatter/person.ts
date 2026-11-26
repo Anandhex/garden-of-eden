@@ -1,6 +1,6 @@
 import { CLASS_RANK, type SocialClass } from "@garden-of-eden/shared";
 import type { PersonRow } from "../../store/peopleStore.js";
-import { outlookOf } from "../people/outlook.js";
+import { moodOf } from "../people/outlook.js";
 import { traitsOfRow } from "../people/traits.js";
 import { unit } from "../gossip/venues.js";
 
@@ -24,20 +24,32 @@ export interface Temper {
 
 export const rankOf = (row: Pick<PersonRow, "cls">): number => CLASS_RANK[row.cls as SocialClass] ?? 2;
 
+/** The parts of a temper that come from the id alone, hashed once per person (the same numbers every time). */
+const byId = new Map<string, { pride: number; temper: number; forgive: number; honest: number }>();
+function idTemper(id: string) {
+  let h = byId.get(id);
+  if (!h) {
+    if (byId.size > 100_000) byId.clear();
+    byId.set(id, (h = { pride: unit(`${id}:pride`), temper: unit(`${id}:temper`), forgive: unit(`${id}:forgive`), honest: unit(`${id}:honest`) }));
+  }
+  return h;
+}
+
 export function temperOf(row: Pick<PersonRow, "id" | "cls" | "traits" | "outlook">): Temper {
   const rank = rankOf(row);
   const t = traitsOfRow(row);
+  const h = idTemper(row.id);
   // Station breeds pride: a noble is proud before they are anything else.
-  const pride = Math.min(1, 0.55 * unit(`${row.id}:pride`) + 0.07 * rank);
+  const pride = Math.min(1, 0.55 * h.pride + 0.07 * rank);
   return {
     rank,
-    temper: unit(`${row.id}:temper`),
+    temper: h.temper,
     pride,
-    forgiveness: unit(`${row.id}:forgive`),
-    honesty: unit(`${row.id}:honest`),
+    forgiveness: h.forgive,
+    honesty: h.honest,
     bravery: t.bravery,
     greed: t.greed,
-    mood: outlookOf(row).mood,
+    mood: moodOf(row),
   };
 }
 

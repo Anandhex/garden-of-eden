@@ -66,7 +66,7 @@ const cache = new WeakMap<Realm, Cached>();
 
 /** The realm's road data, made once (and again if anything it is built from changes: the places, their kind and land, mines, roads). */
 export function roadDataOf(realm: Realm): RoadData {
-  const key = `${realm.seed}:${Object.values(realm.settlements).map((s) => `${s.id}${s.pos.x},${s.pos.y}:${s.kind}:${s.terrain}${(s.buildings.mine ?? 0) > 0 ? "m" : ""}[${[...s.roads].sort().join(",")}]${s.way ? "w" : ""}`).join(";")}`;
+  const key = `${realm.seed}:${Object.values(realm.settlements).map((s) => `${s.id}${roadPos(s).x},${roadPos(s).y}:${s.kind}:${s.terrain}${(s.buildings.mine ?? 0) > 0 ? "m" : ""}[${[...s.roads].sort().join(",")}]${s.way ? "w" : ""}`).join(";")}`;
   const hit = cache.get(realm);
   if (hit && hit.key === key) return hit.data;
   const data = buildRoadData(realm);
@@ -74,7 +74,12 @@ export function roadDataOf(realm: Realm): RoadData {
   return data;
 }
 
-const centre = (s: Settlement): RoadPoint => ({ x: tileOf(s.pos.x), y: tileOf(s.pos.y) });
+/**
+ * Where a place sits on the road map: a wandering band (N54 B2) at its home grazing, the first of its route, so its seasonal moves don't
+ * lay out the realm's roads and every place's fields again (they have no roads of their own).
+ */
+const roadPos = (s: Settlement): { x: number; y: number } => s.nomadic?.route[0] ?? s.pos;
+const centre = (s: Settlement): RoadPoint => ({ x: tileOf(roadPos(s).x), y: tileOf(roadPos(s).y) });
 
 function footprintOf(s: Settlement): Footprint {
   const [w, h] = FOOTPRINT[s.kind] ?? FOOTPRINT.village!;

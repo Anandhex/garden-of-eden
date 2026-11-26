@@ -1,6 +1,6 @@
 import type { DatabaseSync, StatementSync } from "node:sqlite";
 import type { Away } from "@garden-of-eden/shared";
-import { TABLES } from "./schema.js";
+import { DEATH_DAY, TABLES } from "./schema.js";
 
 /**
  * Every person of every place (N18), in SQLite, saved by place in batches. The seeded roster
@@ -379,7 +379,7 @@ export class PeopleStore {
   diedAt(site: string, fromDay: number): PersonRow[] {
     // The day is read in the file (a place's dead pile up over the years, and each was parsed here every day).
     const ids = new Set(
-      (this.sql("SELECT id FROM people WHERE site = ? AND death IS NOT NULL AND (CASE WHEN json_valid(death) THEN COALESCE(json_extract(death, '$.day'), -1) ELSE -1 END) >= ?").all(site, fromDay) as Array<{ id: string }>).map((r) => r.id),
+      (this.sql(`SELECT id FROM people WHERE site = ? AND death IS NOT NULL AND (${DEATH_DAY}) >= ?`).all(site, fromDay) as Array<{ id: string }>).map((r) => r.id),
     );
     for (const r of this.dirty.values()) {
       if (r.site === site && r.death !== null && dayOfDeath(r.death) >= fromDay) ids.add(r.id);

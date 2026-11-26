@@ -9,7 +9,20 @@ import { parseRowTraits, type RowTraits } from "./rules.js";
  * with the blend of their parents'); the first people of a place have none stored, and get theirs worked
  * out from their id and class, the same every time, until they pass them on.
  */
+/** Traits worked out before, by the row's id, class and traits text: a copy is handed out, the same numbers. */
+const known = new Map<string, RowTraits>();
+
 export function traitsOfRow(row: Pick<PersonRow, "id" | "cls" | "traits">): RowTraits {
+  const key = `${row.id}:${row.cls}:${row.traits ?? ""}`;
+  const hit = known.get(key);
+  if (hit) return { ...hit };
+  const t = workOut(row);
+  if (known.size > 100_000) known.clear();
+  known.set(key, t);
+  return { ...t };
+}
+
+function workOut(row: Pick<PersonRow, "id" | "cls" | "traits">): RowTraits {
   const stored = parseRowTraits(row.traits);
   if (stored) return stored;
   const rng = seeded(hashStr(`${row.id}:traits`));
