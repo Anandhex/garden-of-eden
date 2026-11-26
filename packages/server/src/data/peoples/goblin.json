@@ -1,0 +1,46 @@
+{
+  "id": "goblin",
+  "name": "a goblin",
+  "body": {
+    "size": "small",
+    "strength": 7,
+    "toughness": 8,
+    "adultAge": 8,
+    "elderAge": 30,
+    "maxAge": 45,
+    "maxTier": "B",
+    "learnRate": 1.2
+  },
+  "mind": "cunning",
+  "cleverShare": 0.05,
+  "living": "settled",
+  "habitat": [
+    "hills"
+  ],
+  "climate": "any",
+  "temperament": {
+    "aggression": 0.6,
+    "greed": 0.8,
+    "sociability": 0.8,
+    "xenophobia": 0.6
+  },
+  "culture": "highland",
+  "creature": "goblin",
+  "sizeClass": 1,
+  "names": [
+    "Snikk",
+    "Grizzle",
+    "Nob",
+    "Wix",
+    "Skab",
+    "Mott",
+    "Gobbet",
+    "Rikket"
+  ],
+  "stances": {
+    "dwarf": -80,
+    "human": -30,
+    "ogre": 30,
+    "orc": 10
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "id": "dragon",
+  "name": "dragon",
+  "species": "dragon",
+  "tier": "S",
+  "potential": [
+    "S",
+    "SSS"
+  ],
+  "ageRange": [
+    100,
+    700
+  ],
+  "stats": {
+    "maxHp": 400,
+    "maxMp": 0,
+    "attributes": {
+      "strength": 20,
+      "agility": 14,
+      "endurance": 20,
+      "intelligence": 18,
+      "willpower": 20,
+      "charisma": 16,
+      "perception": 18,
+      "luck": 12
+    }
+  },
+  "skills": {
+    "unarmed": 5,
+    "intimidation": 5,
+    "evasion": 3
+  },
+  "attack": {
+    "name": "fire and fang",
+    "die": 20,
+    "skill": "unarmed"
+  },
+  "fleeAt": 0.05,
+  "loot": [],
+  "barks": {
+    "idle": [
+      "*smoke curls from a cave mouth*",
+      "*a vast breath, slow as a tide*"
+    ],
+    "attack": [
+      "*the sky fills with fire*",
+      "You dare?"
+    ],
+    "hurt": [
+      "*a roar that shakes the peaks*"
+    ],
+    "flee": [
+      "*great wings beat, and it is gone*"
+    ]
+  },
+  "aggressive": true,
+  "hunts": [],
+  "rivalry": 0
+}

@@ -1,0 +1,34 @@
+{
+  "id": "halfling",
+  "name": "a halfling",
+  "body": {
+    "size": "small",
+    "strength": 7,
+    "toughness": 9,
+    "adultAge": 20,
+    "elderAge": 80,
+    "maxAge": 130,
+    "maxTier": "S",
+    "learnRate": 1
+  },
+  "mind": "reasoning",
+  "cleverShare": 1,
+  "living": "settled",
+  "habitat": [
+    "valley",
+    "plains"
+  ],
+  "climate": "temperate",
+  "temperament": {
+    "aggression": 0.1,
+    "greed": 0.3,
+    "sociability": 0.8,
+    "xenophobia": 0.2
+  },
+  "culture": "river",
+  "sizeClass": 1,
+  "stances": {
+    "goblin": -40,
+    "human": 30
+  }
+}

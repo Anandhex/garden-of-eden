@@ -129,7 +129,7 @@ export function residentsSiteDay(ctx: LifeCtx, site: string, day: number): strin
   const id = `t_${site}_${seq.next_id}`;
   const gender = unitFor(realm.seed, "goblin-gender", id) < 0.5 ? "female" : "male";
   const clever = unitFor(realm.seed, "clever", id) < Math.max(0.05, peopleOf("goblin")?.cleverShare ?? 0.05) * 6;
-  const names = ["Snikk", "Grizzle", "Nob", "Wix", "Skab", "Mott", "Gobbet", "Rikket"];
+  const names = peopleOf("goblin")?.names ?? ["Snikk"];
   const name = `${names[Math.floor(unitFor(realm.seed, "goblin-name", id) * names.length)]!} of ${warren.name.replace(/^the /, "")}`;
   store.people.add({ id, site, n: seq.next_n, name, gender, species: "goblin", born_day: day - 14 * config.daysPerYear, cls: "commoner", job: "labourer", home, work: null, master: null, master_id: null, faction: null, mother: null, father: null, spouse: null, figure: null, persona: null, traits: null, death: null, expecting: null, last_birth: null, stepped_day: day, outlook: null, away: null, skill: null, shop: null, origin: JSON.stringify({ site: warren.id, day, why: "came from the warren to live among people" }), rev: 0 });
   store.people.setSeq(site, { next_id: seq.next_id + 1, next_n: seq.next_n + 1 });

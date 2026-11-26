@@ -1,0 +1,57 @@
+{
+  "id": "centaur",
+  "name": "centaur",
+  "species": "centaur",
+  "tier": "D",
+  "potential": [
+    "D",
+    "S"
+  ],
+  "ageRange": [
+    14,
+    55
+  ],
+  "stats": {
+    "maxHp": 50,
+    "maxMp": 0,
+    "attributes": {
+      "strength": 15,
+      "agility": 14,
+      "endurance": 13,
+      "intelligence": 11,
+      "willpower": 12,
+      "charisma": 11,
+      "perception": 14,
+      "luck": 10
+    }
+  },
+  "skills": {
+    "archery": 3,
+    "one_handed": 1,
+    "evasion": 1
+  },
+  "attack": {
+    "name": "horn bow",
+    "die": 8,
+    "skill": "archery"
+  },
+  "fleeAt": 0.3,
+  "loot": [],
+  "barks": {
+    "idle": [
+      "*hoofbeats on the plain*"
+    ],
+    "attack": [
+      "Leave our grass!"
+    ],
+    "hurt": [
+      "*rears and stamps*"
+    ],
+    "flee": [
+      "*gallops away*"
+    ]
+  },
+  "aggressive": false,
+  "hunts": [],
+  "rivalry": 0.05
+}

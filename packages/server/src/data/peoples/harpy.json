@@ -1,0 +1,40 @@
+{
+  "id": "harpy",
+  "name": "a harpy",
+  "body": {
+    "size": "medium",
+    "strength": 8,
+    "toughness": 8,
+    "adultAge": 6,
+    "elderAge": 30,
+    "maxAge": 50,
+    "maxTier": "B",
+    "learnRate": 1
+  },
+  "mind": "cunning",
+  "cleverShare": 0.05,
+  "living": "hive",
+  "habitat": [
+    "coast",
+    "hills"
+  ],
+  "climate": "any",
+  "temperament": {
+    "aggression": 0.7,
+    "greed": 0.6,
+    "sociability": 0.7,
+    "xenophobia": 0.7
+  },
+  "culture": "coastal",
+  "creature": "harpy",
+  "sizeClass": 1,
+  "names": [
+    "Shrike",
+    "Kelaino",
+    "Aello",
+    "Ocypete"
+  ],
+  "stances": {
+    "human": -50
+  }
+}

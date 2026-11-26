@@ -1,0 +1,32 @@
+{
+  "id": "wolf",
+  "name": "a wolf",
+  "body": {
+    "size": "medium",
+    "strength": 11,
+    "toughness": 10,
+    "adultAge": 2,
+    "elderAge": 8,
+    "maxAge": 14,
+    "maxTier": "B",
+    "learnRate": 1.2
+  },
+  "mind": "beast",
+  "cleverShare": 0.005,
+  "living": "wild",
+  "habitat": [
+    "forest",
+    "hills",
+    "plains"
+  ],
+  "climate": "any",
+  "temperament": {
+    "aggression": 0.6,
+    "greed": 0.2,
+    "sociability": 0.8,
+    "xenophobia": 0.5
+  },
+  "creature": "wolf",
+  "sizeClass": 1,
+  "stances": {}
+}

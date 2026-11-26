@@ -1,0 +1,57 @@
+{
+  "id": "troll",
+  "name": "troll",
+  "species": "troll",
+  "tier": "C",
+  "potential": [
+    "C",
+    "S"
+  ],
+  "ageRange": [
+    20,
+    110
+  ],
+  "stats": {
+    "maxHp": 95,
+    "maxMp": 0,
+    "attributes": {
+      "strength": 20,
+      "agility": 9,
+      "endurance": 20,
+      "intelligence": 5,
+      "willpower": 12,
+      "charisma": 3,
+      "perception": 9,
+      "luck": 10
+    }
+  },
+  "skills": {
+    "unarmed": 4,
+    "intimidation": 3
+  },
+  "attack": {
+    "name": "claws",
+    "die": 10,
+    "skill": "unarmed"
+  },
+  "fleeAt": 0.1,
+  "loot": [],
+  "barks": {
+    "idle": [
+      "*something big wades under the bridge*",
+      "Toll... or bones."
+    ],
+    "attack": [
+      "*shrieks and lunges*"
+    ],
+    "hurt": [
+      "*its wounds hiss and knit*"
+    ],
+    "flee": [
+      "*slinks back into the water*"
+    ]
+  },
+  "aggressive": true,
+  "hunts": [],
+  "rivalry": 0.05
+}

@@ -1,0 +1,42 @@
+{
+  "id": "stone_giant",
+  "name": "a stone giant",
+  "body": {
+    "size": "huge",
+    "strength": 22,
+    "toughness": 22,
+    "adultAge": 30,
+    "elderAge": 200,
+    "maxAge": 350,
+    "maxTier": "S",
+    "learnRate": 0.5
+  },
+  "mind": "reasoning",
+  "cleverShare": 1,
+  "living": "settled",
+  "habitat": [
+    "hills"
+  ],
+  "climate": "any",
+  "underMountain": true,
+  "temperament": {
+    "aggression": 0.5,
+    "greed": 0.4,
+    "sociability": 0.3,
+    "xenophobia": 0.4
+  },
+  "culture": "highland",
+  "magic": "earth",
+  "creature": "giant",
+  "sizeClass": 2,
+  "names": [
+    "Grauth",
+    "Onyxa",
+    "Basalt",
+    "Talus"
+  ],
+  "stances": {
+    "dwarf": -40,
+    "human": -10
+  }
+}

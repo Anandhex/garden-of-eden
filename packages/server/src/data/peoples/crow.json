@@ -1,0 +1,32 @@
+{
+  "id": "crow",
+  "name": "a crow",
+  "body": {
+    "size": "tiny",
+    "strength": 2,
+    "toughness": 2,
+    "adultAge": 1,
+    "elderAge": 8,
+    "maxAge": 14,
+    "maxTier": "G",
+    "learnRate": 0.8
+  },
+  "mind": "beast",
+  "cleverShare": 0,
+  "living": "wild",
+  "habitat": [
+    "valley",
+    "plains",
+    "forest"
+  ],
+  "climate": "any",
+  "temperament": {
+    "aggression": 0.1,
+    "greed": 0.4,
+    "sociability": 0.7,
+    "xenophobia": 0.5
+  },
+  "creature": "crow",
+  "sizeClass": 1,
+  "stances": {}
+}

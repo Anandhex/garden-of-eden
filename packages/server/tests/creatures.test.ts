@@ -47,7 +47,8 @@ describe("creature files", () => {
   it("all parse, with a species and a rank", () => {
     // Bears, boars and giant spiders are the beasts of other places' woods (N15).
     // N28 added the wild goat and the stray dog.
-    expect(Object.keys(templates).sort()).toEqual(["adder", "bandit", "bear", "boar", "crow", "deer", "dog", "fox", "goat", "hare", "heron", "horse", "spider", "villager", "wolf"]);
+    // N54 Part A2 added a fight template for each people met in the wild.
+    expect(Object.keys(templates).sort()).toEqual(["adder", "bandit", "bear", "boar", "centaur", "crow", "deer", "dog", "dragon", "fox", "giant", "gnoll", "goat", "goblin", "hare", "harpy", "heron", "hobgoblin", "horse", "kobold", "lizardfolk", "minotaur", "ogre", "spider", "troll", "villager", "wolf"]);
     expect(wolf.species).toBe("wolf");
     expect(bandit.species).toBe("human"); // people can be stat blocks too
   });

@@ -1,0 +1,31 @@
+{
+  "id": "spider",
+  "name": "a giant spider",
+  "body": {
+    "size": "large",
+    "strength": 12,
+    "toughness": 10,
+    "adultAge": 1,
+    "elderAge": 6,
+    "maxAge": 10,
+    "maxTier": "B",
+    "learnRate": 1.2
+  },
+  "mind": "beast",
+  "cleverShare": 0,
+  "living": "wild",
+  "habitat": [
+    "forest",
+    "marsh"
+  ],
+  "climate": "any",
+  "temperament": {
+    "aggression": 0.8,
+    "greed": 0.1,
+    "sociability": 0.3,
+    "xenophobia": 0.5
+  },
+  "creature": "spider",
+  "sizeClass": 2,
+  "stances": {}
+}

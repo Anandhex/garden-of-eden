@@ -1,0 +1,57 @@
+{
+  "id": "gnoll",
+  "name": "gnoll",
+  "species": "gnoll",
+  "tier": "E",
+  "potential": [
+    "E",
+    "B"
+  ],
+  "ageRange": [
+    8,
+    28
+  ],
+  "stats": {
+    "maxHp": 32,
+    "maxMp": 0,
+    "attributes": {
+      "strength": 13,
+      "agility": 12,
+      "endurance": 12,
+      "intelligence": 6,
+      "willpower": 9,
+      "charisma": 4,
+      "perception": 13,
+      "luck": 10
+    }
+  },
+  "skills": {
+    "one_handed": 2,
+    "archery": 1,
+    "intimidation": 2
+  },
+  "attack": {
+    "name": "flail",
+    "die": 6,
+    "skill": "one_handed"
+  },
+  "fleeAt": 0.3,
+  "loot": [],
+  "barks": {
+    "idle": [
+      "*cackling laughter in the grass*"
+    ],
+    "attack": [
+      "*howls and charges*"
+    ],
+    "hurt": [
+      "*a yelping laugh*"
+    ],
+    "flee": [
+      "*bolts into the long grass*"
+    ]
+  },
+  "aggressive": true,
+  "hunts": [],
+  "rivalry": 0.05
+}

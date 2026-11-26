@@ -1,0 +1,43 @@
+{
+  "id": "centaur",
+  "name": "a centaur",
+  "body": {
+    "size": "large",
+    "strength": 15,
+    "toughness": 13,
+    "adultAge": 14,
+    "elderAge": 60,
+    "maxAge": 90,
+    "maxTier": "S",
+    "learnRate": 0.9
+  },
+  "mind": "reasoning",
+  "cleverShare": 1,
+  "living": "nomadic",
+  "habitat": [
+    "plains"
+  ],
+  "climate": "temperate",
+  "temperament": {
+    "aggression": 0.3,
+    "greed": 0.3,
+    "sociability": 0.8,
+    "xenophobia": 0.4
+  },
+  "culture": "steppe",
+  "magic": "divination",
+  "creature": "centaur",
+  "sizeClass": 2,
+  "names": [
+    "Windmane",
+    "Thessaly",
+    "Corran",
+    "Ilyra",
+    "Pholos"
+  ],
+  "stances": {
+    "elf": 40,
+    "human": 0,
+    "orc": -40
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "id": "giant",
+  "name": "giant",
+  "species": "hill_giant",
+  "tier": "C",
+  "potential": [
+    "C",
+    "S"
+  ],
+  "ageRange": [
+    30,
+    180
+  ],
+  "stats": {
+    "maxHp": 120,
+    "maxMp": 0,
+    "attributes": {
+      "strength": 20,
+      "agility": 7,
+      "endurance": 20,
+      "intelligence": 8,
+      "willpower": 12,
+      "charisma": 6,
+      "perception": 9,
+      "luck": 10
+    }
+  },
+  "skills": {
+    "blunt": 4,
+    "intimidation": 4
+  },
+  "attack": {
+    "name": "tree trunk",
+    "die": 12,
+    "skill": "blunt"
+  },
+  "fleeAt": 0.15,
+  "loot": [],
+  "barks": {
+    "idle": [
+      "*the ground shakes with each step*",
+      "Little ones, little ones..."
+    ],
+    "attack": [
+      "*hurls a boulder*",
+      "Crush!"
+    ],
+    "hurt": [
+      "*a roar like a landslide*"
+    ],
+    "flee": [
+      "*strides off over the hill*"
+    ]
+  },
+  "aggressive": true,
+  "hunts": [],
+  "rivalry": 0.05
+}

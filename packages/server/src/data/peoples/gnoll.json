@@ -1,0 +1,39 @@
+{
+  "id": "gnoll",
+  "name": "a gnoll",
+  "body": {
+    "size": "medium",
+    "strength": 13,
+    "toughness": 12,
+    "adultAge": 8,
+    "elderAge": 30,
+    "maxAge": 45,
+    "maxTier": "B",
+    "learnRate": 1
+  },
+  "mind": "cunning",
+  "cleverShare": 0.03,
+  "living": "nomadic",
+  "habitat": [
+    "plains"
+  ],
+  "climate": "warm",
+  "temperament": {
+    "aggression": 0.9,
+    "greed": 0.6,
+    "sociability": 0.7,
+    "xenophobia": 0.8
+  },
+  "culture": "steppe",
+  "creature": "gnoll",
+  "sizeClass": 1,
+  "names": [
+    "Rakshar",
+    "Rakka",
+    "Hrrak",
+    "Gnash"
+  ],
+  "stances": {
+    "human": -60
+  }
+}

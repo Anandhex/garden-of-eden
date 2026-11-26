@@ -1,0 +1,43 @@
+{
+  "id": "hobgoblin",
+  "name": "a hobgoblin",
+  "body": {
+    "size": "medium",
+    "strength": 12,
+    "toughness": 12,
+    "adultAge": 12,
+    "elderAge": 45,
+    "maxAge": 65,
+    "maxTier": "A",
+    "learnRate": 1
+  },
+  "mind": "reasoning",
+  "cleverShare": 1,
+  "living": "settled",
+  "habitat": [
+    "hills",
+    "plains"
+  ],
+  "climate": "any",
+  "temperament": {
+    "aggression": 0.6,
+    "greed": 0.5,
+    "sociability": 0.7,
+    "xenophobia": 0.6
+  },
+  "culture": "imperial",
+  "creature": "hobgoblin",
+  "sizeClass": 1,
+  "names": [
+    "Varkh",
+    "Drezzan",
+    "Ulgoth",
+    "Krasska",
+    "Morvek",
+    "Tazhra"
+  ],
+  "stances": {
+    "goblin": 40,
+    "human": -20
+  }
+}

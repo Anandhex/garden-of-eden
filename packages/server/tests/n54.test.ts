@@ -8,7 +8,8 @@ import type { LifeCtx } from "../src/game/people/step.js";
 import { generateRealm } from "../src/game/realm/generate.js";
 import { policyOf, policyRealmDay, setPolicy } from "../src/game/realm/policy.js";
 import { pickStartSite } from "../src/game/realm/start.js";
-import { speciesOf, stanceOf } from "../src/world/species.js";
+import { checkPeoples, loadPeoples, PEOPLES, peopleOf, SPECIES, speciesOf, stanceOf } from "../src/world/species.js";
+import { loadCreatureTemplates } from "../src/game/creatures.js";
 import type { PersonRow } from "../src/store/peopleStore.js";
 import { materialisePeople } from "../src/store/materialise.js";
 
@@ -32,6 +33,35 @@ describe("N54 Part A: species as data", () => {
     expect(speciesOf("dragon").maxTier).toBe("SSS");
     expect(stanceOf("dwarf", "goblin")).toBeLessThan(-50);
     expect(stanceOf("goblin", "ogre")).toBeGreaterThan(0);
+  });
+
+  it("every people and animal is a data file that passes the schema and the cross-checks (A1)", () => {
+    const all = loadPeoples();
+    expect(checkPeoples(all, Object.keys(loadCreatureTemplates()))).toEqual([]);
+    // The stage file's list, with the three giants apart, beside the old peoples and the animals.
+    for (const id of ["goblin", "hobgoblin", "orc", "ogre", "troll", "hill_giant", "frost_giant", "stone_giant", "dragon", "kobold", "gnoll", "lizardfolk", "harpy", "centaur", "minotaur", "elf", "dwarf", "halfling", "human", "wolf", "bear"]) expect(peopleOf(id), id).toBeDefined();
+    expect(Object.keys(SPECIES).sort()).toEqual(PEOPLES.map((p) => p.id).sort());
+    expect(peopleOf("frost_giant")!.climate).toBe("cold");
+    expect(peopleOf("dwarf")!.underMountain).toBe(true);
+    expect(peopleOf("dragon")!.sizeClass).toBe(3);
+  });
+
+  it("the old code table is unchanged: humans, the old peoples and the animals keep their exact lives (A1)", () => {
+    expect(SPECIES.human).toEqual({ name: "a human", talks: true, adultAge: 16, elderAge: 60, maxAge: 95, maxTier: "SSS", learnRate: 1 });
+    expect(SPECIES.orc).toEqual({ name: "an orc", talks: true, adultAge: 12, elderAge: 40, maxAge: 65, maxTier: "SS", learnRate: 1.3 });
+    expect(SPECIES.wolf).toEqual({ name: "a wolf", talks: false, adultAge: 2, elderAge: 8, maxAge: 14, maxTier: "B", learnRate: 1.2 });
+    expect(SPECIES.dog).toEqual({ name: "a dog", talks: false, adultAge: 1, elderAge: 9, maxAge: 15, maxTier: "F", learnRate: 1 });
+    // Beast minds don't talk (their clever few aside); cunning and reasoning ones do.
+    expect(speciesOf("ogre").talks).toBe(false);
+    expect(speciesOf("goblin").talks).toBe(true);
+  });
+
+  it("each people met in the wild has a fight template of its own kind (A2)", () => {
+    const t = loadCreatureTemplates();
+    for (const p of PEOPLES.filter((x) => x.creature)) {
+      expect(t[p.creature!], p.id).toBeDefined();
+      if (p.living !== "wild") expect(t[p.creature!]!.species === p.id || p.creature === "giant", p.id).toBe(true);
+    }
   });
 });
 

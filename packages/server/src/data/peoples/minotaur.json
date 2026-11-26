@@ -1,0 +1,38 @@
+{
+  "id": "minotaur",
+  "name": "a minotaur",
+  "body": {
+    "size": "large",
+    "strength": 18,
+    "toughness": 16,
+    "adultAge": 15,
+    "elderAge": 60,
+    "maxAge": 90,
+    "maxTier": "A",
+    "learnRate": 0.7
+  },
+  "mind": "cunning",
+  "cleverShare": 0.1,
+  "living": "solitary",
+  "habitat": [
+    "hills"
+  ],
+  "climate": "any",
+  "temperament": {
+    "aggression": 0.8,
+    "greed": 0.4,
+    "sociability": 0.2,
+    "xenophobia": 0.7
+  },
+  "culture": "imperial",
+  "creature": "minotaur",
+  "sizeClass": 2,
+  "names": [
+    "Asterion",
+    "Gorebrand",
+    "Tauron"
+  ],
+  "stances": {
+    "human": -40
+  }
+}

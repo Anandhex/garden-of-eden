@@ -1,0 +1,41 @@
+{
+  "id": "dwarf",
+  "name": "a dwarf",
+  "body": {
+    "size": "small",
+    "strength": 13,
+    "toughness": 14,
+    "adultAge": 25,
+    "elderAge": 200,
+    "maxAge": 320,
+    "maxTier": "SS",
+    "learnRate": 0.8
+  },
+  "mind": "reasoning",
+  "cleverShare": 1,
+  "living": "settled",
+  "habitat": [
+    "hills"
+  ],
+  "climate": "any",
+  "underMountain": true,
+  "temperament": {
+    "aggression": 0.4,
+    "greed": 0.7,
+    "sociability": 0.6,
+    "xenophobia": 0.5
+  },
+  "culture": "highland",
+  "magic": "earth",
+  "sizeClass": 1,
+  "stances": {
+    "dragon": -70,
+    "elf": -10,
+    "frost_giant": -40,
+    "goblin": -80,
+    "hill_giant": -40,
+    "human": 20,
+    "orc": -60,
+    "stone_giant": -40
+  }
+}

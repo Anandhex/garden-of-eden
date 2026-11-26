@@ -1,0 +1,40 @@
+{
+  "id": "hill_giant",
+  "name": "a hill giant",
+  "body": {
+    "size": "huge",
+    "strength": 21,
+    "toughness": 19,
+    "adultAge": 30,
+    "elderAge": 200,
+    "maxAge": 350,
+    "maxTier": "S",
+    "learnRate": 0.5
+  },
+  "mind": "reasoning",
+  "cleverShare": 1,
+  "living": "settled",
+  "habitat": [
+    "hills"
+  ],
+  "climate": "temperate",
+  "temperament": {
+    "aggression": 0.5,
+    "greed": 0.4,
+    "sociability": 0.4,
+    "xenophobia": 0.5
+  },
+  "culture": "highland",
+  "creature": "giant",
+  "sizeClass": 2,
+  "names": [
+    "Hrungnir",
+    "Bera",
+    "Gorm",
+    "Skadda"
+  ],
+  "stances": {
+    "dwarf": -40,
+    "human": -10
+  }
+}

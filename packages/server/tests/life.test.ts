@@ -298,7 +298,9 @@ describe("persona files", () => {
     expect(() => parsePersona({ ...brenaJson, species: "wolf" })).toThrow(/can't talk/);
     expect(() => parsePersona({ ...brenaJson, age: 120 })).toThrow(/older than/);
     expect(() => parsePersona({ ...brenaJson, species: "halfling", tier: "SS" })).toThrow(/cap/);
-    expect(() => parsePersona({ ...brenaJson, species: "dragon" })).toThrow();
+    // N54: the other peoples are species now; a beast-minded one (an ogre) can't be a talker, and an unknown one is refused.
+    expect(() => parsePersona({ ...brenaJson, species: "ogre" })).toThrow(/can't talk/);
+    expect(() => parsePersona({ ...brenaJson, species: "unicorn" })).toThrow();
     expect(() => parsePersona({ ...brenaJson, potential: "D" })).toThrow(/below their starting rank/);
     const { potential: _, ...noPotential } = parsePersona(brenaJson);
     expect(() => parsePersona(noPotential)).toThrow(/potential/);
