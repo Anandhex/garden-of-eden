@@ -1,5 +1,7 @@
 # G8 art direction: one look for the Unity client
 
+> **Stopped 2026-11-26 (user).** The Unity characters and look work (G8, G9) is stopped. This page is kept as a record; don't build from it unless the user starts it again.
+
 Every character, building, prop and shader in `unity/GardenOfEden` follows this page. If two things look like they came
 from different games, one of them is wrong.
 

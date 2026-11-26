@@ -1,5 +1,7 @@
 # G9: characters that look like the reference (face and body)
 
+> **Stopped 2026-11-26 (user).** The Unity characters and look work (G8, G9) is stopped. This page is kept as a record; don't build from it unless the user starts it again.
+
 Build guide for the agent that executes it. Scope: the naked person (face, head, body, eyes, lashes, brows, teeth, hair,
 beards) and its hand-off to Unity. Clothes are a separate plan afterwards; section 9 lists what the body must provide for them.
 Written 2026-11-16 by the planner from measurements and inspection. Reviewed the same day against the scripts, the source
