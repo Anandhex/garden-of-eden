@@ -27,6 +27,7 @@
   },
   "culture": "river",
   "sizeClass": 1,
+  "speech": "cheerfully, and mostly about food",
   "stances": {
     "goblin": -40,
     "human": 30

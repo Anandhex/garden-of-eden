@@ -81,6 +81,16 @@ export function postRealmJobs(realm: Realm, store: WorldStore, day: number): voi
     if (reward <= 0) continue;
     post(store, { id: `delve:${d.id}:${day}`, site: d.near, kind: "delve", giver: d.bounty > 0 ? null : `s:${d.near}`, title: `Clear out ${d.name}`, target: d.id, tier, reward, day });
   }
+  // N54 D2: a place that pays a dragon tribute posts a dragon-slayer's job, with the best reward it can find.
+  for (const t of realm.treaties.filter((x) => x.kind === "tribute" && !x.broken && x.until >= day && x.a.startsWith("s:") && x.b.startsWith("p:")).sort((a, b) => a.a.localeCompare(b.a))) {
+    const dragon = realm.figures[t.b.slice(2)];
+    const near = realm.settlements[t.a.slice(2)];
+    if (!dragon?.alive || dragon.species !== "dragon" || !near || near.abandoned || near.fallen || live.has(dragon.id)) continue;
+    const reward = Math.min(1500, Math.floor(near.treasury * 0.3));
+    if (reward <= 0) continue;
+    post(store, { id: `slay:${dragon.id}:${day}`, site: near.id, kind: "slay", giver: `s:${near.id}`, title: `Slay ${dragon.name} the dragon`, target: dragon.id, tier: dragon.life.tier, reward, day, deadline: 24 });
+    live.add(dragon.id);
+  }
 }
 
 /** Free adventurers of a place form parties (decision 7): by place, strongest first, a fighter leading; scouts are hunters. */
@@ -210,6 +220,30 @@ export function resolveJobs(realm: Realm, store: WorldStore, day: number): JobOu
           const gap = tierIndex(p.tier as Tier) - tierIndex(f.life.tier as Tier);
           if (rng() < Math.max(0.03, Math.min(0.8, 0.08 + gap * 0.14)) && killFigure(realm, f, day, `killed by the ${p.species}s near ${realm.settlements[p.near]?.name ?? "the wild"}`)) res.deaths.push(f.id);
         }
+      }
+    } else if (job.kind === "slay") {
+      // N54 D2: a party against a dragon. Few win; those who do are the realm's news for years.
+      const dragon = realm.figures[job.target ?? ""];
+      if (!dragon?.alive) {
+        complete(store, job.id, "others", day, "the dragon was dead before they got there");
+        out.push({ ...res, ok: true });
+        continue;
+      }
+      const ours = ms.reduce((a, f) => a + figurePower(f), 0);
+      const theirs = figurePower(dragon) * 2;
+      res.ok = rng() < ours / (ours + theirs);
+      if (res.ok) {
+        killFigure(realm, dragon, day, `slain by ${lead.name}'s party`, { killer: lead.id } as never);
+        addRenown(lead, 40);
+        addDeed(lead, `slew ${dragon.name} the dragon`);
+        for (const f of ms) figureOvercomes(f, 60, { kind: "fight", rank: dragon.life.tier as Tier, what: `slaying ${dragon.name}` }, day);
+        // Its hoard goes to the slayers, through the books.
+        transfer(realm, `p:${dragon.id}`, `p:${lead.id}`, dragon.wealth, `the hoard of ${dragon.name}`, undefined, day);
+        for (const tr of realm.treaties.filter((x) => x.kind === "tribute" && x.b === `p:${dragon.id}` && !x.broken)) tr.until = day;
+        realmNews(realm, day, job.site, "dragon", `${lead.name} and their party slew ${dragon.name} the dragon!`, 10, [lead.name, dragon.name], { why: "a dragon-slayer's job, taken and done" });
+      } else {
+        for (const f of ms) if (rng() < 0.5 && killFigure(realm, f, day, `burned by ${dragon.name} the dragon`)) res.deaths.push(f.id);
+        addRenown(dragon, 3);
       }
     } else if (job.kind === "delve") {
       const d = realm.dungeons[job.target ?? ""];

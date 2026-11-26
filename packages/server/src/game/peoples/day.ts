@@ -2,7 +2,8 @@ import type { PersonRow } from "../../store/peopleStore.js";
 import { config } from "../../config.js";
 import { seededRng, unitFor } from "../dice.js";
 import { declareWar, damageBuilding, raid, sign, treatiesBetween, warOf } from "../realm/diplomacy.js";
-import { addDeed, addRenown } from "../realm/figures.js";
+import { addDeed, addRenown, makeFigure } from "../realm/figures.js";
+import { TALKER_RENOWN } from "../realm/rise.js";
 import { transfer } from "../realm/ledger.js";
 import { realmNews } from "../realm/log.js";
 import { casualty, type Side } from "../realm/military.js";
@@ -38,7 +39,7 @@ export function peoplesRealmDay(realm: Realm, day: number): void {
     for (const band of bands) {
       band.nomadic!.at = (band.nomadic!.at + 1) % band.nomadic!.route.length;
       band.pos = { ...band.nomadic!.route[band.nomadic!.at]! };
-      realmNews(realm, day, band.id, "peoples", `${band.name} has moved on to its ${["spring", "summer", "autumn", "winter"][band.nomadic!.at % 4]} grazing.`, 2, [band.name], { why: "the season turned" });
+      realmNews(realm, day, band.id, "peoples", `${band.name} has moved on to its ${["spring", "summer", "autumn", "winter"][band.nomadic!.at % 4]} grazing.`, band === herd ? 2 : 1, [band.name], { why: "the season turned" });
       if (band !== herd) bandArrives(realm, band, day);
     }
   }
@@ -118,7 +119,7 @@ export function bandArrives(realm: Realm, band: Settlement, day: number): "raid"
   sign(realm, "trade", `s:${band.id}`, `s:${s.id}`, day, seasonDays(), `${band.name} trades with ${s.name} while it grazes near`);
   const paid = transfer(realm, `s:${s.id}`, `s:${band.id}`, Math.min(40, Math.round(s.treasury * 0.02)), `hides and horses from ${band.name}`, undefined, day);
   if (paid > 0) s.prosperity = Math.min(100, s.prosperity + 1);
-  realmNews(realm, day, s.id, "trade", `${band.name} camped near ${s.name} and traded.`, 2, [band.name, s.name], { why: "they were passing, and at peace" });
+  realmNews(realm, day, s.id, "trade", `${band.name} camped near ${s.name} and traded.`, 1, [band.name, s.name], { why: "they were passing, and at peace" });
   return "trade";
 }
 
@@ -214,6 +215,31 @@ function comeToLive(ctx: LifeCtx, st: PeoplesState, s: Settlement, from: Settlem
   from.population -= 1;
   st.residents.push({ id, species, site, clever, day });
   const them = `${species.replace(/_/g, " ")}s`;
+  if (clever) cleverRises(ctx, id, day);
   recordLifeEvent(realm, store, { kind: "migration", actor: id, site, day, details: `${name}, ${/^[aeiou]/.test(a) ? "an" : "a"} ${a}${clever && species === "goblin" ? " with a quick tongue" : ""}, came from ${from.name} to live in the outer quarter of ${s.name}`, importance: 3, why: law === "welcome" ? `${them} are welcome here` : `${them} may live in the outer quarters here` });
   return id;
+}
+
+/**
+ * A clever one of another people among humans (N54 D1) is someone folk talk about: a realm figure made for their row, with a name worth a
+ * talk (TALKER_RENOWN), so the player meets them as a talking NPC (`promoteRisers`), with their people's view in their persona. The figure's
+ * id is the row's (`fig-r-<row>`), not a counter, so a lazy place's catch-up makes the same one (issue #6).
+ */
+export function cleverRises(ctx: LifeCtx, id: string, day: number): string | null {
+  const { realm, store } = ctx;
+  const r = store.people.get(id);
+  if (!r || r.figure || r.death !== null) return null;
+  const figId = `fig-r-${id}`;
+  if (realm.figures[figId]) return figId;
+  const rng = seededRng(Math.floor(unitFor(realm.seed, "clever-rises", id) * 2 ** 31));
+  const next = realm.next;
+  const fig = makeFigure(realm, rng, { role: "commoner", home: r.site, tier: "E", age: Math.floor((day - r.born_day) / config.daysPerYear), gender: r.gender === "female" ? "female" : "male", name: r.name, species: r.species, renown: TALKER_RENOWN, wealth: 0, rose: `person:${id}` }, day);
+  delete realm.figures[fig.id];
+  realm.next = next;
+  fig.id = figId;
+  fig.person = id;
+  realm.figures[figId] = fig;
+  addDeed(fig, `came to live among the people of ${realm.settlements[r.site]?.name ?? "the realm"}`);
+  store.people.update(id, { figure: figId });
+  return figId;
 }

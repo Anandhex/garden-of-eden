@@ -258,6 +258,32 @@ export class PeopleStore {
     return [...out.values()].filter((r) => r.away !== null && r.death === null).sort((a, b) => (a.id < b.id ? -1 : 1));
   }
 
+  /**
+   * The dead, counted by cause (N55 step 6), changes not yet written included. A war death (one with a `war` on its record) counts under
+   * `war:<cause>`, so the war dead are never mixed with plague, famine or any other death.
+   */
+  deathsByCause(): Map<string, number> {
+    const rows = this.sql("SELECT id, death FROM people WHERE death IS NOT NULL").all() as Array<{ id: string; death: string }>;
+    const all = new Map<string, string | null>(rows.map((r) => [r.id, r.death]));
+    for (const r of this.dirty.values()) all.set(r.id, r.death);
+    const out = new Map<string, number>();
+    for (const d of all.values()) {
+      if (d === null) continue;
+      let cause = "unknown";
+      let war = false;
+      try {
+        const rec = JSON.parse(d) as { cause?: string; war?: string };
+        cause = rec.cause ?? "unknown";
+        war = !!rec.war;
+      } catch {
+        cause = d;
+      }
+      const key = war ? `war:${cause}` : cause;
+      out.set(key, (out.get(key) ?? 0) + 1);
+    }
+    return out;
+  }
+
   /** A person who isn't in the file yet (a birth): held with the other changes and written by `flush`. */
   add(row: PersonRow): void {
     this.setDirty(null, row);

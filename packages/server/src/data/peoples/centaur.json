@@ -28,6 +28,7 @@
   "magic": "divination",
   "creature": "centaur",
   "sizeClass": 2,
+  "speech": "gravely, with sayings about sky and grass",
   "names": [
     "Windmane",
     "Thessaly",

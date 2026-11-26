@@ -28,6 +28,7 @@
   "magic": "water",
   "creature": "giant",
   "sizeClass": 2,
+  "speech": "coldly, as one who has outlived kings",
   "names": [
     "Ymra",
     "Thrymm",

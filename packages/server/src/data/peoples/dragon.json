@@ -28,6 +28,7 @@
   "magic": "fire",
   "creature": "dragon",
   "sizeClass": 3,
+  "speech": "with ancient courtesy and open contempt",
   "names": [
     "Vyrmathax",
     "Sorrowscale",

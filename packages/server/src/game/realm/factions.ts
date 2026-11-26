@@ -1,6 +1,6 @@
 import { mint, sink, transfer } from "./ledger.js";
 import type { WorldStore } from "../db.js";
-import type { Rng } from "../dice.js";
+import { seededRng, unitFor, type Rng } from "../dice.js";
 import { charterDay, minimumDay, startCharter } from "../office/charter.js";
 import { memberCount } from "../office/members.js";
 import { cofferMod } from "../office/posts.js";
@@ -8,7 +8,7 @@ import { fadeGlory, figureJoined, prestigeOf } from "../office/prestige.js";
 import { recruitDrive, rowDues } from "../office/recruit.js";
 import { standingIn } from "../office/repute.js";
 import { seasonDays } from "../weather.js";
-import { addDeed, addRenown, titled } from "./figures.js";
+import { addDeed, addRenown, makeFigure, titled } from "./figures.js";
 import { addFaction, neighbours } from "./generate.js";
 import { realmNews, tally } from "./log.js";
 import { factionName, splinterName } from "./names.js";
@@ -144,6 +144,24 @@ export function join(realm: Realm, f: Figure, fac: RealmFaction): void {
 }
 
 /**
+ * A church outlives its priest (N50's faiths-persist): a faith whose last named member has died gets a new priest from its seat's people,
+ * where the seat still stands. Its creed lives in the people who hold it, not in one old figure.
+ */
+function priestSucceeds(realm: Realm, fac: RealmFaction, day: number): boolean {
+  const faiths = (realm.society?.faith as { faiths?: Record<string, unknown> } | undefined)?.faiths;
+  const seat = fac.seat ? realm.settlements[fac.seat] : undefined;
+  if (!faiths?.[fac.id] || !seat || seat.abandoned || seat.fallen) return false;
+  const rng = seededRng(Math.floor(unitFor(realm.seed, "new-priest", fac.id, day) * 2 ** 31));
+  const old = fac.leader ? realm.figures[fac.leader] : undefined;
+  const priest = makeFigure(realm, rng, { role: "priest", home: seat.id, tier: "E", age: 30 + Math.floor(rng() * 15), renown: 10, rose: "crowd", ...(old?.species ? { species: old.species } : {}) }, day);
+  join(realm, priest, fac);
+  fac.leader = priest.id;
+  addDeed(priest, `took up ${fac.name} when its last priest died`);
+  realmNews(realm, day, seat.id, "faction", `${titled(priest)} has taken up ${fac.name} in ${seat.name}, its last priest dead.`, 3, [priest.name, fac.name, seat.name]);
+  return true;
+}
+
+/**
  * One day for every faction: members counted (figures and townsfolk), charters and the minimum (N69), dues, recruiting drives, halls,
  * new leaders, splits, dissolving. `store`: the people table, read for what figures think of a leader (townsfolk are asked in their place's day).
  */
@@ -151,6 +169,7 @@ export function factionsDay(realm: Realm, day: number, rng: Rng, store?: WorldSt
   for (const fac of active(realm)) {
     const ms = membersOf(realm, fac);
     fac.members = ms.map((m) => m.id);
+    if (memberCount(realm, fac) === 0 && priestSucceeds(realm, fac, day)) continue;
     if (memberCount(realm, fac) === 0) {
       fac.dissolved = day;
       tally(realm, "dissolved");

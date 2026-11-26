@@ -1,4 +1,5 @@
 import { soldierOrders } from "../war/armies.js";
+import { attackerReady, sideMod, starvedOut } from "../war/campaign.js";
 import { broken } from "../../balance/break.js";
 import { sink, transfer } from "./ledger.js";
 import type { Rng } from "../dice.js";
@@ -312,7 +313,7 @@ export function declareWar(realm: Realm, attackers: Party[], defenders: Party[],
 }
 
 /** Where the fighting is: the defenders' settlement nearest the attackers. */
-function front(realm: Realm, w: War, day: number): Settlement | null {
+export function front(realm: Realm, w: War, day: number): Settlement | null {
   const att = armyOf(realm, w.attackers[0]!, day).seats;
   const def = w.defenders.flatMap((p) => armyOf(realm, p, day).seats);
   let best: { s: Settlement; d: number } | null = null;
@@ -326,7 +327,18 @@ function front(realm: Realm, w: War, day: number): Settlement | null {
 /** One day of every war: battles every few days, captures, and peace. Also declarations. */
 export function warsDay(realm: Realm, day: number, rng: Rng): void {
   for (const w of ongoing(realm)) {
+    // A besieged place that has eaten its stores gives in (N55 step 2), on whatever day it comes to that.
+    const starved = starvedOut(realm, w);
+    if (starved && w.attackers[0]!.startsWith("k:") && starved.kind !== "capital" && !broken("no-peace")) {
+      w.score = Math.min(100, w.score + 25);
+      realmNews(realm, day, starved.id, "siege", `${starved.name}, starved, opened its gates to ${realm.kingdoms[w.attackers[0]!.slice(2)]?.name ?? "the besiegers"}.`, 8, [starved.name], { why: "its stores ran out under the siege" });
+      capture(realm, starved, w.attackers[0]!.slice(2), day);
+      if (w.score >= WAR_WON) endWar(realm, w, day, "attackers", "they starved out the enemy's walls");
+      continue;
+    }
     if ((day - w.start) % BATTLE_EVERY !== 0 || day === w.start) continue;
+    // The attackers' army must reach the field first (N55 step 2).
+    if (!attackerReady(realm, w)) continue;
     const at = front(realm, w, day);
     const attack = armyOf(realm, w.attackers[0]!, day);
     for (const extra of w.attackers.slice(1)) attack.strength += armyOf(realm, extra, day).strength * 0.5;
@@ -334,8 +346,9 @@ export function warsDay(realm: Realm, day: number, rng: Rng): void {
       endWar(realm, w, day, "defenders", "the attackers had no one left to fight");
       continue;
     }
+    attack.strength *= sideMod(realm, w, "attackers");
     const defence = settlementSide(realm, at);
-    for (const d of w.defenders) defence.strength += armyOf(realm, d, day).strength * (d === w.defenders[0] ? 0.4 : 0.25);
+    for (const d of w.defenders) defence.strength += armyOf(realm, d, day).strength * (d === w.defenders[0] ? 0.4 : 0.25) * sideMod(realm, w, "defenders");
     const r = fight(realm, attack, defence, day, rng, `the battle of ${at.name}`);
     casualty(realm, attack.home, "battle", r.lost.attackers, `battle:${day}:${at.id}:attackers`, day, undefined, { war: w.id, side: "attackers" });
     casualty(realm, at, "battle", r.lost.defenders, `battle:${day}:${at.id}`, day, undefined, { war: w.id, side: "defenders" });

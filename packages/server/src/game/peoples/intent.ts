@@ -147,7 +147,7 @@ export function intentionsDay(realm: Realm, st: PeoplesState, day: number): Inte
       if (partner) {
         rec.target = partner.id;
         sign(realm, "trade", `s:${s.id}`, `s:${partner.id}`, day, seasonDays() * 2, `${s.name} and ${partner.name} trade`);
-        realmNews(realm, day, partner.id, "trade", `Traders from ${s.name} came to ${partner.name}.`, 2, [s.name, partner.name], { why: rec.why });
+        realmNews(realm, day, partner.id, "trade", `Traders from ${s.name} came to ${partner.name}.`, 1, [s.name, partner.name], { why: rec.why });
       } else rec.intent = "alone";
     } else if (rec.intent === "hoard") {
       s.prosperity = Math.min(100, s.prosperity + 2);

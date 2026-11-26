@@ -7,12 +7,15 @@ import { crimes } from "../game/law/sentence.js";
 import type { CaseData } from "../game/law/trial.js";
 import { giftOf, peekMagic, schoolById } from "../game/magic/model.js";
 import { peoplesOf } from "../game/peoples/generate.js";
+import { LIVING_PEOPLES, policyOf } from "../game/realm/policy.js";
+import { peoplesNotBeasts } from "../world/species.js";
 import { titled } from "../game/realm/figures.js";
 import { peekCourt } from "../game/secrets/court.js";
 import type { SecretData } from "../game/secrets/model.js";
 import { denOf, guildAt } from "../game/thieves/guilds.js";
 import { surnameOf } from "../game/people/step.js";
 import { peekArmies, rollOfTheFallen, type SoldierData } from "../game/war/armies.js";
+import { campOfArmy } from "../game/war/campaign.js";
 import type { PersonRow } from "../store/peopleStore.js";
 import type { AdminContext } from "./context.js";
 
@@ -121,10 +124,21 @@ export function societyCard(ctx: AdminContext): AdminCard | null {
   for (const a of peekArmies(realm)) {
     const soldiers = store?.records.list<SoldierData>("soldier", (s) => s.data.army === a.id) ?? [];
     const by = (st: string) => soldiers.filter((s) => s.data.status === st).length;
+    const how = (h: string) => soldiers.filter((s) => s.data.how === h).length;
+    const c = campOfArmy(a);
+    const camp: Row[] = c
+      ? [["Camp", `${c.last ?? "in the field"}; at ${Math.round(c.pos.x)}, ${Math.round(c.pos.y)}${c.target ? `, bound for ${placeName(c.target)}` : ""}${c.arrived ? " (arrived)" : ` (${c.marchDays} days marching)`}`], ["Supply and heart", `${c.supply} days of food, morale ${Math.round(c.morale)}${c.siege ? `; besieging ${placeName(c.siege.site)} since day ${c.siege.since}` : ""}`]]
+      : [];
     sections.push({
       title: `Army: ${a.id.split(":").slice(2).join(":")} in ${a.war} (${a.side}, ${a.status})`,
-      rows: [["Soldiers", `${soldiers.length}: ${by("serving")} serving, ${by("dead")} dead, ${by("missing")} missing, ${by("discharged")} home`], ...Object.entries(a.levy).sort((x, y) => x[0].localeCompare(y[0])).map(([site, n]): Row => [placeName(site), `owes ${n}, sent ${a.raised[site] ?? 0}`, `place:${site}`])],
+      rows: [["Soldiers", `${soldiers.length}: ${by("serving")} serving, ${by("dead")} dead, ${by("missing")} missing, ${by("captured")} taken, ${by("deserted")} deserted, ${by("discharged")} home`], ["Raised", `${how("levy")} levied, ${how("volunteer")} volunteers, ${how("knight")} knights`], ...camp, ...Object.entries(a.levy).sort((x, y) => x[0].localeCompare(y[0])).map(([site, n]): Row => [placeName(site), `owes ${n}, sent ${a.raised[site] ?? 0}`, `place:${site}`])],
     });
+  }
+  if (store) {
+    const causes = [...store.people.deathsByCause()].sort((x, y) => x[0].localeCompare(y[0]));
+    const war = causes.filter(([k]) => k.startsWith("war:"));
+    const rest = causes.filter(([k]) => !k.startsWith("war:"));
+    sections.push({ title: "Deaths by cause", rows: [...war.map(([k, n]): Row => [`War: ${k.slice(4)}`, `${n}`]), ...rest.map(([k, n]): Row => [k, `${n}`])] });
   }
   if (store)
     for (const w of realm.wars.slice(-6)) {
@@ -136,6 +150,31 @@ export function societyCard(ctx: AdminContext): AdminCard | null {
     }
   const peoples = peoplesOf(realm);
   if (peoples) sections.push({ title: "Other peoples", rows: [...Object.entries(peoples.lairs).map(([id, l]): Row => [nameOf(ctx, id), `${l.kind} lair at ${Math.round(l.x)}, ${Math.round(l.y)}`]), ...Object.entries(peoples.burned).map(([d, at]): Row => [`${nameOf(ctx, d)} burned`, `last on day ${at}`]), ...peoples.asked.slice(-6).map((x): Row => [`Asked, day ${x.day}`, `${x.by} asked ${x.of}: ${x.ok ? "yes" : "no"}`])] });
+  if (peoples) {
+    // N54 Part E: every people's places and kingdoms, what each place chose last, the laws on each people, and the peoples' stances.
+    const homes: Row[] = [];
+    const named = (id: string | undefined, sp: string): void => {
+      const s = id ? realm.settlements[id] : undefined;
+      if (!s) return;
+      const intent = peoples.intents?.[s.id];
+      homes.push([`${sp.replace(/_/g, " ")}: ${s.name}`, `${s.kind}, ${s.population} people, ${s.terrain}${s.kingdom ? `, ${realm.kingdoms[s.kingdom]?.name ?? s.kingdom}` : ""}${s.nomadic ? ", wandering" : ""}${s.abandoned ? ", empty" : s.fallen ? ", fallen" : ""}${intent ? `; last season: ${intent.intent} (${intent.why})` : ""}`, `place:${s.id}`]);
+    };
+    named(peoples.warren, "goblin");
+    named(peoples.herd, "centaur");
+    for (const k of [peoples.orcs, peoples.dwarves]) if (k && realm.kingdoms[k]) named(realm.kingdoms[k]!.capital, realm.kingdoms[k]!.species ?? "");
+    for (const [sp, ids] of Object.entries(peoples.placed?.settlements ?? {}).sort()) for (const id of ids) named(id, sp);
+    for (const [sp, ids] of Object.entries(peoples.placed?.figures ?? {}).sort()) for (const id of ids) homes.push([`${sp.replace(/_/g, " ")}: ${nameOf(ctx, id)}`, `${realm.figures[id]?.alive ? "alive" : "dead"}, lair ${peoples.lairs[id]?.kind ?? "?"}`, refOf(ctx, id)]);
+    sections.push({ title: `Homes of the peoples (${homes.length})`, rows: homes });
+    const laws: Row[] = [];
+    for (const k of Object.values(realm.kingdoms).filter((x) => !x.fallen).sort((a, b) => a.id.localeCompare(b.id))) {
+      const set = LIVING_PEOPLES.map((sp) => [sp, policyOf(realm, k.id, `species:${sp}`)] as const).filter(([, v]) => v && v !== "limited");
+      laws.push([k.name, set.length ? set.map(([sp, v]) => `${sp.replace(/_/g, " ")} ${String(v).replace(/_/g, " ")}`).join(", ") : "every people limited to the outer quarters"]);
+    }
+    sections.push({ title: "Laws on other peoples, by kingdom", rows: laws });
+    const hatreds: Row[] = [];
+    for (const a of peoplesNotBeasts()) for (const [b, v] of Object.entries(a.stances).sort()) if (Math.abs(v) >= 60) hatreds.push([`${a.id} of ${b}`, v > 0 ? `friends (${v})` : `old hatred (${v})`]);
+    sections.push({ title: "Old hatreds and friendships", rows: hatreds });
+  }
   const p = ctx.world().player;
   const ps = p.society ?? {};
   sections.push({
@@ -144,6 +183,7 @@ export function societyCard(ctx: AdminContext): AdminCard | null {
       ...(p.chapter ? ([["Chapter", `${p.chapter.kind} at ${placeName(p.chapter.site)} since day ${p.chapter.since}${p.chapter.until !== undefined ? `, until day ${p.chapter.until}` : ""}`]] as Row[]) : []),
       ...((store?.records.open<CaseData>("case", (c) => c.data.accused === "player") ?? []).map((c): Row => ["Case against them", `${crimeWords(c.data.crime)} at ${placeName(c.site)}, opened day ${c.since}`])),
       ...(ps.army ? ([["Soldier", `${ps.army.rank} of ${ps.army.army}`]] as Row[]) : []),
+      ...Object.entries((ps.peoples ?? {}) as Record<string, number>).sort().map(([sp, v]): Row => [`Among the ${sp.replace(/_/g, " ")}s`, `${v > 0 ? "liked" : v < 0 ? "disliked" : "unknown"} (${v})`]),
       ...(ps.guild ? ([["Guild", `${realm.factions[ps.guild.id]?.name ?? ps.guild.id}, ${ps.guild.rank}`]] as Row[]) : []),
       ...(ps.magic ? ([["Magic", `gift ${ps.magic.gift}; ${Object.entries(ps.magic.schools ?? {}).map(([sc, r]) => `${sc} ${r}`).join(", ") || "nothing learned"}`]] as Row[]) : []),
       ...(ps.tongues ? ([["Tongues", Object.entries(ps.tongues as Record<string, number>).map(([c, v]) => `${c} ${Math.round(v * 100)}%`).join(", ")]] as Row[]) : []),

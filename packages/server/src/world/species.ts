@@ -62,6 +62,8 @@ export const PeopleSchema = z
     creature: z.string().optional(),
     /** Map footprint in tiles a side: a giant is 2, a dragon 3. */
     sizeClass: z.number().int().min(1).max(3),
+    /** How one of them talks, for a talker's persona (N54 D1): "quick and sly, and never says no outright". */
+    speech: z.string().min(1).optional(),
     /** Names their people give (the invented-name check and new residents use them). */
     names: z.array(z.string().min(1)).optional(),
     /** How their own places live (N54 B3), against a human place's 1: how fast they breed, how much their fields give. */
@@ -142,4 +144,20 @@ export const peoplesNotBeasts = (): PeopleDef[] => ALL.filter((p) => p.living !=
 export function stanceOf(a: string, b: string): number {
   if (a === b) return 50;
   return BY_ID.get(a)?.stances[b] ?? 0;
+}
+
+/**
+ * A talker's view of the world as one of their people (N54 D1): how they speak, and what they think of humans and of their own kind, from
+ * the stances and temperament. A sentence for the persona's backstory; empty for humans.
+ */
+export function peopleView(id: string): string {
+  if (id === "human") return "";
+  const p = BY_ID.get(id);
+  if (!p) return "";
+  const a = p.name;
+  const toHumans = stanceOf(id, "human");
+  const humans = toHumans <= -40 ? "distrusts humans and expects the worst of them" : toHumans < 0 ? "is wary of humans" : toHumans >= 30 ? "likes humans well enough" : "has no quarrel with humans";
+  const own = p.temperament.sociability >= 0.7 ? "is fiercely loyal to their own kind" : p.temperament.sociability <= 0.3 ? "keeps apart even from their own kind" : "is proud of their own people";
+  const hated = Object.entries(p.stances).filter(([, v]) => v <= -60).map(([k]) => (BY_ID.get(k)?.name ?? k).replace(/^(an?|one of the) /, "")).sort();
+  return `As ${a}, they ${humans}, and ${own}${hated.length ? `; they hate ${hated.map((h) => (h.endsWith("folk") ? h : `${h}s`)).join(" and ")}` : ""}.${p.speech ? ` They speak ${p.speech}.` : ""}`;
 }

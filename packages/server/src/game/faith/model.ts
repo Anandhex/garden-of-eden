@@ -103,7 +103,10 @@ export function ensureFaiths(realm: Realm, day: number): FaithState {
       .sort((a, b) => Number(b.role === "priest") - Number(a.role === "priest") || a.id.localeCompare(b.id))[0];
   for (const k of Object.values(realm.kingdoms).sort((a, b) => a.id.localeCompare(b.id))) {
     if (k.fallen) continue;
-    if (faithFactions(realm).some((f) => f.kind === "order" && (f.seat ? realm.settlements[f.seat]?.kingdom === k.id : false))) continue;
+    if (faithFactions(realm).some((f) => f.kind === "order" && (f.seat ? f.seat === k.capital || realm.settlements[f.seat]?.kingdom === k.id : false))) continue;
+    // A crown whose capital an enemy holds founds no church there (it would found one every time it looked, its church's seat being the
+    // enemy's now) until it has its capital back.
+    if (realm.settlements[k.capital]?.kingdom !== k.id) continue;
     // A capital with nobody free to found it (a new people's kingdom has only its ruler) gets a priest of its own people.
     const founder =
       founderAt(k.capital) ??

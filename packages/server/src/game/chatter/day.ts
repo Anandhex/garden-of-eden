@@ -70,8 +70,8 @@ export function fadeDay(ctx: LifeCtx, site: string, day: number): number {
   return n;
 }
 
-/** How far one people looks down on another (N54 C3): a stance below zero, as 0..0.6. */
-export const prejudice = (a: string, b: string): number => Math.min(0.6, Math.max(0, -stanceOf(a, b)) / 100);
+/** How far one people looks down on another (N54 C3): a stance below zero, as 0..0.15 (a goblin draws two or three times the sneers, not ten). */
+export const prejudice = (a: string, b: string): number => Math.min(0.15, Math.max(0, -stanceOf(a, b)) / 400);
 
 /** Everything the picker needs to know about a pair, read from the stores. */
 export function partyIn(ctx: LifeCtx, row: PersonRow): Party {

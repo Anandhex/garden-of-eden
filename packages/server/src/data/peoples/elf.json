@@ -31,6 +31,7 @@
     "breed": 0.4,
     "farm": 1.1
   },
+  "speech": "softly, and as if time were nothing",
   "stances": {
     "centaur": 40,
     "goblin": -50,

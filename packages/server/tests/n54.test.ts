@@ -16,6 +16,13 @@ import { materialisePeople } from "../src/store/materialise.js";
 import { alliancesDay, hatredsDay, intentionOf, intentionsDay } from "../src/game/peoples/intent.js";
 import { pickInteraction } from "../src/game/chatter/pick.js";
 import { prejudice } from "../src/game/chatter/day.js";
+import { cleverRises } from "../src/game/peoples/day.js";
+import { personaFor, TALKER_RENOWN } from "../src/game/realm/rise.js";
+import { loadTemplates } from "../src/npc/templates.js";
+import { befriendPeople, BEFRIEND_CAP, deedAgainstPeople, peopleOfCreature, peopleReputeOf } from "../src/game/peoples/repute.js";
+import { postRealmJobs, resolveJobs } from "../src/game/market/day.js";
+import { claim } from "../src/game/market/jobs.js";
+import type { PlayerState } from "../src/npc/types.js";
 
 /**
  * N54: peoples and monsters. Species as data; a goblin warren near the start town with an ogre bound to it, an orc kingdom in the east, a
@@ -311,6 +318,79 @@ describe("N54 Part C, for every people placed by habitat", () => {
       return n / 4000;
     };
     expect(hostileShare(prejudice("human", "goblin"))).toBeGreaterThan(hostileShare(0));
+  });
+});
+
+describe("N54 Part D: clever ones, dragon-slayers, and the player among the peoples", () => {
+  it("a clever goblin among people is a figure worth talking to, and talks as a goblin with a goblin's view (D1)", () => {
+    const realm = generateRealm(1, 1);
+    const store = new WorldStore(":memory:");
+    materialisePeople(realm, store.people, 1);
+    const ctx: LifeCtx = { realm, store };
+    const st = generatePeoples(realm, 1)!;
+    policyRealmDay(realm, 1);
+    const warren = realm.settlements[st.warren!]!;
+    const town = Object.values(realm.settlements).filter((s) => !s.species && !s.way && s.kingdom).sort((a, b) => Math.hypot(a.pos.x - warren.pos.x, a.pos.y - warren.pos.y) - Math.hypot(b.pos.x - warren.pos.x, b.pos.y - warren.pos.y))[0]!;
+    setPolicy(realm, town.kingdom!, "species:goblin", "welcome", 1, "test");
+    let id: string | null = null;
+    for (let day = 1; day <= 400 && !(id && st.residents.find((r) => r.id === id)?.clever); day++) {
+      const got = residentsSiteDay(ctx, town.id, day);
+      if (got) id = got;
+      if (st.residents.filter((r) => r.site === town.id).length >= 2) st.residents = st.residents.filter((r) => r.site !== town.id || r.clever);
+    }
+    const rec = st.residents.find((r) => r.id === id && r.clever);
+    expect(rec).toBeDefined();
+    const row = store.people.get(id!)!;
+    const fig = realm.figures[row.figure!]!;
+    expect(fig.id).toBe(`fig-r-${id}`);
+    expect(fig.species).toBe("goblin");
+    expect(fig.renown).toBeGreaterThanOrEqual(TALKER_RENOWN);
+    expect(cleverRises(ctx, id!, 500)).toBeNull();
+    const persona = personaFor(fig, loadTemplates(), 500, seededRng(1), [])!;
+    expect(persona).not.toBeNull();
+    expect(persona.species).toBe("goblin");
+    expect(persona.backstory).toMatch(/As a goblin, they/);
+  });
+
+  it("a hamlet that pays a dragon posts a dragon-slayer's job; a party that wins kills the dragon and takes its hoard (D2)", () => {
+    const realm = generateRealm(1, 1);
+    const store = new WorldStore(":memory:");
+    const st = generatePeoples(realm, 1)!;
+    const burned = dragonWakes(realm, st, st.dragon!, st.lairs[st.dragon!]!, 10, seededRng(3))!;
+    realm.settlements[burned]!.treasury = 2000;
+    postRealmJobs(realm, store, 11);
+    const job = store.jobs.list((j) => j.kind === "slay")[0]!;
+    expect(job).toBeDefined();
+    expect(job.target).toBe(st.dragon);
+    expect(job.title).toMatch(/Slay .* the dragon/);
+    // A party of heroes far beyond the dragon's strength.
+    const heroes = Object.values(realm.figures).filter((f) => f.alive && f.species === "human").slice(0, 4);
+    for (const f of heroes) {
+      f.life.tier = "SSS";
+      f.bravery = 1;
+    }
+    store.jobs.putParty({ id: "party1", leader: heroes[0]!.id, members: JSON.stringify(heroes.map((f) => f.id)), roles: "{}", shares: "equal", formed: 11, disbanded: null, record: JSON.stringify({ done: 0, failed: 0, deaths: 0, earned: 0 }) });
+    claim(store, job.id, "party1", 11, { arrive: 11 });
+    let dead = false;
+    for (let d = 12; d < 40 && !dead; d++) {
+      resolveJobs(realm, store, d);
+      dead = !realm.figures[st.dragon!]!.alive;
+      if (!dead && store.jobs.job(job.id)!.status === "open") claim(store, job.id, "party1", d, { arrive: d });
+    }
+    expect(dead).toBe(true);
+    expect(realm.news.some((n) => n.importance === 10 && /slew .* the dragon/.test(n.text))).toBe(true);
+  });
+
+  it("reputation by people: killing goblins sets goblins against you and pleases dwarves; time among a people earns a little goodwill (D3)", () => {
+    const p = { name: "Wren" } as unknown as PlayerState;
+    expect(peopleOfCreature("goblin")).toBe("goblin");
+    expect(peopleOfCreature("wolf")).toBeUndefined();
+    expect(peopleOfCreature("bandit")).toBeUndefined();
+    deedAgainstPeople(p, "goblin", true);
+    expect(peopleReputeOf(p).goblin).toBeLessThan(0);
+    expect(peopleReputeOf(p).dwarf).toBeGreaterThan(0);
+    for (let i = 0; i < 30; i++) befriendPeople(p, "lizardfolk");
+    expect(peopleReputeOf(p).lizardfolk).toBe(BEFRIEND_CAP);
   });
 });
 

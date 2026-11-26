@@ -31,6 +31,7 @@ import { creatureXp, playerGainXp as gainPlayerXp, rankForLevel } from "./levels
 import { playerProgressTitles, playerWonFight } from "./titles.js";
 import { type Equipment, equippedWeapon, gearLimit, isBroken, playerHasRoom, soak, wearGear } from "./gear.js";
 import { formatMoney, MoneySchema } from "./money.js";
+import { deedAgainstPeople, peopleOfCreature } from "./peoples/repute.js";
 
 /**
  * Creatures: non-talking NPCs. Wolves, bandits, horses, crowds. A stat block
@@ -481,9 +482,12 @@ function playerBeatCreature(c: Creature, world: WorldSnapshot, routed: boolean):
   const player = world.player;
   const xp = creatureXp(c.life.tier, player.level, routed);
   const levels = gainPlayerXp(player, xp);
+  // N54 D3: a deed against one of a people is remembered by all of them.
+  const people = peopleOfCreature(c.template);
   return [
     `You gain ${xp} XP.${levels > 0 ? ` You're now level ${player.level}!` : ""}`,
     ...playerWonFight(player, c.life.tier, world.day),
+    ...(people ? deedAgainstPeople(player, people, !routed) : []),
     ...(levels > 0 ? playerProgressTitles(player, world.day) : []),
   ];
 }
