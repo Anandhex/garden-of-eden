@@ -6,6 +6,7 @@
  */
 import { z } from "zod";
 import { ScapeInputSchema } from "./sound.js";
+import { LocaleSchema } from "./shapes.js";
 
 /** Bumped when a message changes shape; the server refuses a client with another version. */
 export const PROTOCOL_VERSION = 1;
@@ -130,10 +131,11 @@ export const FrameSchema = z.object({
     h: z.number().nullable(),
     /**
      * The place's locale (G8 locality), for how its buildings are built: its culture template, its land (valley, hills, forest,
-     * plains, coast, marsh), how well it lives (wealth 0..1, from prosperity) and its size (hamlet..capital). Absent on the road,
-     * inside a building, or where there is no realm.
+     * plains, coast, marsh), how well it lives (wealth 0..1, from prosperity), its size (hamlet..capital) and its culture's
+     * colours. Read by the Unity builder (LocaleArch.cs) and the web view (shapes.ts). Absent on the road, inside a building,
+     * or where there is no realm.
      */
-    locale: z.object({ culture: z.string(), terrain: z.string(), wealth: z.number().min(0).max(1), size: z.string() }).optional(),
+    locale: LocaleSchema.optional(),
   }),
   box: z.object({ x0: z.number(), y0: z.number(), x1: z.number(), y1: z.number() }),
   patches: z.array(PatchSchema).optional(),

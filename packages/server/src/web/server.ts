@@ -1,6 +1,7 @@
 import { moodLine } from "../game/mood/model.js";
 import { FEED_SCOPES, playerFeed, type FeedScope } from "../game/realm/feed.js";
 import { buildLookOf } from "../game/culture/look.js";
+import { cultureAt } from "../game/culture/model.js";
 import { startCandidates } from "../game/realm/start.js";
 import { boardView, playerClaim, playerGiveUp, playerJoinParty } from "../game/market/player.js";
 import { giveBack, itemsView } from "../game/items/player.js";
@@ -12,7 +13,6 @@ import { playerWrites } from "../game/follow/letters.js";
 import { enter, householdOf, interiorAt, lockedNow, peopleInside, search, stepInside, take, takeable, type InsideCtx } from "../game/interior/inside.js";
 import { floorTiles, furnitureOn, ITILE, type InsideView, type TileKind } from "@garden-of-eden/shared";
 import { doorOf } from "../view/frame.js";
-import { cultureAt } from "../game/culture/model.js";
 import { localeOf } from "../view/locale.js";
 import { marksToDraw } from "../game/marks/rules.js";
 import { animalsNear, huntAnimal, natureView, showToHerbalist, tameStray, useWildItem } from "../game/nature/wild.js";
@@ -2042,6 +2042,7 @@ const viewHost: ViewHost = {
   crowd: crowdHere,
   land: () => (world.realm ? landOf(world.realm) : null),
   roadData: () => (world.realm ? roadDataOf(world.realm) : null),
+
   marks: () => (world.realm && !town.road.onRoad() && world.player.area === undefined ? marksToDraw(world.realm, town.store ?? null, town.site(), world.day, here()) : []),
   fieldStages: (x0, y0, w, h) => (world.realm && town.store ? fieldStagesIn(world.realm, town.store, x0, y0, w, h, world.day) : new Map()),
   commuters: (radius) =>

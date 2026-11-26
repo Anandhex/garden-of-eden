@@ -48,6 +48,12 @@
             },
             "size": {
               "type": "string"
+            },
+            "colours": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             }
           },
           "required": [

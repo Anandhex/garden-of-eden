@@ -4,8 +4,12 @@
  * and windows on the front), the roof rows give the slopes of a gable roof along the front. The box stands a little
  * inset in the building's rectangle; a template with no roof (a camp's fire, a cart) stands its tiles up as sprites.
  * Also here: stepping someone in a doorway out of the box, and whether a building hides the player from the camera.
+ *
+ * With a regional style (G10, shared shapes.ts) the same template is built in the place's own way: its wall and
+ * roof tiles swapped to the style's materials, the walls as tall as the style says, the roof hipped, flat or round
+ * (a yurt) as well as gabled, at the style's pitch and with its eaves, and the whole raised on a footing or stilts.
  */
-import { sliceAxis, WINDOW_TILES, type BuildingTemplate, type Dressed } from "@garden-of-eden/shared/view";
+import { restyleDoor, restyleFrame, sliceAxis, WINDOW_TILES, type BuildShape, type BuildingTemplate, type Dressed, type RoofForm } from "@garden-of-eden/shared/view";
 import { FRAMES } from "../art.js";
 import { PITCH } from "./camera.js";
 
@@ -48,6 +52,14 @@ export interface Box {
 export interface Massing {
   kind: "box" | "standing" | "plain";
   box: Box;
+  /** The walls' height, the roof's form and its eaves (the defaults without a style). */
+  wallH: number;
+  form: RoofForm;
+  overhang: number;
+  /** How far the floor stands above its pad: a footing showing (`plinth`) plus any stilts. */
+  lift: number;
+  plinth: number;
+  style: BuildShape | null;
   faces: Face[];
   /** Gable roof slopes: frames by row (ridge first, eave last) and column (left to right seen from the front). */
   roof: { rows: string[][]; ridge: number; eave: number; tint: boolean; gable: string } | null;
@@ -74,10 +86,12 @@ function plainOf(t: BuildingTemplate, row: string[]): string {
 }
 
 /** Plan a building's mass from its template and how the template dressed it. */
-export function massing(b: BuildingIn, t: BuildingTemplate | undefined, dressed: Dressed | null): Massing {
+export function massing(b: BuildingIn, template: BuildingTemplate | undefined, given: Dressed | null, style: BuildShape | null = null): Massing {
   const box: Box = { x0: b.x + INSET, x1: b.x + b.w - INSET, z0: b.y + INSET, z1: b.y + b.h - INSET, top: PLAIN_H };
-  const out: Massing = { kind: "plain", box, faces: [], roof: null, decals: [], standing: [], windows: [] };
-  if (!t || !dressed) return out;
+  const out: Massing = { kind: "plain", box, faces: [], roof: null, decals: [], standing: [], windows: [], wallH: WALL_H, form: "gable", overhang: OVERHANG, lift: 0, plinth: 0, style: null };
+  if (!template || !given) return out;
+  // The style's materials: the same template, its wall and roof tiles (and its door) swapped.
+  const { t, dressed } = restyled(template, given, style);
   const front = b.y + b.h - 1;
   if (dressed.roof.length === 0) {
     // Nothing to roof: every tile the template stands is a sprite on its tile.
@@ -88,6 +102,13 @@ export function massing(b: BuildingIn, t: BuildingTemplate | undefined, dressed:
     return out;
   }
   out.kind = "box";
+  const wallH = style?.wallH ?? WALL_H;
+  out.style = style;
+  out.wallH = wallH;
+  out.form = style?.form ?? "gable";
+  out.overhang = style?.overhang ?? OVERHANG;
+  out.plinth = style?.plinth ?? 0;
+  out.lift = out.plinth + (style?.stilts ?? 0);
   // The front wall's row, left to right; the door goes on whichever wall it is in.
   const row = dressed.walls.filter((w) => w.y === front).sort((p, q) => p.x - q.x).map((w) => w.frame);
   const lowerFront = row.length === b.w ? row : Array.from({ length: b.w }, (_, i) => row[Math.min(row.length - 1, i)] ?? t.door);
@@ -129,24 +150,32 @@ export function massing(b: BuildingIn, t: BuildingTemplate | undefined, dressed:
     const src = i === 0 ? roofRows[0]! : i === n - 1 ? roofRows[roofRows.length - 1]! : (roofRows[Math.min(roofRows.length - 2, 1)] ?? roofRows[0]!);
     rows.push(pick(src));
   }
-  const rise = (d / 2) * ROOF_PITCH;
-  out.roof = { rows, ridge: WALL_H + rise, eave: WALL_H, tint: t.roofTint, gable: own("gable") };
-  box.top = WALL_H + rise;
+  // A ground floor in another material than the storey above: the lower band of every wall swapped to it.
+  if (style?.base && style.walls) {
+    const lower = { ...style, walls: style.base };
+    for (const f of out.faces) f.lower = f.lower.map((fr) => (fr === t.door ? restyleDoor(fr, lower) : restyleFrame(fr, lower)));
+  }
+  // A round roof (a yurt's cone) rises over its radius; a flat one not at all, its parapet a little over the walls.
+  const rise = out.form === "flat" ? 0 : out.form === "round" ? (Math.min(w, d) / 2) * (style?.pitch ?? ROOF_PITCH) : (d / 2) * (style?.pitch ?? ROOF_PITCH);
+  out.roof = { rows, ridge: wallH + rise, eave: wallH, tint: t.roofTint, gable: own("gable") };
+  box.top = wallH + Math.max(rise, out.form === "flat" ? PARAPET : 0);
   // The front wall's window panes, both bands.
   lowerFront.forEach((f, i) => {
     const glow = WINDOW_TILES[f];
-    if (!glow) return;
+    if (!glow || out.form === "round") return;
     const x = box.x0 + ((i + 0.5) / b.w) * w;
     const k = dressed.windows.findIndex((win) => Math.floor(win.x) === b.x + i);
     const id = `win:${b.id}:${k < 0 ? i : k}`;
-    out.windows.push({ id, glow, x, z: box.z1, y: 0.55 });
-    out.windows.push({ id, glow, x, z: box.z1, y: 1.55 });
+    out.windows.push({ id, glow, x, z: box.z1, y: 0.55 * (wallH / WALL_H) });
+    out.windows.push({ id, glow, x, z: box.z1, y: 1.55 * (wallH / WALL_H) });
   });
   // Props: on the roof they stand on its slope; against the front wall they hang on it, or stand before it.
   const ridgeY = b.y - 1;
   for (const p of dressed.props) {
     const x = box.x0 + ((p.x - b.x) / b.w) * w;
     if (p.layer === "roof") {
+      // A yurt has a smoke hole, not a chimney.
+      if (out.form === "round") continue;
       const k = Math.max(0, Math.min(1, (p.y - ridgeY) / Math.max(1, front - ridgeY)));
       out.standing.push({ frame: p.frame, x, z: (box.z0 + box.z1) / 2 + (k * d) / 2, y: out.roof.ridge - k * rise - 0.05 });
       continue;
@@ -156,6 +185,20 @@ export function massing(b: BuildingIn, t: BuildingTemplate | undefined, dressed:
     else out.standing.push({ frame: p.frame, x, z: box.z1 + 0.3, y: 0 });
   }
   return out;
+}
+
+/** A flat roof's parapet over the walls. */
+export const PARAPET = 0.22;
+
+/** A template and its dressing in a style's materials (unchanged without one). */
+function restyled(t: BuildingTemplate, dressed: Dressed, style: BuildShape | null): { t: BuildingTemplate; dressed: Dressed } {
+  if (!style) return { t, dressed };
+  const door = restyleDoor(t.door, style);
+  const tile = (f: string) => (f === t.door ? door : restyleFrame(f, style));
+  return {
+    t: { ...t, door, walls: t.walls.map((r) => r.map((f) => (f ? tile(f) : f))), roof: t.roof.map((r) => r.map((f) => (f ? restyleFrame(f, style) : f))) },
+    dressed: { ...dressed, walls: dressed.walls.map((w) => ({ ...w, frame: tile(w.frame) })), roof: dressed.roof.map((r) => ({ ...r, frame: restyleFrame(r.frame, style) })) },
+  };
 }
 
 /**

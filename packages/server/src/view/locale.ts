@@ -15,5 +15,6 @@ export function localeOf(realm: Realm | null | undefined, site: string | null | 
   const s = realm && site ? realm.settlements[site] : undefined;
   if (!realm || !s) return null;
   const wealth = Math.round(Math.max(0, Math.min(1, s.prosperity / 100)) * 100) / 100;
-  return { culture: cultureAt(realm, s.id)?.template ?? "", terrain: s.terrain, wealth, size: s.kind };
+  const c = cultureAt(realm, s.id);
+  return { culture: c?.template ?? "", terrain: s.terrain, wealth, size: s.kind, ...(c ? { colours: c.colours } : {}) };
 }
