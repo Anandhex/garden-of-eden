@@ -33,6 +33,10 @@
     "Ixil",
     "Vossa"
   ],
+  "economy": {
+    "breed": 1.1,
+    "farm": 1.0
+  },
   "stances": {
     "human": 0
   }

@@ -37,6 +37,10 @@
     "Gobbet",
     "Rikket"
   ],
+  "economy": {
+    "breed": 1.8,
+    "farm": 0.85
+  },
   "stances": {
     "dwarf": -80,
     "human": -30,

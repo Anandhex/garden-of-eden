@@ -28,6 +28,10 @@
   "culture": "highland",
   "magic": "earth",
   "sizeClass": 1,
+  "economy": {
+    "breed": 0.7,
+    "farm": 1
+  },
   "stances": {
     "dragon": -70,
     "elf": -10,

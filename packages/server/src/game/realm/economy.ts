@@ -11,6 +11,7 @@ import { sendArrival } from "./arrivals.js";
 import { cofferMod, placeInst, unrun, worksMod } from "../office/posts.js";
 import { noteDay } from "../office/repute.js";
 import { judgeHarvest, noteHarvest, seasonYield } from "./harvest.js";
+import { peopleOf } from "../../world/species.js";
 
 /**
  * Prosperity, building and moving (N13.2), a day at a time, in code.
@@ -87,7 +88,7 @@ export function upkeep(s: Settlement): number {
 /** Food made per head before the season, as a share of what's eaten. */
 function baseFood(realm: Realm, s: Settlement): number {
   const workers = residents(realm, s.id).filter((f) => f.role === "farmer" || f.role === "hunter").length;
-  return (0.92 + 0.08 * level(s, "farms") + 0.02 * workers) * (TERRAIN_FOOD[s.terrain] ?? 1);
+  return (0.92 + 0.08 * level(s, "farms") + 0.02 * workers) * (TERRAIN_FOOD[s.terrain] ?? 1) * (s.species ? (peopleOf(s.species)?.economy?.farm ?? 1) : 1);
 }
 
 /** Food made per head, as a share of what's eaten (1 = enough): the land, and the farming year (N30, harvest.ts). */
@@ -171,7 +172,9 @@ export function economyDay(realm: Realm, day: number, rng: Rng, live: ReadonlySe
       if ((own ? rng() < 0.15 : lost > 0 && rng() < 0.15)) realmNews(realm, day, s.id, "famine", `Hunger in ${s.name}: people are going without bread.`, 4, [s.name]);
       tally(realm, "starved", lost);
     } else if (!own && s.food > 30 && s.prosperity > 35) {
-      s.population += roundBy(rng, s.population * perDay(GROWTH) * (s.prosperity / 50));
+      // Other peoples breed at their own pace (N54 B3): goblins fast, giants and elves slowly.
+      const breed = s.species ? (peopleOf(s.species)?.economy?.breed ?? 1) : 1;
+      s.population += roundBy(rng, s.population * perDay(GROWTH) * (s.prosperity / 50) * breed);
     }
     build(realm, s, day);
     housesDay(realm, s, day);

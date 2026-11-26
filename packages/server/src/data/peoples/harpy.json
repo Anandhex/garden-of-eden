@@ -34,6 +34,10 @@
     "Aello",
     "Ocypete"
   ],
+  "economy": {
+    "breed": 1.0,
+    "farm": 1.0
+  },
   "stances": {
     "human": -50
   }

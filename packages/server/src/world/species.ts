@@ -64,6 +64,8 @@ export const PeopleSchema = z
     sizeClass: z.number().int().min(1).max(3),
     /** Names their people give (the invented-name check and new residents use them). */
     names: z.array(z.string().min(1)).optional(),
+    /** How their own places live (N54 B3), against a human place's 1: how fast they breed, how much their fields give. */
+    economy: z.object({ breed: z.number().min(0.2).max(3), farm: z.number().min(0.2).max(2) }).strict().optional(),
     /** How this people sees each other one, -100..100. Missing means 0. */
     stances: z.record(z.string(), z.number().min(-100).max(100)),
   })

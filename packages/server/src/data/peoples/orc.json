@@ -28,6 +28,10 @@
   "culture": "steppe",
   "magic": "blood",
   "sizeClass": 1,
+  "economy": {
+    "breed": 1.4,
+    "farm": 1
+  },
   "stances": {
     "dwarf": -60,
     "elf": -70,

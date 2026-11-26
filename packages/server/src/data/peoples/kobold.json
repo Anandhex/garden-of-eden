@@ -35,6 +35,10 @@
     "Mezz",
     "Ozzik"
   ],
+  "economy": {
+    "breed": 1.8,
+    "farm": 0.9
+  },
   "stances": {
     "dragon": 80,
     "human": -20

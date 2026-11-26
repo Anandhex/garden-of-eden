@@ -43,7 +43,7 @@ const by = (m: Record<string, (r: RulerLean, k: Kingdom) => number>) => (v: stri
 const unfree = (k: Kingdom) => (k.laws.slavery ? 1 : k.laws.serfdom ? 0.6 : 0);
 
 /** The other peoples a kingdom has a law for (N54). */
-export const LIVING_PEOPLES = ["goblin", "orc", "dwarf", "elf", "ogre", "centaur", "lizardfolk"] as const;
+export const LIVING_PEOPLES = ["goblin", "orc", "dwarf", "elf", "ogre", "centaur", "lizardfolk", "halfling", "hobgoblin", "kobold", "gnoll", "harpy", "hill_giant", "frost_giant", "stone_giant"] as const;
 
 export const MAGIC_SCHOOLS = ["healing", "elemental", "illusion", "divination", "warding", "beast", "necromancy", "blood"] as const;
 export type MagicSchool = (typeof MAGIC_SCHOOLS)[number];
@@ -141,6 +141,7 @@ const FAITH_POLICY: PolicyDef = { values: [], default: "none", score: () => 0, w
 
 /** How a kingdom treats another people living in it (N54 decision 7): its people's stance toward them leans the choice. */
 function speciesPolicy(species: string): PolicyDef {
+  const them = `${species.replace(/_/g, " ")}s`;
   return {
     values: ["welcome", "limited", "slaves_only", "banned"],
     default: "limited",
@@ -151,7 +152,7 @@ function speciesPolicy(species: string): PolicyDef {
       if (v === "slaves_only") return k.laws.slavery ? 0.35 - stance * 0.5 + 0.2 * r.harsh : -9;
       return 0.1 - stance * 0.5 + 0.2 * r.harsh;
     },
-    words: { welcome: `${species}s are welcome`, limited: `${species}s may live in the outer quarters, unarmed and taxed`, slaves_only: `${species}s may be kept only as slaves`, banned: `${species}s are banned and hunted` },
+    words: { welcome: `${them} are welcome`, limited: `${them} may live in the outer quarters, unarmed and taxed`, slaves_only: `${them} may be kept only as slaves`, banned: `${them} are banned and hunted` },
   };
 }
 

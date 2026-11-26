@@ -27,6 +27,10 @@
   "culture": "forest",
   "magic": "growth",
   "sizeClass": 1,
+  "economy": {
+    "breed": 0.4,
+    "farm": 1.1
+  },
   "stances": {
     "centaur": 40,
     "goblin": -50,

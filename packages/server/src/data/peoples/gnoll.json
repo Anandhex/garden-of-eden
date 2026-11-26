@@ -33,6 +33,10 @@
     "Hrrak",
     "Gnash"
   ],
+  "economy": {
+    "breed": 1.3,
+    "farm": 1.0
+  },
   "stances": {
     "human": -60
   }

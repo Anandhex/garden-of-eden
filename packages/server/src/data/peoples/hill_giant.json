@@ -33,6 +33,10 @@
     "Gorm",
     "Skadda"
   ],
+  "economy": {
+    "breed": 0.4,
+    "farm": 1.0
+  },
   "stances": {
     "dwarf": -40,
     "human": -10

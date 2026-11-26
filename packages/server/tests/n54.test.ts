@@ -2,7 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { config } from "../src/config.js";
 import { WorldStore } from "../src/game/db.js";
 import { seededRng } from "../src/game/dice.js";
-import { dragonWakes, peoplesRealmDay, residentsSiteDay } from "../src/game/peoples/day.js";
+import { bandArrives, dragonWakes, peoplesRealmDay, residentsSiteDay } from "../src/game/peoples/day.js";
+import { foodRatio } from "../src/game/realm/economy.js";
 import { generatePeoples, peoplesOf } from "../src/game/peoples/generate.js";
 import type { LifeCtx } from "../src/game/people/step.js";
 import { generateRealm } from "../src/game/realm/generate.js";
@@ -12,6 +13,9 @@ import { checkPeoples, loadPeoples, PEOPLES, peopleOf, SPECIES, speciesOf, stanc
 import { loadCreatureTemplates } from "../src/game/creatures.js";
 import type { PersonRow } from "../src/store/peopleStore.js";
 import { materialisePeople } from "../src/store/materialise.js";
+import { alliancesDay, hatredsDay, intentionOf, intentionsDay } from "../src/game/peoples/intent.js";
+import { pickInteraction } from "../src/game/chatter/pick.js";
+import { prejudice } from "../src/game/chatter/day.js";
 
 /**
  * N54: peoples and monsters. Species as data; a goblin warren near the start town with an ogre bound to it, an orc kingdom in the east, a
@@ -94,6 +98,78 @@ describe("N54 Part B: the realm generates its peoples", () => {
     }
     expect(seen.size).toBe(4);
   });
+
+  it("every other people is placed where its habitat fits: frost giants in the north, lizardfolk in the marsh, an elf realm in the forest, kobolds by the dragon (B1)", () => {
+    for (const seed of [1, 3]) {
+      const realm = generateRealm(seed, 1);
+      const humans = Object.values(realm.settlements).filter((s) => !s.way && !s.species);
+      const st = generatePeoples(realm, 1)!;
+      const placed = st.placed!;
+      for (const p of ["hobgoblin", "hill_giant", "frost_giant", "stone_giant", "kobold", "gnoll", "lizardfolk", "harpy", "elf"]) {
+        const ids = placed.settlements[p] ?? [];
+        expect(ids.length, `${p} (seed ${seed})`).toBeGreaterThan(0);
+        for (const id of ids) {
+          const s = realm.settlements[id]!;
+          expect(s.species).toBe(p);
+          expect(peopleOf(p)!.habitat).toContain(s.terrain);
+        }
+      }
+      for (const p of ["troll", "minotaur"]) for (const id of placed.figures[p] ?? []) expect(st.lairs[id]).toBeDefined();
+      expect((placed.figures.troll ?? []).length).toBeGreaterThan(0);
+      // Frost giants live in the north half of the human lands.
+      const ys = humans.map((s) => s.pos.y).sort((a, b) => a - b);
+      expect(realm.settlements[placed.settlements.frost_giant![0]!]!.pos.y).toBeLessThan(ys[Math.floor(ys.length / 2)]! + 40);
+      // The elves rule a kingdom of their own, with an elf on the throne.
+      const elves = realm.kingdoms[placed.kingdoms.elf!]!;
+      expect(elves.species).toBe("elf");
+      expect(realm.figures[elves.ruler!]!.species).toBe("elf");
+      expect(realm.factions[elves.crown]).toBeDefined();
+      // Kobolds dig in nearer the dragon's peaks than most human places are.
+      const lair = st.lairs[st.dragon!]!;
+      const kob = realm.settlements[placed.settlements.kobold![0]!]!;
+      const dist = (a: { x: number; y: number }) => Math.hypot(a.x - lair.x, a.y - lair.y);
+      expect(humans.filter((s) => dist(s.pos) > dist(kob.pos)).length / humans.length).toBeGreaterThan(0.5);
+      // The gnolls wander; their heads are of their own people and named in their own words.
+      expect(realm.settlements[placed.settlements.gnoll![0]!]!.nomadic).toBeDefined();
+      const head = realm.figures[realm.settlements[placed.settlements.gnoll![0]!]!.leader!]!;
+      expect(head.species).toBe("gnoll");
+      expect(peopleOf("gnoll")!.names).toContain(head.name);
+      // The same seed gives the same peoples.
+      const again = generatePeoples(generateRealm(seed, 1), 1)!;
+      expect(again.placed).toEqual(placed);
+    }
+  });
+
+  it("a wandering band moves each season and, at its new grazing, raids the weak or trades (B2)", () => {
+    const realm = generateRealm(1, 1);
+    const st = generatePeoples(realm, 1)!;
+    const band = realm.settlements[st.placed!.settlements.gnoll![0]!]!;
+    const seen = new Set<string>();
+    for (let day = 1; day <= 96; day++) {
+      peoplesRealmDay(realm, day);
+      seen.add(`${band.pos.x},${band.pos.y}`);
+    }
+    expect(seen.size).toBe(4);
+    // At each new grazing the band meets its nearest neighbour: a fierce people raids one it outnumbers.
+    const near = { ...realm.settlements[Object.keys(realm.settlements).find((id) => !realm.settlements[id]!.way && !realm.settlements[id]!.species)!]! };
+    const weak = { ...near, id: "weak_hamlet", name: "Weakling", pos: { x: band.pos.x + 5, y: band.pos.y }, population: 20, species: undefined, roads: [] };
+    realm.settlements[weak.id] = weak;
+    expect(bandArrives(realm, band, 200)).toBe("raid");
+    // A peaceful band trades instead.
+    band.species = "centaur";
+    expect(bandArrives(realm, band, 201)).toBe("trade");
+    expect(realm.treaties.some((t) => t.kind === "trade" && t.a === `s:${band.id}`)).toBe(true);
+  });
+
+  it("other peoples' places live by their own lights: goblins farm less than humans would on the same land (B3)", () => {
+    const realm = generateRealm(1, 1);
+    const st = generatePeoples(realm, 1)!;
+    const warren = realm.settlements[st.warren!]!;
+    const asHumans = foodRatio(realm, { ...warren, species: undefined }, 10);
+    expect(foodRatio(realm, warren, 10)).toBeLessThan(asHumans);
+    expect(peopleOf("goblin")!.economy!.breed).toBeGreaterThan(1);
+    expect(peopleOf("elf")!.economy!.breed).toBeLessThan(1);
+  });
 });
 
 describe("N54 Part C: relations and intentions", () => {
@@ -149,6 +225,95 @@ describe("N54 Part C: relations and intentions", () => {
 });
 
 import { siteMap } from "../src/web/sites.js";
+describe("N54 Part C, for every people placed by habitat", () => {
+  it("alliances of convenience: a lone beast taken into service, giants hired by a crown, the weak under a strong friend (C1)", () => {
+    const realm = generateRealm(1, 1);
+    const st = generatePeoples(realm, 1)!;
+    const made = alliancesDay(realm, st, 2);
+    expect(made.length).toBeGreaterThan(0);
+    for (const m of made) {
+      const [kind, a, b] = m.split(":");
+      const t = realm.treaties.find((x) => (kind === "defense" ? x.kind === "mutual_defense" : x.kind === "service") && [x.a, x.b].some((p) => p.endsWith(a!)) && [x.a, x.b].some((p) => p.endsWith(b!)));
+      expect(t, m).toBeDefined();
+    }
+    // Made once: the next call the same year finds them already signed.
+    const again = alliancesDay(realm, st, 3);
+    for (const m of made) expect(again).not.toContain(m);
+    expect(realm.news.some((n) => n.kind === "peoples" && /service|hired|protection/.test(n.text))).toBe(true);
+  });
+
+  it("each home picks an intention by temperament and acts on it, with its reason; a wronged people takes revenge (C2)", () => {
+    const realm = generateRealm(1, 1);
+    const st = generatePeoples(realm, 1)!;
+    const home = (sp: string) => realm.settlements[st.placed!.settlements[sp]![0]!]!;
+    // The same place on the same day always wants the same thing.
+    expect(intentionOf(realm, home("lizardfolk"), 11)).toEqual(intentionOf(realm, home("lizardfolk"), 11));
+    // Over a year of seasons, the fierce hobgoblins raid more than the easy-going lizardfolk do.
+    const count = (sp: string, want: string) => [11, 23, 35, 47, 59, 71, 83, 95].filter((d) => intentionOf(realm, home(sp), d).intent === want).length;
+    expect(count("hobgoblin", "raid")).toBeGreaterThanOrEqual(count("lizardfolk", "raid"));
+    expect(count("lizardfolk", "raid")).toBeLessThan(8);
+    const recs = intentionsDay(realm, st, 11);
+    expect(recs.length).toBeGreaterThan(0);
+    for (const r of recs) expect(r.why.length).toBeGreaterThan(0);
+    expect(st.intents![recs[0]!.site]).toEqual(recs[0]);
+    // A raid on them is remembered, and the raided pay it back.
+    const victim = home("hobgoblin");
+    const raider = home("kobold");
+    st.raidedBy = { [victim.id]: { by: raider.id, day: 12 } };
+    raider.pos = { x: victim.pos.x + 20, y: victim.pos.y };
+    expect(intentionOf(realm, victim, 13).intent).toBe("revenge");
+  });
+
+  it("an old hatred between crowns of peoples: the orcs and the elves go to war, and the elves ask a human crown for help (C2)", () => {
+    const realm = generateRealm(1, 1);
+    const st = generatePeoples(realm, 1)!;
+    let w: string | null = null;
+    for (let day = 20; day <= 20 + 48 * 10 && !w; day += 48) w = hatredsDay(realm, st, day);
+    expect(w).not.toBeNull();
+    const war = realm.wars.find((x) => x.id === w)!;
+    const sides = [...war.attackers, ...war.defenders];
+    expect(sides).toContain(`k:${st.placed!.kingdoms.elf}`);
+    expect(st.asked.some((a) => a.war === w)).toBe(true);
+  });
+
+  it("other peoples come to live in human places where the law lets them, named in their own words (C3)", () => {
+    const realm = generateRealm(1, 1);
+    const store = new WorldStore(":memory:");
+    materialisePeople(realm, store.people, 1);
+    const ctx: LifeCtx = { realm, store };
+    const st = generatePeoples(realm, 1)!;
+    policyRealmDay(realm, 1);
+    const from = realm.settlements[st.placed!.settlements.lizardfolk![0]!]!;
+    const town = Object.values(realm.settlements).filter((s) => !s.species && !s.way && s.kingdom).sort((a, b) => Math.hypot(a.pos.x - from.pos.x, a.pos.y - from.pos.y) - Math.hypot(b.pos.x - from.pos.x, b.pos.y - from.pos.y))[0]!;
+    for (const sp of ["goblin", "lizardfolk", "hobgoblin", "kobold", "gnoll", "harpy"]) setPolicy(realm, town.kingdom!, `species:${sp}`, sp === "lizardfolk" ? "welcome" : "banned", 1, "test");
+    let id: string | null = null;
+    for (let day = 1; day <= 200 && !id; day++) id = residentsSiteDay(ctx, town.id, day);
+    expect(id).not.toBeNull();
+    const row = store.people.get(id!)!;
+    expect(row.species).toBe("lizardfolk");
+    expect(peopleOf("lizardfolk")!.names!.some((n) => row.name.startsWith(n))).toBe(true);
+    expect(JSON.parse(row.origin!).site).toBe(from.id);
+  });
+
+  it("prejudice in chatter: a human who looks down on goblins sneers at one more often than at another human (C3)", () => {
+    expect(prejudice("human", "goblin")).toBeGreaterThan(0);
+    expect(prejudice("goblin", "ogre")).toBe(0);
+    const t = { rank: 2, temper: 0.5, pride: 0.5, bravery: 0.5, honesty: 0.5, mood: 0 } as never;
+    const zero = { trust: 0, affection: 0, respect: 0, fear: 0 } as never;
+    const row = (id: string, species: string) => ({ id, species, master_id: null }) as never;
+    const hostileShare = (scorn: number) => {
+      let n = 0;
+      const rng = seededRng(7);
+      for (let i = 0; i < 4000; i++) {
+        const k = pickInteraction({ x: { row: row("a", "human"), t }, y: { row: row("b", "goblin"), t }, viewXofY: zero, viewYofX: zero, hateXofY: 0, hateYofX: 0, kin: false, witnesses: 0, drink: false, bowing: true, prejudiceXofY: scorn, prejudiceYofX: 0 }, rng).kind;
+        if (k === "sneer" || k === "insult" || k === "threaten" || k === "humiliate") n++;
+      }
+      return n / 4000;
+    };
+    expect(hostileShare(prejudice("human", "goblin"))).toBeGreaterThan(hostileShare(0));
+  });
+});
+
 function await_map(realm: ReturnType<typeof generateRealm>, site: string): string[] {
   return siteMap(realm.settlements[site]!, "village", realm).buildings.map((b) => b.district ?? "");
 }
@@ -170,7 +335,8 @@ describe("N54 Part D: the dragon", () => {
     expect(s.population < pops[burned]! || realm.casualties.some((c) => c.site === burned && c.killer === dragon)).toBe(true);
     // A dragon is slow to wake again.
     for (let day = 11; day <= 40; day++) peoplesRealmDay(realm, day);
-    expect(realm.news.filter((n) => n.kind === "dragon" && /burned/.test(n.text)).length).toBe(1);
+    // (The realm's other dragons keep their own sleeps: only this one's fires count here.)
+    expect(realm.news.filter((n) => n.kind === "dragon" && /burned/.test(n.text) && n.text.includes(realm.figures[dragon]!.name)).length).toBe(1);
     void peoplesOf;
   });
 });
