@@ -1,0 +1,41 @@
+{
+  "id": "elf",
+  "name": "an elf",
+  "body": {
+    "size": "medium",
+    "strength": 9,
+    "toughness": 9,
+    "adultAge": 30,
+    "elderAge": 500,
+    "maxAge": 750,
+    "maxTier": "SSS",
+    "learnRate": 0.6
+  },
+  "mind": "reasoning",
+  "cleverShare": 1,
+  "living": "settled",
+  "habitat": [
+    "forest"
+  ],
+  "climate": "temperate",
+  "temperament": {
+    "aggression": 0.3,
+    "greed": 0.2,
+    "sociability": 0.5,
+    "xenophobia": 0.6
+  },
+  "culture": "forest",
+  "magic": "growth",
+  "sizeClass": 1,
+  "economy": {
+    "breed": 0.4,
+    "farm": 1.1
+  },
+  "speech": "softly, and as if time were nothing",
+  "stances": {
+    "centaur": 40,
+    "goblin": -50,
+    "human": 10,
+    "orc": -70
+  }
+}

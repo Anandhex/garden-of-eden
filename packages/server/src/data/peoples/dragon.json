@@ -1,0 +1,43 @@
+{
+  "id": "dragon",
+  "name": "a dragon",
+  "body": {
+    "size": "gargantuan",
+    "strength": 28,
+    "toughness": 26,
+    "adultAge": 100,
+    "elderAge": 800,
+    "maxAge": 1500,
+    "maxTier": "SSS",
+    "learnRate": 0.4
+  },
+  "mind": "reasoning",
+  "cleverShare": 0.95,
+  "living": "hoard",
+  "habitat": [
+    "hills"
+  ],
+  "climate": "any",
+  "temperament": {
+    "aggression": 0.6,
+    "greed": 1,
+    "sociability": 0.0,
+    "xenophobia": 0.9
+  },
+  "culture": "imperial",
+  "magic": "fire",
+  "creature": "dragon",
+  "sizeClass": 3,
+  "speech": "with ancient courtesy and open contempt",
+  "names": [
+    "Vyrmathax",
+    "Sorrowscale",
+    "Ithragul",
+    "Kaelvorn",
+    "Ashenmaw"
+  ],
+  "stances": {
+    "dwarf": -60,
+    "human": -30
+  }
+}

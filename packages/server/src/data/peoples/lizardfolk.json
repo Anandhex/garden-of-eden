@@ -1,0 +1,44 @@
+{
+  "id": "lizardfolk",
+  "name": "one of the lizardfolk",
+  "body": {
+    "size": "medium",
+    "strength": 12,
+    "toughness": 13,
+    "adultAge": 10,
+    "elderAge": 50,
+    "maxAge": 80,
+    "maxTier": "A",
+    "learnRate": 0.9
+  },
+  "mind": "reasoning",
+  "cleverShare": 1,
+  "living": "settled",
+  "habitat": [
+    "marsh"
+  ],
+  "climate": "warm",
+  "temperament": {
+    "aggression": 0.4,
+    "greed": 0.3,
+    "sociability": 0.6,
+    "xenophobia": 0.4
+  },
+  "culture": "coastal",
+  "creature": "lizardfolk",
+  "sizeClass": 1,
+  "speech": "slowly, with hissing s's and no small talk",
+  "names": [
+    "Sesskar",
+    "Thassk",
+    "Ixil",
+    "Vossa"
+  ],
+  "economy": {
+    "breed": 1.1,
+    "farm": 1.0
+  },
+  "stances": {
+    "human": 0
+  }
+}

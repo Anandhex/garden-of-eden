@@ -1,10 +1,10 @@
 import { parsePersona } from "../../npc/personaSchema.js";
 import { assemblePersona, fallbackIdentity, rollTemplate, SOMEWHERE, type NpcTemplate, type Where } from "../../npc/templates.js";
 import type { NpcPersona } from "../../npc/types.js";
-import { speciesOf } from "../../world/species.js";
+import { peopleView, speciesOf } from "../../world/species.js";
 import { type Creature, type CreatureTemplate, spawnGroup } from "../creatures.js";
 import type { Rng } from "../dice.js";
-import { tierIndex, type Life, type Tier } from "../life.js";
+import { ageOn, tierIndex, type Life, type Tier } from "../life.js";
 import { seasonOf } from "../weather.js";
 import { addDeed, addRenown, epithetOf, killFigure, makeFigure, takenNames } from "./figures.js";
 import { fame } from "../office/repute.js";
@@ -167,19 +167,24 @@ export function personaFor(f: Figure, templates: Record<string, NpcTemplate>, da
   const t = (f.role === "bandit" || f.role === "bandit chief" || f.faction?.startsWith("gang_") ? templates.bandit : templates.farmer) ?? Object.values(templates).find((x) => !x.minor);
   if (!t) return null;
   const r = rollTemplate(t, rng);
+  // One of another people talks as one of them (N54 D1): their species, and their people's view of the world in the backstory.
+  if (f.species && f.species !== "human" && speciesOf(f.species).talks) r.species = f.species;
   r.tier = f.life.tier as Tier;
   r.potential = (tierIndex(f.life.potential as Tier) >= tierIndex(r.tier) ? f.life.potential : r.tier) as Tier;
-  r.age = Math.max(speciesOf(f.species).adultAge, Math.floor((day - f.life.bornOnDay) / 12));
+  // Their age by the 48-day year (it was counted in 12-day years, so a long-lived people's riser came out older than their kind can live).
+  r.age = Math.min(speciesOf(f.species).maxAge - 1, Math.max(speciesOf(f.species).adultAge, ageOn(f.life as Life, day)));
   r.gender = f.gender;
   r.voice = { ...t.voice[f.gender], pitch: r.voice.pitch, rate: r.voice.rate };
   const plain = f.name.replace(/ (the \w+|Ironhand|Quickblade|Oathkeeper|Stonearm|Halfhand|Brightspear)$/i, "");
   const words = fallbackIdentity(t, r, rng, /^[A-Z][a-z'-]+( [A-Z][a-z'-]+){0,2}$/.test(plain) ? plain : `${r.fallbackName.first} ${r.fallbackName.family}`, where);
-  words.backstory = `${words.backstory} Folk know them now: ${f.deeds.slice(-3).join("; ")}.`.slice(0, 500);
+  const view = r.species !== "human" ? ` ${peopleView(r.species)}` : "";
+  words.backstory = `${words.backstory}${view} Folk know them now: ${f.deeds.slice(-3).join("; ")}.`.slice(0, 500);
   const persona = assemblePersona(t, r, words, figureTalkerId(f.id), where);
   void takenIds;
   try {
     return parsePersona(persona, `risen NPC ${persona.id}`);
-  } catch {
+  } catch (e) {
+    if (process.env.DEBUG_PERSONA) console.error(e);
     return null;
   }
 }

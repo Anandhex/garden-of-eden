@@ -1,0 +1,31 @@
+{
+  "id": "dog",
+  "name": "a dog",
+  "body": {
+    "size": "small",
+    "strength": 8,
+    "toughness": 8,
+    "adultAge": 1,
+    "elderAge": 9,
+    "maxAge": 15,
+    "maxTier": "F",
+    "learnRate": 1
+  },
+  "mind": "beast",
+  "cleverShare": 0,
+  "living": "wild",
+  "habitat": [
+    "valley",
+    "plains"
+  ],
+  "climate": "any",
+  "temperament": {
+    "aggression": 0.3,
+    "greed": 0.1,
+    "sociability": 0.9,
+    "xenophobia": 0.5
+  },
+  "creature": "dog",
+  "sizeClass": 1,
+  "stances": {}
+}

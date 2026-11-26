@@ -173,6 +173,12 @@ export const EVENT_KINDS = [
   "levied",
   "battle",
   "war-dead",
+  // Soldiers' lives (N55 steps 3–5): a deed in battle, taken prisoner, deserted, shot for it, home from the war
+  "deed",
+  "captured",
+  "deserted",
+  "executed",
+  "veteran",
   // Uprisings (N56–N59): a band formed, a rising, a concession or a crushing, a runaway and their hiding
   "band",
   "uprising",

@@ -1,0 +1,41 @@
+{
+  "id": "troll",
+  "name": "a troll",
+  "body": {
+    "size": "large",
+    "strength": 19,
+    "toughness": 19,
+    "adultAge": 20,
+    "elderAge": 120,
+    "maxAge": 200,
+    "maxTier": "S",
+    "learnRate": 0.5
+  },
+  "mind": "beast",
+  "cleverShare": 0.02,
+  "living": "solitary",
+  "habitat": [
+    "forest",
+    "marsh",
+    "hills"
+  ],
+  "climate": "cold",
+  "temperament": {
+    "aggression": 0.8,
+    "greed": 0.5,
+    "sociability": 0.1,
+    "xenophobia": 0.8
+  },
+  "culture": "forest",
+  "creature": "troll",
+  "sizeClass": 2,
+  "names": [
+    "Skarn",
+    "Ulm",
+    "Grith",
+    "Oggra"
+  ],
+  "stances": {
+    "human": -50
+  }
+}

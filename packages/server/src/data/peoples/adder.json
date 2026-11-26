@@ -1,0 +1,31 @@
+{
+  "id": "adder",
+  "name": "an adder",
+  "body": {
+    "size": "tiny",
+    "strength": 2,
+    "toughness": 3,
+    "adultAge": 2,
+    "elderAge": 10,
+    "maxAge": 18,
+    "maxTier": "F",
+    "learnRate": 0.7
+  },
+  "mind": "beast",
+  "cleverShare": 0,
+  "living": "wild",
+  "habitat": [
+    "hills",
+    "marsh"
+  ],
+  "climate": "any",
+  "temperament": {
+    "aggression": 0.4,
+    "greed": 0.0,
+    "sociability": 0.0,
+    "xenophobia": 0.5
+  },
+  "creature": "adder",
+  "sizeClass": 1,
+  "stances": {}
+}

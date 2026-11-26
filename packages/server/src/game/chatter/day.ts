@@ -1,3 +1,4 @@
+import { stanceOf } from "../../world/species.js";
 import { config } from "../../config.js";
 import { timed } from "../../metrics/timing.js";
 import type { PersonRow } from "../../store/peopleStore.js";
@@ -69,6 +70,9 @@ export function fadeDay(ctx: LifeCtx, site: string, day: number): number {
   return n;
 }
 
+/** How far one people looks down on another (N54 C3): a stance below zero, as 0..0.15 (a goblin draws two or three times the sneers, not ten). */
+export const prejudice = (a: string, b: string): number => Math.min(0.15, Math.max(0, -stanceOf(a, b)) / 400);
+
 /** Everything the picker needs to know about a pair, read from the stores. */
 export function partyIn(ctx: LifeCtx, row: PersonRow): Party {
   return { row, t: temperOf(row) };
@@ -87,6 +91,7 @@ export function pickFor(ctx: LifeCtx, rx: PersonRow, ry: PersonRow, day: number,
       hateXofY: hateOn(store, rx.id, ry.id, day),
       hateYofX: hateOn(store, ry.id, rx.id, day),
       kin: sameFamily(rx, ry),
+      ...(rx.species !== ry.species ? { prejudiceXofY: prejudice(rx.species, ry.species), prejudiceYofX: prejudice(ry.species, rx.species) } : {}),
       ...env,
     },
     rng,

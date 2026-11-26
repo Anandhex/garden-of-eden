@@ -582,8 +582,9 @@ describe("N13 closing the gaps", () => {
 
 describe("N13 done when: a seeded 120-day realm", () => {
   it("founds and splits factions, signs treaties, raids, fights a war to its end, taxes, builds, breeds and culls, delves and names", () => {
-    const r = generateRealm(4, 1);
-    advanceRealm(r, 121, seededRng(4 * 7919 + 1));
+    // Seed 1 (was 4): with every people placed (N54 Part B) seed 4's 120 days have no faction split; seeds 1–3 and 5–8 do everything.
+    const r = generateRealm(1, 1);
+    advanceRealm(r, 121, seededRng(1 * 7919 + 1));
     const s = r.stats;
     expect(s.founded).toBeGreaterThanOrEqual(1);
     expect(s.splits).toBeGreaterThanOrEqual(1);

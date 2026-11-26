@@ -1,0 +1,47 @@
+{
+  "id": "kobold",
+  "name": "a kobold",
+  "body": {
+    "size": "small",
+    "strength": 6,
+    "toughness": 7,
+    "adultAge": 6,
+    "elderAge": 25,
+    "maxAge": 40,
+    "maxTier": "C",
+    "learnRate": 1.1
+  },
+  "mind": "cunning",
+  "cleverShare": 0.08,
+  "living": "hive",
+  "habitat": [
+    "hills"
+  ],
+  "climate": "any",
+  "underMountain": true,
+  "temperament": {
+    "aggression": 0.4,
+    "greed": 0.7,
+    "sociability": 0.9,
+    "xenophobia": 0.5
+  },
+  "culture": "highland",
+  "creature": "kobold",
+  "sizeClass": 1,
+  "speech": "in quick yips, forever praising dragons",
+  "names": [
+    "Kik",
+    "Tasslik",
+    "Yip",
+    "Mezz",
+    "Ozzik"
+  ],
+  "economy": {
+    "breed": 1.8,
+    "farm": 1.1
+  },
+  "stances": {
+    "dragon": 80,
+    "human": -20
+  }
+}

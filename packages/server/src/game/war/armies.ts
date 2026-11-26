@@ -7,12 +7,16 @@ import { unitFor } from "../dice.js";
 import { learn } from "../gossip/knowledge.js";
 import { eventRef } from "../gossip/refs.js";
 import { parseDeath } from "../people/death.js";
+import { traitsOfRow } from "../people/traits.js";
+import { addDeed, makeFigure } from "../realm/figures.js";
 import { recordLifeEvent } from "../people/events.js";
 import { ageFrom } from "../people/rules.js";
 import type { LifeCtx, SiteStep } from "../people/step.js";
 import { policyAt } from "../realm/policy.js";
 import type { Party, Realm, War } from "../realm/types.js";
 import { speciesOf } from "../../world/species.js";
+import { campaignDay, type Camp } from "./campaign.js";
+import { front } from "../realm/diplomacy.js";
 
 /**
  * Armies, soldiers and the war dead (N55). A war raises an **army** per kingdom at war (`realm.society.armies`), with a levy laid on each of
@@ -39,6 +43,8 @@ export interface Army {
   raised: Record<string, number>;
   status: "mustering" | "fighting" | "disbanded";
   ended?: number;
+  /** On the map (N55 step 2): where it is, its food and heart, its siege (war/campaign.ts). */
+  camp?: Camp;
 }
 
 export interface SoldierData {
@@ -47,9 +53,11 @@ export interface SoldierData {
   home: string;
   rank: Rank;
   joined: number;
-  how: "levy" | "volunteer";
+  how: "levy" | "volunteer" | "knight";
   battles: number;
-  status: "serving" | "dead" | "missing" | "discharged" | "deserted";
+  status: "serving" | "dead" | "missing" | "discharged" | "deserted" | "captured";
+  /** Battles in which they held the line (N55 step 3): each counts toward a rank like a battle. */
+  heroics?: number;
 }
 
 export interface WarDeadData {
@@ -102,6 +110,8 @@ export function armiesRealmDay(realm: Realm, day: number): void {
   }
   // Long-ended armies are forgotten (their soldiers' records stay).
   realm.society!.armies = armies.filter((a) => a.status !== "disbanded" || day - (a.ended ?? day) < 96);
+  // On the map: marching, camps, supply, sieges, weariness (N55 step 2).
+  campaignDay(realm, day, (w) => front(realm, w, day));
 }
 
 /**
@@ -126,8 +136,8 @@ const fightingAge = (r: PersonRow, day: number) => {
 };
 
 /** A place's soldiers on a day: levies raised, ranks for battles survived, the fallen on the roll, the living home at the peace. */
-export function soldiersSiteDay(ctx: LifeCtx, step: Pick<SiteStep, "site" | "deaths">, day: number): { levied: string[]; promoted: string[]; fallen: string[]; home: string[] } {
-  const out = { levied: [] as string[], promoted: [] as string[], fallen: [] as string[], home: [] as string[] };
+export function soldiersSiteDay(ctx: LifeCtx, step: Pick<SiteStep, "site" | "deaths">, day: number): { levied: string[]; promoted: string[]; fallen: string[]; home: string[]; deserted: string[]; captured: string[]; volunteered: string[] } {
+  const out = { levied: [] as string[], promoted: [] as string[], fallen: [] as string[], home: [] as string[], deserted: [] as string[], captured: [] as string[], volunteered: [] as string[] };
   if (!config.society.armies) return out;
   const { realm, store } = ctx;
   const site = step.site;
@@ -143,16 +153,31 @@ export function soldiersSiteDay(ctx: LifeCtx, step: Pick<SiteStep, "site" | "dea
       .filter((r) => r.gender === "male" && fightingAge(r, day) && (homes.get(r.home) ?? 0) > 1 && (r.cls !== "slave" || fodder) && !["noble", "royal", "clergy"].includes(r.cls))
       .sort((x, y) => Number(y.cls === "serf") - Number(x.cls === "serf") || unitFor(realm.seed, "levy", a.id, x.id) - unitFor(realm.seed, "levy", a.id, y.id));
     const want = (a.levy[site] ?? 0) - (a.raised[site] ?? 0);
-    for (const r of pool.slice(0, want)) {
+    // Who goes (N55 step 1): one knight of the place's nobles, by duty, and the bold who volunteer (any free grown one, by bravery), on
+    // the first call; and the levy by law.
+    const first = a.raised[site] === undefined;
+    // Not a household's only high-born one: the rest of it would be left in the noble quarter with no standing to live there.
+    const highBorn = (h: number | null) => rows.filter((x) => x.home === h && ["gentry", "noble", "royal"].includes(x.cls)).length;
+    const knight = first ? rows.find((r) => r.cls === "noble" && fightingAge(r, day) && (homes.get(r.home) ?? 0) > 1 && highBorn(r.home) > 1) : undefined;
+    const bold = first
+      ? rows.filter((r) => r !== knight && fightingAge(r, day) && (homes.get(r.home) ?? 0) > 1 && !["noble", "royal", "clergy", "slave"].includes(r.cls) && traitsOfRow(r).bravery > 0.8 && unitFor(realm.seed, "volunteer", a.id, r.id) < 0.5)
+      : [];
+    // The knight and volunteers go besides the levy (the law's due is still owed), at most half as many again.
+    const extra: Array<[PersonRow, SoldierData["how"]]> = [...(knight ? [[knight, "knight"] as [PersonRow, SoldierData["how"]]] : []), ...bold.map((r): [PersonRow, SoldierData["how"]] => [r, "volunteer"])].slice(0, Math.max(1, Math.floor(want / 2)));
+    const taken = new Set(extra.map(([r]) => r.id));
+    const sent = pool.filter((r) => !taken.has(r.id)).slice(0, want).map((r): [PersonRow, SoldierData["how"]] => [r, "levy"]);
+    for (const [r, how] of [...extra, ...sent]) {
+      const rank: Rank = how === "knight" ? "sergeant" : how === "volunteer" ? "soldier" : "levy";
       store.people.update(r.id, { away: JSON.stringify({ journey: a.id, since: (day - 1) * 1440 + 8 * 60, purpose: "war", returns: true }) });
-      store.careers.startJob(r.id, "soldier:levy", site, day);
-      store.records.put<SoldierData>({ id: `soldier:${r.id}:${a.war}`, kind: "soldier", site, a: r.id, b: a.id, since: day, status: "serving", ended: null, data: { army: a.id, war: a.war, home: site, rank: "levy", joined: day, how: "levy", battles: 0, status: "serving" } });
-      recordLifeEvent(realm, store, { kind: "levied", actor: r.id, site, day, details: `${r.name} was levied for the war and marched away`, importance: 3, witnesses: rows.filter((x) => x.home === r.home && x.id !== r.id).map((x) => x.id).slice(0, 4) });
-      out.levied.push(r.id);
+      store.careers.startJob(r.id, `soldier:${rank}`, site, day);
+      store.records.put<SoldierData>({ id: `soldier:${r.id}:${a.war}`, kind: "soldier", site, a: r.id, b: a.id, since: day, status: "serving", ended: null, data: { army: a.id, war: a.war, home: site, rank, joined: day, how, battles: 0, status: "serving" } });
+      const words = how === "knight" ? `${r.name} rode out to the war, as a knight owes` : how === "volunteer" ? `${r.name} took the crown's shilling and went to the war` : `${r.name} was levied for the war and marched away`;
+      recordLifeEvent(realm, store, { kind: "levied", actor: r.id, site, day, details: words, importance: 3, witnesses: rows.filter((x) => x.home === r.home && x.id !== r.id).map((x) => x.id).slice(0, 4) });
+      (how === "levy" ? out.levied : out.volunteered).push(r.id);
     }
-    a.raised[site] = (a.raised[site] ?? 0) + Math.min(want, pool.length);
+    a.raised[site] = (a.raised[site] ?? 0) + sent.length;
     // A place with nobody left to send owes nothing more.
-    if (pool.length < want) a.levy[site] = a.raised[site]!;
+    if (sent.length < want) a.levy[site] = a.raised[site]!;
   }
   // ---- The fallen ----
   for (const d of step.deaths) {
@@ -172,6 +197,14 @@ export function soldiersSiteDay(ctx: LifeCtx, step: Pick<SiteStep, "site" | "dea
     const ruler = enemy ? realm.kingdoms[enemy.slice(2)]?.ruler : null;
     const mourner = kin[0];
     if (mourner && ruler) addGrievance(store, { who: mourner.id, against: ruler, cause: `wardead:${d.id}`, weight: 0.6, day });
+    // Pride or bitterness (N55 step 5): a death in a battle their side lost turns another of the family against their own crown, who sent
+    // them; a death in a won battle is borne with pride (no grudge at home).
+    const bDay = Number(d.record.event?.startsWith("battle:") ? d.record.event.split(":")[1] : NaN);
+    const battle = w?.battles.find((b) => b.day === bDay);
+    const own = w ? (d.record.side === "attackers" ? w.attackers : w.defenders).find((p) => p.startsWith("k:")) : undefined;
+    const ownRuler = own ? realm.kingdoms[own.slice(2)]?.ruler : null;
+    const bitter = kin[1] ?? kin[0];
+    if (battle && d.record.side && battle.winner !== d.record.side && bitter && ownRuler) addGrievance(store, { who: bitter.id, against: ownRuler, cause: `sent-to-die:${d.id}`, weight: 0.3, day });
     const e = recordLifeEvent(realm, store, { kind: "war-dead", actor: d.id, target: ruler ?? "", site, day, details: `${d.name} fell in ${d.record.event?.startsWith("battle:") ? `the battle at ${realm.settlements[d.record.event.split(":")[2] ?? ""]?.name ?? "the front"}` : "the war"}`, importance: 5, witnesses: kin.map((k) => k.id) });
     for (const k of kin) learn(ctx, k.id, eventRef(e.id), { day, source: "told", accuracy: 1 });
   }
@@ -188,6 +221,7 @@ export function soldiersSiteDay(ctx: LifeCtx, step: Pick<SiteStep, "site" | "dea
       continue;
     }
     if (!w || w.end !== undefined) {
+      veteranHome(ctx, r, sol, w, day);
       store.people.update(r.id, { away: null });
       store.careers.endJob(r.id, `soldier:${sol.data.rank}`, day);
       store.records.end(sol.id, day, "discharged", { status: "discharged" });
@@ -195,17 +229,62 @@ export function soldiersSiteDay(ctx: LifeCtx, step: Pick<SiteStep, "site" | "dea
       out.home.push(r.id);
       continue;
     }
-    const battles = w.battles.filter((b) => b.day > sol.data.joined).length;
-    if (battles === sol.data.battles) continue;
+    const fought = w.battles.filter((b) => b.day > sol.data.joined);
+    if (fought.length === sol.data.battles) continue;
+    // ---- Each battle since they last counted: a hero, a coward, or taken (N55 step 3) ----
+    const side = armies.find((x) => x.id === sol.data.army)?.side ?? "attackers";
+    const bravery = traitsOfRow(r).bravery;
+    let heroics = sol.data.heroics ?? 0;
+    let fate: "deserted" | "captured" | null = null;
+    for (const b of fought.slice(sol.data.battles)) {
+      const u = unitFor(realm.seed, "battle-test", r.id, b.day);
+      if (bravery < 0.3 && u < 0.12) fate = "deserted";
+      else if (b.winner !== side && u > 0.94) fate = "captured";
+      else if (bravery > 0.75 && u < 0.15) {
+        heroics++;
+        recordLifeEvent(realm, store, { kind: "deed", actor: r.id, site, day, key: `${r.id}:hero:${b.day}`, details: `${r.name} held the line at ${realm.settlements[b.at]?.name ?? "the battle"} when others broke`, importance: 4 });
+      }
+      if (fate) break;
+    }
+    if (fate === "deserted") {
+      deserts(ctx, sol, r, day, out);
+      continue;
+    }
+    if (fate === "captured") {
+      store.records.end(sol.id, day, "captured", { status: "captured" });
+      store.records.put({ id: `prisoner:${r.id}:${w.id}`, kind: "prisoner", site, a: r.id, b: w.id, since: day, status: "held", ended: null, data: { war: w.id, side, rank: sol.data.rank } });
+      recordLifeEvent(realm, store, { kind: "captured", actor: r.id, site, day, key: `${r.id}:taken:${w.id}`, details: `${r.name} was taken prisoner by the enemy`, importance: 4, witnesses: [] });
+      out.captured.push(r.id);
+      continue;
+    }
+    // Heroics count as battles toward a rank: a soldier who holds the line rises sooner.
+    const battles = fought.length + heroics;
     let rank = sol.data.rank;
     for (const k of RANKS) if (battles >= RANK_AT[k]) rank = k;
     if (rank !== sol.data.rank) {
       store.careers.endJob(r.id, `soldier:${sol.data.rank}`, day);
       store.careers.startJob(r.id, `soldier:${rank}`, site, day);
-      recordLifeEvent(realm, store, { kind: "promoted", actor: r.id, site, day, key: `${r.id}:${rank}`, details: `${r.name} was made ${rank} after ${battles} battles`, importance: 3 });
+      recordLifeEvent(realm, store, { kind: "promoted", actor: r.id, site, day, key: `${r.id}:${rank}`, details: `${r.name} was made ${rank} after ${fought.length} battles`, importance: 3 });
       out.promoted.push(r.id);
+      // A famous soldier rises to a name in the realm (N55 step 4): a lieutenant or better becomes a figure, by their own id.
+      if (RANKS.indexOf(rank) >= RANKS.indexOf("lieutenant")) soldierRises(ctx, r, rank, day);
     }
-    store.records.patch<SoldierData>(sol.id, { data: { battles, rank } });
+    store.records.patch<SoldierData>(sol.id, { data: { battles: fought.length, rank, heroics } });
+  }
+  // ---- Prisoners: exchanged at the peace (N55 step 3) ----
+  for (const pr of store.records.openAt<{ war: string }>("prisoner", site, () => true)) {
+    const w = realm.wars.find((x) => x.id === pr.data.war);
+    const r = pr.a ? store.people.get(pr.a) : null;
+    if (!r || r.death !== null) {
+      store.records.end(pr.id, day, "died");
+      continue;
+    }
+    if (w && w.end === undefined) continue;
+    store.people.update(r.id, { away: null });
+    store.careers.endJob(r.id, `soldier:${(store.records.get<SoldierData>(`soldier:${r.id}:${pr.data.war}`)?.data.rank) ?? "levy"}`, day);
+    store.records.end(pr.id, day, "exchanged");
+    recordLifeEvent(realm, store, { kind: "migration", actor: r.id, site, day, key: `${r.id}:exchanged`, details: `${r.name} came home in the exchange of prisoners at the peace`, importance: 4 });
+    out.home.push(r.id);
   }
   // ---- The missing, after the peace: some come home ----
   for (const m of store.records.open<WarDeadData>("war_dead", (x) => x.data.home === site && x.status === "missing")) {
@@ -237,4 +316,70 @@ export function enlist(realm: Realm, p: PlayerState, kingdomId: string, day: num
   p.society ??= {};
   p.society.army = { army: a.id, war: a.war, rank: "soldier", joined: day, battles: 0 };
   return [`You put your mark to the roll of ${realm.kingdoms[kingdomId]?.name ?? "the crown"}'s army. A soldier now.`];
+}
+
+/**
+ * A coward runs (N55 step 3): the record ends deserted, and the row comes home in hiding or goes to the nearest gang. The law catches some:
+ * under a heavy levy a deserter caught is hanged (a war death by execution, on the roll); under a light one, flogged and sent home.
+ */
+function deserts(ctx: LifeCtx, sol: Rec<SoldierData>, r: PersonRow, day: number, out: { deserted: string[]; fallen: string[] }): void {
+  const { realm, store } = ctx;
+  const site = sol.site!;
+  store.records.end(sol.id, day, "deserted", { status: "deserted" });
+  store.careers.endJob(r.id, `soldier:${sol.data.rank}`, day);
+  out.deserted.push(r.id);
+  const k = realm.settlements[site]?.kingdom;
+  const caught = unitFor(realm.seed, "deserter-caught", r.id, day) < 0.3;
+  if (caught && k && policyAt(realm, site, "levy", day) === "heavy") {
+    // Marked dead here, as killPerson does (not imported: people/index.js would close an import cycle through the schedule).
+    store.people.update(r.id, { death: JSON.stringify({ cause: "execution", day, site, note: "hanged for desertion", war: sol.data.war, ...(armySide(realm, sol) ? { side: armySide(realm, sol)! } : {}) }), expecting: null });
+    const spouse = r.spouse ? store.people.get(r.spouse) : null;
+    if (spouse && spouse.death === null) store.people.update(spouse.id, { spouse: null });
+    store.records.put<WarDeadData>({ id: `wardead:${r.id}`, kind: "war_dead", site, a: r.id, b: sol.data.war, since: day, status: "fallen", ended: null, data: { war: sol.data.war, battle: "", side: armySide(realm, sol) ?? "", rank: sol.data.rank, day, cause: "execution", home: site, name: r.name } });
+    recordLifeEvent(realm, store, { kind: "executed", actor: r.id, site, day, key: `${r.id}:hanged`, details: `${r.name} was hanged for deserting the army`, importance: 5 });
+    out.fallen.push(r.id);
+    return;
+  }
+  store.people.update(r.id, { away: null });
+  // Some deserters take to the roads with the nearest gang (N13): their row joins it.
+  const gang = Object.values(realm.factions).filter((f) => f.kind === "gang" && f.dissolved === undefined && f.seat).sort((a, b) => a.id.localeCompare(b.id)).find((f) => f.seat === site);
+  if (!caught && gang && unitFor(realm.seed, "deserter-gang", r.id) < 0.4) store.people.update(r.id, { faction: gang.id });
+  recordLifeEvent(realm, store, { kind: "deserted", actor: r.id, site, day, key: `${r.id}:deserted:${sol.data.war}`, details: caught ? `${r.name} ran from the army, was caught and flogged, and sent home in disgrace` : gang && store.people.get(r.id)?.faction === gang.id ? `${r.name} ran from the army and fell in with ${gang.name}` : `${r.name} ran from the army and came home in secret`, importance: 4 });
+}
+
+const armySide = (realm: Realm, sol: Rec<SoldierData>): "attackers" | "defenders" | undefined => peekArmies(realm).find((a) => a.id === sol.data.army)?.side;
+
+/** A lieutenant or better is a name in the realm (N55 step 4): a figure made for their row, `fig-s-<row>`, so a lazy catch-up makes the same one. */
+function soldierRises(ctx: LifeCtx, r: PersonRow, rank: Rank, day: number): void {
+  const { realm, store } = ctx;
+  if (r.figure || realm.figures[`fig-s-${r.id}`]) return;
+  const next = realm.next;
+  const rng = () => unitFor(realm.seed, "soldier-rises", r.id, day);
+  const fig = makeFigure(realm, rng, { role: "captain", home: r.site, tier: "E", age: ageFrom(r.born_day, day), gender: r.gender === "female" ? "female" : "male", name: r.name, species: r.species, renown: 15, wealth: 0, rose: `person:${r.id}` }, day);
+  delete realm.figures[fig.id];
+  realm.next = next;
+  fig.id = `fig-s-${r.id}`;
+  fig.person = r.id;
+  addDeed(fig, `rose to ${rank} in the war`);
+  realm.figures[fig.id] = fig;
+  store.people.update(r.id, { figure: fig.id });
+}
+
+/**
+ * A veteran comes home changed (N55 step 4): three battles or more make them braver, or break them (a coward's luck held is no comfort);
+ * one whose side lost holds it against their own ruler, who sent them.
+ */
+function veteranHome(ctx: LifeCtx, r: PersonRow, sol: Rec<SoldierData>, w: War | undefined, day: number): void {
+  const { realm, store } = ctx;
+  if (sol.data.battles < 3) return;
+  const t = traitsOfRow(r);
+  const broke = unitFor(realm.seed, "veteran", r.id, day) < 0.3;
+  store.people.update(r.id, { traits: JSON.stringify({ ...t, bravery: Math.max(0, Math.min(1, Math.round((t.bravery + (broke ? -0.2 : 0.15)) * 100) / 100)) }) });
+  const side = armySide(realm, sol);
+  if (w && side && w.winner && w.winner !== side && w.winner !== "none") {
+    const own = (side === "attackers" ? w.attackers : w.defenders).find((p) => p.startsWith("k:"));
+    const ruler = own ? realm.kingdoms[own.slice(2)]?.ruler : null;
+    if (ruler) addGrievance(store, { who: r.id, against: ruler, cause: `lost-war:${w.id}`, weight: 0.3, day });
+  }
+  recordLifeEvent(realm, store, { kind: "veteran", actor: r.id, site: r.site, day, key: `${r.id}:veteran:${sol.data.war}`, details: broke ? `${r.name} came home from the war with the battles still in their eyes` : `${r.name} came home from the war hardened by it`, importance: 2 });
 }

@@ -1,0 +1,31 @@
+{
+  "id": "horse",
+  "name": "a horse",
+  "body": {
+    "size": "large",
+    "strength": 15,
+    "toughness": 12,
+    "adultAge": 4,
+    "elderAge": 20,
+    "maxAge": 32,
+    "maxTier": "D",
+    "learnRate": 0.8
+  },
+  "mind": "beast",
+  "cleverShare": 0,
+  "living": "wild",
+  "habitat": [
+    "plains",
+    "valley"
+  ],
+  "climate": "any",
+  "temperament": {
+    "aggression": 0.1,
+    "greed": 0.1,
+    "sociability": 0.8,
+    "xenophobia": 0.5
+  },
+  "creature": "horse",
+  "sizeClass": 2,
+  "stances": {}
+}

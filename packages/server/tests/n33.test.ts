@@ -375,7 +375,9 @@ describe("N33 step 4: news enters with people", () => {
     advanceWorld(w.realm, w.store, w.realm.day + 14, { live: w.live });
     for (const [site, heard] of Object.entries(w.realm.heard)) {
       if (!heard[n.id] || site === origin.id || w.store.people.livingCount(site) < 5) continue;
-      expect(w.store.knowledge.holders(newsRef(n.id)).some((r) => w.store.people.get(r.who)!.site === site)).toBe(true);
+      // A place that heard it on the last day (a traveller arriving after its people's day) tells its people the next day.
+      if (heard[n.id]![0] >= w.realm.day) continue;
+      expect(w.store.knowledge.holders(newsRef(n.id)).some((r) => w.store.people.get(r.who)!.site === site), site).toBe(true);
     }
   });
 });

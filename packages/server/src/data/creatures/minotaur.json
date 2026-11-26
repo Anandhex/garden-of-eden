@@ -1,0 +1,57 @@
+{
+  "id": "minotaur",
+  "name": "minotaur",
+  "species": "minotaur",
+  "tier": "D",
+  "potential": [
+    "D",
+    "A"
+  ],
+  "ageRange": [
+    15,
+    55
+  ],
+  "stats": {
+    "maxHp": 75,
+    "maxMp": 0,
+    "attributes": {
+      "strength": 18,
+      "agility": 10,
+      "endurance": 17,
+      "intelligence": 7,
+      "willpower": 13,
+      "charisma": 5,
+      "perception": 10,
+      "luck": 10
+    }
+  },
+  "skills": {
+    "two_handed": 3,
+    "unarmed": 2,
+    "intimidation": 3
+  },
+  "attack": {
+    "name": "horns",
+    "die": 10,
+    "skill": "unarmed"
+  },
+  "fleeAt": 0.15,
+  "loot": [],
+  "barks": {
+    "idle": [
+      "*a snort echoes down the passage*"
+    ],
+    "attack": [
+      "*lowers its horns and charges*"
+    ],
+    "hurt": [
+      "*bellows*"
+    ],
+    "flee": [
+      "*thunders off into the dark*"
+    ]
+  },
+  "aggressive": true,
+  "hunts": [],
+  "rivalry": 0.05
+}

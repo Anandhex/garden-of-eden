@@ -14,6 +14,7 @@ import { loadGames } from "../src/game/leisure/games.js";
 import { loadTemplates } from "../src/npc/templates.js";
 import { checkSpecies, loadSpecies } from "../src/game/nature/species.js";
 import { loadCreatureTemplates } from "../src/game/creatures.js";
+import { checkPeoples, loadPeoples } from "../src/world/species.js";
 import { generatedCast } from "./generated.js";
 
 let failed = false;
@@ -39,6 +40,17 @@ try {
   for (const b of bad) console.error(b);
   if (bad.length > 0) failed = true;
   else console.log(`Species: ${Object.keys(book.animals).length} animals, ${Object.keys(book.plants).length} plants`);
+} catch (err) {
+  failed = true;
+  console.error((err as Error).message);
+}
+// Peoples and animals (N54 Part A): every file parses, stances point at real peoples, fight templates exist.
+try {
+  const peoples = loadPeoples();
+  const bad = checkPeoples(peoples, Object.keys(loadCreatureTemplates()));
+  for (const b of bad) console.error(b);
+  if (bad.length > 0) failed = true;
+  else console.log(`Peoples: ${peoples.length} (${peoples.filter((p) => p.mind !== "beast").length} who talk)`);
 } catch (err) {
   failed = true;
   console.error((err as Error).message);

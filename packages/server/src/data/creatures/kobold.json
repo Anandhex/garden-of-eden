@@ -1,0 +1,61 @@
+{
+  "id": "kobold",
+  "name": "kobold",
+  "species": "kobold",
+  "tier": "F",
+  "potential": [
+    "F",
+    "D"
+  ],
+  "ageRange": [
+    6,
+    22
+  ],
+  "stats": {
+    "maxHp": 14,
+    "maxMp": 0,
+    "attributes": {
+      "strength": 6,
+      "agility": 14,
+      "endurance": 8,
+      "intelligence": 9,
+      "willpower": 7,
+      "charisma": 6,
+      "perception": 13,
+      "luck": 10
+    }
+  },
+  "skills": {
+    "one_handed": 1,
+    "evasion": 2,
+    "sneak": 3
+  },
+  "attack": {
+    "name": "spear",
+    "die": 4,
+    "skill": "one_handed"
+  },
+  "fleeAt": 0.5,
+  "loot": [],
+  "money": [
+    "2 copper",
+    "2 silver"
+  ],
+  "barks": {
+    "idle": [
+      "*yipping in the tunnels*"
+    ],
+    "attack": [
+      "For the great wyrm!"
+    ],
+    "hurt": [
+      "*yelps*"
+    ],
+    "flee": [
+      "Back to the warren!"
+    ]
+  },
+  "aggressive": true,
+  "hunts": [],
+  "rivalry": 0.05
+}

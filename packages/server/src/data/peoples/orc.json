@@ -1,0 +1,45 @@
+{
+  "id": "orc",
+  "name": "an orc",
+  "body": {
+    "size": "medium",
+    "strength": 14,
+    "toughness": 13,
+    "adultAge": 12,
+    "elderAge": 40,
+    "maxAge": 65,
+    "maxTier": "SS",
+    "learnRate": 1.3
+  },
+  "mind": "reasoning",
+  "cleverShare": 1,
+  "living": "settled",
+  "habitat": [
+    "hills",
+    "plains"
+  ],
+  "climate": "any",
+  "temperament": {
+    "aggression": 0.8,
+    "greed": 0.6,
+    "sociability": 0.6,
+    "xenophobia": 0.7
+  },
+  "culture": "steppe",
+  "magic": "blood",
+  "sizeClass": 1,
+  "economy": {
+    "breed": 1.4,
+    "farm": 1
+  },
+  "speech": "plainly and loudly, prizing strength",
+  "stances": {
+    "dwarf": -60,
+    "elf": -70,
+    "frost_giant": 20,
+    "goblin": 10,
+    "hill_giant": 20,
+    "human": -30,
+    "stone_giant": 20
+  }
+}

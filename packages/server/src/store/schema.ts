@@ -362,4 +362,10 @@ export function applySchema(db: DatabaseSync, wal: boolean): void {
     MIGRATIONS[version - 1]!(db);
     db.exec(`PRAGMA user_version = ${version + 1}`);
   }
+  // Speed only (no version step: an index changes no data). A place's dead by day of death, the exact expression `diedAt` reads, so
+  // the daily look at the recent dead doesn't parse every death record the place ever had.
+  db.exec(`CREATE INDEX IF NOT EXISTS people_dead_day ON people(site, (${DEATH_DAY})) WHERE death IS NOT NULL`);
 }
+
+/** A death record's day, in SQL (-1 if it has none): shared by the index above and `PeopleStore.diedAt`. */
+export const DEATH_DAY = "CASE WHEN json_valid(death) THEN COALESCE(json_extract(death, '$.day'), -1) ELSE -1 END";

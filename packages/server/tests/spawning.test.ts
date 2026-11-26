@@ -46,8 +46,8 @@ describe("spawn rule files", () => {
     expect(() => parseSpawnRules({ rules: [{ id: "a", creature: "wolf", count: 1, colour: "red" }] })).toThrow();
     const r = { id: "a", creature: "wolf", count: 1 };
     expect(() => parseSpawnRules({ rules: [r, r] })).toThrow(/duplicate/);
-    expect(badSpawnRules([{ id: "x", creature: "dragon", count: 1, place: "moon" }], templates, ["woods_edge"])).toEqual([
-      'x: no creature "dragon"',
+    expect(badSpawnRules([{ id: "x", creature: "unicorn", count: 1, place: "moon" }], templates, ["woods_edge"])).toEqual([
+      'x: no creature "unicorn"',
       'x: no place "moon"',
     ]);
   });

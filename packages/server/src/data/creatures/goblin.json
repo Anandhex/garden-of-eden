@@ -1,0 +1,69 @@
+{
+  "id": "goblin",
+  "name": "goblin",
+  "species": "goblin",
+  "tier": "F",
+  "potential": [
+    "F",
+    "C"
+  ],
+  "ageRange": [
+    8,
+    28
+  ],
+  "stats": {
+    "maxHp": 18,
+    "maxMp": 0,
+    "attributes": {
+      "strength": 8,
+      "agility": 14,
+      "endurance": 9,
+      "intelligence": 9,
+      "willpower": 7,
+      "charisma": 6,
+      "perception": 12,
+      "luck": 10
+    }
+  },
+  "skills": {
+    "one_handed": 1,
+    "evasion": 2,
+    "sneak": 3
+  },
+  "attack": {
+    "name": "rusty knife",
+    "die": 4,
+    "skill": "one_handed"
+  },
+  "fleeAt": 0.45,
+  "loot": [],
+  "money": [
+    "3 copper",
+    "4 silver"
+  ],
+  "barks": {
+    "idle": [
+      "*sniggering in the rocks*",
+      "Shiny, shiny..."
+    ],
+    "attack": [
+      "Stab it! Stab it!",
+      "Mine now!"
+    ],
+    "hurt": [
+      "Ow! Not fair!"
+    ],
+    "flee": [
+      "Run! Run!"
+    ]
+  },
+  "aggressive": true,
+  "hunts": [
+    {
+      "activity": "stealing from a hen house",
+      "rank": "F",
+      "chance": 0.3
+    }
+  ],
+  "rivalry": 0.05
+}

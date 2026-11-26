@@ -1,0 +1,56 @@
+{
+  "id": "harpy",
+  "name": "harpy",
+  "species": "harpy",
+  "tier": "E",
+  "potential": [
+    "E",
+    "B"
+  ],
+  "ageRange": [
+    6,
+    28
+  ],
+  "stats": {
+    "maxHp": 24,
+    "maxMp": 0,
+    "attributes": {
+      "strength": 8,
+      "agility": 15,
+      "endurance": 9,
+      "intelligence": 8,
+      "willpower": 9,
+      "charisma": 10,
+      "perception": 14,
+      "luck": 10
+    }
+  },
+  "skills": {
+    "unarmed": 2,
+    "evasion": 3
+  },
+  "attack": {
+    "name": "talons",
+    "die": 6,
+    "skill": "unarmed"
+  },
+  "fleeAt": 0.4,
+  "loot": [],
+  "barks": {
+    "idle": [
+      "*a shrill song from the cliffs*"
+    ],
+    "attack": [
+      "*shrieks and dives*"
+    ],
+    "hurt": [
+      "*screeches*"
+    ],
+    "flee": [
+      "*wheels away on the wind*"
+    ]
+  },
+  "aggressive": true,
+  "hunts": [],
+  "rivalry": 0.05
+}

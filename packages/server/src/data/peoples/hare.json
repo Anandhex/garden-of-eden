@@ -1,0 +1,31 @@
+{
+  "id": "hare",
+  "name": "a hare",
+  "body": {
+    "size": "tiny",
+    "strength": 2,
+    "toughness": 3,
+    "adultAge": 1,
+    "elderAge": 4,
+    "maxAge": 7,
+    "maxTier": "G",
+    "learnRate": 0.8
+  },
+  "mind": "beast",
+  "cleverShare": 0,
+  "living": "wild",
+  "habitat": [
+    "plains",
+    "valley"
+  ],
+  "climate": "any",
+  "temperament": {
+    "aggression": 0.0,
+    "greed": 0.0,
+    "sociability": 0.3,
+    "xenophobia": 0.5
+  },
+  "creature": "hare",
+  "sizeClass": 1,
+  "stances": {}
+}

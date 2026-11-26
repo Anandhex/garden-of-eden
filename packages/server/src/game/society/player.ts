@@ -16,6 +16,7 @@ import { forbiddenHere, giftOf, rollGift, schoolById, spellById, spells } from "
 import { formatMoney } from "../money.js";
 import type { LifeCtx } from "../people/step.js";
 import { peoplesOf } from "../peoples/generate.js";
+import { BEFRIEND_CAP, befriendPeople, peopleReputeOf } from "../peoples/repute.js";
 import type { SavedWorld } from "../save.js";
 import type { SecretData } from "../secrets/model.js";
 import { blackmailBy, exposeBy, pry, secretsOfPlayer, sellSecret } from "../secrets/player.js";
@@ -23,7 +24,8 @@ import { comeHome, escapeSlavery, helperFor, recoverPack } from "../setback/setb
 import { CLAIM_WEIGHT, frame, payVoice, playerPlants } from "../shaping/rumours.js";
 import { blackMarket, buyBlack, informOn, joinGuild, trusted } from "../thieves/day.js";
 import { denOf, guildAt } from "../thieves/guilds.js";
-import { enlist, peekArmies, type SoldierData } from "../war/armies.js";
+import { enlist, peekArmies, RANK_AT, RANKS, type SoldierData } from "../war/armies.js";
+import { policyAt } from "../realm/policy.js";
 
 /**
  * Society in play (N70): every player action of N46–N55 behind one `society` action (`act` with `op` and its arguments), offered only
@@ -336,6 +338,17 @@ export function societyAct(h: SocietyHost, op: string, args: Record<string, unkn
       const lines = enlist(realm, p, k, day);
       return res(lines, !!p.society?.army);
     }
+    // ---- Peoples (N54 D3) ----
+    case "befriend": {
+      if (!config.society.peoples) return res(["There's nobody of another people here."], false);
+      const sp = String(args.species ?? "");
+      const here = (peoplesOf(realm)?.residents ?? []).filter((x) => x.site === site && x.species === sp && ctx.store?.people.get(x.id)?.death === null);
+      if (here.length === 0) return res(["There's nobody of that people living here."], false);
+      const before = peopleReputeOf(p)[sp] ?? 0;
+      const after = befriendPeople(p, sp);
+      const who = ctx.store!.people.get(here[0]!.id)!;
+      return { ok: true, lines: [after > before ? `You pass an hour with ${who.name} and their neighbours. They'll speak well of you to their own kind.` : `${who.name} is glad of the company, but you're as well thought of among their people as an hour can make you.`], hours: 1 };
+    }
     // ---- A setback's chapter (N49) ----
     case "escape": {
       if (p.chapter?.kind !== "slave") return res(["You're nobody's slave."], false);
@@ -548,7 +561,14 @@ export function societyView(h: SocietyHost, npcIds: string[]): SocietyView | nul
     });
   }
   const army = p.society?.army as { army: string; rank: string; joined: number } | undefined;
-  if (army) me.push({ text: `On the roll of ${army.army.split(":").at(-1) ? (realm.kingdoms[army.army.split(":").at(-1)!]?.name ?? "the crown") : "the crown"}'s army, a ${army.rank}, since day ${army.joined}.` });
+  if (army) {
+    // The player rises as a soldier does (N55 decision 8): by the army's battles lived through since they joined.
+    const w = realm.wars.find((x) => x.id === (army as { war?: string }).war);
+    const fought = w ? w.battles.filter((b) => b.day > army.joined).length : 0;
+    let rank = army.rank;
+    for (const r of RANKS) if (RANKS.indexOf(r) > RANKS.indexOf(rank as (typeof RANKS)[number]) && fought >= RANK_AT[r]) rank = r;
+    me.push({ text: `On the roll of ${army.army.split(":").at(-1) ? (realm.kingdoms[army.army.split(":").at(-1)!]?.name ?? "the crown") : "the crown"}'s army, a ${rank}, since day ${army.joined}${fought > 0 ? `; ${fought} battle${fought === 1 ? "" : "s"} lived through` : ""}${w?.end !== undefined ? ". The war is over: you may go home" : ""}.` });
+  }
   const guild = p.society?.guild as { id: string; rank: string } | undefined;
   if (guild) me.push({ text: `Of ${realm.factions[guild.id]?.name ?? "a thieves' guild"}, a ${guild.rank}.` });
   if (me.length > 0) sections.push({ title: "You", rows: me });
@@ -612,12 +632,20 @@ export function societyView(h: SocietyHost, npcIds: string[]): SocietyView | nul
       if (a && k) {
         const w = realm.wars.find((x) => x.id === a.war);
         const levied = store.records.listAt<SoldierData>("soldier", site, (s) => s.data.war === a.war).length;
-        place.push({ text: `${realm.kingdoms[k]?.name ?? "The crown"} is at war${w ? ` (${w.cause})` : ""}. ${name} owes ${a.levy[site] ?? 0} to the levy and has sent ${levied}.`, actions: [btn("enlist", "Enlist", "enlist", { enabled: !held && !army, why: army ? "You're already on the roll" : "A soldier, who rises with the battles they live through", danger: true })] });
+        const heavy = policyAt(realm, site, "levy", day) === "heavy";
+        place.push({ text: `${realm.kingdoms[k]?.name ?? "The crown"} is at war${w ? ` (${w.cause})` : ""}. ${name} owes ${a.levy[site] ?? 0} to the levy and has sent ${levied}.${heavy && !army ? " The levy is heavy here: a summons is read out in the square, and those it names who stay home answer to the law." : ""}`, actions: [btn("enlist", "Enlist", "enlist", { enabled: !held && !army, why: army ? "You're already on the roll" : "A soldier, who rises with the battles they live through", danger: true })] });
       }
     }
     if (packHere(h)) place.push({ text: "What you carried when you fell still lies here.", actions: [btn("recover", "Take it back", "recover")] });
     const residents = (peoplesOf(realm)?.residents ?? []).filter((x) => x.site === site);
-    if (residents.length > 0) place.push({ text: `Living here among the people: ${residents.length} of other kinds (${[...new Set(residents.map((x) => x.species))].join(", ")}).` });
+    if (residents.length > 0) {
+      const kinds = [...new Set(residents.map((x) => x.species))].sort();
+      const rep = peopleReputeOf(p);
+      place.push({
+        text: `Living here among the people: ${residents.length} of other kinds (${kinds.map((k) => `${k.replace(/_/g, " ")}${rep[k] ? `, who think ${rep[k]! > 0 ? "well" : "ill"} of you (${rep[k]})` : ""}`).join("; ")}).`,
+        actions: kinds.map((k) => btn(`befriend:${k}`, `Spend an hour with the ${k.replace(/_/g, " ")}s`, "befriend", { args: { species: k }, enabled: !held && (rep[k] ?? 0) < BEFRIEND_CAP, why: (rep[k] ?? 0) >= BEFRIEND_CAP ? "They already count you a friend" : "Their people will hear of it" })),
+      });
+    }
     if (place.length > 0) sections.push({ title: `Among the people of ${name}`, rows: place });
   }
 

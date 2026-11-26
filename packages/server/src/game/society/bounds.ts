@@ -100,15 +100,20 @@ export function checkSocietyBounds(realm: Realm, store: WorldStore): SocietyBoun
   // ---- N54 ----
   const peoples = peoplesOf(realm);
   if (peoples) {
-    const homes = [peoples.warren, peoples.herd].filter((x): x is string => !!x).map((id) => realm.settlements[id]).filter((x) => !!x);
+    // Every home of another people that's a place (B1 adds one per settled, hive or wandering people), and every crown of theirs.
+    const homes = [peoples.warren, peoples.herd, ...Object.values(peoples.placed?.settlements ?? {}).flat()].filter((x): x is string => !!x).map((id) => realm.settlements[id]).filter((x) => !!x);
     const gone = homes.filter((x) => x!.abandoned || x!.population <= 0);
-    const crowns = [peoples.orcs, peoples.dwarves].filter((x): x is string => !!x).map((id) => realm.kingdoms[id]).filter((x) => !!x);
+    const crowns = [peoples.orcs, peoples.dwarves, ...Object.values(peoples.placed?.kingdoms ?? {})].filter((x): x is string => !!x).map((id) => realm.kingdoms[id]).filter((x) => !!x);
     const fallen = crowns.filter((k) => k!.fallen);
     out.push({ name: "peoples-survive", phase: "N54", ok: gone.length === 0 && fallen.length < Math.max(1, crowns.length), detail: `${gone.length} of ${homes.length} homes of other peoples emptied; ${fallen.length} of ${crowns.length} of their crowns fallen` });
     const burns = (realm.news ?? []).filter((n) => n.kind === "dragon" && /burned/.test(n.text));
-    const bySeason = new Map<number, number>();
-    for (const n of burns) bySeason.set(Math.floor(n.day / seasonDays()), (bySeason.get(Math.floor(n.day / seasonDays())) ?? 0) + 1);
-    out.push({ name: "dragon-burns-rarely", phase: "N54", ok: Math.max(0, ...bySeason.values()) <= 1, detail: `${burns.length} places burned by a dragon in the news kept, at most ${Math.max(0, ...bySeason.values())} in a season` });
+    const bySeason = new Map<string, number>();
+    // Per dragon (a large realm has up to three): at most one place burned a season by any one of them.
+    for (const n of burns) {
+      const key = `${Math.floor(n.day / seasonDays())}:${n.text.split(" the dragon")[0]}`;
+      bySeason.set(key, (bySeason.get(key) ?? 0) + 1);
+    }
+    out.push({ name: "dragon-burns-rarely", phase: "N54", ok: Math.max(0, ...bySeason.values()) <= 1, detail: `${burns.length} places burned by a dragon in the news kept, at most ${Math.max(0, ...bySeason.values())} by one dragon in a season` });
   }
   // ---- N55 ----
   const over: string[] = [];

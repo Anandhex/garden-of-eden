@@ -65,6 +65,21 @@ export function outlookOf(row: Pick<PersonRow, "outlook">): Outlook {
   }
 }
 
+const moods = new Map<string, number>();
+/**
+ * Just the mood of a row's outlook (chatter reads it for everyone in every exchange): parsed once per distinct outlook text, the same
+ * number `outlookOf(row).mood` gives.
+ */
+export function moodOf(row: Pick<PersonRow, "outlook">): number {
+  if (!row.outlook) return BLANK_OUTLOOK.mood;
+  const hit = moods.get(row.outlook);
+  if (hit !== undefined) return hit;
+  const mood = outlookOf(row).mood;
+  if (moods.size > 50_000) moods.clear();
+  moods.set(row.outlook, mood);
+  return mood;
+}
+
 /** The numbers of a townsperson's review, in one place. */
 export const OUTLOOK = {
   /** Share of the gap to what their close people think that one review closes, the least gap that pulls, and the most it moves. */

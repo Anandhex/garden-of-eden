@@ -139,7 +139,9 @@ describe("N30 step 3: the farming year", () => {
     const b = stormy.settlements[id]!.harvest!;
     expect(b.share!).toBeLessThan(a.share!);
     expect(b.yield).toBe("poor");
-    expect(stormy.news.some((n) => n.kind === "harvest" && n.at === id && n.text.includes("poor"))).toBe(true);
+    // Any place's poor-harvest news: with every people placed (N54 Part B) a stormy autumn gives ~50 poor harvests on one day, and the
+    // 200-line news cap can drop this village's own line among them.
+    expect(stormy.news.some((n) => n.kind === "harvest" && n.text.includes("poor"))).toBe(true);
   });
 
   it("the harvest is judged only on the first day of winter", () => {

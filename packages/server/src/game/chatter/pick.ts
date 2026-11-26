@@ -27,6 +27,12 @@ export interface PickIn {
   hateYofX: number;
   /** Close kin: they quarrel less. */
   kin: boolean;
+  /**
+   * N54: how far each one's people look down on the other's (0..1, from the peoples' stances; 0 between two of the same people). A bigoted
+   * human sneers at a goblin more often; a tolerant one (a people they like) adds nothing.
+   */
+  prejudiceXofY?: number;
+  prejudiceYofX?: number;
   /** Others who can see them. */
   witnesses: number;
   /** Evening at the inn: drink loosens tongues. */
@@ -65,7 +71,7 @@ const isMasterOf = (m: Party, s: Party) => s.row.master_id === m.row.id;
 export function pickInteraction(p: PickIn, rng: Rng): Picked {
   const { x, y } = p;
   const H = HOSTILITY;
-  const side = (who: Party) => (who === x ? { view: p.viewXofY, hate: p.hateXofY, owed: p.hateYofX } : { view: p.viewYofX, hate: p.hateYofX, owed: p.hateXofY });
+  const side = (who: Party) => (who === x ? { view: p.viewXofY, hate: p.hateXofY, owed: p.hateYofX, scorn: p.prejudiceXofY ?? 0 } : { view: p.viewYofX, hate: p.hateYofX, owed: p.hateXofY, scorn: p.prejudiceYofX ?? 0 });
   const out = (actor: Party, kind: InteractionKind): Picked => ({ actor, target: actor === x ? y : x, kind });
   const fam = p.kin ? H.kin : 1;
 
@@ -98,7 +104,7 @@ export function pickInteraction(p: PickIn, rng: Rng): Picked {
 
   // The higher one's temper, pride and old scores.
   const dislikeHi = clamp01(Math.max(0, -warmth(hs.view)) / 100);
-  const pDown = fam * (H.base + H.temper * hi.t.temper + H.prideGap * hi.t.pride * gap + H.dislike * dislikeHi + H.grievance * hs.hate + (angry(hi.t) ? H.angry : 0) + (p.drink ? H.drink : 0));
+  const pDown = fam * (H.base + H.temper * hi.t.temper + H.prideGap * hi.t.pride * gap + H.dislike * dislikeHi + H.grievance * (hs.hate + hs.scorn) + (angry(hi.t) ? H.angry : 0) + (p.drink ? H.drink : 0));
   if (rng() < pDown) {
     const sev = rng();
     if (hs.hate >= 0.4 && sev < 0.15) return out(hi, "threaten");
@@ -116,7 +122,7 @@ export function pickInteraction(p: PickIn, rng: Rng): Picked {
     const pBow = fam * (r.base + r.grievance * ls.hate + r.scorn * scornLo + r.bold * lo.t.bravery + (angry(lo.t) ? r.angry : 0)) * cowed;
     if (rng() < pBow) return out(lo, "refuse_bow");
   }
-  const pUp = fam * H.upward * (H.base + H.temper * lo.t.temper + H.dislike * dislikeLo + H.grievance * ls.hate + (angry(lo.t) ? H.angry : 0) + (p.drink ? H.drink : 0)) * bold * cowed;
+  const pUp = fam * H.upward * (H.base + H.temper * lo.t.temper + H.dislike * dislikeLo + H.grievance * (ls.hate + ls.scorn) + (angry(lo.t) ? H.angry : 0) + (p.drink ? H.drink : 0)) * bold * cowed;
   if (rng() < pUp) return out(lo, rng() < 0.4 ? "insult" : "sneer");
 
   // Courtesy.

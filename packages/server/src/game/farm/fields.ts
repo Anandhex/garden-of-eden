@@ -31,7 +31,17 @@ export function plotsOf(realm: Realm, s: Settlement, day: number): Plot[] {
 /** The first `n` plots of a place's layout (the people may have fallen since the land was cleared: it stays cleared). */
 function layoutOfCount(realm: Realm, s: Settlement, n: number): Plot[] {
   const k = (PER_HEAD[s.terrain] ?? 0.4) * (1 + 0.15 * (s.buildings.farms ?? 0));
-  return fieldsOf({ site: s.id, terrain: s.terrain, population: Math.max(1, Math.ceil(n / k)), farms: s.buildings.farms ?? 0, kind: s.kind }, roadDataOf(realm)).slice(0, n);
+  // Laid out for a little more than it needs, by steps of half again, and cut to `n`: the layout is greedy, ring by ring, so its first
+  // `n` plots are the same whatever it was asked for beyond them, and a growing place doesn't lay out all its land again at every step.
+  const room = layoutStep(n);
+  return fieldsOf({ site: s.id, terrain: s.terrain, population: Math.max(1, Math.ceil(room / k)), farms: s.buildings.farms ?? 0, kind: s.kind }, roadDataOf(realm)).slice(0, n);
+}
+
+/** The step of plots a layout is made for: 6, 9, 14, 21, 32, 48, … (half again each time). */
+export function layoutStep(n: number): number {
+  let step = 6;
+  while (step < n) step = Math.ceil(step * 1.5);
+  return step;
 }
 
 /** The living people of a place, grouped by household, the ones that farm marked. */

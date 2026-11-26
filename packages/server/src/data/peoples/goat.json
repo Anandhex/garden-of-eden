@@ -1,0 +1,30 @@
+{
+  "id": "goat",
+  "name": "a wild goat",
+  "body": {
+    "size": "small",
+    "strength": 7,
+    "toughness": 8,
+    "adultAge": 1,
+    "elderAge": 9,
+    "maxAge": 15,
+    "maxTier": "F",
+    "learnRate": 0.8
+  },
+  "mind": "beast",
+  "cleverShare": 0,
+  "living": "wild",
+  "habitat": [
+    "hills"
+  ],
+  "climate": "any",
+  "temperament": {
+    "aggression": 0.1,
+    "greed": 0.0,
+    "sociability": 0.7,
+    "xenophobia": 0.5
+  },
+  "creature": "goat",
+  "sizeClass": 1,
+  "stances": {}
+}

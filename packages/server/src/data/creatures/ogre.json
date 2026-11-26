@@ -1,0 +1,59 @@
+{
+  "id": "ogre",
+  "name": "ogre",
+  "species": "ogre",
+  "tier": "D",
+  "potential": [
+    "D",
+    "A"
+  ],
+  "ageRange": [
+    15,
+    55
+  ],
+  "stats": {
+    "maxHp": 70,
+    "maxMp": 0,
+    "attributes": {
+      "strength": 19,
+      "agility": 7,
+      "endurance": 17,
+      "intelligence": 5,
+      "willpower": 10,
+      "charisma": 4,
+      "perception": 8,
+      "luck": 10
+    }
+  },
+  "skills": {
+    "blunt": 3,
+    "unarmed": 2,
+    "intimidation": 3
+  },
+  "attack": {
+    "name": "great club",
+    "die": 10,
+    "skill": "blunt"
+  },
+  "fleeAt": 0.15,
+  "loot": [],
+  "barks": {
+    "idle": [
+      "*a heavy, wet snore*",
+      "Smell... meat."
+    ],
+    "attack": [
+      "SMASH!",
+      "*roars and swings*"
+    ],
+    "hurt": [
+      "*bellows in pain*"
+    ],
+    "flee": [
+      "*lumbers away*"
+    ]
+  },
+  "aggressive": true,
+  "hunts": [],
+  "rivalry": 0.1
+}

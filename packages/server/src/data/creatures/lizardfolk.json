@@ -1,0 +1,56 @@
+{
+  "id": "lizardfolk",
+  "name": "lizardfolk",
+  "species": "lizardfolk",
+  "tier": "E",
+  "potential": [
+    "E",
+    "A"
+  ],
+  "ageRange": [
+    10,
+    45
+  ],
+  "stats": {
+    "maxHp": 36,
+    "maxMp": 0,
+    "attributes": {
+      "strength": 12,
+      "agility": 11,
+      "endurance": 13,
+      "intelligence": 9,
+      "willpower": 11,
+      "charisma": 6,
+      "perception": 12,
+      "luck": 10
+    }
+  },
+  "skills": {
+    "one_handed": 2,
+    "evasion": 1
+  },
+  "attack": {
+    "name": "bone spear",
+    "die": 6,
+    "skill": "one_handed"
+  },
+  "fleeAt": 0.3,
+  "loot": [],
+  "barks": {
+    "idle": [
+      "*a hiss among the reeds*"
+    ],
+    "attack": [
+      "*hisses and strikes*"
+    ],
+    "hurt": [
+      "*a sharp rasp*"
+    ],
+    "flee": [
+      "*slides into the water*"
+    ]
+  },
+  "aggressive": false,
+  "hunts": [],
+  "rivalry": 0.05
+}

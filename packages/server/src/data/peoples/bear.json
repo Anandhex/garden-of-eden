@@ -1,0 +1,31 @@
+{
+  "id": "bear",
+  "name": "a bear",
+  "body": {
+    "size": "large",
+    "strength": 17,
+    "toughness": 16,
+    "adultAge": 4,
+    "elderAge": 20,
+    "maxAge": 32,
+    "maxTier": "A",
+    "learnRate": 0.9
+  },
+  "mind": "beast",
+  "cleverShare": 0,
+  "living": "wild",
+  "habitat": [
+    "forest",
+    "hills"
+  ],
+  "climate": "any",
+  "temperament": {
+    "aggression": 0.5,
+    "greed": 0.3,
+    "sociability": 0.1,
+    "xenophobia": 0.5
+  },
+  "creature": "bear",
+  "sizeClass": 2,
+  "stances": {}
+}

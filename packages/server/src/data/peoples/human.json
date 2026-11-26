@@ -1,0 +1,41 @@
+{
+  "id": "human",
+  "name": "a human",
+  "body": {
+    "size": "medium",
+    "strength": 10,
+    "toughness": 10,
+    "adultAge": 16,
+    "elderAge": 60,
+    "maxAge": 95,
+    "maxTier": "SSS",
+    "learnRate": 1
+  },
+  "mind": "reasoning",
+  "cleverShare": 1,
+  "living": "settled",
+  "habitat": [
+    "valley",
+    "plains",
+    "coast",
+    "forest",
+    "hills",
+    "marsh"
+  ],
+  "climate": "any",
+  "temperament": {
+    "aggression": 0.4,
+    "greed": 0.5,
+    "sociability": 0.7,
+    "xenophobia": 0.4
+  },
+  "culture": "river",
+  "sizeClass": 1,
+  "stances": {
+    "dragon": -60,
+    "dwarf": 20,
+    "elf": 10,
+    "goblin": -30,
+    "orc": -30
+  }
+}

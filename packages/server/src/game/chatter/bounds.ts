@@ -54,7 +54,8 @@ export function checkChatterBounds(realm: Realm, store: Pick<WorldStore, "social
   const season = seasonDays();
   const revenge = store.dumpTable("events").filter((e) => isVendettaEvent(String(e.id)) && Number(e.day) > day - season);
   const bySite = new Map<string, number>();
-  for (const e of revenge) bySite.set(String(e.site), (bySite.get(String(e.site)) ?? 0) + (String(e.kind) === "new-goal" ? 0 : 1));
+  // Carried out: not the vow (`new-goal`), and not a hired plot that came to nothing (`revenge`: nobody was touched).
+  for (const e of revenge) bySite.set(String(e.site), (bySite.get(String(e.site)) ?? 0) + (String(e.kind) === "new-goal" || String(e.kind) === "revenge" ? 0 : 1));
   let worst = "";
   let over = 0;
   for (const [site, n] of bySite) {

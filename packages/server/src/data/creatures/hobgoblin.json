@@ -1,0 +1,63 @@
+{
+  "id": "hobgoblin",
+  "name": "hobgoblin",
+  "species": "hobgoblin",
+  "tier": "E",
+  "potential": [
+    "E",
+    "B"
+  ],
+  "ageRange": [
+    12,
+    40
+  ],
+  "stats": {
+    "maxHp": 34,
+    "maxMp": 0,
+    "attributes": {
+      "strength": 13,
+      "agility": 11,
+      "endurance": 13,
+      "intelligence": 10,
+      "willpower": 12,
+      "charisma": 7,
+      "perception": 11,
+      "luck": 10
+    }
+  },
+  "skills": {
+    "one_handed": 2,
+    "evasion": 1,
+    "intimidation": 2
+  },
+  "attack": {
+    "name": "notched blade",
+    "die": 6,
+    "skill": "one_handed"
+  },
+  "fleeAt": 0.3,
+  "loot": [],
+  "money": [
+    "1 silver",
+    "1 gold"
+  ],
+  "barks": {
+    "idle": [
+      "Form up.",
+      "*the clink of drilled mail*"
+    ],
+    "attack": [
+      "For the warband!",
+      "Hold the line!"
+    ],
+    "hurt": [
+      "Hngh."
+    ],
+    "flee": [
+      "Fall back! Regroup!"
+    ]
+  },
+  "aggressive": true,
+  "hunts": [],
+  "rivalry": 0.05
+}

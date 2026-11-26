@@ -1,54 +1,126 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { z } from "zod";
 import { ITEM_TIERS, type ItemTier } from "../game/items.js";
 
 /**
- * The peoples and animals of the world. Every NPC and creature belongs to one.
- * Species set how long a life lasts and how far its members can grow; the
- * individual's own stats live in its NPC or creature file.
+ * The peoples and animals of the world (N54 Part A). Every NPC and creature belongs to one. Each is a data file,
+ * `data/peoples/<id>.json`: body and life (size, strength, toughness, age bands, rank limit, learning), mind (`beast`,
+ * `cunning` or `reasoning`, and for beast and cunning kinds the share of individuals clever enough to talk), how it
+ * lives (settled, nomadic, solitary, on a hoard, in a hive, or wild for plain animals), where (terrains, a climate band,
+ * under the mountains), temperament, an N53 culture template, an N51 school, a fight template for when one is met, a
+ * size class for maps, a word list for names, and a stance toward each other people.
  *
- * Ages are in years. See config.daysPerYear for how fast a year passes.
+ * Ages are in years. See config.daysPerYear for how fast a year passes. The individual's own stats live in its NPC or
+ * creature file.
  */
+const TIER = z.enum(ITEM_TIERS as unknown as [ItemTier, ...ItemTier[]]);
+const unit = z.number().min(0).max(1);
+export const SIZES = ["tiny", "small", "medium", "large", "huge", "gargantuan"] as const;
+export const MINDS = ["beast", "cunning", "reasoning"] as const;
+export const LIVINGS = ["settled", "nomadic", "solitary", "hoard", "hive", "wild"] as const;
+export const CLIMATES = ["any", "cold", "temperate", "warm"] as const;
+/** Terrains a people can call home: realm/types.ts TERRAINS (kept here as strings so this file stays a leaf). */
+const HABITATS = ["valley", "hills", "forest", "plains", "coast", "marsh"] as const;
+const CULTURES = ["highland", "river", "coastal", "forest", "steppe", "imperial"] as const;
+const SCHOOLS = ["healing", "fire", "water", "earth", "air", "illusion", "divination", "warding", "beast_speech", "growth", "necromancy", "blood"] as const;
+
+export const PeopleSchema = z
+  .object({
+    id: z.string().regex(/^[a-z_]+$/),
+    /** "a human", "an elf": for descriptions. */
+    name: z.string().min(1),
+    body: z
+      .object({
+        size: z.enum(SIZES),
+        strength: z.number().min(1).max(30),
+        toughness: z.number().min(1).max(30),
+        /** Age they count as grown (before this they're "young"). */
+        adultAge: z.number().min(0),
+        /** Age old age begins: stats start to fade and natural death becomes possible. */
+        elderAge: z.number().min(0),
+        /** Nobody of this species lives past this age. */
+        maxAge: z.number().min(1),
+        /** Highest rank any member can reach. */
+        maxTier: TIER,
+        /** XP multiplier: quick learners grow faster. */
+        learnRate: z.number().positive(),
+      })
+      .strict(),
+    mind: z.enum(MINDS),
+    /** The share of individuals clever enough to talk with anyone: 1 for most reasoning peoples, under 1 for dragons (the young ones). */
+    cleverShare: unit,
+    living: z.enum(LIVINGS),
+    habitat: z.array(z.enum(HABITATS)).min(1),
+    climate: z.enum(CLIMATES),
+    underMountain: z.boolean().optional(),
+    temperament: z.object({ aggression: unit, greed: unit, sociability: unit, xenophobia: unit }).strict(),
+    /** An N53 culture template (data/cultures/templates.json). Plain animals have none. */
+    culture: z.enum(CULTURES).optional(),
+    /** An N51 school their wise ones know. */
+    magic: z.enum(SCHOOLS).optional(),
+    /** A fight template in data/creatures/ for when one is met (checked by check-npcs). */
+    creature: z.string().optional(),
+    /** Map footprint in tiles a side: a giant is 2, a dragon 3. */
+    sizeClass: z.number().int().min(1).max(3),
+    /** How one of them talks, for a talker's persona (N54 D1): "quick and sly, and never says no outright". */
+    speech: z.string().min(1).optional(),
+    /** Names their people give (the invented-name check and new residents use them). */
+    names: z.array(z.string().min(1)).optional(),
+    /** How their own places live (N54 B3), against a human place's 1: how fast they breed, how much their fields give. */
+    economy: z.object({ breed: z.number().min(0.2).max(3), farm: z.number().min(0.2).max(2) }).strict().optional(),
+    /** How this people sees each other one, -100..100. Missing means 0. */
+    stances: z.record(z.string(), z.number().min(-100).max(100)),
+  })
+  .strict()
+  .superRefine((p, ctx) => {
+    if (!(p.body.adultAge < p.body.elderAge && p.body.elderAge < p.body.maxAge)) ctx.addIssue({ code: "custom", path: ["body"], message: "ages must run adult < elder < max" });
+    if (p.mind !== "beast" && !p.culture) ctx.addIssue({ code: "custom", path: ["culture"], message: "a people that talks needs a culture" });
+  });
+export type PeopleDef = z.infer<typeof PeopleSchema>;
+
+/** What life rules read of a species (game/life.ts, people rows, creatures). */
 export interface SpeciesDef {
-  /** "a human", "an elf": for descriptions. */
   name: string;
-  /** Can talk (and so can be a full LLM NPC). Animals can't. */
+  /** Can talk (and so can be a full LLM NPC). Animals and beast-minded peoples can't (their clever few aside). */
   talks: boolean;
-  /** Age they count as grown (before this they're "young"). */
   adultAge: number;
-  /** Age old age begins: stats start to fade and natural death becomes possible. */
   elderAge: number;
-  /** Nobody of this species lives past this age. */
   maxAge: number;
-  /** Highest rank any member can reach. */
   maxTier: ItemTier;
-  /** XP multiplier: quick learners grow faster. */
   learnRate: number;
 }
 
-export const SPECIES: Record<string, SpeciesDef> = {
-  // Peoples
-  human: { name: "a human", talks: true, adultAge: 16, elderAge: 60, maxAge: 95, maxTier: "SSS", learnRate: 1 },
-  elf: { name: "an elf", talks: true, adultAge: 30, elderAge: 500, maxAge: 750, maxTier: "SSS", learnRate: 0.6 },
-  dwarf: { name: "a dwarf", talks: true, adultAge: 25, elderAge: 200, maxAge: 320, maxTier: "SS", learnRate: 0.8 },
-  halfling: { name: "a halfling", talks: true, adultAge: 20, elderAge: 80, maxAge: 130, maxTier: "S", learnRate: 1 },
-  orc: { name: "an orc", talks: true, adultAge: 12, elderAge: 40, maxAge: 65, maxTier: "SS", learnRate: 1.3 },
-  // Animals
-  wolf: { name: "a wolf", talks: false, adultAge: 2, elderAge: 8, maxAge: 14, maxTier: "B", learnRate: 1.2 },
-  horse: { name: "a horse", talks: false, adultAge: 4, elderAge: 20, maxAge: 32, maxTier: "D", learnRate: 0.8 },
-  bear: { name: "a bear", talks: false, adultAge: 4, elderAge: 20, maxAge: 32, maxTier: "A", learnRate: 0.9 },
-  boar: { name: "a boar", talks: false, adultAge: 2, elderAge: 10, maxAge: 18, maxTier: "C", learnRate: 1.1 },
-  spider: { name: "a giant spider", talks: false, adultAge: 1, elderAge: 6, maxAge: 10, maxTier: "B", learnRate: 1.2 },
-  // Light wildlife (N26F decision 7): nobody's, drawn along the road and made a creature only when hunted.
-  deer: { name: "a deer", talks: false, adultAge: 2, elderAge: 10, maxAge: 18, maxTier: "F", learnRate: 0.8 },
-  hare: { name: "a hare", talks: false, adultAge: 1, elderAge: 4, maxAge: 7, maxTier: "G", learnRate: 0.8 },
-  fox: { name: "a fox", talks: false, adultAge: 1, elderAge: 6, maxAge: 10, maxTier: "F", learnRate: 0.9 },
-  adder: { name: "an adder", talks: false, adultAge: 2, elderAge: 10, maxAge: 18, maxTier: "F", learnRate: 0.7 },
-  heron: { name: "a heron", talks: false, adultAge: 2, elderAge: 12, maxAge: 20, maxTier: "G", learnRate: 0.7 },
-  crow: { name: "a crow", talks: false, adultAge: 1, elderAge: 8, maxAge: 14, maxTier: "G", learnRate: 0.8 },
-  // Fauna (N28): hunted on the hills, and tamed in the villages.
-  goat: { name: "a wild goat", talks: false, adultAge: 1, elderAge: 9, maxAge: 15, maxTier: "F", learnRate: 0.8 },
-  dog: { name: "a dog", talks: false, adultAge: 1, elderAge: 9, maxAge: 15, maxTier: "F", learnRate: 1 },
-};
+/** Reads every people file in a folder (sorted by file name: the order never depends on the disk). */
+export function loadPeoples(dir: URL = new URL("../data/peoples/", import.meta.url)): PeopleDef[] {
+  const out: PeopleDef[] = [];
+  for (const f of readdirSync(dir).filter((x) => x.endsWith(".json")).sort()) {
+    const r = PeopleSchema.safeParse(JSON.parse(readFileSync(new URL(f, dir), "utf8")));
+    if (!r.success) throw new Error(`data/peoples/${f}: ${r.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")}`);
+    if (`${r.data.id}.json` !== f) throw new Error(`data/peoples/${f}: id "${r.data.id}" doesn't match the file name`);
+    out.push(r.data);
+  }
+  return out;
+}
 
+/** Problems a loaded set has that one file can't show: stances toward unknown peoples, fight templates that don't exist. */
+export function checkPeoples(peoples: PeopleDef[], creatureIds: string[]): string[] {
+  const ids = new Set(peoples.map((p) => p.id));
+  const known = new Set(creatureIds);
+  const bad: string[] = [];
+  for (const p of peoples) {
+    for (const other of Object.keys(p.stances)) if (!ids.has(other)) bad.push(`data/peoples/${p.id}.json: a stance toward unknown people "${other}"`);
+    if (p.creature && !known.has(p.creature)) bad.push(`data/peoples/${p.id}.json: no fight template "${p.creature}" in data/creatures/`);
+    if (p.mind !== "beast" && !p.creature && p.id !== "human" && !["elf", "dwarf", "halfling", "orc"].includes(p.id)) bad.push(`data/peoples/${p.id}.json: a people met in the wild needs a fight template`);
+  }
+  return bad;
+}
+
+const ALL = loadPeoples();
+const BY_ID = new Map(ALL.map((p) => [p.id, p]));
+
+export const SPECIES: Record<string, SpeciesDef> = Object.fromEntries(
+  ALL.map((p) => [p.id, { name: p.name, talks: p.mind !== "beast", adultAge: p.body.adultAge, elderAge: p.body.elderAge, maxAge: p.body.maxAge, maxTier: p.body.maxTier, learnRate: p.body.learnRate }]),
+);
 export const SPECIES_IDS = Object.keys(SPECIES);
 
 export function speciesOf(id: string | undefined): SpeciesDef {
@@ -62,31 +134,30 @@ export function minTier(a: ItemTier, b: ItemTier): ItemTier {
   return ITEM_TIERS.indexOf(a) <= ITEM_TIERS.indexOf(b) ? a : b;
 }
 
-/**
- * Peoples and monsters (N54): the rest of the realm's species are data (`data/peoples/peoples.json`: body and life, mind, how they live,
- * where, their temperament and their stances toward other peoples), added to SPECIES so every rule that reads a species' ages reads theirs.
- */
-import { readFileSync as readPeoples } from "node:fs";
-export interface PeopleDef {
-  id: string;
-  name: string;
-  body: { adultAge: number; elderAge: number; maxAge: number; maxTier: string; learnRate: number };
-  mind: "beast" | "cunning" | "reasoning";
-  cleverShare: number;
-  living: "settled" | "nomadic" | "solitary" | "hoard" | "hive";
-  habitat: string[];
-  temperament: { aggression: number; greed: number };
-  culture: string;
-  stances: Record<string, number>;
-}
-export const PEOPLES: { peoples: PeopleDef[]; stances: Record<string, Record<string, number>> } = JSON.parse(readPeoples(new URL("../data/peoples/peoples.json", import.meta.url), "utf8"));
-for (const p of PEOPLES.peoples) {
-  if (SPECIES[p.id]) continue;
-  SPECIES[p.id] = { name: p.name, talks: p.mind !== "beast", adultAge: p.body.adultAge, elderAge: p.body.elderAge, maxAge: p.body.maxAge, maxTier: p.body.maxTier as ItemTier, learnRate: p.body.learnRate };
-}
+/** Every people and animal as data. */
+export const PEOPLES: readonly PeopleDef[] = ALL;
+export const peopleOf = (id: string): PeopleDef | undefined => BY_ID.get(id);
+/** The peoples who aren't plain animals (they have minds of their own, or a clever few). */
+export const peoplesNotBeasts = (): PeopleDef[] => ALL.filter((p) => p.living !== "wild");
+
 /** How one people sees another, -100..100 (both directions are kept: a dwarf's view of goblins, a goblin's of dwarves). */
 export function stanceOf(a: string, b: string): number {
   if (a === b) return 50;
-  return PEOPLES.stances[a]?.[b] ?? PEOPLES.peoples.find((p) => p.id === a)?.stances[b] ?? 0;
+  return BY_ID.get(a)?.stances[b] ?? 0;
 }
-export const peopleOf = (id: string): PeopleDef | undefined => PEOPLES.peoples.find((p) => p.id === id);
+
+/**
+ * A talker's view of the world as one of their people (N54 D1): how they speak, and what they think of humans and of their own kind, from
+ * the stances and temperament. A sentence for the persona's backstory; empty for humans.
+ */
+export function peopleView(id: string): string {
+  if (id === "human") return "";
+  const p = BY_ID.get(id);
+  if (!p) return "";
+  const a = p.name;
+  const toHumans = stanceOf(id, "human");
+  const humans = toHumans <= -40 ? "distrusts humans and expects the worst of them" : toHumans < 0 ? "is wary of humans" : toHumans >= 30 ? "likes humans well enough" : "has no quarrel with humans";
+  const own = p.temperament.sociability >= 0.7 ? "is fiercely loyal to their own kind" : p.temperament.sociability <= 0.3 ? "keeps apart even from their own kind" : "is proud of their own people";
+  const hated = Object.entries(p.stances).filter(([, v]) => v <= -60).map(([k]) => (BY_ID.get(k)?.name ?? k).replace(/^(an?|one of the) /, "")).sort();
+  return `As ${a}, they ${humans}, and ${own}${hated.length ? `; they hate ${hated.map((h) => (h.endsWith("folk") ? h : `${h}s`)).join(" and ")}` : ""}.${p.speech ? ` They speak ${p.speech}.` : ""}`;
+}

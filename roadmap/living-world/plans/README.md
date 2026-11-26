@@ -341,13 +341,13 @@ Every name the model invents goes through the invented-name check (`inventedWord
 3. The rest of Stage 2: [N30](n30-seasons-and-the-farming-year.md) (✅ built 2026-11-02) (regional weather; its food curve now comes from N26G), [N27](n27-the-wilds.md) (✅ built 2026-11-02), [N28](n28-fauna-and-flora.md) (✅ built 2026-11-02), N31 (✅ built 2026-11-02), N32 (✅ built 2026-11-03), N34 (✅ built 2026-11-03), N35 (✅ built 2026-11-03, with N26 Part C), N36 (✅ built 2026-11-03), N29 (✅ built 2026-11-03), with N20, N21, N23 and N24 where the plans need them.
 4. Then Stages 3–7 in order, minus what the pack already built (parts of N48 and N49 as N26J's stand-ins). Stop and play after each stage, write down what feels alive and what is noise, and change the next stage's plans from that before building it.
 
-**Order from 2026-11-16** (after the audit; the look comes first by the user's decision of 2026-11-04, so the simulation steps wait for it or run beside it as server-only work):
+**Order from 2026-11-16** (after the audit; the look came first by the user's decision of 2026-11-04 until the user stopped the Unity work on 2026-11-26):
 
-1. [G9](../../game/plans/g9-characters-face-body-plan.md) characters, then the rest of [G8](../../game/README.md#g8-the-unity-client). In hand.
+1. ⏹️ [G9](../../game/plans/g9-characters-face-body-plan.md) characters, then the rest of [G8](../../game/README.md#g8-the-unity-client). Stopped by the user on 2026-11-26; the plans stay, unbuilt.
 2. ✅ [N70](n70-society-in-play.md) society in play: fix `n55`, close the two dead ends, wire the player's actions, admin, bounds (built 2026-11-22). Next: a playtest of Stages 2–4, then N20 step 1.
-3. **Play** Stages 2–4 (the playtests that were skipped: playtest 2, Stage 2, Stage 3, N39's first hours by hand) and revise the plans for Stages 5–7 from it.
+3. **Play** (skipped for now by the user on 2026-11-26, who went on to step 5 without it) Stages 2–4 (the playtests that were skipped: playtest 2, Stage 2, Stage 3, N39's first hours by hand) and revise the plans for Stages 5–7 from it.
 4. [N20](n20-stories-drama-liveness.md) step 1 (causes on every event, the `withCause` scope) and [N24](n24-global-reporting.md) steps 2–3 (delivery to the player). N56, N58, N65 and N68 need them.
-5. Finish N54 and N55 against their plans, or cut the plans down to what was built and record why in the stage file.
+5. **In hand (2026-11-26).** Finish N54 and N55 against their plans, or cut the plans down to what was built and record why in the stage file.
 6. N56 → N59, then Stage 6, then Stage 7, with a play after each stage.
 
 The plans for N27–N68 were written before the slice was played. They are a good starting point, not a contract: if a playtest shows a phase is noise, cut it and record why in the stage file.

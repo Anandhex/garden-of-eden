@@ -1,0 +1,46 @@
+{
+  "id": "frost_giant",
+  "name": "a frost giant",
+  "body": {
+    "size": "huge",
+    "strength": 23,
+    "toughness": 20,
+    "adultAge": 30,
+    "elderAge": 200,
+    "maxAge": 350,
+    "maxTier": "S",
+    "learnRate": 0.5
+  },
+  "mind": "reasoning",
+  "cleverShare": 1,
+  "living": "settled",
+  "habitat": [
+    "hills"
+  ],
+  "climate": "cold",
+  "temperament": {
+    "aggression": 0.5,
+    "greed": 0.4,
+    "sociability": 0.4,
+    "xenophobia": 0.6
+  },
+  "culture": "highland",
+  "magic": "water",
+  "creature": "giant",
+  "sizeClass": 2,
+  "speech": "coldly, as one who has outlived kings",
+  "names": [
+    "Ymra",
+    "Thrymm",
+    "Hrimgerd",
+    "Kald"
+  ],
+  "economy": {
+    "breed": 0.4,
+    "farm": 1.0
+  },
+  "stances": {
+    "dwarf": -40,
+    "human": -10
+  }
+}

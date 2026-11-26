@@ -1,0 +1,42 @@
+{
+  "id": "ogre",
+  "name": "an ogre",
+  "body": {
+    "size": "large",
+    "strength": 18,
+    "toughness": 17,
+    "adultAge": 15,
+    "elderAge": 60,
+    "maxAge": 90,
+    "maxTier": "A",
+    "learnRate": 0.6
+  },
+  "mind": "beast",
+  "cleverShare": 0.03,
+  "living": "solitary",
+  "habitat": [
+    "hills",
+    "forest"
+  ],
+  "climate": "any",
+  "temperament": {
+    "aggression": 0.7,
+    "greed": 0.6,
+    "sociability": 0.2,
+    "xenophobia": 0.6
+  },
+  "culture": "highland",
+  "creature": "ogre",
+  "sizeClass": 2,
+  "names": [
+    "Grumbold",
+    "Haggra",
+    "Thud",
+    "Bolg",
+    "Murk"
+  ],
+  "stances": {
+    "goblin": 20,
+    "human": -40
+  }
+}

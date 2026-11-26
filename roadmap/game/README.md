@@ -4,7 +4,7 @@
 
 The playable game around the NPCs. G1 can run in parallel with the NPC track once N2 exists. G5 and G6 have build guides in [plans/](plans/); build them in that order, then the [48-day year migration](../living-world/plans/migration-2026-10-23-one-year-ageless-player.md) (✅ part A built 2026-10-23), then N40.
 
-**Where the track stands (audit, 2026-11-16):** G1, G5, G6 and G7 are built. On 2026-11-04 the user set the web looks aside ("not feeling it" with 2.5D) for a desktop client in real 3D, and that is the work in hand: [G8](#g8-the-unity-client), the Unity client, and [G9](#g9-characters-face-and-body), its characters. G2–G4 (game feel, performance, shipping) are still open and were written for the browser; they need a second look for a desktop build (see G8's list).
+**Where the track stands (audit, 2026-11-16):** G1, G5, G6 and G7 are built. On 2026-11-04 the user set the web looks aside ("not feeling it" with 2.5D) for a desktop client in real 3D, and that was the work in hand: [G8](#g8-the-unity-client), the Unity client, and [G9](#g9-characters-face-and-body), its characters. **The user stopped both on 2026-11-26.** The plans and the Unity project stay as they are; nothing more is built on them. G2–G4 (game feel, performance, shipping) are still open and were written for the browser; they need a second look for a desktop build (see G8's list).
 
 ---
 
@@ -145,7 +145,7 @@ Goal: the world in 2.5D, "HD-2D and isometric mixed": a lit diorama seen from a 
 
 ## G8: The Unity client
 
-**Status:** 🟡 In progress since 2026-11-04. **Art direction:** [plans/g8-art-direction.md](plans/g8-art-direction.md) (the one look everything follows). There is no build guide for the client itself; this section is its record.
+**Status:** ⏹️ Stopped 2026-11-26 (user); was in progress from 2026-11-04. **Art direction:** [plans/g8-art-direction.md](plans/g8-art-direction.md) (the one look everything follows). There is no build guide for the client itself; this section is its record.
 
 Goal: the game as a desktop app in soft stylised 3D (the user's reference: a stylised open world, smooth matte shading, no outlines), drawn by Unity from the same server. The game is called **Garden of Eden**.
 
@@ -178,7 +178,7 @@ Goal: the game as a desktop app in soft stylised 3D (the user's reference: a sty
 
 ## G9: Characters (face and body)
 
-**Status:** 🟡 Planned 2026-11-16; work package 0 of 9 nearly done. **Build guide:** [plans/g9-characters-face-body-plan.md](plans/g9-characters-face-body-plan.md).
+**Status:** ⏹️ Stopped 2026-11-26 (user). Planned 2026-11-16; work package 0 of 9 nearly done when stopped. **Build guide:** [plans/g9-characters-face-body-plan.md](plans/g9-characters-face-body-plan.md).
 
 Goal: our own townsfolk, built in Blender (`art3d/characters/`), that match the reference's style, proportions and render quality: one body on one Humanoid rig with blend shapes, and about thirty options each for hair, beards, brows, eyes, mouths, noses and ears, mixed by a hash of the person's id.
 
