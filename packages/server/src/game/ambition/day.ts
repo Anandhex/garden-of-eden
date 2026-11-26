@@ -224,12 +224,18 @@ export function ambitionDay(ctx: LifeCtx, step: Pick<SiteStep, "site"> & Partial
       }
 
       // ---- 6. Masters take apprentices ----
+      // Who already has an apprentice here: worked out once (a master only ever takes someone with no master, so no one loses theirs).
+      const teaching = new Set<string>();
+      for (const x of ids) {
+        const r = rows.get(x)!;
+        if (r.job === "apprentice" && r.master_id) teaching.add(r.master_id);
+      }
       for (const id of ids) {
         const m = rows.get(id)!;
         if (!grown(m) || m.shop === null || !isTrade(m.job) || m.away) continue;
-        if (ids.some((x) => rows.get(x)!.master_id === id && rows.get(x)!.job === "apprentice")) continue;
+        if (teaching.has(id)) continue;
         if (streamFor(realm.seed, "career", id, day, "apprentice")() >= dailyChance(0.6)) continue;
-        takeApprentice(m);
+        if (takeApprentice(m)) teaching.add(id);
       }
     });
     return out;
@@ -790,20 +796,21 @@ export function ambitionDay(ctx: LifeCtx, step: Pick<SiteStep, "site"> & Partial
     }
 
     /** A master takes on a young person of the place as their apprentice. */
-    function takeApprentice(m: PersonRow): void {
+    function takeApprentice(m: PersonRow): boolean {
       const sp = speciesOf(m.species);
       const young = ids
         .map((id) => rows.get(id)!)
         .filter((y) => grown(y) && !y.away && !y.master_id && (y.cls === "commoner" || y.cls === "artisan") && ["labourer", "porter", "washer"].includes(y.job) && ageFrom(y.born_day, day) <= sp.adultAge + 5)
         .sort((a, b) => seedFrom(`${a.id}:${day}`) - seedFrom(`${b.id}:${day}`) || byId(a, b));
       const y = young[0];
-      if (!y) return;
+      if (!y) return false;
       for (const j of careers.openJobs(y.id)) if (!j.job.startsWith("seat:") && !j.job.startsWith("land:")) careers.endJob(y.id, j.job, day);
       patch(y.id, { job: "apprentice", master_id: m.id, master: m.name, work: `front:${m.shop}`, skill: Math.max(1, y.skill ?? 0) });
       careers.startJob(y.id, JOBS.apprentice(m.job), site, day);
       careers.setAmbition({ who: y.id, kind: "master_trade", target: m.job, progress: 0, since: day, step: 0, ...AMBITION_DEFAULTS, strength: baseStrength(y) + 0.1, route: "custom" });
       out.picked++;
       emit({ kind: "apprenticed", actor: m.id, target: y.id, site, day, details: `${m.name} took ${y.name} on as an apprentice ${m.job}`, importance: 2 });
+      return true;
     }
 
     /** Land: coin put by buys a plot (a freehold on the place's fields), and in time tenants work it. */
