@@ -381,8 +381,10 @@ export class PeopleStore {
     const ids = new Set(
       (this.sql(`SELECT id FROM people WHERE site = ? AND death IS NOT NULL AND (${DEATH_DAY}) >= ?`).all(site, fromDay) as Array<{ id: string }>).map((r) => r.id),
     );
-    for (const r of this.dirty.values()) {
-      if (r.site === site && r.death !== null && dayOfDeath(r.death) >= fromDay) ids.add(r.id);
+    // Only this place's changed rows (`dirtyAt`), not every changed row in the realm.
+    for (const id of this.dirtyAt.get(site) ?? []) {
+      const r = this.dirty.get(id);
+      if (r && r.site === site && r.death !== null && dayOfDeath(r.death) >= fromDay) ids.add(r.id);
     }
     return [...ids].sort().map((id) => this.get(id)!).filter(Boolean);
   }
