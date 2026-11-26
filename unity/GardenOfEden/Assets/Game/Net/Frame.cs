@@ -22,7 +22,20 @@ namespace GardenOfEden.Net
         /// <summary>Null on the road, which has no edge.</summary>
         public double? w;
         public double? h;
+        /// <summary>The place's locale (G8 locality); null on the road, inside, or with no realm.</summary>
+        public Locale locale;
         public bool IsRoad => kind == "road";
+    }
+
+    /// <summary>How the place lives, for how its buildings are built: culture template, land, wealth 0..1, size.</summary>
+    public class Locale
+    {
+        public string culture;
+        /// <summary>valley, hills, forest, plains, coast or marsh.</summary>
+        public string terrain;
+        public double wealth;
+        /// <summary>hamlet, village, town, city or capital.</summary>
+        public string size;
     }
 
     public class Box

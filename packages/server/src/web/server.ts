@@ -13,6 +13,7 @@ import { enter, householdOf, interiorAt, lockedNow, peopleInside, search, stepIn
 import { floorTiles, furnitureOn, ITILE, type InsideView, type TileKind } from "@garden-of-eden/shared";
 import { doorOf } from "../view/frame.js";
 import { cultureAt } from "../game/culture/model.js";
+import { localeOf } from "../view/locale.js";
 import { marksToDraw } from "../game/marks/rules.js";
 import { animalsNear, huntAnimal, natureView, showToHerbalist, tameStray, useWildItem } from "../game/nature/wild.js";
 import { loadSpecies } from "../game/nature/species.js";
@@ -2053,6 +2054,7 @@ const viewHost: ViewHost = {
   },
   buildLook: () => (world.realm ? buildLookOf(world.realm, town.site()) : null),
   cultureStyle: () => (world.realm ? cultureAt(world.realm, town.site())?.template ?? null : null),
+  locale: () => localeOf(world.realm, town.site()),
   townSpecies: () => world.realm?.settlements[town.site()]?.species ?? null,
   placeName: (id) => world.realm?.settlements[id]?.name ?? id,
   realm: () => (world.realm ? realmView(world.realm, { here: town.site(), heard: (id) => town.siteHere().newsSeen.includes(id), sworn: store.people.swornByFaction() }) : null),
