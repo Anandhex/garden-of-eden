@@ -267,7 +267,9 @@ describe("N12 done when: 30 simulated days", () => {
       await town.background.drain();
     }
     // (The names beasts rise to are in the realm's lore: they are known names too.)
-    const known = knownNameWords(Object.values(allPersonas()), [world.player.name, ...Object.values(templates).map((t) => t.name), ...Object.values(BEAST_NAMES).flat()]);
+    // (And the realm's places: a talker who rose elsewhere, such as a clever resident of another people (N54 D1), is "of" their real place.)
+    const places = Object.values(world.realm?.settlements ?? {}).map((s) => s.name);
+    const known = knownNameWords(Object.values(allPersonas()), [world.player.name, ...Object.values(templates).map((t) => t.name), ...Object.values(BEAST_NAMES).flat(), ...places]);
     const grown = world.lore ?? [];
     expect(grown.length).toBeGreaterThan(0);
     for (const l of grown) expect(unknownNames(`${l.name}. ${l.text}`, known), l.text).toEqual([]);

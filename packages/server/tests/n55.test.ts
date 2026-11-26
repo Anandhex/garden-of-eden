@@ -57,8 +57,9 @@ describe("N55: a war fought by real people", () => {
     // The fallen: on the roll, with their battle; their deaths carry the war; families grieve and one blames the enemy.
     const roll = rollOfTheFallen(store, w.id);
     expect(roll.length).toBeGreaterThan(0);
-    for (const d of roll) expect(d.data.battle).toMatch(/^battle:/);
-    const fallen = roll.filter((d) => d.status === "fallen");
+    // A deserter hanged under a heavy levy (N55 step 3) is on the roll too, by execution, with no battle.
+    for (const d of roll) if (d.data.cause !== "execution") expect(d.data.battle).toMatch(/^battle:/);
+    const fallen = roll.filter((d) => d.status === "fallen" && d.data.cause !== "execution");
     const dead = fallen.map((d) => parseDeath(store.people.get(d.a!)!.death)!);
     for (const rec of dead) {
       expect(rec.war).toBe(w.id);

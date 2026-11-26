@@ -239,7 +239,8 @@ export function cleverRises(ctx: LifeCtx, id: string, day: number): string | nul
   fig.id = figId;
   fig.person = id;
   realm.figures[figId] = fig;
-  addDeed(fig, `came to live among the people of ${realm.settlements[r.site]?.name ?? "the realm"}`);
+  // No place name in the deed: deeds become lore, and lore names only names the realm's talk already knows (n12's invented-name check).
+  addDeed(fig, "came to live among folk not of their own kind");
   store.people.update(id, { figure: figId });
   return figId;
 }

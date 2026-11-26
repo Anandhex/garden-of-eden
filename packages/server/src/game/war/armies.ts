@@ -153,8 +153,8 @@ export function soldiersSiteDay(ctx: LifeCtx, step: Pick<SiteStep, "site" | "dea
       .filter((r) => r.gender === "male" && fightingAge(r, day) && (homes.get(r.home) ?? 0) > 1 && (r.cls !== "slave" || fodder) && !["noble", "royal", "clergy"].includes(r.cls))
       .sort((x, y) => Number(y.cls === "serf") - Number(x.cls === "serf") || unitFor(realm.seed, "levy", a.id, x.id) - unitFor(realm.seed, "levy", a.id, y.id));
     const want = (a.levy[site] ?? 0) - (a.raised[site] ?? 0);
-    // Who goes first (N55 step 1): one knight of the place's nobles, by duty; then the bold who volunteer (any free grown one, by bravery);
-    // then the levy by law for the rest.
+    // Who goes (N55 step 1): one knight of the place's nobles, by duty, and the bold who volunteer (any free grown one, by bravery), on
+    // the first call; and the levy by law.
     const first = a.raised[site] === undefined;
     // Not a household's only high-born one: the rest of it would be left in the noble quarter with no standing to live there.
     const highBorn = (h: number | null) => rows.filter((x) => x.home === h && ["gentry", "noble", "royal"].includes(x.cls)).length;
@@ -162,11 +162,11 @@ export function soldiersSiteDay(ctx: LifeCtx, step: Pick<SiteStep, "site" | "dea
     const bold = first
       ? rows.filter((r) => r !== knight && fightingAge(r, day) && (homes.get(r.home) ?? 0) > 1 && !["noble", "royal", "clergy", "slave"].includes(r.cls) && traitsOfRow(r).bravery > 0.8 && unitFor(realm.seed, "volunteer", a.id, r.id) < 0.5)
       : [];
-    const goers: Array<[PersonRow, SoldierData["how"]]> = [...(knight ? [[knight, "knight"] as [PersonRow, SoldierData["how"]]] : []), ...bold.map((r): [PersonRow, SoldierData["how"]] => [r, "volunteer"])];
-    const taken = new Set(goers.map(([r]) => r.id));
-    for (const r of pool) if (!taken.has(r.id)) goers.push([r, "levy"]);
-    const sent = goers.slice(0, want);
-    for (const [r, how] of sent) {
+    // The knight and volunteers go besides the levy (the law's due is still owed), at most half as many again.
+    const extra: Array<[PersonRow, SoldierData["how"]]> = [...(knight ? [[knight, "knight"] as [PersonRow, SoldierData["how"]]] : []), ...bold.map((r): [PersonRow, SoldierData["how"]] => [r, "volunteer"])].slice(0, Math.max(1, Math.floor(want / 2)));
+    const taken = new Set(extra.map(([r]) => r.id));
+    const sent = pool.filter((r) => !taken.has(r.id)).slice(0, want).map((r): [PersonRow, SoldierData["how"]] => [r, "levy"]);
+    for (const [r, how] of [...extra, ...sent]) {
       const rank: Rank = how === "knight" ? "sergeant" : how === "volunteer" ? "soldier" : "levy";
       store.people.update(r.id, { away: JSON.stringify({ journey: a.id, since: (day - 1) * 1440 + 8 * 60, purpose: "war", returns: true }) });
       store.careers.startJob(r.id, `soldier:${rank}`, site, day);
