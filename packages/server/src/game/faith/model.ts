@@ -67,13 +67,22 @@ export const peekFaith = (realm: Realm): FaithState | undefined => realm.society
 const DEITIES = ["the Lantern", "the Mother of Wells", "the Grey Judge", "the Sower", "the Hollow King", "the Twin Flames", "the Old Oak", "the Quiet Star"];
 
 /** A person's faith and devotion (0..1), or null before their place gives them one. */
+/** Cells read before (there are few: a faith and a devotion in hundredths), so a place's faith day does not parse every believer's. */
+const beliefs = new Map<string, { faith: string; devotion: number } | null>();
 export function beliefOf(r: Pick<PersonRow, "faith">): { faith: string; devotion: number } | null {
   if (!r.faith) return null;
-  try {
-    return JSON.parse(r.faith) as { faith: string; devotion: number };
-  } catch {
-    return null;
+  let b = beliefs.get(r.faith);
+  if (b === undefined) {
+    try {
+      b = JSON.parse(r.faith) as { faith: string; devotion: number };
+    } catch {
+      b = null;
+    }
+    if (beliefs.size > 20_000) beliefs.clear();
+    beliefs.set(r.faith, b);
   }
+  // A copy: callers may change it.
+  return b && { ...b };
 }
 export const beliefCell = (faith: string, devotion: number): string => JSON.stringify({ faith, devotion: Math.round(Math.max(0, Math.min(1, devotion)) * 100) / 100 });
 

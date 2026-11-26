@@ -181,7 +181,13 @@ namespace GardenOfEden.World
             Rect r = Footprint(b);
             float baseY = Mathf.Max(Mathf.Max(grid.GroundY(r.xMin, r.yMin), grid.GroundY(r.xMax, r.yMin)), Mathf.Max(grid.GroundY(r.xMin, r.yMax), grid.GroundY(r.xMax, r.yMax)));
             return b.id + "|" + b.x + "," + b.y + "," + b.w + "," + b.h + "|" + b.kind + "|" + b.template + "|" + b.style + "|" + b.color + "|" + (b.door == null ? "" : b.door.x + "," + b.door.y)
-                   + "|" + Mathf.RoundToInt(baseY * 10f) + "|" + (world.manifest != null);
+                   + "|" + Mathf.RoundToInt(baseY * 10f) + "|" + (world.manifest != null) + "|" + LocaleSig();
+        }
+
+        string LocaleSig()
+        {
+            var loc = world.Mirror?.map?.locale;
+            return loc == null ? "" : loc.terrain + "," + Mathf.RoundToInt((float)loc.wealth * 20f) + "," + loc.size;
         }
 
         static Rect Footprint(Building b)

@@ -83,13 +83,21 @@ export function officesSiteDay(realm: Realm, store: WorldStore, site: string, da
   leadersFromRows(realm, store, site, day);
 }
 
-/** Each faction's townsfolk members, counted from the people table (read only). */
+/**
+ * Each faction's townsfolk members, counted from the people table (read only). A faith's (an order's or a cult's) are its believers
+ * too: N50 keeps belief on the row (`faith`), not as a sworn faction, and a church is as big as its flock.
+ */
 export function countRows(realm: Realm, store: WorldStore): void {
   const sworn = store.people.swornByFaction();
+  const believers = store.people.believersByFaith();
   for (const f of Object.values(realm.factions)) if (f.dissolved === undefined) f.rows = 0;
   for (const [fac, n] of sworn) {
     const f = realm.factions[fac];
     if (f && f.dissolved === undefined) f.rows = n;
+  }
+  for (const [fac, n] of believers) {
+    const f = realm.factions[fac];
+    if (f && f.dissolved === undefined && (f.kind === "order" || f.kind === "cult")) f.rows = (f.rows ?? 0) + n;
   }
 }
 

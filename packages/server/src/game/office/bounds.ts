@@ -1,6 +1,6 @@
 import type { Realm } from "../realm/types.js";
 import { seasonDays } from "../weather.js";
-import { CHARTERED, memberCount, minMembers } from "./members.js";
+import { memberCount, minMembers, TRADE_MINIMUM } from "./members.js";
 import { leaders } from "./support.js";
 import { epithetOf } from "../realm/figures.js";
 import { TITLES, type TitleDef } from "../titles.js";
@@ -48,7 +48,7 @@ export function officeSample(realm: Realm, day: number): OfficeSample {
   const offices = Object.values(realm.offices ?? {});
   const coffers = offices.filter((o) => /^(treasurer|reeve|quartermaster)$/.test(o.post) && o.holder);
   const places = Object.values(realm.settlements).filter((s) => !s.way && !s.abandoned && !s.fallen);
-  const guilds = Object.values(realm.factions).filter((f) => f.dissolved === undefined && !f.charter && CHARTERED.has(f.kind));
+  const guilds = Object.values(realm.factions).filter((f) => f.dissolved === undefined && !f.charter && TRADE_MINIMUM.has(f.kind));
   const figs = Object.values(realm.figures).filter((f) => f.alive && f.role !== "beast");
   const lead = leaders(realm);
   const supports = lead.map((f) => f.support ?? 0);

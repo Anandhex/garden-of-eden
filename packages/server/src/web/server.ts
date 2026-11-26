@@ -13,6 +13,7 @@ import { playerWrites } from "../game/follow/letters.js";
 import { enter, householdOf, interiorAt, lockedNow, peopleInside, search, stepInside, take, takeable, type InsideCtx } from "../game/interior/inside.js";
 import { floorTiles, furnitureOn, ITILE, type InsideView, type TileKind } from "@garden-of-eden/shared";
 import { doorOf } from "../view/frame.js";
+import { localeOf } from "../view/locale.js";
 import { marksToDraw } from "../game/marks/rules.js";
 import { animalsNear, huntAnimal, natureView, showToHerbalist, tameStray, useWildItem } from "../game/nature/wild.js";
 import { loadSpecies } from "../game/nature/species.js";
@@ -2041,13 +2042,7 @@ const viewHost: ViewHost = {
   crowd: crowdHere,
   land: () => (world.realm ? landOf(world.realm) : null),
   roadData: () => (world.realm ? roadDataOf(world.realm) : null),
-  locale: () => {
-    if (!world.realm || town.road.onRoad() || world.player.area !== undefined) return null;
-    const site = world.realm.settlements[town.site()];
-    if (!site) return null;
-    const c = cultureAt(world.realm, site.id);
-    return { culture: c?.template ?? "", terrain: site.terrain, wealth: Math.max(0, Math.min(1, site.prosperity / 100)), size: site.kind, ...(c ? { colours: c.colours } : {}) };
-  },
+
   marks: () => (world.realm && !town.road.onRoad() && world.player.area === undefined ? marksToDraw(world.realm, town.store ?? null, town.site(), world.day, here()) : []),
   fieldStages: (x0, y0, w, h) => (world.realm && town.store ? fieldStagesIn(world.realm, town.store, x0, y0, w, h, world.day) : new Map()),
   commuters: (radius) =>
@@ -2060,6 +2055,7 @@ const viewHost: ViewHost = {
   },
   buildLook: () => (world.realm ? buildLookOf(world.realm, town.site()) : null),
   cultureStyle: () => (world.realm ? cultureAt(world.realm, town.site())?.template ?? null : null),
+  locale: () => localeOf(world.realm, town.site()),
   townSpecies: () => world.realm?.settlements[town.site()]?.species ?? null,
   placeName: (id) => world.realm?.settlements[id]?.name ?? id,
   realm: () => (world.realm ? realmView(world.realm, { here: town.site(), heard: (id) => town.siteHere().newsSeen.includes(id), sworn: store.people.swornByFaction() }) : null),

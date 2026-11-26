@@ -28,8 +28,6 @@ export interface ViewHost {
   roadData(): RoadData | null;
   /** The fields in a rectangle of the road world (N26G): each plot tile's stage (0..7 growing, 10+ a mark), keyed "x,y". */
   fieldStages?(x0: number, y0: number, w: number, h: number): Map<string, number>;
-  /** Who built the place the player is in and where (G10): its culture, land, wealth and size, for its buildings' style; null on the road or without a realm. */
-  locale?(): import("@garden-of-eden/shared/view").Locale | null;
   /** The marks on the place the player is in (N31): burned houses, scaffolding, graves, banners, empty stalls. */
   marks?(): import("@garden-of-eden/shared/view").Mark[];
   /** The journeys within `radius` tiles of the player on the road now. */
@@ -40,6 +38,8 @@ export interface ViewHost {
   buildLook?(): { style?: string; colours?: string[] } | null;
   /** The culture template id (highland, river, coastal...) of the place the player is in, for how its buildings are built; null when there is none. */
   cultureStyle?(): string | null;
+  /** The locale of the place the player is in (G8 locality): culture, land, wealth 0..1 and size; null when there is none. */
+  locale?(): import("./locale.js").Locale | null;
   /** The talking people (human, elf, dwarf, halfling, orc) of the place the player is in, for the bodies of its townsfolk; null: human. */
   townSpecies?(): string | null;
   /** A settlement's name by id. */

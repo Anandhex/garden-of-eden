@@ -16,7 +16,9 @@ export interface Bound {
 export function checkLifeBounds(realm: Realm, store: WorldStore): Bound[] {
   const s = lifeStats(store, realm.day);
   const within = (n: number, lo: number, hi: number) => n >= lo && n <= hi;
-  const living = Object.values(realm.settlements).filter((x) => !x.abandoned).reduce((a, x) => a + x.population, 0);
+  // Places whose people are rows: one never rolled (another people's home made after the roster, in a run with no town) keeps its number
+  // and has no roster to match (lifeDay).
+  const living = Object.values(realm.settlements).filter((x) => !x.abandoned && store.people.count(x.id) > 0).reduce((a, x) => a + x.population, 0);
   const rows = store.dumpTable("people").filter((r) => r.death === null && !realm.settlements[String(r.site)]?.abandoned).length;
   const capitals = Object.values(realm.settlements).filter((x) => x.kind === "capital");
   return [

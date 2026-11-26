@@ -176,7 +176,7 @@ export function soldiersSiteDay(ctx: LifeCtx, step: Pick<SiteStep, "site" | "dea
     for (const k of kin) learn(ctx, k.id, eventRef(e.id), { day, source: "told", accuracy: 1 });
   }
   // ---- Serving soldiers: battles survived, ranks; the peace sends them home ----
-  for (const sol of store.records.open<SoldierData>("soldier", (x) => x.site === site && x.data.status === "serving")) {
+  for (const sol of store.records.openAt<SoldierData>("soldier", site, (x) => x.data.status === "serving")) {
     const w = realm.wars.find((x) => x.id === sol.data.war);
     const r = sol.a ? store.people.get(sol.a) : null;
     if (!r || r.death !== null) {

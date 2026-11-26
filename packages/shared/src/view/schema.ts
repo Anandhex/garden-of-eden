@@ -123,8 +123,20 @@ export type Mark = z.infer<typeof MarkSchema>;
 export const ChatterSchema = z.object({ a: z.string(), b: z.string(), lines: z.tuple([z.string(), z.string()]), hot: z.boolean(), bow: z.boolean() });
 
 export const FrameSchema = z.object({
-  /** `locale` (G10): who built the place and where, so an adapter builds its buildings in the local style (shapes.ts). */
-  map: z.object({ id: z.string(), name: z.string(), kind: z.enum(["place", "road"]), w: z.number().nullable(), h: z.number().nullable(), locale: LocaleSchema.optional() }),
+  map: z.object({
+    id: z.string(),
+    name: z.string(),
+    kind: z.enum(["place", "road"]),
+    w: z.number().nullable(),
+    h: z.number().nullable(),
+    /**
+     * The place's locale (G8 locality), for how its buildings are built: its culture template, its land (valley, hills, forest,
+     * plains, coast, marsh), how well it lives (wealth 0..1, from prosperity), its size (hamlet..capital) and its culture's
+     * colours. Read by the Unity builder (LocaleArch.cs) and the web view (shapes.ts). Absent on the road, inside a building,
+     * or where there is no realm.
+     */
+    locale: LocaleSchema.optional(),
+  }),
   box: z.object({ x0: z.number(), y0: z.number(), x1: z.number(), y1: z.number() }),
   patches: z.array(PatchSchema).optional(),
   buildings: z.array(BuildingSchema).optional(),

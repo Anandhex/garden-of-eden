@@ -136,6 +136,8 @@ export class PeopleStore {
   private alive: Map<string, number> | null = null;
   /** Conditions written since the last flush (`site|day` to JSON), and the places' counters. */
   private readonly days = new Map<string, string>();
+  /** The days held in `days`, by place (a place's season reads its own, not every place's). */
+  private readonly daysOf = new Map<string, Set<number>>();
   private readonly seqs = new Map<string, SiteSeq>();
   private readonly seqDirty = new Set<string>();
   private pruneBefore = 0;
@@ -313,6 +315,30 @@ export class PeopleStore {
     return out;
   }
 
+  /**
+   * The living townsfolk who hold each faith (N50) but are not sworn to it as a faction, changes not yet written included (a faith's
+   * following is its believers: `countRows`). Risers are left out, as in `swornByFaction`. For views and the realm's count, not a step.
+   */
+  believersByFaith(): Map<string, number> {
+    const rows = this.sql("SELECT id, faction, json_extract(faith, '$.faith') AS belief FROM people WHERE faith IS NOT NULL AND death IS NULL AND figure IS NULL").all() as Array<{ id: string; faction: string | null; belief: string | null }>;
+    const of = new Map<string, string>();
+    for (const r of rows) if (r.belief && r.belief !== r.faction) of.set(r.id, r.belief);
+    for (const r of this.dirty.values()) {
+      of.delete(r.id);
+      if (r.death !== null || r.figure !== null || !r.faith) continue;
+      let belief: string | undefined;
+      try {
+        belief = (JSON.parse(r.faith) as { faith?: string }).faith;
+      } catch {
+        belief = undefined;
+      }
+      if (belief && belief !== r.faction) of.set(r.id, belief);
+    }
+    const out = new Map<string, number>();
+    for (const faith of of.values()) out.set(faith, (out.get(faith) ?? 0) + 1);
+    return out;
+  }
+
   /** The living townsfolk sworn to a faction (N69), changes not yet written included; risers are left out (they count as figures). */
   ofFaction(faction: string): PersonRow[] {
     const ids = new Set((this.sql("SELECT id FROM people WHERE faction = ? AND death IS NULL").all(faction) as Array<{ id: string }>).map((r) => r.id));
@@ -325,7 +351,10 @@ export class PeopleStore {
 
   /** The dead of a place who died on or after `fromDay` (N69: the families of a venture's dead), changes not yet written included. */
   diedAt(site: string, fromDay: number): PersonRow[] {
-    const ids = new Set((this.sql("SELECT id, death FROM people WHERE site = ? AND death IS NOT NULL").all(site) as Array<{ id: string; death: string }>).filter((r) => dayOfDeath(r.death) >= fromDay).map((r) => r.id));
+    // The day is read in the file (a place's dead pile up over the years, and each was parsed here every day).
+    const ids = new Set(
+      (this.sql("SELECT id FROM people WHERE site = ? AND death IS NOT NULL AND (CASE WHEN json_valid(death) THEN COALESCE(json_extract(death, '$.day'), -1) ELSE -1 END) >= ?").all(site, fromDay) as Array<{ id: string }>).map((r) => r.id),
+    );
     for (const r of this.dirty.values()) {
       if (r.site === site && r.death !== null && dayOfDeath(r.death) >= fromDay) ids.add(r.id);
     }
@@ -368,6 +397,7 @@ export class PeopleStore {
     this.fresh.clear();
     this.dirtyAt.clear();
     this.days.clear();
+    this.daysOf.clear();
     this.seqDirty.clear();
     this.pruneBefore = 0;
     return rows.length;
@@ -425,6 +455,9 @@ export class PeopleStore {
   /** Write a place's conditions for a day. Held until `flush`. */
   putSiteDay(site: string, day: number, data: unknown): void {
     this.days.set(`${site}|${day}`, JSON.stringify(data));
+    let held = this.daysOf.get(site);
+    if (!held) this.daysOf.set(site, (held = new Set()));
+    held.add(day);
   }
 
   /** A place's conditions on a day, or null if none were written (or they were pruned). */
@@ -439,10 +472,7 @@ export class PeopleStore {
   siteDays<T>(site: string, from = 0): Array<{ day: number; data: T }> {
     const rows = this.sql("SELECT day, data FROM site_days WHERE site = ? AND day >= ? ORDER BY day").all(site, from) as Array<{ day: number; data: string }>;
     const out = new Map(rows.map((r) => [r.day, JSON.parse(r.data) as T]));
-    for (const [key, data] of this.days) {
-      const at = key.lastIndexOf("|");
-      if (key.slice(0, at) === site && Number(key.slice(at + 1)) >= from) out.set(Number(key.slice(at + 1)), JSON.parse(data) as T);
-    }
+    for (const d of this.daysOf.get(site) ?? []) if (d >= from) out.set(d, JSON.parse(this.days.get(`${site}|${d}`)!) as T);
     return [...out].sort((a, b) => a[0] - b[0]).map(([day, data]) => ({ day, data }));
   }
 
@@ -450,6 +480,7 @@ export class PeopleStore {
   pruneSiteDays(day: number): void {
     this.pruneBefore = Math.max(this.pruneBefore, day);
     for (const key of [...this.days.keys()]) if (Number(key.slice(key.lastIndexOf("|") + 1)) < day) this.days.delete(key);
+    for (const held of this.daysOf.values()) for (const d of held) if (d < day) held.delete(d);
   }
 
   /** The counters of a place; made from its people the first time. */
@@ -517,6 +548,7 @@ export class PeopleStore {
     this.alive = null;
     this.sites.clear();
     this.days.clear();
+    this.daysOf.clear();
     this.seqs.clear();
     this.seqDirty.clear();
     this.pruneBefore = 0;

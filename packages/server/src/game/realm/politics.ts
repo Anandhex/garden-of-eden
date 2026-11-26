@@ -124,7 +124,13 @@ export function successionDay(realm: Realm, day: number, rng: Rng): void {
   for (const s of Object.values(realm.settlements)) {
     if (s.abandoned || (s.leader && realm.figures[s.leader]?.alive)) continue;
     const old = s.leader ? realm.figures[s.leader] : undefined;
-    const candidates = residents(realm, s.id).filter((f) => !f.talks && f.life.stage !== "young" && !["bandit", "bandit chief", "beast"].includes(f.role));
+    // Not someone whose own faction would be left with nobody named in it: taking the seat swears them to the crown (`install`), and the
+    // church they alone kept (a new people's priest, say) would be dissolved for it (N22's faiths-persist).
+    const keepsAlone = (f: Figure) => {
+      const fac = f.faction ? realm.factions[f.faction] : undefined;
+      return !!fac && fac.kind !== "crown" && fac.dissolved === undefined && fac.members.filter((m) => m !== f.id && realm.figures[m]?.alive).length === 0;
+    };
+    const candidates = residents(realm, s.id).filter((f) => !f.talks && f.life.stage !== "young" && !["bandit", "bandit chief", "beast"].includes(f.role) && !keepsAlone(f));
     const score = (f: Figure) => standing(f) + (old && f.parents?.includes(old.id) ? 30 : 0);
     candidates.sort((a, b) => score(b) - score(a));
     let heir = candidates[0];

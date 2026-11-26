@@ -541,10 +541,11 @@ export function buildFrame(f: FrameInput): Frame {
     prompt = { text: `E: talk to ${near.talker.name}`, target: near.talker.id, x: near.talker.x, y: near.talker.y, tone: "talk" };
   }
 
+  // ---- the place's locale (G8 locality): how its land, wealth and size change how its buildings are built ----
+  const locale = s.road || s.inside ? null : host.locale?.() ?? null;
+
   // ---- what there is to hear (N29): facts only; the adapter's soundscape() decides the mix ----
   const sound = soundOf(s, sim, pos, land);
-  // ---- the place's regional style (G10): only for a place's own buildings, not the road or an interior ----
-  const locale = s.road || s.inside ? null : (host.locale?.() ?? null);
 
   return {
     sound,

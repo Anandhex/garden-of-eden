@@ -18,6 +18,9 @@ export interface KnowledgeRow {
   variant: number;
 }
 
+/** People whose knowledge is held in memory at most (a person knows at most a couple of dozen things: KNOWLEDGE_CAP). */
+const HOLD_KNOWERS = 80_000;
+
 export class KnowledgeStore {
   private readonly statements = new Map<string, StatementSync>();
   /** Everyone who has a row (kept up to date), so a place's day looks at its knowers only. */
@@ -54,7 +57,9 @@ export class KnowledgeStore {
   rowsOf(who: string): readonly KnowledgeRow[] {
     let rows = this.held.get(who);
     if (!rows) {
-      if (this.held.size > 20000) this.held.clear();
+      // Held for everyone a realm has: at 20,000 a whole realm with everyone living (25,000 and more) emptied it over and over, and read
+      // its people's knowledge back one by one every day.
+      if (this.held.size > HOLD_KNOWERS) this.held.clear();
       rows = this.sql("SELECT who, ref, learned_day, source, accuracy, variant FROM knowledge WHERE who = ? ORDER BY ref").all(who) as unknown as KnowledgeRow[];
       this.held.set(who, rows);
     }
