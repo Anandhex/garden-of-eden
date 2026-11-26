@@ -32,7 +32,7 @@ Other peoples and monsters with settlements and kingdoms of their own, armies of
 
 ## N55: Armies, soldiers and the war dead
 
-**Status:** 🟨 Mostly built 2026-11-26 (`game/war/armies.ts`, `game/war/campaign.ts`; `ARMIES=off`): armies march, camp, eat and besiege; knights and volunteers go before the levy; battles make heroes, deserters and prisoners; officers rise to figures. Not built: mercenaries, wages and loot, pensions, war graves and memorials, disease in camp, armies drawn on the map. The full scenario test (`n55.test.ts`) is slow (11 to 16 minutes under load); the fast tests are in `n55-campaign.test.ts`.
+**Status:** 🟨 Mostly built 2026-11-26 (`game/war/armies.ts`, `game/war/campaign.ts`; `ARMIES=off`): armies march, camp, eat and besiege; knights and volunteers go before the levy; battles make heroes, deserters and prisoners; officers rise to figures. Not built: mercenaries, wages and loot, pensions, war graves and memorials, disease in camp, armies drawn on the map. The full scenario test is `n55.test.ts` (about half a minute); the realm-only tests are in `n55-campaign.test.ts`.
 
 **Implementation plan:** [plans/n55-armies-soldiers-and-the-war-dead.md](plans/n55-armies-soldiers-and-the-war-dead.md)
 
