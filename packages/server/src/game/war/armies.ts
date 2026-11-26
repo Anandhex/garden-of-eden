@@ -7,7 +7,6 @@ import { unitFor } from "../dice.js";
 import { learn } from "../gossip/knowledge.js";
 import { eventRef } from "../gossip/refs.js";
 import { parseDeath } from "../people/death.js";
-import { killPerson } from "../people/index.js";
 import { traitsOfRow } from "../people/traits.js";
 import { addDeed, makeFigure } from "../realm/figures.js";
 import { recordLifeEvent } from "../people/events.js";
@@ -332,7 +331,10 @@ function deserts(ctx: LifeCtx, sol: Rec<SoldierData>, r: PersonRow, day: number,
   const k = realm.settlements[site]?.kingdom;
   const caught = unitFor(realm.seed, "deserter-caught", r.id, day) < 0.3;
   if (caught && k && policyAt(realm, site, "levy", day) === "heavy") {
-    killPerson(realm, store, r.id, { cause: "execution", day, note: "hanged for desertion", war: sol.data.war, ...(armySide(realm, sol) ? { side: armySide(realm, sol)! } : {}) });
+    // Marked dead here, as killPerson does (not imported: people/index.js would close an import cycle through the schedule).
+    store.people.update(r.id, { death: JSON.stringify({ cause: "execution", day, site, note: "hanged for desertion", war: sol.data.war, ...(armySide(realm, sol) ? { side: armySide(realm, sol)! } : {}) }), expecting: null });
+    const spouse = r.spouse ? store.people.get(r.spouse) : null;
+    if (spouse && spouse.death === null) store.people.update(spouse.id, { spouse: null });
     store.records.put<WarDeadData>({ id: `wardead:${r.id}`, kind: "war_dead", site, a: r.id, b: sol.data.war, since: day, status: "fallen", ended: null, data: { war: sol.data.war, battle: "", side: armySide(realm, sol) ?? "", rank: sol.data.rank, day, cause: "execution", home: site, name: r.name } });
     recordLifeEvent(realm, store, { kind: "executed", actor: r.id, site, day, key: `${r.id}:hanged`, details: `${r.name} was hanged for deserting the army`, importance: 5 });
     out.fallen.push(r.id);

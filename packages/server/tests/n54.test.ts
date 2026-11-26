@@ -168,12 +168,13 @@ describe("N54 Part B: the realm generates its peoples", () => {
     expect(realm.treaties.some((t) => t.kind === "trade" && t.a === `s:${band.id}`)).toBe(true);
   });
 
-  it("other peoples' places live by their own lights: goblins farm less than humans would on the same land (B3)", () => {
+  it("other peoples' places live by their own lights: goblins, with their fungus beds under the hill, get more from the same land than humans would, and breed faster (B3)", () => {
     const realm = generateRealm(1, 1);
     const st = generatePeoples(realm, 1)!;
     const warren = realm.settlements[st.warren!]!;
     const asHumans = foodRatio(realm, { ...warren, species: undefined }, 10);
-    expect(foodRatio(realm, warren, 10)).toBeLessThan(asHumans);
+    // Goblins and kobolds farm 1.1 (was under 1: their hill warrens starved every winter on seeds 1 and 2).
+    expect(foodRatio(realm, warren, 10)).toBeGreaterThan(asHumans);
     expect(peopleOf("goblin")!.economy!.breed).toBeGreaterThan(1);
     expect(peopleOf("elf")!.economy!.breed).toBeLessThan(1);
   });
