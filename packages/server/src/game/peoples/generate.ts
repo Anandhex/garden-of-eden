@@ -38,6 +38,13 @@ export function peoplesOf(realm: Realm): PeoplesState | undefined {
   return realm.society?.peoples as PeoplesState | undefined;
 }
 
+/**
+ * The fields, herds and pens every place of a kind starts with (as a human place of the kind does, realm/generate.ts). Without them a
+ * people's home makes less food than it eats: the orc hold, on hills, with no roads for a grain caravan and no coin to buy grain, went
+ * hungry from its first year and never recovered (N22's food-band).
+ */
+const FARMS: Record<Settlement["kind"], number> = { capital: 3, city: 2, town: 2, village: 1, hamlet: 1 };
+
 function place(realm: Realm, o: { id: string; name: string; kind: Settlement["kind"]; species: string; pos: { x: number; y: number }; terrain: Terrain; population: number; kingdom?: string | null; buildings?: Settlement["buildings"] }): Settlement {
   const s: Settlement = {
     id: o.id,
@@ -53,7 +60,7 @@ function place(realm: Realm, o: { id: string; name: string; kind: Settlement["ki
     prosperity: 35,
     food: 55,
     treasury: 0,
-    buildings: o.buildings ?? {},
+    buildings: { farms: FARMS[o.kind], ...o.buildings },
     project: null,
     taxRate: 0,
     arrears: 0,

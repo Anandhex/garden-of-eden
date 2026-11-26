@@ -12,6 +12,13 @@ export function memberCount(realm: Realm, fac: Pick<RealmFaction, "members" | "r
 /** Factions that must be chartered and must keep a minimum: guilds, associations, orders and cults. */
 export const CHARTERED: ReadonlySet<FactionKind> = new Set(["guild", "association", "order", "cult"]);
 
+/**
+ * Of those, the ones that fold when under the minimum for a season: guilds and associations, whose members are sworn tradesfolk. A faith
+ * (order or cult) is held by belief (N50): it ends when nobody is left in it (factionsDay), not for want of three sworn members, or the
+ * realm's churches would be dissolved and founded again every season.
+ */
+export const TRADE_MINIMUM: ReadonlySet<FactionKind> = new Set(["guild", "association"]);
+
 /** Members a guild-like faction needs (decision 5): three, and one more for each size of its seat above a village. */
 export function minMembers(realm: Realm, fac: Pick<RealmFaction, "kind" | "seat">): number {
   if (fac.kind === "crown") return 0;

@@ -82,7 +82,7 @@ export function deliverNews(realm: Realm, world: WorldSnapshot & SiteWorld, site
   if (realmLore.length > KEEP_LORE) {
     const gone = new Set(realmLore.slice(0, realmLore.length - KEEP_LORE).map((e) => e.id));
     world.lore = (world.lore ?? []).filter((e) => !gone.has(e.id));
-    setDynamicLore(world.lore);
+    setDynamicLore(world.lore, world);
     for (const l of listeners) for (const id of gone) delete l.state.learned[id];
     for (const s of Object.values(world.sites ?? {})) s.recentEvents = s.recentEvents.filter((id) => !gone.has(id));
   }
@@ -139,7 +139,7 @@ export async function retellNews(llm: LLMProvider, realm: Realm, world: WorldSna
   const known = knownNameWords([], [...(n.names ?? []), ...(n.at ? [realm.settlements[n.at]?.name ?? ""] : [])]);
   if (unknownNames(out.text, known).length > 0) return false;
   entry.text = out.text.trim();
-  setDynamicLore(world.lore);
+  setDynamicLore(world.lore, world);
   return true;
 }
 

@@ -586,7 +586,7 @@ export function societyView(h: SocietyHost, npcIds: string[]): SocietyView | nul
       }
     }
     if (config.society.trials) {
-      const cases = store.records.open<CaseData>("case", (x) => x.site === site && x.data.accused !== "player");
+      const cases = store.records.openAt<CaseData>("case", site, (x) => x.data.accused !== "player");
       if (cases.length > 0) place.push({ text: `Before ${name}'s court (next sitting day ${nextCourtDay(realm.seed, site, day)}): ${cases.slice(0, 6).map((x) => `${store.people.get(x.data.accused)?.name ?? "someone"} for ${crimes()[x.data.crime]?.words ?? x.data.crime}`).join("; ")}.` });
       const cells = store.records.open<{ until: number; why: string }>("jail", (j) => j.site === site && j.data.until > day);
       for (const j of cells.slice(0, 6)) {
@@ -611,7 +611,7 @@ export function societyView(h: SocietyHost, npcIds: string[]): SocietyView | nul
       const a = k ? peekArmies(realm).find((x) => x.party === `k:${k}` && x.status !== "disbanded") : undefined;
       if (a && k) {
         const w = realm.wars.find((x) => x.id === a.war);
-        const levied = store.records.list<SoldierData>("soldier", (s) => s.site === site && s.data.war === a.war).length;
+        const levied = store.records.listAt<SoldierData>("soldier", site, (s) => s.data.war === a.war).length;
         place.push({ text: `${realm.kingdoms[k]?.name ?? "The crown"} is at war${w ? ` (${w.cause})` : ""}. ${name} owes ${a.levy[site] ?? 0} to the levy and has sent ${levied}.`, actions: [btn("enlist", "Enlist", "enlist", { enabled: !held && !army, why: army ? "You're already on the roll" : "A soldier, who rises with the battles they live through", danger: true })] });
       }
     }

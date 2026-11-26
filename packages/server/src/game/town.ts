@@ -43,7 +43,7 @@ import { familyNight, familyOf } from "./family.js";
 import { loadTemplates, writeChildWords, type NpcTemplate, type Where } from "../npc/templates.js";
 import { type AreaId, currentPlan, type PlaceId } from "./schedule.js";
 import type { DirectorLogEntry } from "../director/validator.js";
-import { addLore, learnLore, worldLore, type Certainty } from "../npc/knowledge.js";
+import { addLore, learnLore, useWorldLore, worldLore, type Certainty } from "../npc/knowledge.js";
 import { bindActiveSite, creaturesOf, siteIdOf, siteState, type SiteState } from "./site.js";
 import { registerTalker, talkerIdsAt, talkerSite } from "./talkers.js";
 import { careerRole, talkerAmbition } from "./ambition/words.js";
@@ -986,6 +986,7 @@ export class Town {
   /** A traveller learns a piece of realm news as the carrier of it: it becomes lore, and they know it for certain. */
   learnNews(state: NpcAgent["state"], n: RealmNews, certainty: Certainty = "certain"): void {
     const id = realmNewsId(n);
+    useWorldLore(this.world);
     if (!worldLore().byId.has(id)) addLore(this.world, { id, kind: "news", name: shortName(n.text), aliases: [], keywords: ["news", "realm", "travellers"], text: n.text, event: true });
     learnLore(state, id, certainty);
   }
@@ -1529,6 +1530,8 @@ export class Town {
   }
 
   private passHoursNow(hours: number, { talkingTo, keep = [] }: { talkingTo?: string; keep?: string[] }): string[] {
+    // The running lore is this world's, not another Town's in the same process.
+    useWorldLore(this.world);
     const start = { day: this.world.day, hour: this.world.hour };
     const site = this.site();
     const log = passVillage(this.members(), this.world, hours, this.rngFor("village"), { ...(talkingTo ? { talkingTo } : {}), ...this.talkersChoose(talkingTo), partyFor: (id) => this.revengeParty(id) });

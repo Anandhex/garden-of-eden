@@ -47,6 +47,14 @@ export class CareerStore {
   private readonly statements = new Map<string, StatementSync>();
   private ambitions: Map<string, AmbitionRow> | null = null;
   private open: Map<string, JobRow[]> | null = null;
+  /**
+   * Open jobs by job, and the jobs sorted, so `holdersOf` and `seatHolders` read the few jobs they ask about instead of every open row
+   * in the realm (each place's ambitions ask several times a day: a whole-realm day spent a fifth of its time scanning).
+   */
+  private byJob: Map<string, Set<string>> | null = null;
+  private jobKeys: string[] | null = null;
+  /** `lastHeld` answers by job, forgotten when someone takes up or leaves that job (ambitions ask it for every seat, every day). */
+  private held_ = new Map<string, { ever: boolean; left: number | null }>();
 
   constructor(private readonly db: DatabaseSync, private readonly people: PeopleStore) {}
 
@@ -60,6 +68,9 @@ export class CareerStore {
   dropCache(): void {
     this.ambitions = null;
     this.open = null;
+    this.byJob = null;
+    this.jobKeys = null;
+    this.held_.clear();
   }
 
   transaction<T>(fn: () => T): T {
@@ -121,7 +132,16 @@ export class CareerStore {
   startJob(who: string, job: string, site: string, day: number): void {
     if (this.openJobs(who).some((j) => j.job === job)) return;
     this.sql("INSERT INTO jobs_held (who, job, site, from_day, to_day) VALUES (?, ?, ?, ?, NULL)").run(who, job, site, day);
+    this.held_.delete(job);
     this.openRows().set(who, [...this.openJobs(who), { who, job, site, from_day: day, to_day: null }]);
+    if (this.byJob) {
+      let holders = this.byJob.get(job);
+      if (!holders) {
+        this.byJob.set(job, (holders = new Set()));
+        this.jobKeys = null;
+      }
+      holders.add(who);
+    }
   }
 
   /** Leave a job (the row is kept, with the day they left). */
@@ -129,9 +149,32 @@ export class CareerStore {
     const now = this.openJobs(who);
     if (!now.some((j) => j.job === job)) return;
     this.sql("UPDATE jobs_held SET to_day = ? WHERE who = ? AND job = ? AND to_day IS NULL").run(day, who, job);
+    this.held_.delete(job);
     const left = now.filter((j) => j.job !== job);
     if (left.length > 0) this.openRows().set(who, left);
     else this.openRows().delete(who);
+    const holders = this.byJob?.get(job);
+    if (holders) {
+      holders.delete(who);
+      if (holders.size === 0) {
+        this.byJob!.delete(job);
+        this.jobKeys = null;
+      }
+    }
+  }
+
+  private jobIndex(): { byJob: Map<string, Set<string>>; keys: string[] } {
+    if (!this.byJob) {
+      this.byJob = new Map();
+      for (const [who, rows] of this.openRows()) for (const r of rows) {
+        let holders = this.byJob.get(r.job);
+        if (!holders) this.byJob.set(r.job, (holders = new Set()));
+        holders.add(who);
+      }
+      this.jobKeys = null;
+    }
+    this.jobKeys ??= [...this.byJob.keys()].sort();
+    return { byJob: this.byJob, keys: this.jobKeys };
   }
 
   /** A career, every row, oldest first. */
@@ -142,21 +185,37 @@ export class CareerStore {
   /** Who holds each seat of a place now (open `seat:` rows), by seat job. */
   seatHolders(site: string): Map<string, string> {
     const out = new Map<string, string>();
-    for (const [who, rows] of [...this.openRows()].sort((a, b) => (a[0] < b[0] ? -1 : 1))) for (const r of rows) if (r.site === site && r.job.startsWith("seat:") && !out.has(r.job)) out.set(r.job, who);
+    for (const { who, row } of this.holdersOf("seat:")) if (row.site === site && !out.has(row.job)) out.set(row.job, who);
     return out;
   }
 
   /** Everyone holding an open job that starts with `prefix` (a seat of a guild, a shop of a trade). */
   holdersOf(prefix: string): Array<{ who: string; row: JobRow }> {
+    const { byJob, keys } = this.jobIndex();
+    // The first job at or after the prefix; the jobs that start with it follow it in sorted order.
+    let lo = 0;
+    let hi = keys.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (keys[mid]! < prefix) lo = mid + 1;
+      else hi = mid;
+    }
+    const whos = new Set<string>();
+    for (let i = lo; i < keys.length && keys[i]!.startsWith(prefix); i++) for (const who of byJob.get(keys[i]!)!) whos.add(who);
+    // By who, and each one's jobs in the order they hold them (as a scan of every open row, sorted by who, gave them).
     const out: Array<{ who: string; row: JobRow }> = [];
-    for (const [who, rows] of this.openRows()) for (const r of rows) if (r.job.startsWith(prefix)) out.push({ who, row: r });
-    return out.sort((a, b) => (a.who < b.who ? -1 : 1));
+    for (const who of [...whos].sort()) for (const r of this.openJobs(who)) if (r.job.startsWith(prefix)) out.push({ who, row: r });
+    return out;
   }
 
   /** The last day a job was left (a seat falling vacant), or null if nobody ever left it; and whether anyone ever held it. */
   lastHeld(job: string): { ever: boolean; left: number | null } {
+    const hit = this.held_.get(job);
+    if (hit) return { ...hit };
     const r = this.sql("SELECT COUNT(*) AS n, MAX(to_day) AS left FROM jobs_held WHERE job = ?").get(job) as { n: number; left: number | null };
-    return { ever: Number(r.n) > 0, left: r.left === null ? null : Number(r.left) };
+    const out = { ever: Number(r.n) > 0, left: r.left === null ? null : Number(r.left) };
+    this.held_.set(job, out);
+    return { ...out };
   }
 
   /** Counts for the admin and the bounds. */

@@ -73,16 +73,16 @@ export const secretsAbout = (store: Pick<WorldStore, "records">, who: string): S
  */
 export function secretsHeldAt(store: Pick<WorldStore, "knowledge" | "records" | "people">, site: string): Map<string, KnownSecret[]> {
   const out = new Map<string, KnownSecret[]>();
-  const secrets = store.records.open<SecretData>("secret", (s) => s.site === site && !s.data.exposed);
+  const secrets = store.records.openAt<SecretData>("secret", site, (s) => !s.data.exposed);
   if (secrets.length === 0) return out;
-  const demands = store.records.open<DemandData>("demand", (d) => d.site === site);
+  const demands = store.records.openAt<DemandData>("demand", site);
   for (const s of secrets) {
     const about = store.people.get(s.data.about);
     if (!about || about.death !== null) continue;
     for (const k of store.knowledge.holders(secretRef(s.id))) {
       if (k.who === s.data.about || (s.data.others ?? []).includes(k.who) || k.who === "player") continue;
       const list = out.get(k.who) ?? [];
-      list.push({ id: s.id, about: about.id, aboutName: about.name, what: s.data.what, text: s.data.text, weight: s.data.weight, demanding: demands.some((d) => d.data.secret === s.id && d.data.by === k.who) });
+      list.push({ id: s.id, about: about.id, aboutName: about.name, what: s.data.what, text: s.data.text, weight: s.data.weight, demanding: demands.some((d) => d.data.secret === s.id && d.data.by === k.who), claimed: demands.some((d) => d.data.secret === s.id) });
       out.set(k.who, list);
     }
   }

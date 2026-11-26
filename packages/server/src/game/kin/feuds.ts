@@ -25,6 +25,13 @@ export const PASS_AT = 0.4;
 export const FLARES_A_YEAR = 1.5;
 /** How often the families of a place are looked at for new feuds (days). */
 export const FEUD_SCAN_DAYS = 6;
+/**
+ * How many of a family must hold grudges against the other for a feud: two, or this share of the family if more. In a village a family
+ * is a household or two, and two angry cousins are the family; in a capital a surname line is a hundred people, and two of them quarrelling
+ * with two of another line is a quarrel, not a feud (N22's feuds-bounded: 14 feuds open at once in a capital of 2,500).
+ */
+export const FEUD_SHARE = 0.05;
+const feudNeeds = (size: number): number => Math.max(2, Math.ceil(size * FEUD_SHARE));
 
 export interface FeudData {
   /** The two families: `<site>:<surname>`. */
@@ -116,9 +123,9 @@ export function feudsDay(ctx: LifeCtx, step: Pick<SiteStep, "site" | "grownUp" |
     }
     for (const [a, m] of [...holds].sort((x, y) => x[0].localeCompare(y[0]))) {
       for (const [b, who] of [...m].sort((x, y) => x[0].localeCompare(y[0]))) {
-        if (a > b || who.size < 2) continue;
+        if (a > b || who.size < feudNeeds(fam.get(a)?.length ?? 0)) continue;
         const back = holds.get(b)?.get(a);
-        if (!back || back.size < 2) continue;
+        if (!back || back.size < feudNeeds(fam.get(b)?.length ?? 0)) continue;
         const [x, y] = [a, b].sort() as [string, string];
         const id = `feud:${x}|${y}`;
         const have = store.records.get<FeudData>(id);
@@ -133,7 +140,7 @@ export function feudsDay(ctx: LifeCtx, step: Pick<SiteStep, "site" | "grownUp" |
 
   // ---- Flares, endings ----
   const wed = (step.marriages ?? []).map(([h, w]) => [famOf.get(h), famOf.get(w)] as const);
-  for (const f of store.records.open<FeudData>("feud", (x) => x.site === site)) {
+  for (const f of store.records.openAt<FeudData>("feud", site)) {
     const [fa, fb] = f.data.names;
     const A = fam.get(fa) ?? [];
     const B = fam.get(fb) ?? [];

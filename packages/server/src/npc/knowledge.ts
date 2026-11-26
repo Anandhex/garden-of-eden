@@ -93,6 +93,12 @@ let base: Lore | undefined;
 let cached: Lore | undefined;
 /** Lore that grew during play (the realm's places, news, the chronicle), kept in the world save. */
 let dynamic: LoreEntry[] = [];
+/**
+ * The world `dynamic` was taken from, if known. Two worlds in one process (tests, replays) each have their
+ * own grown lore: whichever is being played makes its own current first (`useWorldLore`), or one world's
+ * news would hide the other's and the same seed would play out differently.
+ */
+let owner: object | undefined;
 
 /** Use a different base lore (tests that load hand-written NPC files bring their own world file). `undefined`: the generic lore. */
 export function setBaseLore(lore?: Lore): void {
@@ -121,16 +127,23 @@ export function isBaseLore(id: string): boolean {
  * Use this world's grown lore (world.lore) on top of the base lore. Call on load and
  * whenever an entry is added. Entries that clash with the file's ids are ignored.
  */
-export function setDynamicLore(entries: LoreEntry[] | undefined): void {
+export function setDynamicLore(entries: LoreEntry[] | undefined, world?: object): void {
   dynamic = [...(entries ?? [])];
   cached = undefined;
+  owner = world;
+}
+
+/** Make this world's grown lore the running lore, unless it already is. */
+export function useWorldLore(world: { lore?: LoreEntry[] }): void {
+  if (owner !== world) setDynamicLore(world.lore, world);
 }
 
 /** Add one entry to a world's grown lore (and the running lore). Returns false if the id is taken. */
 export function addLore(world: { lore?: LoreEntry[] }, entry: LoreEntry): boolean {
+  useWorldLore(world);
   if (worldLore().byId.has(entry.id)) return false;
   (world.lore ??= []).push(entry);
-  setDynamicLore(world.lore);
+  setDynamicLore(world.lore, world);
   return true;
 }
 

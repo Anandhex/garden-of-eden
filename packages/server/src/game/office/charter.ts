@@ -6,7 +6,7 @@ import { transfer } from "../realm/ledger.js";
 import { realmNews, tally } from "../realm/log.js";
 import type { Realm, RealmFaction } from "../realm/types.js";
 import { seasonDays } from "../weather.js";
-import { CHARTERED, memberCount, minMembers } from "./members.js";
+import { CHARTERED, memberCount, minMembers, TRADE_MINIMUM } from "./members.js";
 import { addGlory } from "./prestige.js";
 
 /**
@@ -75,7 +75,7 @@ export function charterFailedLately(realm: Realm, seat: string, trade: string, d
 
 /** A chartered guild-like faction under its minimum: noted the day it fell under, folded after a season. Returns the faction it folded into, "dissolved", or null. */
 export function minimumDay(realm: Realm, fac: RealmFaction, day: number): RealmFaction | "dissolved" | null {
-  if (fac.dissolved !== undefined || fac.charter || !CHARTERED.has(fac.kind)) return null;
+  if (fac.dissolved !== undefined || fac.charter || !TRADE_MINIMUM.has(fac.kind)) return null;
   const n = memberCount(realm, fac);
   if (n >= minMembers(realm, fac)) {
     delete fac.belowMin;
